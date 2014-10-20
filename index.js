@@ -276,15 +276,21 @@
           dereferenceNextItem();
         }
         else {
-          resolvePointer(pointerPath, pointerValue, function(err, reference, alreadyResolved) {
+          resolvePointer(pointerPath, pointerValue, function(err, resolved, alreadyResolved) {
             if (err || alreadyResolved) {
-              obj[key] = reference;
+              // The pointer had already been resolved, so REPLACE the original object with the resolved object.
+              // This ensures that all references are replaced with the SAME object instance
+              obj[key] = resolved;
               dereferenceNextItem(err);
             }
             else {
               // Recursively dereference the resolved reference
-              dereference(reference, pointerPath, function(err, reference) {
-                obj[key] = reference;
+              dereference(resolved, pointerPath, function(err, resolved) {
+                // This is the first time this object has been resolved, so MERGE the resolved value with
+                // the original object (instead of replacing the original object).  This ensures that any
+                // other references that have already resolved to this object will be pointing at the
+                // correct object instance.
+                mergeResolvedReference(obj[key], resolved);
                 dereferenceNextItem(err);
               });
             }
@@ -310,6 +316,19 @@
     // Loop through each item in the object/array
     var keys = _.keys(obj);
     dereferenceNextItem();
+  }
+
+
+  /**
+   * Merges the resolved reference object with the original placeholder object that contains the `$ref` pointer.
+   * By merging the object rather than overwriting it, other pointers to the object will now correctly point to the dereferenced value.
+   * @param {object} source     the original placeholder object that contains the `$ref` pointer
+   * @param {object} resolved   the resolved value of the `$ref` pointer
+   */
+  function mergeResolvedReference(source, resolved) {
+    // Delete the $ref property FIRST, since the resolved value may also be a reference object
+    delete source.$ref;
+    _.merge(source, resolved);
   }
 
 
