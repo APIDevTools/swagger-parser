@@ -1,0 +1,34 @@
+{
+  "name": "swagger-parser",
+  "version": "1.0.0",
+  "description": "Parses a Swagger spec (in JSON or YAML format), validates it against the Swagger schema, and dereferences all $ref pointers",
+  "keywords": [
+    "json",
+    "swagger",
+    "spec",
+    "specification",
+    "schema",
+    "validate",
+    "validation",
+    "reference",
+    "dereference"
+  ],
+  "author": {
+    "name": "James Messinger",
+    "url": "http://jamesmessinger.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/BigstickCarpet/swagger-parser",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BigstickCarpet/swagger-parser.git"
+  },
+  "dependencies": {
+    "debug": "~2.0.0",
+    "js-yaml": "^3.2.2",
+    "lodash": "^2.4.1",
+    "swagger-schema-official": "*",
+    "tv4": "^1.1.0"
+  }
+}
