@@ -15,17 +15,21 @@ var parser = require("swagger-parser");
 
 // Parse a JSON or YAML Swagger spec
 parser.parse("path/to/my/swagger.yaml", function(err, swaggerObject) {
-  // This callback will be invoked once the Swagger spec is parsed, validated, and dereferenced.
+
+  // This callback will be invoked once the Swagger spec is 
+  // parsed, validated, and dereferenced.
   if (err) {
     console.error("Swagger Spec could not be parsed because: " + err.message);
     return;
   }
 
-  // If there's no error, then `swaggerObject` is a reference to the parsed SwaggerObject
+  // If there's no error, then `swaggerObject` is the parsed SwaggerObject
   // (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-)
   console.log(
-    "Your API title is " + swaggerObject.info.title + ", version " + swaggerObject.info.version
+    "Your API title is " + swaggerObject.info.title + 
+    ", version " + swaggerObject.info.version
   );
+  
 });
 
 ````
