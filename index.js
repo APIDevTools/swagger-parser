@@ -446,13 +446,13 @@
 
       // Get the file path, relative to the Swagger file's directory WITHOUT the extension
       var ext = path.extname(filePath);
-      var basefilePath = path.join(parseState.swaggerSourceDir, path.dirname(filePath), path.basename(filePath, ext));
+      var baseFilePath = path.join(parseState.swaggerSourceDir, path.dirname(filePath), path.basename(filePath, ext));
 
       // Try to find the file in JSON or YAML format
       _.each(['.yaml', '.json'], function(ext) {
-        if (fs.existsSync(basefilePath + ext)) {
+        if (fs.existsSync(baseFilePath + ext)) {
           // Parse the JSON or YAML file
-          data = parseFile(basefilePath + ext);
+          data = parseFile(baseFilePath + ext);
         }
       });
 
