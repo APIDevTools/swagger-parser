@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css"/>
+
+    <title>Swagger-Parser Tests</title>
+  </head>
+  <body>
+    <div id="mocha"></div>
+
+    <!-- Test Framework -->
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../node_modules/sinon/pkg/sinon.js"></script>
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script>mocha.setup('bdd')</script>
+
+
+    <!-- Swagger-Parser -->
+    <script src="../dist/swagger-parser.js"></script>
+
+
+    <!-- Swagger-Parser Tests -->
+    <script src="test-environment.js"></script>
+    <script src="specs/exports-spec.js"></script>
+    <script src="specs/defaults-spec.js"></script>
+
+
+    <script>
+      expect = chai.expect;
+      mocha.checkLeaks();
+      mocha.globals(['jQuery', 'Cordova', 'CDV_origSymbols', 'hacks']);
+      mocha.run();
+    </script>
+  </body>
+</html>
