@@ -31,14 +31,6 @@
    */
   module.exports = {
     /**
-     * The supported versions of the Swagger spec.
-     * The parser will throw an error if the Swagger version in the spec file does not match one of these values EXACTLY.
-     * Defaults to an array containing "2.0".
-     * @type {string[]}
-     */
-    supportedSwaggerVersions: ['2.0'],
-
-    /**
      * Determines whether the parser will allow Swagger specs in YAML format.
      * If set to `false`, then only JSON will be allowed.  Defaults to `true`.
      * @type {boolean}
@@ -105,7 +97,7 @@
     function dereferenceNextItem(err) {
       if (err || keys.length === 0) {
         // We're done!  Invoke the callback
-        return util.doCallback(callback, err, obj);
+        return util.doCallback(callback, err || null, obj);
       }
 
       var key = keys.pop();
@@ -304,8 +296,10 @@
   var util = require('./util');
 
 
-  module.exports = parse;
+  var supportedSwaggerVersions = ['2.0'];
 
+
+  module.exports = parse;
 
   /**
    * Parses the given Swagger file, validates it, and dereferences "$ref" pointers.
@@ -325,6 +319,11 @@
       callback = options;
       options = undefined;
     }
+
+    if (!_.isFunction(callback)) {
+      throw new Error('A callback function must be provided');
+    }
+
     options = _.merge({}, defaults, options);
 
     // Create a new state object for this parse operation
@@ -347,11 +346,11 @@
 
       // Validate the version number
       var version = swaggerObject.swagger;
-      if (options.supportedSwaggerVersions.indexOf(version) === -1) {
+      if (supportedSwaggerVersions.indexOf(version) === -1) {
         state.reset();
         return util.doCallback(callback, util.syntaxError(
           'Error in "%s". \nUnsupported Swagger version: %d. Swagger-Server only supports version %s',
-          swaggerFile, version, options.supportedSwaggerVersions.join(', ')));
+          swaggerFile, version, supportedSwaggerVersions.join(', ')));
       }
 
       // Dereference the SwaggerObject by resolving "$ref" pointers
@@ -459,7 +458,7 @@
      */
     file: function(filePath, callback) {
       function errorHandler(err) {
-        callback(util.syntaxError('Unable to read file "%s": \n%s', filePath, err.stack || err.message));
+        callback(util.syntaxError('Unable to read file "%s": \n%s \n\n%s', filePath, err.message, err.stack));
       }
 
       try {
@@ -511,7 +510,7 @@
       var href = urlPath;
 
       function errorHandler(err) {
-        callback(util.syntaxError('Unable to download file "%s": \n%s', href, err.stack || err.message));
+        callback(util.syntaxError('Unable to download file "%s": \n%s \n\n%s', href, err.message, err.stack));
       }
 
       try {
@@ -552,6 +551,10 @@
             catch (e) {
               errorHandler(e);
             }
+          });
+
+          res.on('error', function(e) {
+            errorHandler(e);
           });
         });
 

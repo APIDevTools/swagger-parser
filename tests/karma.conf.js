@@ -23,12 +23,16 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      // Third-Party libs
+      '../node_modules/lodash/dist/lodash.js',
+
       // Swagger-Parser
-      '../dist/swagger-parser.min.js',
-      { pattern: '../dist/swagger-parser.min.js.map', included: false },
+      '../dist/swagger-parser.js',
+      { pattern: '../dist/swagger-parser.js.map', included: false },
 
       // Swagger-Parser Tests
       'test-environment.js',
+      'files/parsed-files.js',
       'specs/*-spec.js',
 
       // Serve Swagger files upon request
