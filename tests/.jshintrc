@@ -80,11 +80,6 @@
     "globals": {
         "_"             : true,
         "env"           : true,
-        "parser"        : true,
-        "path"          : true,
-        "call"          : true,
-        "filePath"      : true,
-        "parsedFiles"   : true,
         "describe"      : true,
         "it"            : true,
         "beforeEach"    : true,

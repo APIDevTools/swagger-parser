@@ -17,21 +17,24 @@
     <script src="../node_modules/mocha/mocha.js"></script>
     <script>mocha.setup('bdd')</script>
 
-
     <!-- Swagger-Parser -->
     <script src="../dist/swagger-parser.js"></script>
 
+    <!-- Test Helpers -->
+    <script src="_test-environment.js"></script>
+    <script src="files/bad/invalid-parsed.js"></script>
+    <script src="files/minimal-parsed.js"></script>
+    <script src="files/shorthand-refs-parsed.js"></script>
+    <script src="files/shorthand-refs-dereferenced.js"></script>
 
     <!-- Swagger-Parser Tests -->
-    <script src="test-environment.js"></script>
-    <script src="files/parsed-files.js"></script>
     <script src="specs/exports-spec.js"></script>
     <script src="specs/defaults-spec.js"></script>
     <script src="specs/parse-spec.js"></script>
+    <script src="specs/dereference-spec.js"></script>
 
 
     <script>
-      expect = chai.expect;
       mocha.checkLeaks();
       mocha.globals(['jQuery', 'Cordova', 'CDV_origSymbols', 'hacks']);
       mocha.run();

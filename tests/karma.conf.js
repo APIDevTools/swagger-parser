@@ -31,12 +31,13 @@ module.exports = function(config) {
       { pattern: '../dist/swagger-parser.js.map', included: false },
 
       // Swagger-Parser Tests
-      'test-environment.js',
-      'files/parsed-files.js',
+      '_test-environment.js',
+      'files/**/*-parsed.js',
+      'files/**/*-dereferenced.js',
       'specs/*-spec.js',
 
       // Serve Swagger files upon request
-      { pattern: 'files/*', included: false }
+      { pattern: 'files/**', included: false }
     ],
 
 

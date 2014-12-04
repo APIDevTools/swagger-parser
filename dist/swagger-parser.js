@@ -3,8 +3,8 @@
   'use strict';
 
   /**
-   * @name swagger.parser
-   * @type {{parse: (parse), defaults: swagger.parser.defaults}}
+   * @name parser
+   * @type {{parse: (parse), defaults: defaults}}
    */
   module.exports = {
     parse: require('./lib/parse'),
@@ -27,7 +27,8 @@
 
   /**
    * The default parsing options.
-   * @name swagger.parser.defaults
+   * @name defaults
+   * @type {{parseYaml: boolean, dereferencePointers: boolean, dereferenceExternalPointers: boolean, validateSpec: boolean}}
    */
   module.exports = {
     /**
@@ -370,10 +371,11 @@
 
         if (err) {
           err = util.syntaxError('Error in "%s". \n%s', swaggerFile, err.message);
+          return util.doCallback(callback, err);
         }
 
         // We're done.  Invoke the callback.
-        util.doCallback(callback, err, swaggerObject);
+        util.doCallback(callback, null, swaggerObject);
       });
     });
   }
@@ -472,15 +474,16 @@
         _.each([ext, '.yaml', '.json'], function(ext) {
           if (fs.existsSync(baseFilePath + ext)) {
             found = true;
-            debug('Reading file "%s"', filePath);
+            var foundFilePath = baseFilePath + ext;
+            debug('Reading file "%s"', foundFilePath);
 
-            fs.readFile(baseFilePath + ext, {encoding: 'utf8'}, function(err, data) {
+            fs.readFile(foundFilePath, {encoding: 'utf8'}, function(err, data) {
               if (err) {
                 return errorHandler(err);
               }
 
               try {
-                callback(null, parseJsonOrYaml(data));
+                callback(null, parseJsonOrYaml(foundFilePath, data));
               }
               catch (e) {
                 errorHandler(e);
@@ -546,7 +549,7 @@
             }
 
             try {
-              callback(null, parseJsonOrYaml(body));
+              callback(null, parseJsonOrYaml(href, body));
             }
             catch (e) {
               errorHandler(e);
@@ -588,17 +591,18 @@
 
   /**
    * Parses a JSON or YAML string into a POJO.
+   * @param   {string} pathOrUrl
    * @param   {string} data
    * @returns {object}
    */
-  function parseJsonOrYaml(data) {
+  function parseJsonOrYaml(pathOrUrl, data) {
     var parsedObject;
     if (state.options.parseYaml) {
-      debug('    Parsing YAML');
+      debug('  Parsing YAML file "%s"', pathOrUrl);
       parsedObject = yaml.safeLoad(data);
     }
     else {
-      debug('    Parsing JSON');
+      debug('  Parsing JSON file "%s"', pathOrUrl);
       parsedObject = JSON.parse(data);
     }
 

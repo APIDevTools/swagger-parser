@@ -1,8 +1,8 @@
-swagger: "2.0"
+swagger: "3.0"
 info:
   version: "1.0.0"
-  title: minimal
-  description: Example of the bare minimum Swagger spec
+  title: newer version
+  description: This swagger spec is invalid because version 3.0 is not supported
 paths:
   /users:
     get:

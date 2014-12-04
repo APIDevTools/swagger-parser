@@ -23,7 +23,7 @@
   "scripts": {
     "build": "gulp build",
     "prepublish": "gulp prepublish",
-    "test": "mocha --ui bdd --recursive tests"
+    "test": "mocha --ui bdd --recursive tests && karma start tests/karma.conf.js --single-run"
   },
   "repository": {
     "type": "git",
@@ -47,6 +47,7 @@
     "karma": "^0.12.28",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^0.1.5",
+    "karma-cli": "0.0.4",
     "karma-firefox-launcher": "^0.1.3",
     "karma-ie-launcher": "^0.1.5",
     "karma-mocha": "^0.1.9",

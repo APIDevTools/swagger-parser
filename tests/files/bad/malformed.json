@@ -1,0 +1,13 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "description": "An example of an invalid JSON file",
+    "title": "malformed"
+  },
+  "paths": {
+    "/users": {
+      "get": Onoes! This is invalid!!
+    }
+  }
+}

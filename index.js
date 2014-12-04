@@ -2,8 +2,8 @@
   'use strict';
 
   /**
-   * @name swagger.parser
-   * @type {{parse: (parse), defaults: swagger.parser.defaults}}
+   * @name parser
+   * @type {{parse: (parse), defaults: defaults}}
    */
   module.exports = {
     parse: require('./lib/parse'),
