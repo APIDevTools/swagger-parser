@@ -15,6 +15,12 @@
 
 
     /**
+     * The global object (i.e. window or global)
+     */
+    global: null,
+
+
+    /**
      * The Swagger-Parser
      * @type {parser}
      */
@@ -55,8 +61,8 @@
      * Regex patterns to match error messages that are different across environments.
      */
     errorMessages: {
-      illegalCharacter: /(Unexpected token|unexpected character|Unexpected identifier)/,
-      endOfFile: /(Unexpected end of input|unexpected end of data|Unexpected EOF)/
+      illegalCharacter: /(Unexpected token|unexpected character|Unexpected identifier|Invalid character)/,
+      endOfFile: /(Unexpected end of input|unexpected end of data|Unexpected EOF|Syntax error)/
     },
 
 
@@ -75,6 +81,7 @@
 
   if (env.isNode) {
     // Set env properties for Node.js
+    env.global = global;
     env.parser = require('../index.js');
     env.__filename = __filename;
     env.__dirname = __dirname;
@@ -87,6 +94,7 @@
   }
   else {
     // Set env properties for browsers
+    env.global = window;
     env.parser = window.swagger.parser;
     env.__filename = document.querySelector('script[src*="test-environment.js"]').src;
     env.__dirname = env.__filename.substr(0, env.__filename.lastIndexOf('/'));

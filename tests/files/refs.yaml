@@ -1,0 +1,32 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: refs
+  description: This file includes all three types of $ref pointers (relative, shorhand, and external)
+paths:
+  /pets:
+    post:
+      parameters:
+        - name: pet
+          in: body
+          required: true
+          description: A document-relative $ref pointer
+          schema:
+            $ref: "#/definitions/pet"
+      responses:
+        200:
+          description: A shorthand $ref pointer
+          schema:
+            $ref: pet
+        default:
+          description: An external $ref pointer
+          schema:
+            $ref: http://./error.yaml
+definitions:
+  pet:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+        enum: [cat, dog, bird]

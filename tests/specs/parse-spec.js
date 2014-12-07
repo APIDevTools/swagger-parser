@@ -46,7 +46,7 @@ describe('env.parser.parse tests', function() {
       function(done) {
         env.parser.parse(env.files.getPath('nonexistent-file.json'), function(err, swagger) {
           expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.match(/Not Found/i);
+          expect(err.message).to.match(/(Not Found|ENOENT)/i);
           expect(swagger).to.be.undefined;
           done();
         });
@@ -55,11 +55,18 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if an invalid URL is given',
       function(done) {
+        var alreadyDone = false;
+
         env.parser.parse('http://nonexistent-server.com/nonexistent-file.json', function(err, swagger) {
-          expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.contain('not a valid Swagger spec');
-          expect(swagger).to.be.undefined;
-          done();
+          // NOTE: On some browsers, this callback function is called twice because two HTTP errors occur
+          if (!alreadyDone) {
+            alreadyDone = true;
+            expect(err).to.be.an.instanceOf(Error);
+            expect(err.message).to.contain('not a valid Swagger spec');
+            expect(swagger).to.be.undefined;
+
+            done();
+          }
         });
       }
     );
@@ -90,7 +97,7 @@ describe('env.parser.parse tests', function() {
       function(done) {
         env.parser.parse(env.files.getPath('bad/blank.yaml'), {parseYaml: false}, function(err, swagger) {
           expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.match(/(Unexpected end of input|unexpected end of data|Unexpected EOF)/);
+          expect(err.message).to.match(env.errorMessages.endOfFile);
           expect(swagger).to.be.undefined;
           done();
         });

@@ -1,0 +1,48 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: nested refs
+  description: This file includes nested $ref pointers
+paths:
+  /pets:
+    post:
+      parameters:
+        - name: pet
+          in: body
+          required: true
+          description: A shorthand reference to "pet"
+          schema:
+            $ref: pet
+      responses:
+        200:
+          description: A document-relative reference to "pet"
+          schema:
+            $ref: "#/definitions/pet"
+        404:
+          description: A nested reference to "pet"
+          schema:
+            $ref: error
+        500:
+          description: A nested reference to "error" and "pet"
+          schema:
+            $ref: errorWrapper
+definitions:
+  pet:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+        enum: [cat, dog, bird]
+  error:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+      pet:
+        $ref: pet
+  errorWrapper:
+    properties:
+      error:
+        $ref: "#/definitions/error"

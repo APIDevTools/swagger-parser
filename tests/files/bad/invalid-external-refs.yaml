@@ -1,0 +1,24 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: invalid external refs
+  description: This file has an invalid external $ref pointer
+paths:
+  /pets:
+    post:
+      parameters:
+        - name: pet
+          in: body
+          required: true
+          description: references the "pet.yaml" file
+          schema:
+            $ref: http://../pet.yaml
+      responses:
+        200:
+          description: Invalid reference
+          schema:
+            $ref: http://../doesnotexist.yaml
+        default:
+          description: references the "pet.yaml" file
+          schema:
+            $ref: http://../pet.yaml

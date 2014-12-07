@@ -1,0 +1,24 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: external refs
+  description: This file includes $refs to external files
+paths:
+  /pets:
+    post:
+      parameters:
+        - name: pet
+          in: body
+          required: true
+          description: references the "pet.yaml" file
+          schema:
+            $ref: http://./pet.yaml
+      responses:
+        200:
+          description: references the "pet.yaml" file
+          schema:
+            $ref: http://./pet.yaml
+        default:
+          description: references the "error.yaml" file
+          schema:
+            $ref: http://./error.yaml

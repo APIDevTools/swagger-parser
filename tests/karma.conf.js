@@ -34,7 +34,7 @@ module.exports = function(config) {
       '_test-environment.js',
       'files/**/*-parsed.js',
       'files/**/*-dereferenced.js',
-      'specs/*-spec.js',
+      'specs/**/*-spec.js',
 
       // Serve Swagger files upon request
       { pattern: 'files/**', included: false }

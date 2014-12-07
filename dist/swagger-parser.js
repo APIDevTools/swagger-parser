@@ -115,25 +115,20 @@
           dereferenceNextItem();
         }
         else {
-          resolvePointer(pointerPath, pointerValue, function(err, resolved, alreadyResolved) {
-            if (err || alreadyResolved) {
-              // The pointer had already been resolved, so REPLACE the original object with the resolved object.
-              // This ensures that all references are replaced with the SAME object instance
-              obj[key] = resolved;
-              dereferenceNextItem(err);
-            }
-            else {
-              // Recursively dereference the resolved reference
-              dereference(resolved, pointerPath, function(err, resolved) {
-                // This is the first time this object has been resolved, so MERGE the resolved value with
-                // the original object (instead of replacing the original object).  This ensures that any
-                // other references that have already resolved to this object will be pointing at the
-                // correct object instance.
-                mergeResolvedReference(obj[key], resolved);
+          resolvePointer(pointerPath, pointerValue, obj, key,
+            function(err, resolved, alreadyResolved) {
+              if (err || alreadyResolved) {
+                // The pointer had already been resolved, so no need to recurse over it
                 dereferenceNextItem(err);
-              });
+              }
+              else {
+                // Recursively dereference the resolved reference
+                dereference(resolved, pointerPath, function(err) {
+                  dereferenceNextItem(err);
+                });
+              }
             }
-          });
+          );
         }
       }
       else if (_.isPlainObject(value) || _.isArray(value)) {
@@ -159,25 +154,14 @@
 
 
   /**
-   * Merges the resolved reference object with the original placeholder object that contains the `$ref` pointer.
-   * By merging the object rather than overwriting it, other pointers to the object will now correctly point to the dereferenced value.
-   * @param {object} source     the original placeholder object that contains the `$ref` pointer
-   * @param {object} resolved   the resolved value of the `$ref` pointer
-   */
-  function mergeResolvedReference(source, resolved) {
-    // Delete the $ref property FIRST, since the resolved value may also be a reference object
-    delete source.$ref;
-    _.merge(source, resolved);
-  }
-
-
-  /**
    * Resolves a "$ref" pointer.
-   * @param {string} pointerPath
-   * @param {string} pointerValue
-   * @param {function} callback
+   * @param   {string}    pointerPath     the path to the $ref property. This is only used for logging purposes.
+   * @param   {string}    pointerValue    the pointer value to resolve
+   * @param   {object}    targetObj       the object that will be updated to include the resolved reference
+   * @param   {string}    targetProp      the property name on targetObj to be updated with the resolved reference
+   * @param   {function}  callback
    */
-  function resolvePointer(pointerPath, pointerValue, callback) {
+  function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, callback) {
     var resolved;
 
     if (_.isEmpty(pointerValue)) {
@@ -190,21 +174,15 @@
           pointerPath, pointerValue);
       }
 
+      if (!err) {
+        // Update the target object with the resolved value
+        targetObj[targetProp] = resolved;
+      }
+
       debug('Resolved %s => %s', pointerPath, pointerValue);
       util.doCallback(callback, err, resolved, alreadyResolved);
     }
 
-    function asyncCallback(err, data) {
-      if (err || data === undefined) {
-        err = util.syntaxError('Unable to resolve %s.  An error occurred while downloading JSON data from %s : \n%s',
-          pointerPath, pointerValue, err ? err.message : 'File Not Found');
-      }
-
-      // Now that we've finished downloaded the data,
-      // merge it into the placeholder object that was created earlier
-      data = _.merge(state.resolvedPointers[pointerValue], data);
-      return returnResolvedValue(err, data);
-    }
 
     try {
       // If we've already resolved this pointer, then return the resolved value
@@ -212,7 +190,7 @@
         return returnResolvedValue(null, state.resolvedPointers[pointerValue], true);
       }
 
-      if (isLocalPointer(pointerValue)) {
+      if (isInternalPointer(pointerValue)) {
         // "#/paths/users/responses/200" => "paths.users.responses.200"
         var deepProperty = pointerValue.substr(2).replace(/\//g, '.');
 
@@ -222,12 +200,24 @@
         returnResolvedValue(null, resolved);
       }
       else if (isExternalPointer(pointerValue)) {
-        // Set the resolved value to an empty object for now,
-        // to prevent multiple simultaneous downloads of the same URL.
-        // We'll populate the object once we finish downloading the file,
-        // so all the other references will end up pointing to the populated object.
+        // Set the resolved value to an empty object for now, so other reference pointers
+        // can point to this object.  Once we finish downloading the URL, we can update
+        // the empty object with the real data.
         state.resolvedPointers[pointerValue] = {};
-        read.fileOrUrl(pointerValue, asyncCallback);
+
+        read.fileOrUrl(pointerValue,
+          function(err, data) {
+            if (err || data === undefined) {
+              err = util.syntaxError('Unable to resolve %s.  An error occurred while downloading JSON data from %s : \n%s',
+                pointerPath, pointerValue, err ? err.message : 'File Not Found');
+            }
+
+            // Now that we've finished downloaded the data, update the empty object we created earlier
+            data = _.extend(state.resolvedPointers[pointerValue], data);
+
+            return returnResolvedValue(err, data);
+          }
+        );
       }
       else {
         // Swagger allows a shorthand reference syntax (e.g. "Product" => "#/definitions/Product")
@@ -246,7 +236,7 @@
    * Determines whether the given $ref pointer value references a path in Swagger spec.
    * @returns {boolean}
    */
-  function isLocalPointer(pointerValue) {
+  function isInternalPointer(pointerValue) {
     return pointerValue.indexOf('#/') === 0;
   }
 
@@ -415,7 +405,6 @@
   var util = require('./util');
   var debug = require('./debug');
 
-
   var read = module.exports = {
     /**
      * Reads a JSON or YAML file from the local filesystem or a remote URL and returns the parsed POJO.
@@ -440,7 +429,15 @@
 
           case 'http:':
           case 'https:':
-            read.url(parsedUrl.href, callback);
+            var relativePath = urlToRelativePath(parsedUrl);
+
+            if (isLocalFile(relativePath)) {
+              // The URL points to a local file, so bypass HTTP and read it directly
+              read.file(relativePath, callback);
+            }
+            else {
+              read.url(parsedUrl.href, callback);
+            }
             break;
 
           default:
@@ -464,39 +461,23 @@
       }
 
       try {
-        // Get the file path, relative to the Swagger file's directory WITHOUT the extension
-        var ext = path.extname(filePath);
-        var baseFilePath = path.resolve(state.swaggerSourceDir, path.dirname(filePath));
-        baseFilePath = path.join(baseFilePath, path.basename(filePath, ext));
+        // Get the file path, relative to the Swagger file's directory
+        filePath = path.resolve(state.swaggerSourceDir, filePath);
 
-        // Try to find the file in JSON or YAML format
-        var found = false;
-        _.each([ext, '.yaml', '.json'], function(ext) {
-          if (fs.existsSync(baseFilePath + ext)) {
-            found = true;
-            var foundFilePath = baseFilePath + ext;
-            debug('Reading file "%s"', foundFilePath);
+        debug('Reading file "%s"', filePath);
 
-            fs.readFile(foundFilePath, {encoding: 'utf8'}, function(err, data) {
-              if (err) {
-                return errorHandler(err);
-              }
+        fs.readFile(filePath, {encoding: 'utf8'}, function(err, data) {
+          if (err) {
+            return errorHandler(err);
+          }
 
-              try {
-                callback(null, parseJsonOrYaml(foundFilePath, data));
-              }
-              catch (e) {
-                errorHandler(e);
-              }
-            });
-
-            return false; // exit the _.each loop
+          try {
+            callback(null, parseJsonOrYaml(filePath, data));
+          }
+          catch (e) {
+            errorHandler(e);
           }
         });
-
-        if (!found) {
-          errorHandler(new Error('File not found (relative to the Swagger file)'));
-        }
       }
       catch (e) {
         errorHandler(e);
@@ -517,8 +498,15 @@
       }
 
       try {
+        // If the hostname is "." or "..", then treat it as a relative URL instead of absolute
+        // NOTE: This is an undocumented feature that's only intended for cross-platform testing. Don't rely on it!
+        urlPath = url.parse(urlPath);
+        if (urlPath.host === '.' || urlPath.host === '..') {
+          urlPath = urlToRelativePath(urlPath);
+        }
+
         // Resolve the url, relative to the Swagger file
-        urlPath = url.parse(url.resolve(state.swaggerSourceDir, urlPath));
+        urlPath = url.parse(url.resolve(state.swaggerSourceDir + '/', urlPath));
         href = urlPath.href;
 
         var options = {
@@ -586,6 +574,31 @@
    */
   function isBrowser() {
     return !_.isFunction(fs.readFile);
+  }
+
+
+  /**
+   * Return the equivalent relative file path for a given url.
+   */
+  function urlToRelativePath(parsedUrl) {
+    if (parsedUrl.host === '.' || parsedUrl.host === '..') {
+      // "http://../../file.yaml" => "../../file.yaml"
+      return parsedUrl.href.substr(parsedUrl.protocol.length + 2);
+    }
+
+    // "http://localhost/folder/subfolder/file.yaml" => "folder/subfolder/file.yaml"
+    return parsedUrl.pathname;
+  }
+
+
+  /**
+   * Determines whether the given path points to a local file that exists.
+   * @returns {boolean}
+   */
+  function isLocalFile(filePath) {
+    // Resolve the path, relative to the Swagger file
+    filePath = path.resolve(state.swaggerSourceDir, filePath);
+    return fs.existsSync(filePath);
   }
 
 
