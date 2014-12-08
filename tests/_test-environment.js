@@ -61,8 +61,8 @@
      * Regex patterns to match error messages that are different across environments.
      */
     errorMessages: {
-      illegalCharacter: /(Unexpected token|unexpected character|Unexpected identifier|Invalid character)/,
-      endOfFile: /(Unexpected end of input|unexpected end of data|Unexpected EOF|Syntax error)/,
+      illegalCharacter: /(Unexpected token|unexpected character|Unexpected identifier|Invalid character|Unable to parse JSON string)/,
+      endOfFile: /(Unexpected end of input|unexpected end of data|Unexpected EOF|Syntax error|Unable to parse JSON string)/,
       downloadFailed: /(Unable to download file|ENOTFOUND|not a valid Swagger spec)/
     },
 

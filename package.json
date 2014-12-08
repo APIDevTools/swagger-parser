@@ -22,7 +22,7 @@
   "main": "index.js",
   "scripts": {
     "build": "gulp build",
-    "test": "mocha --ui bdd --recursive tests && karma start tests/karma.conf.js --single-run"
+    "test": "mocha --ui bdd --recursive tests && karma start --single-run"
   },
   "repository": {
     "type": "git",
@@ -51,6 +51,7 @@
     "karma-ie-launcher": "^0.1.5",
     "karma-mocha": "^0.1.9",
     "karma-mocha-reporter": "^0.3.1",
+    "karma-phantomjs-launcher": "^0.1.4",
     "karma-safari-launcher": "^0.1.1",
     "karma-sinon": "^1.0.4",
     "mocha": "^2.0.1",

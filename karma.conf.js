@@ -1,8 +1,15 @@
 // Karma configuration
 
-var browsers = ['Chrome', 'Safari', 'Firefox'];
+// PhantomJS and Firefox are available on all OSes
+var browsers = ['PhantomJS', 'Firefox'];
 
-// If we're running on Windows, then add IE
+// Chrome and Safari are available on Windows and Mac, but not on Travis CI
+if (process.env.TRAVIS !== 'true') {
+  browsers.push('Chrome');
+  browsers.push('Safari');
+}
+
+// IE is only available on Windows
 if (/^win/.test(process.platform)) {
   browsers.push('IE');
 }
@@ -24,20 +31,20 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       // Third-Party libs
-      '../node_modules/lodash/dist/lodash.js',
+      'node_modules/lodash/dist/lodash.js',
 
       // Swagger-Parser
-      '../dist/swagger-parser.js',
-      { pattern: '../dist/swagger-parser.js.map', included: false },
+      'dist/swagger-parser.js',
+      { pattern: 'dist/swagger-parser.js.map', included: false },
 
       // Swagger-Parser Tests
-      '_test-environment.js',
-      'files/**/*-parsed.js',
-      'files/**/*-dereferenced.js',
-      'specs/**/*-spec.js',
+      'tests/_test-environment.js',
+      'tests/files/**/*-parsed.js',
+      'tests/files/**/*-dereferenced.js',
+      'tests/specs/**/*-spec.js',
 
       // Serve Swagger files upon request
-      { pattern: 'files/**', included: false }
+      { pattern: 'tests/files/**', included: false }
     ],
 
 
