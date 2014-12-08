@@ -29,8 +29,8 @@
     "bower_components",
     "tests",
     "lib",
-    "*.js",
-    ".*"
+    "/*.js",
+    "/.*"
   ],
   "repository": {
     "type": "git",
