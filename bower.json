@@ -28,6 +28,8 @@
     "node_modules",
     "bower_components",
     "tests",
+    "lib",
+    "*.js",
     ".*"
   ],
   "repository": {
