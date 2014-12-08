@@ -2,6 +2,8 @@ Swagger-Parser
 ============================
 #### Parses, validates, and dereferences your Swagger specs
 
+[![Dependencies](https://david-dm.org/bigstickcarpet/swagger-parser.svg)](https://david-dm.org/bigstickcarpet/swagger-parser)
+[![License](https://img.shields.io/npm/l/swagger-parser.svg)](LICENSE)
 
 Features
 --------------------------

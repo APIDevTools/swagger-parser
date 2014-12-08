@@ -29,14 +29,14 @@
     "url": "https://github.com/BigstickCarpet/swagger-parser.git"
   },
   "dependencies": {
-    "debug": "~2.0.0",
+    "debug": "^2.0.0",
     "js-yaml": "^3.2.2",
     "lodash": "^2.4.1",
     "swagger-schema-official": "^2.0.0-a33091a",
     "tv4": "^1.1.0"
   },
   "devDependencies": {
-    "browserify": "^6.3.3",
+    "browserify": "^7.0.0",
     "chai": "^1.10.0",
     "gulp": "^3.8.10",
     "gulp-rename": "^1.2.0",
