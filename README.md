@@ -11,7 +11,7 @@ Swagger-Parser
 Features
 --------------------------
 * Supports Swagger specs in __JSON or YAML__ format
-* Validates against the [official Swagger 2.0 schema](http://github.com/reverb/swagger-spec/blob/master/versions/2.0.md)
+* __Validates__ against the [official Swagger 2.0 schema](http://github.com/reverb/swagger-spec/blob/master/versions/2.0.md)
 * Dereferences all __$ref__ pointers, including pointers to external URLs
 * Nested $ref pointers are supported, even in external URLs
 * Multiple $ref pointers to the same definition are resolved to the same object instance, thus maintaining [strict reference equality](https://github.com/BigstickCarpet/swagger-parser/blob/29ebda3ca739574791ebc24913121d6d765ce24f/tests/specs/dereference-spec.js#L110)
