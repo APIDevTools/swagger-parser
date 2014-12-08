@@ -62,7 +62,8 @@
      */
     errorMessages: {
       illegalCharacter: /(Unexpected token|unexpected character|Unexpected identifier|Invalid character)/,
-      endOfFile: /(Unexpected end of input|unexpected end of data|Unexpected EOF|Syntax error)/
+      endOfFile: /(Unexpected end of input|unexpected end of data|Unexpected EOF|Syntax error)/,
+      downloadFailed: /(Unable to download file|ENOTFOUND|not a valid Swagger spec)/
     },
 
 

@@ -62,7 +62,7 @@ describe('env.parser.parse tests', function() {
           if (!alreadyDone) {
             alreadyDone = true;
             expect(err).to.be.an.instanceOf(Error);
-            expect(err.message).to.contain('not a valid Swagger spec');
+            expect(err.message).to.match(env.errorMessages.downloadFailed);
             expect(swagger).to.be.undefined;
 
             done();
