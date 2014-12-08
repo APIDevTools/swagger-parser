@@ -4,6 +4,8 @@ Swagger-Parser
 
 [![Build Status](https://travis-ci.org/BigstickCarpet/swagger-parser.svg?branch=master)](https://travis-ci.org/BigstickCarpet/swagger-parser)
 [![Dependencies](https://david-dm.org/bigstickcarpet/swagger-parser.svg)](https://david-dm.org/bigstickcarpet/swagger-parser)
+[![npm](http://img.shields.io/npm/v/swagger-parser.svg)](#node)
+[![Bower](http://img.shields.io/bower/v/swagger-parser.svg)](#bower)
 [![License](https://img.shields.io/npm/l/swagger-parser.svg)](LICENSE)
 
 Features
