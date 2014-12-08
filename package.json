@@ -1,7 +1,7 @@
 {
   "name": "swagger-parser",
   "version": "1.0.1",
-  "description": "Parses a Swagger spec (in JSON or YAML format), validates it against the Swagger schema, and dereferences all $ref pointers",
+  "description": "Parses a JSON or YAML Swagger spec, validates it against the Swagger schema, and dereferences all $ref pointers",
   "keywords": [
     "json",
     "swagger",
@@ -22,7 +22,6 @@
   "main": "index.js",
   "scripts": {
     "build": "gulp build",
-    "prepublish": "gulp prepublish",
     "test": "mocha --ui bdd --recursive tests && karma start tests/karma.conf.js --single-run"
   },
   "repository": {

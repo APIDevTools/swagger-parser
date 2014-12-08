@@ -1,53 +1,73 @@
 Swagger-Parser
 ============================
-#### Parses a Swagger spec (in JSON or YAML format), validates it against the Swagger schema, and dereferences all $ref pointers
+#### Parses, validates, and dereferences your Swagger specs
 
 
-Supported Swagger Versions
+Features
 --------------------------
-* [2.0](http://github.com/reverb/swagger-spec/blob/master/versions/2.0.md)
+* Supports Swagger specs in __JSON or YAML__ format
+* Validates against the [official Swagger 2.0 schema](http://github.com/reverb/swagger-spec/blob/master/versions/2.0.md)
+* Dereferences all __$ref__ pointers, including pointers to external URLs
+* Nested $ref pointers are supported, even in external URLs
+* Multiple $ref pointers to the same definition are resolved to the same object instance, thus maintaining [strict reference equality](https://github.com/BigstickCarpet/swagger-parser/blob/29ebda3ca739574791ebc24913121d6d765ce24f/tests/specs/dereference-spec.js#L110)
 
 
 Basic Example
 --------------------------
 ````javascript
-var parser = require("swagger-parser");
-
-// Parse a JSON or YAML Swagger spec
-parser.parse("path/to/my/swagger.yaml", function(err, swaggerObject) {
-
-  // This callback will be invoked once the Swagger spec is 
-  // parsed, validated, and dereferenced.
+swagger.parser.parse("path/to/my/swagger.yaml", function(err, swagger) {
   if (err) {
-    console.error("Swagger Spec could not be parsed because: " + err.message);
+    console.error("There's an error in the Swagger file: " + err.message);
     return;
   }
 
-  // If there's no error, then `swaggerObject` is the parsed SwaggerObject
-  // (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-)
-  console.log(
-    "Your API title is " + swaggerObject.info.title + 
-    ", version " + swaggerObject.info.version
-  );
-  
+  console.log("Your API is " + swagger.info.title + ", version " + swagger.info.version);
 });
-
 ````
+The `swagger` parameter that is passed to the callback function is a fully-parsed, validated, and dereferenced [Swagger Object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-).
 
 
 Installation and Use
 --------------------------
+### Node
+````bash
+npm install swagger-parser
+````
+Then add this to your Node script:
+````javascript
+var parser = require("swagger-parser");
+parser.parse('path/to/my/swagger.yaml', function(err, swagger) { ... });
+````
 
-    npm install swagger-parser
+### Bower
+````bash
+bower install swagger-parser
+````
+Then add this to your HTML page:
+````html
+<script src="bower_components/swagger-parser/dist/swagger-parser.js"></script>
+<script>
+    swagger.parser.parse('http://mysite.com/path/to/my/swagger.yaml', function(err, swagger) { ... });
+</script>
+````
 
-And then use  `var parser = require("swagger-parser")` in your Node script.
+### AMD (Require.js)
+Just add `swagger-parser` to your AMD module's dependencies, or `require("swagger-parser")` explicitly.
+````javascript
+define("myModule", ["swagger-parser"], function(parser) {
+    parser.parse('http://mysite.com/path/to/my/swagger.yaml', function(err, swagger) { ... });
+});
+````
 
 
 Options
 --------------------------
 The `parse` function accepts an optional `options` parameter, like this:
 ````javascript
-var options = { dereferencePointers: false, validateSpec: false };
+var options = { 
+    dereferencePointers: false, 
+    validateSpec: false 
+};
 parser.parse("path/to/my/swagger.yaml", options, function(err, swaggerObject) {
   ...
 });
@@ -58,13 +78,13 @@ Available options are as follows:
 Determines whether the parser will allow Swagger specs in YAML format.  If set to `false`, then only JSON will be allowed. 
 
 * __dereferencePointers__ (default: true) - 
-Determines whether `$ref` pointers will be dereferenced.  If set to `false`, then the resulting SwaggerObject will contain [ReferenceObjects](see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-) instead of the objects they reference.
+Determines whether `$ref` pointers will be dereferenced.  If set to `false`, then the resulting SwaggerObject will contain [Reference Objects](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-) instead of the objects they reference.
 
 * __dereferenceExternalPointers__ (default: true) - 
-Determines whether `$ref` pointers will be dereferenced if they point to external files (e.g. "http://company.com/my/schema.json").  If set to `false` then the resulting SwaggerObject will contain [ReferenceObjects](see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-) for external pointers instead of the objects they reference.
+Determines whether `$ref` pointers will be dereferenced if they point to external files (e.g. "http://company.com/my/schema.yaml").  If set to `false` then the resulting SwaggerObject will contain [Reference Objects](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-) for external pointers instead of the objects they reference.
 
 * __validateSpec__ (default: true) - 
-Determines whether the Swagger spec will be validated against the Swagger schema.  If set to `false`, then the resulting SwaggerObject may be missing properties, have properties of the wrong data type, etc.
+Determines whether your Swagger spec will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger Object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-) may be missing properties, have properties of the wrong data type, etc.
  
 
 Contributing
@@ -73,11 +93,17 @@ I welcome any contributions, enhancements, and bug-fixes.  [File an issue](https
 
 Here are some things currently on the to-do list:
 
-* __Unit tests__ - Especially surrounding `$ref` dereferencing logic
+* __Recursive (circular) $ref pointers__ - Recursive (circular) `$ref` pointers are __not__ currently supported.  So something like this won't work:
 
-* __Browser Support__ - Some slight refactoring is needed to make Swagger-Parser work in web browsers.  All of the dependencies already work in the browser, and most of them are available as [Bower](http://bower.io) packages, so it won't be difficult at all.
-
-* __Recursive $ref pointers__ - Recursive `$ref` pointers are __not__ currently supported, but I plan to add support for them.
+````yaml
+person:
+  properties:
+    name:
+      type: string
+    spouse:
+      type:
+        $ref: person
+````
 
 
 License

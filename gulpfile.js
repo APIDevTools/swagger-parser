@@ -20,12 +20,6 @@
 
 
   /**
-   * Prepares the package to be published to NPM.
-   */
-  gulp.task('prepublish', ['build', 'bump']);
-
-
-  /**
    * Builds the following files:
    *  - dist/swagger-parser.js
    *  - dist/swagger-parser.js.map
@@ -67,13 +61,5 @@
       .pipe(buffer())
       .pipe(sourcemaps.init({loadMaps: true}));
   }
-
-
-  /**
-   * Bumps the version number in preparation for publishing to NPM.
-   */
-  gulp.task('bump', function() {
-    // TODO!!!
-  });
 
 })();
