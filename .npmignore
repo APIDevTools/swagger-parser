@@ -6,4 +6,6 @@ npm-debug.log
 node_modules
 bower_components
 tests
-.*
+/gulpfile.js
+/karma.conf.js
+/.*
