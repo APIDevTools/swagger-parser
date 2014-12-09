@@ -4,6 +4,9 @@ Swagger-Parser
 
 [![Build Status](https://travis-ci.org/BigstickCarpet/swagger-parser.svg?branch=master)](https://travis-ci.org/BigstickCarpet/swagger-parser)
 [![Dependencies](https://david-dm.org/bigstickcarpet/swagger-parser.svg)](https://david-dm.org/bigstickcarpet/swagger-parser)
+[![Code Climate Score](https://codeclimate.com/github/BigstickCarpet/swagger-parser/badges/gpa.svg)](https://codeclimate.com/github/BigstickCarpet/swagger-parser)
+[![Codacy Score](http://img.shields.io/codacy/6d686f916836433b9c013379fbe1052c.svg)](https://www.codacy.com/public/jamesmessinger/swagger-parser)
+
 [![npm](http://img.shields.io/npm/v/swagger-parser.svg)](#node)
 [![Bower](http://img.shields.io/bower/v/swagger-parser.svg)](#bower)
 [![License](https://img.shields.io/npm/l/swagger-parser.svg)](LICENSE)
