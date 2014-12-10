@@ -38,6 +38,7 @@
   "devDependencies": {
     "browserify": "^7.0.0",
     "chai": "^1.10.0",
+    "coveralls": "^2.11.2",
     "gulp": "^3.8.10",
     "gulp-rename": "^1.2.0",
     "gulp-sourcemaps": "^1.2.8",
