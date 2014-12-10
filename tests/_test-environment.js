@@ -58,16 +58,6 @@
 
 
     /**
-     * Regex patterns to match error messages that are different across environments.
-     */
-    errorMessages: {
-      illegalCharacter: /(Unexpected token|unexpected character|Unexpected identifier|Invalid character|Unable to parse JSON string)/,
-      endOfFile: /(Unexpected end of input|unexpected end of data|Unexpected EOF|Syntax error|Unable to parse JSON string)/,
-      downloadFailed: /(Unable to download file|ENOTFOUND|not a valid Swagger spec)/
-    },
-
-
-    /**
      * Returns a function that calls the given function with the given parameters.
      * This is useful for `expect(fn).to.throw` tests.
      */
@@ -90,6 +80,7 @@
     // Set globals for use in tests
     global.env = env;
     global.expect = require('chai').expect;
+    global.sinon = require('sinon');
     global.path = require('path');
     global._ = require('lodash');
   }

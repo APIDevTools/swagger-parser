@@ -46,7 +46,7 @@ describe('env.parser.parse tests', function() {
       function(done) {
         env.parser.parse(env.files.getPath('nonexistent-file.json'), function(err, swagger) {
           expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.match(/(Not Found|ENOENT)/i);
+          expect(err.message).to.match(/Error opening file|Error downloading file/);
           expect(swagger).to.be.undefined;
           done();
         });
@@ -55,18 +55,12 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if an invalid URL is given',
       function(done) {
-        var alreadyDone = false;
-
         env.parser.parse('http://nonexistent-server.com/nonexistent-file.json', function(err, swagger) {
-          // NOTE: On some browsers, this callback function is called twice because two HTTP errors occur
-          if (!alreadyDone) {
-            alreadyDone = true;
-            expect(err).to.be.an.instanceOf(Error);
-            expect(err.message).to.match(env.errorMessages.downloadFailed);
-            expect(swagger).to.be.undefined;
+          expect(err).to.be.an.instanceOf(Error);
+          expect(err.message).to.match(/Error downloading file|Error parsing file/);
+          expect(swagger).to.be.undefined;
 
-            done();
-          }
+          done();
         });
       }
     );
@@ -74,8 +68,8 @@ describe('env.parser.parse tests', function() {
     it('should return an error if a YAML file is given and YAML is disabled',
       function(done) {
         env.parser.parse(env.files.getPath('minimal.yaml'), {parseYaml: false}, function(err, swagger) {
-          expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.match(env.errorMessages.illegalCharacter);
+          expect(err).to.be.an.instanceOf(SyntaxError);
+          expect(err.message).to.contain('Error parsing file');
           expect(swagger).to.be.undefined;
           done();
         });
@@ -85,8 +79,8 @@ describe('env.parser.parse tests', function() {
     it('should return an error if the file is blank (YAML parser)',
       function(done) {
         env.parser.parse(env.files.getPath('bad/blank.yaml'), function(err, swagger) {
-          expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.contain('not a valid Swagger spec');
+          expect(err).to.be.an.instanceOf(SyntaxError);
+          expect(err.message).to.contain('Parsed value is empty');
           expect(swagger).to.be.undefined;
           done();
         });
@@ -96,8 +90,8 @@ describe('env.parser.parse tests', function() {
     it('should return an error if the file is blank (JSON parser)',
       function(done) {
         env.parser.parse(env.files.getPath('bad/blank.yaml'), {parseYaml: false}, function(err, swagger) {
-          expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.match(env.errorMessages.endOfFile);
+          expect(err).to.be.an.instanceOf(SyntaxError);
+          expect(err.message).to.contain('Error parsing file');
           expect(swagger).to.be.undefined;
           done();
         });
@@ -107,7 +101,7 @@ describe('env.parser.parse tests', function() {
     it('should return an error if the Swagger version is too old',
       function(done) {
         env.parser.parse(env.files.getPath('bad/old-version.yaml'), function(err, swagger) {
-          expect(err).to.be.an.instanceOf(Error);
+          expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('Unsupported Swagger version: 1.2');
           expect(swagger).to.be.undefined;
           done();
@@ -118,7 +112,7 @@ describe('env.parser.parse tests', function() {
     it('should return an error if the Swagger version is too new',
       function(done) {
         env.parser.parse(env.files.getPath('bad/newer-version.yaml'), function(err, swagger) {
-          expect(err).to.be.an.instanceOf(Error);
+          expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('Unsupported Swagger version: 3');
           expect(swagger).to.be.undefined;
           done();
@@ -129,8 +123,8 @@ describe('env.parser.parse tests', function() {
     it('should return an error if a YAML file is malformed',
       function(done) {
         env.parser.parse(env.files.getPath('bad/malformed.yaml'), function(err, swagger) {
-          expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.contain('JS-YAML');
+          expect(err).to.be.an.instanceOf(SyntaxError);
+          expect(err.message).to.contain('Error parsing file');
           expect(swagger).to.be.undefined;
           done();
         });
@@ -140,8 +134,8 @@ describe('env.parser.parse tests', function() {
     it('should return an error if a JSON file is malformed',
       function(done) {
         env.parser.parse(env.files.getPath('bad/malformed.json'), {parseYaml: false}, function(err, swagger) {
-          expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.match(env.errorMessages.illegalCharacter);
+          expect(err).to.be.an.instanceOf(SyntaxError);
+          expect(err.message).to.contain('Error parsing file');
           expect(swagger).to.be.undefined;
           done();
         });
@@ -151,13 +145,89 @@ describe('env.parser.parse tests', function() {
     it('should return an error if the file does not comply with the Swagger schema',
       function(done) {
         env.parser.parse(env.files.getPath('bad/invalid.yaml'), function(err, swagger) {
-          expect(err).to.be.an.instanceOf(Error);
+          expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('Additional properties not allowed');
           expect(swagger).to.be.undefined;
           done();
         });
       }
     );
-  });
 
+    it('should return an error if an external reference uses an invalid protocol',
+      function(done) {
+        env.parser.parse(env.files.getPath('bad/invalid-external-protocol.yaml'), function(err, swagger) {
+          expect(err).to.be.an.instanceOf(Error);
+          expect(err.message).to.contain('The path "abc://google.com" could not be found in the Swagger file');
+          expect(swagger).to.be.undefined;
+          done();
+        });
+      }
+    );
+
+    it('should return an error if an external reference uses an invalid host',
+      function(done) {
+        env.parser.parse(env.files.getPath('bad/invalid-external-host.yaml'), function(err, swagger) {
+          expect(err).to.be.an.instanceOf(Error);
+          expect(err.message).to.contain('URI');
+          expect(swagger).to.be.undefined;
+          done();
+        });
+      }
+    );
+
+
+    // TODO: Find an XHR mock that works with Browserify's "http" module, so we can run these tests in browsers too
+    if (env.isNode) {
+
+      describe('Mock HTTP tests', function() {
+        var MOCK_URL = 'http://mock/path/to/swagger.yaml';
+
+        function mockHttpResponse(responseCode, response) {
+          var nock = require('nock');
+          nock('http://mock').get('/path/to/swagger.yaml').reply(responseCode, response);
+        }
+
+        it('should return an error if an HTTP 4XX error occurs',
+          function(done) {
+            mockHttpResponse(404);
+
+            env.parser.parse(MOCK_URL, function(err, swagger) {
+              expect(err).to.be.an.instanceOf(Error);
+              expect(err.message).to.contain('HTTP ERROR 404');
+              expect(swagger).to.be.undefined;
+              done();
+            });
+          }
+        );
+
+        it('should return an error if an HTTP 5XX error occurs',
+          function(done) {
+            mockHttpResponse(500);
+
+            env.parser.parse(MOCK_URL, function(err, swagger) {
+              expect(err).to.be.an.instanceOf(Error);
+              expect(err.message).to.contain('HTTP ERROR 500');
+              expect(swagger).to.be.undefined;
+              done();
+            });
+          }
+        );
+
+        it('should return an error if the response is invalid JSON or YAML',
+          function(done) {
+            mockHttpResponse(200, ':');
+
+            env.parser.parse(MOCK_URL, function(err, swagger) {
+              expect(err).to.be.an.instanceOf(SyntaxError);
+              expect(err.message).to.contain('Error parsing file');
+              expect(swagger).to.be.undefined;
+              done();
+            });
+          }
+        );
+      });
+
+    }
+
+  });
 });

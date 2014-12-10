@@ -165,7 +165,7 @@
     var resolved;
 
     if (_.isEmpty(pointerValue)) {
-      util.doCallback(callback, util.syntaxError('Empty $ref pointer at "%s"', pointerPath));
+      return util.doCallback(callback, util.syntaxError('Empty $ref pointer at "%s"', pointerPath));
     }
 
     function returnResolvedValue(err, resolved, alreadyResolved) {
@@ -207,13 +207,10 @@
 
         read.fileOrUrl(pointerValue,
           function(err, data) {
-            if (err || data === undefined) {
-              err = util.syntaxError('Unable to resolve %s.  An error occurred while downloading JSON data from %s : \n%s',
-                pointerPath, pointerValue, err ? err.message : 'File Not Found');
+            if (!err) {
+              // Now that we've finished downloaded the data, update the empty object we created earlier
+              data = _.extend(state.resolvedPointers[pointerValue], data);
             }
-
-            // Now that we've finished downloaded the data, update the empty object we created earlier
-            data = _.extend(state.resolvedPointers[pointerValue], data);
 
             return returnResolvedValue(err, data);
           }
@@ -237,7 +234,7 @@
    * @returns {boolean}
    */
   function isInternalPointer(pointerValue) {
-    return pointerValue.indexOf('#/') === 0;
+    return pointerValue && pointerValue.indexOf('#/') === 0;
   }
 
 
@@ -246,7 +243,7 @@
    * @returns {boolean}
    */
   function isExternalPointer(pointerValue) {
-    return pointerValue.indexOf('http://') === 0 || pointerValue.indexOf('https://') === 0;
+    return pointerValue && (pointerValue.indexOf('http://') === 0 || pointerValue.indexOf('https://') === 0);
   }
 
 
@@ -330,12 +327,6 @@
       }
 
       state.swaggerObject = swaggerObject;
-
-      // Make sure it's an object
-      if (!_.isPlainObject(swaggerObject)) {
-        state.reset();
-        return util.doCallback(callback, util.syntaxError('"%s" is not a valid Swagger spec', swaggerFile));
-      }
 
       // Validate the version number
       var version = swaggerObject.swagger;
@@ -440,7 +431,11 @@
      */
     file: function(filePath, callback) {
       function errorHandler(err) {
-        callback(util.syntaxError('Unable to read file "%s": \n%s \n\n%s', filePath, err.message, err.stack));
+        callback(util.error('Error opening file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
+      }
+
+      function parseError(err) {
+        callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
       }
 
       try {
@@ -458,7 +453,7 @@
             callback(null, parseJsonOrYaml(filePath, data));
           }
           catch (e) {
-            errorHandler(e);
+            parseError(e);
           }
         });
       }
@@ -476,8 +471,16 @@
     url: function(urlPath, callback) {
       var href = urlPath;
 
-      function errorHandler(err) {
-        callback(util.syntaxError('Unable to download file "%s": \n%s \n\n%s', href, err.message, err.stack));
+      // NOTE: When HTTP errors occur, they can trigger multiple on('error') events,
+      // So we need to make sure we only invoke the callback function ONCE.
+      callback = _.once(callback);
+
+      function downloadError(err) {
+        callback(util.error('Error downloading file "%s": \n%s: %s \n\n%s', href, err.name, err.message, err.stack));
+      }
+
+      function parseError(err) {
+        callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', href, err.name, err.message, err.stack));
       }
 
       try {
@@ -515,19 +518,19 @@
 
           res.on('end', function() {
             if (res.statusCode >= 400) {
-              return errorHandler(new Error(body));
+              return downloadError(new Error('HTTP ERROR ' + res.statusCode + ': ' + body));
             }
 
             try {
               callback(null, parseJsonOrYaml(href, body));
             }
             catch (e) {
-              errorHandler(e);
+              parseError(e);
             }
           });
 
           res.on('error', function(e) {
-            errorHandler(e);
+            downloadError(e);
           });
         });
 
@@ -540,11 +543,11 @@
         });
 
         req.on('error', function(e) {
-          errorHandler(e);
+          downloadError(e);
         });
       }
       catch (e) {
-        errorHandler(e);
+        downloadError(e);
       }
     }
   };
@@ -565,21 +568,21 @@
    * @returns {boolean}
    */
   function isLocalFile(parsedUrl) {
-    // If it's a "file://" URL, or a "relative/file/path", or an "/absolute/file/path",
-    // then return true, even if we're in a browser
-    if (parsedUrl.protocol === null || parsedUrl.protocol === 'file:') {
-      return true;
-    }
-
-    // In browsers, treat anything else as "http" or "https", even if it's local
     if (isBrowser()) {
+      // Local files aren't supported in browsers
       return false;
     }
 
-    // If the path exists locally, then treat the URL as a local file
-    var relativePath = urlToRelativePath(parsedUrl);
-    var filePath = path.resolve(state.swaggerSourceDir, relativePath);
-    return fs.existsSync(filePath);
+    if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+      // If the path exists locally, then treat the URL as a local file
+      var relativePath = urlToRelativePath(parsedUrl);
+      var filePath = path.resolve(state.swaggerSourceDir, relativePath);
+      return fs.existsSync(filePath);
+    }
+
+    // If it's anything other than "http" or "https", then assume it's a local file.
+    // This includes "file://", "/absolute/paths", "relative/paths", and "c:\windows\paths"
+    return true;
   }
 
 
@@ -627,7 +630,14 @@
       parsedObject = JSON.parse(data);
     }
 
-    debug('    Parsed successfully');
+    if (_.isEmpty(parsedObject)) {
+      throw util.syntaxError('Parsed value is empty');
+    }
+    if (!_.isPlainObject(parsedObject)) {
+      throw util.syntaxError('Parsed value is not a valid JavaScript object');
+    }
+
+    debug('  Parsed successfully');
     return parsedObject;
   }
 
@@ -701,6 +711,17 @@
       process.nextTick(function() {
         callback.apply(null, args);
       });
+    },
+
+
+    /**
+     * Creates an Error with a formatted string message.
+     * @param   {string}      message
+     * @param   {...*}        [params]
+     * @returns {Error}
+     */
+    error: function(message, params) {
+      return new Error(format.apply(null, [message].concat(_.rest(arguments))));
     },
 
 

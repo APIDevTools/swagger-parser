@@ -24,7 +24,7 @@ describe('env.parser.defaults tests', function() {
       // Which means this call should fail
       env.parser.parse(env.files.getPath('minimal.yaml'), function(err, swagger) {
         expect(err).to.be.an.instanceOf(SyntaxError);
-        expect(err.message).to.match(env.errorMessages.illegalCharacter);
+        expect(err.message).to.contain('Error parsing file');
         expect(swagger).to.be.undefined;
 
         done();

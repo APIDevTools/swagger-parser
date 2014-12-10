@@ -1,0 +1,24 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: invalid external ref host
+  description: This file has an external $ref pointer to an invalid host
+paths:
+  /pets:
+    post:
+      parameters:
+        - name: pet
+          in: body
+          required: true
+          description: references the "pet.yaml" file
+          schema:
+            $ref: http://../pet.yaml
+      responses:
+        200:
+          description: Invalid host
+          schema:
+            $ref: http://!@$~%^&.&*:@^*=/foo/bar
+        default:
+          description: references the "pet.yaml" file
+          schema:
+            $ref: http://../pet.yaml

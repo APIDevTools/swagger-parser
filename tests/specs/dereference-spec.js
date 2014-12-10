@@ -200,13 +200,26 @@ describe('Dereferencing tests', function() {
       function(done) {
         env.parser.parse(env.files.getPath('bad/invalid-external-refs.yaml'), function(err, swagger) {
           expect(err).to.be.an.instanceOf(SyntaxError);
-          expect(err.message).to.contain('An error occurred while downloading JSON data from http://../doesnotexist.yaml');
+          expect(err.message).to.match(/Error downloading file ".*doesnotexist\.yaml"/);
           expect(swagger).to.be.undefined;
 
           done();
         });
       }
     );
+
+    it('should return an error for an empty reference',
+      function(done) {
+        env.parser.parse(env.files.getPath('bad/empty-refs.yaml'), function(err, swagger) {
+          expect(err).to.be.an.instanceOf(SyntaxError);
+          expect(err.message).to.contain('Empty $ref pointer');
+          expect(swagger).to.be.undefined;
+
+          done();
+        });
+      }
+    );
+
   });
 
 });
