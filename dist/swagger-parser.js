@@ -14,729 +14,700 @@
 })();
 
 },{"./lib/defaults":3,"./lib/parse":5}],2:[function(require,module,exports){
-(function() {
-  'use strict';
-
-  module.exports = require('debug')('swagger:parser');
-
-})();
+module.exports = require('debug')('swagger:parser');
 
 },{"debug":44}],3:[function(require,module,exports){
-(function() {
-  'use strict';
+/**
+ * The default parsing options.
+ * @name defaults
+ * @type {{parseYaml: boolean, dereferencePointers: boolean, dereferenceExternalPointers: boolean, validateSpec: boolean}}
+ */
+module.exports = {
+  /**
+   * Determines whether the parser will allow Swagger specs in YAML format.
+   * If set to `false`, then only JSON will be allowed.  Defaults to `true`.
+   * @type {boolean}
+   */
+  parseYaml: true,
 
   /**
-   * The default parsing options.
-   * @name defaults
-   * @type {{parseYaml: boolean, dereferencePointers: boolean, dereferenceExternalPointers: boolean, validateSpec: boolean}}
+   * Determines whether `$ref` pointers will be dereferenced.
+   * If set to `false`, then the resulting SwaggerObject will contain ReferenceObjects instead of the objects they reference.
+   * (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-)
+   * Defaults to `true`.
+   * @type {boolean}
    */
-  module.exports = {
-    /**
-     * Determines whether the parser will allow Swagger specs in YAML format.
-     * If set to `false`, then only JSON will be allowed.  Defaults to `true`.
-     * @type {boolean}
-     */
-    parseYaml: true,
+  dereferencePointers: true,
 
-    /**
-     * Determines whether `$ref` pointers will be dereferenced.
-     * If set to `false`, then the resulting SwaggerObject will contain ReferenceObjects instead of the objects they reference.
-     * (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-)
-     * Defaults to `true`.
-     * @type {boolean}
-     */
-    dereferencePointers: true,
+  /**
+   * Determines whether `$ref` pointers will be dereferenced if they point to external files (e.g. "http://company.com/my/schema.json").
+   * If set to `false`, then the resulting SwaggerObject will contain ReferenceObjects instead of the objects they reference.
+   * (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-)
+   * Defaults to `true`.
+   * @type {boolean}
+   */
+  dereferenceExternalPointers: true,
 
-    /**
-     * Determines whether `$ref` pointers will be dereferenced if they point to external files (e.g. "http://company.com/my/schema.json").
-     * If set to `false`, then the resulting SwaggerObject will contain ReferenceObjects instead of the objects they reference.
-     * (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-)
-     * Defaults to `true`.
-     * @type {boolean}
-     */
-    dereferenceExternalPointers: true,
-
-    /**
-     * Determines whether the Swagger spec will be validated against the Swagger schema.
-     * If set to `false`, then the resulting SwaggerObject may be missing properties, have properties of the wrong data type, etc.
-     * Defaults to `true`.
-     * @type {boolean}
-     */
-    validateSpec: true
-  };
-
-})();
-
+  /**
+   * Determines whether the Swagger spec will be validated against the Swagger schema.
+   * If set to `false`, then the resulting SwaggerObject may be missing properties, have properties of the wrong data type, etc.
+   * Defaults to `true`.
+   * @type {boolean}
+   */
+  validateSpec: true
+};
 
 },{}],4:[function(require,module,exports){
-(function() {
-  'use strict';
+'use strict';
 
-  var _ = require('lodash');
-  var state = require('./state');
-  var read = require('./read');
-  var util = require('./util');
-  var debug = require('./debug');
+var _ = require('lodash');
+var read = require('./read');
+var util = require('./util');
+var debug = require('./debug');
 
 
-  module.exports = dereference;
+module.exports = dereference;
 
 
-  /**
-   * Dereferences the given Swagger spec, replacing "$ref" pointers
-   * with their corresponding object references.
-   * @param {object} obj
-   * @param {string} schemaPath
-   * @param {function} callback
-   */
-  function dereference(obj, schemaPath, callback) {
-    // Do nothing if dereferencing is disabled
-    if (!state.options.dereferencePointers) {
-      return util.doCallback(callback, null, obj);
-    }
-
-    function dereferenceNextItem(err) {
-      if (err || keys.length === 0) {
-        // We're done!  Invoke the callback
-        return util.doCallback(callback, err || null, obj);
-      }
-
-      var key = keys.pop();
-      var value = obj[key];
-      var fullPath = schemaPath + key;
-
-      if (_.has(value, '$ref')) {
-        // We found a "$ref" pointer!  So resolve it.
-        var pointerPath = fullPath + '/$ref';
-        var pointerValue = value.$ref;
-
-        if (isExternalPointer(pointerValue) && !state.options.dereferenceExternalPointers) {
-          // This is an external pointer, and we're not resolving those, so just move along
-          dereferenceNextItem();
-        }
-        else {
-          resolvePointer(pointerPath, pointerValue, obj, key,
-            function(err, resolved, alreadyResolved) {
-              if (err || alreadyResolved) {
-                // The pointer had already been resolved, so no need to recurse over it
-                dereferenceNextItem(err);
-              }
-              else {
-                // Recursively dereference the resolved reference
-                dereference(resolved, pointerPath, function(err) {
-                  dereferenceNextItem(err);
-                });
-              }
-            }
-          );
-        }
-      }
-      else if (_.isPlainObject(value) || _.isArray(value)) {
-        // Recursively dereference each item in the object/array
-        dereference(value, fullPath, function(err, reference) {
-          obj[key] = reference;
-          dereferenceNextItem(err);
-        });
-      }
-      else {
-        // This is just a normal value (string, number, boolean, date, etc.)
-        // so just skip it and dereference the next item.
-        dereferenceNextItem();
-      }
-    }
-
-    schemaPath += '/';
-
-    // Loop through each item in the object/array
-    var keys = _.keys(obj);
-    dereferenceNextItem();
+/**
+ * Dereferences the given Swagger spec, replacing "$ref" pointers
+ * with their corresponding object references.
+ * @param {object}    obj
+ * @param {string}    schemaPath
+ * @param {State}     state
+ * @param {function}  callback
+ */
+function dereference(obj, schemaPath, state, callback) {
+  // Do nothing if dereferencing is disabled
+  if (!state.options.dereferencePointers) {
+    return util.doCallback(callback, null, obj);
   }
 
-
-  /**
-   * Resolves a "$ref" pointer.
-   * @param   {string}    pointerPath     the path to the $ref property. This is only used for logging purposes.
-   * @param   {string}    pointerValue    the pointer value to resolve
-   * @param   {object}    targetObj       the object that will be updated to include the resolved reference
-   * @param   {string}    targetProp      the property name on targetObj to be updated with the resolved reference
-   * @param   {function}  callback
-   */
-  function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, callback) {
-    var resolved;
-
-    if (_.isEmpty(pointerValue)) {
-      return util.doCallback(callback, util.syntaxError('Empty $ref pointer at "%s"', pointerPath));
+  function dereferenceNextItem(err) {
+    if (err || keys.length === 0) {
+      // We're done!  Invoke the callback
+      return util.doCallback(callback, err || null, obj);
     }
 
-    function returnResolvedValue(err, resolved, alreadyResolved) {
-      if (!err && resolved === undefined) {
-        err = util.syntaxError('Unable to resolve %s.  The path "%s" could not be found in the Swagger file.',
-          pointerPath, pointerValue);
+    var key = keys.pop();
+    var value = obj[key];
+    var fullPath = schemaPath + key;
+
+    if (_.has(value, '$ref')) {
+      // We found a "$ref" pointer!  So resolve it.
+      var pointerPath = fullPath + '/$ref';
+      var pointerValue = value.$ref;
+
+      if (isExternalPointer(pointerValue) && !state.options.dereferenceExternalPointers) {
+        // This is an external pointer, and we're not resolving those, so just move along
+        dereferenceNextItem();
       }
-
-      if (!err) {
-        // Update the target object with the resolved value
-        targetObj[targetProp] = resolved;
-      }
-
-      debug('Resolved %s => %s', pointerPath, pointerValue);
-      util.doCallback(callback, err, resolved, alreadyResolved);
-    }
-
-
-    try {
-      // If we've already resolved this pointer, then return the resolved value
-      if (_.has(state.resolvedPointers, pointerValue)) {
-        return returnResolvedValue(null, state.resolvedPointers[pointerValue], true);
-      }
-
-      if (isInternalPointer(pointerValue)) {
-        // "#/paths/users/responses/200" => "paths.users.responses.200"
-        var deepProperty = pointerValue.substr(2).replace(/\//g, '.');
-
-        // Get the property value from the schema
-        resolved = resultDeep(state.swaggerObject, deepProperty);
-        state.resolvedPointers[pointerValue] = resolved;
-        returnResolvedValue(null, resolved);
-      }
-      else if (isExternalPointer(pointerValue)) {
-        // Set the resolved value to an empty object for now, so other reference pointers
-        // can point to this object.  Once we finish downloading the URL, we can update
-        // the empty object with the real data.
-        state.resolvedPointers[pointerValue] = {};
-
-        read.fileOrUrl(pointerValue,
-          function(err, data) {
-            if (!err) {
-              // Now that we've finished downloaded the data, update the empty object we created earlier
-              data = _.extend(state.resolvedPointers[pointerValue], data);
+      else {
+        resolvePointer(pointerPath, pointerValue, obj, key, state,
+          function(err, resolved, alreadyResolved) {
+            if (err || alreadyResolved) {
+              // The pointer had already been resolved, so no need to recurse over it
+              dereferenceNextItem(err);
             }
-
-            return returnResolvedValue(err, data);
+            else {
+              // Recursively dereference the resolved reference
+              dereference(resolved, pointerPath, state, function(err) {
+                dereferenceNextItem(err);
+              });
+            }
           }
         );
       }
-      else {
-        // Swagger allows a shorthand reference syntax (e.g. "Product" => "#/definitions/Product")
-        resolved = _.result(state.swaggerObject.definitions, pointerValue);
-        state.resolvedPointers[pointerValue] = resolved;
-        returnResolvedValue(null, resolved);
+    }
+    else if (_.isPlainObject(value) || _.isArray(value)) {
+      // Recursively dereference each item in the object/array
+      dereference(value, fullPath, state, function(err, reference) {
+        obj[key] = reference;
+        dereferenceNextItem(err);
+      });
+    }
+    else {
+      // This is just a normal value (string, number, boolean, date, etc.)
+      // so just skip it and dereference the next item.
+      dereferenceNextItem();
+    }
+  }
+
+  schemaPath += '/';
+
+  // Loop through each item in the object/array
+  var keys = _.keys(obj);
+  dereferenceNextItem();
+}
+
+
+/**
+ * Resolves a "$ref" pointer.
+ * @param   {string}    pointerPath     the path to the $ref property. This is only used for logging purposes.
+ * @param   {string}    pointerValue    the pointer value to resolve
+ * @param   {object}    targetObj       the object that will be updated to include the resolved reference
+ * @param   {string}    targetProp      the property name on targetObj to be updated with the resolved reference
+   * @param {State}     state           the state for the current parse operation
+ * @param   {function}  callback
+ */
+function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, state, callback) {
+  var resolved;
+
+  if (_.isEmpty(pointerValue)) {
+    return util.doCallback(callback, util.syntaxError('Empty $ref pointer at "%s"', pointerPath));
+  }
+
+  function returnResolvedValue(err, resolved, alreadyResolved) {
+    if (!err && resolved === undefined) {
+      err = util.syntaxError('Unable to resolve %s.  The path "%s" could not be found in the Swagger file.',
+        pointerPath, pointerValue);
+    }
+
+    if (!err) {
+      // Update the target object with the resolved value
+      targetObj[targetProp] = resolved;
+    }
+
+    debug('Resolved %s => %s', pointerPath, pointerValue);
+    util.doCallback(callback, err, resolved, alreadyResolved);
+  }
+
+
+  try {
+    // If we've already resolved this pointer, then return the resolved value
+    if (_.has(state.resolvedPointers, pointerValue)) {
+      return returnResolvedValue(null, state.resolvedPointers[pointerValue], true);
+    }
+
+    if (isInternalPointer(pointerValue)) {
+      // "#/paths/users/responses/200" => "paths.users.responses.200"
+      var deepProperty = pointerValue.substr(2).replace(/\//g, '.');
+
+      // Get the property value from the schema
+      resolved = resultDeep(state.swaggerObject, deepProperty);
+      state.resolvedPointers[pointerValue] = resolved;
+      returnResolvedValue(null, resolved);
+    }
+    else if (isExternalPointer(pointerValue)) {
+      // Set the resolved value to an empty object for now, so other reference pointers
+      // can point to this object.  Once we finish downloading the URL, we can update
+      // the empty object with the real data.
+      state.resolvedPointers[pointerValue] = {};
+
+      read.fileOrUrl(pointerValue, state,
+        function(err, data) {
+          if (!err) {
+            // Now that we've finished downloaded the data, update the empty object we created earlier
+            data = _.extend(state.resolvedPointers[pointerValue], data);
+          }
+
+          return returnResolvedValue(err, data);
+        }
+      );
+    }
+    else {
+      // Swagger allows a shorthand reference syntax (e.g. "Product" => "#/definitions/Product")
+      resolved = _.result(state.swaggerObject.definitions, pointerValue);
+      state.resolvedPointers[pointerValue] = resolved;
+      returnResolvedValue(null, resolved);
+    }
+  }
+  catch (e) {
+    util.doCallback(callback, e);
+  }
+}
+
+
+/**
+ * Determines whether the given $ref pointer value references a path in Swagger spec.
+ * @returns {boolean}
+ */
+function isInternalPointer(pointerValue) {
+  return pointerValue && pointerValue.indexOf('#/') === 0;
+}
+
+
+/**
+ * Determines whether the given $ref pointer value references an external file.
+ * @returns {boolean}
+ */
+function isExternalPointer(pointerValue) {
+  return pointerValue && (pointerValue.indexOf('http://') === 0 || pointerValue.indexOf('https://') === 0);
+}
+
+
+/**
+ * Crawls the property tree to return the value of the specified property.
+ */
+function resultDeep(obj, key) {
+  // "my.deep.property" => ["my", "deep", "property"]
+  var propNames = key.split('.');
+
+  // Traverse each property/function
+  for (var i = 0; i < propNames.length; i++) {
+    var propName = propNames[i];
+    obj = _.result(obj, propName);
+
+    // Exit the loop early if we get a falsy value
+    if (!obj) {
+      break;
+    }
+  }
+
+  return obj;
+}
+
+
+},{"./debug":2,"./read":6,"./util":8,"lodash":78}],5:[function(require,module,exports){
+'use strict';
+
+var path = require('path');
+var tv4 = require('tv4');
+var swaggerSchema = require('swagger-schema-official/schema');
+var _ = require('lodash');
+var read = require('./read');
+var dereference = require('./dereference');
+var defaults = require('./defaults');
+var State = require('./state');
+var util = require('./util');
+
+
+var supportedSwaggerVersions = ['2.0'];
+
+module.exports = parse;
+
+
+/**
+ * Parses the given Swagger file, validates it, and dereferences "$ref" pointers.
+ *
+ * @param {string} swaggerFile
+ * the path of a YAML or JSON file.
+ *
+ * @param {defaults} options
+ * options to enable/disable certain features. This object will be merged with the {@link defaults} object.
+ *
+ * @param {function} callback
+ * the callback function that will be passed the parsed SwaggerObject
+ */
+function parse(swaggerFile, options, callback) {
+  // Shift args if necessary
+  if (_.isFunction(options)) {
+    callback = options;
+    options = undefined;
+  }
+
+  if (!_.isFunction(callback)) {
+    throw new Error('A callback function must be provided');
+  }
+
+  options = _.merge({}, defaults, options);
+
+  // Create a new state object for this parse operation
+  var state = new State();
+  state.swaggerSourceDir = path.dirname(swaggerFile);
+  state.options = options;
+
+  read.fileOrUrl(swaggerFile, state, function(err, swaggerObject) {
+    if (err) {
+      return util.doCallback(callback, err);
+    }
+
+    state.swaggerObject = swaggerObject;
+
+    // Validate the version number
+    var version = swaggerObject.swagger;
+    if (supportedSwaggerVersions.indexOf(version) === -1) {
+      return util.doCallback(callback, util.syntaxError(
+        'Error in "%s". \nUnsupported Swagger version: %d. Swagger-Server only supports version %s',
+        swaggerFile, version, supportedSwaggerVersions.join(', ')));
+    }
+
+    // Dereference the SwaggerObject by resolving "$ref" pointers
+    dereference(swaggerObject, '', state, function(err, swaggerObject) {
+      if (!err) {
+        try {
+          // Validate the spec against the Swagger schema
+          validateAgainstSchema(swaggerObject, state);
+        }
+        catch (e) {
+          err = e;
+        }
       }
-    }
-    catch (e) {
-      util.doCallback(callback, e);
-    }
-  }
 
-
-  /**
-   * Determines whether the given $ref pointer value references a path in Swagger spec.
-   * @returns {boolean}
-   */
-  function isInternalPointer(pointerValue) {
-    return pointerValue && pointerValue.indexOf('#/') === 0;
-  }
-
-
-  /**
-   * Determines whether the given $ref pointer value references an external file.
-   * @returns {boolean}
-   */
-  function isExternalPointer(pointerValue) {
-    return pointerValue && (pointerValue.indexOf('http://') === 0 || pointerValue.indexOf('https://') === 0);
-  }
-
-
-  /**
-   * Crawls the property tree to return the value of the specified property.
-   */
-  function resultDeep(obj, key) {
-    // "my.deep.property" => ["my", "deep", "property"]
-    var propNames = key.split('.');
-
-    // Traverse each property/function
-    for (var i = 0; i < propNames.length; i++) {
-      var propName = propNames[i];
-      obj = _.result(obj, propName);
-
-      // Exit the loop early if we get a falsy value
-      if (!obj) {
-        break;
-      }
-    }
-
-    return obj;
-  }
-
-
-})();
-
-},{"./debug":2,"./read":6,"./state":7,"./util":8,"lodash":78}],5:[function(require,module,exports){
-(function() {
-  'use strict';
-
-  var path = require('path');
-  var tv4 = require('tv4');
-  var swaggerSchema = require('swagger-schema-official/schema');
-  var _ = require('lodash');
-  var read = require('./read');
-  var dereference = require('./dereference');
-  var defaults = require('./defaults');
-  var state = require('./state');
-  var util = require('./util');
-
-
-  var supportedSwaggerVersions = ['2.0'];
-
-
-  module.exports = parse;
-
-  /**
-   * Parses the given Swagger file, validates it, and dereferences "$ref" pointers.
-   *
-   * @param {string} swaggerFile
-   * the path of a YAML or JSON file.
-   *
-   * @param {defaults} options
-   * options to enable/disable certain features. This object will be merged with the {@link defaults} object.
-   *
-   * @param {function} callback
-   * the callback function that will be passed the parsed SwaggerObject
-   */
-  function parse(swaggerFile, options, callback) {
-    // Shift args if necessary
-    if (_.isFunction(options)) {
-      callback = options;
-      options = undefined;
-    }
-
-    if (!_.isFunction(callback)) {
-      throw new Error('A callback function must be provided');
-    }
-
-    options = _.merge({}, defaults, options);
-
-    // Create a new state object for this parse operation
-    state.swaggerSourceDir = path.dirname(swaggerFile);
-    state.options = options;
-
-    read.fileOrUrl(swaggerFile, function(err, swaggerObject) {
       if (err) {
-        state.reset();
+        err = util.syntaxError('Error in "%s". \n%s', swaggerFile, err.message);
         return util.doCallback(callback, err);
       }
 
-      state.swaggerObject = swaggerObject;
-
-      // Validate the version number
-      var version = swaggerObject.swagger;
-      if (supportedSwaggerVersions.indexOf(version) === -1) {
-        state.reset();
-        return util.doCallback(callback, util.syntaxError(
-          'Error in "%s". \nUnsupported Swagger version: %d. Swagger-Server only supports version %s',
-          swaggerFile, version, supportedSwaggerVersions.join(', ')));
-      }
-
-      // Dereference the SwaggerObject by resolving "$ref" pointers
-      dereference(swaggerObject, '', function(err, swaggerObject) {
-        if (!err) {
-          try {
-            // Validate the spec against the Swagger schema
-            validateAgainstSchema(swaggerObject);
-          }
-          catch (e) {
-            err = e;
-          }
-        }
-
-        // We're done parsing, so clear the state
-        state.reset();
-
-        if (err) {
-          err = util.syntaxError('Error in "%s". \n%s', swaggerFile, err.message);
-          return util.doCallback(callback, err);
-        }
-
-        // We're done.  Invoke the callback.
-        util.doCallback(callback, null, swaggerObject);
-      });
+      // We're done.  Invoke the callback.
+      util.doCallback(callback, null, swaggerObject);
     });
+  });
+}
+
+
+/**
+ * Validates the given SwaggerObject against the Swagger schema.
+ */
+function validateAgainstSchema(swaggerObject, state) {
+  // Don't do anything if validation is disabled
+  if (!state.options.validateSpec) {
+    return;
   }
+
+  // Validate against the schema
+  if (tv4.validate(swaggerObject, swaggerSchema)) {
+    return true;
+  }
+  else {
+    throw util.syntaxError('%s \nData path: "%s" \nSchema path: "%s"\n',
+      tv4.error.message, tv4.error.dataPath, tv4.error.schemaPath);
+  }
+}
+
+
+},{"./defaults":3,"./dereference":4,"./read":6,"./state":7,"./util":8,"lodash":78,"path":22,"swagger-schema-official/schema":79,"tv4":80}],6:[function(require,module,exports){
+'use strict';
+
+var fs = require('fs');
+var path = require('path');
+var http = require('http');
+var url = require('url');
+var yaml = require('js-yaml');
+var _ = require('lodash');
+var util = require('./util');
+var debug = require('./debug');
+
+var read;
+
+module.exports = read = {
+  /**
+   * Reads a JSON or YAML file from the local filesystem or a remote URL and returns the parsed POJO.
+   * @param {string}    pathOrUrl   Local file path or URL, relative to the Swagger file.
+   * @param {State}     state       The state for the current parse operation
+   * @param {function}  callback    function(err, parsedObject)
+   */
+  fileOrUrl: function(pathOrUrl, state, callback) {
+    try {
+      // Parse the path and determine whether it's a file or a URL by its protocol
+      var parsedUrl = url.parse(pathOrUrl);
+
+      if (isLocalFile(parsedUrl, state)) {
+        read.file(urlToRelativePath(parsedUrl), state, callback);
+      }
+      else {
+        read.url(parsedUrl.href, state, callback);
+      }
+    }
+    catch (e) {
+      callback(e);
+    }
+  },
 
 
   /**
-   * Validates the given SwaggerObject against the Swagger schema.
+   * Reads a JSON or YAML file from the local filesystem and returns the parsed POJO.
+   * @param {string}    filePath        Local file path, relative to the Swagger file.
+   * @param {State}     state           The state for the current parse operation
+   * @param {function}  callback        function(err, parsedObject)
    */
-  function validateAgainstSchema(swaggerObject) {
-    // Don't do anything if validation is disabled
-    if (!state.options.validateSpec) {
-      return;
+  file: function(filePath, state, callback) {
+    function errorHandler(err) {
+      callback(util.error('Error opening file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
     }
 
-    // Validate against the schema
-    if (tv4.validate(swaggerObject, swaggerSchema)) {
-      return true;
+    function parseError(err) {
+      callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
     }
-    else {
-      throw util.syntaxError('%s \nData path: "%s" \nSchema path: "%s"\n',
-        tv4.error.message, tv4.error.dataPath, tv4.error.schemaPath);
-    }
-  }
 
+    try {
+      // Get the file path, relative to the Swagger file's directory
+      filePath = path.resolve(state.swaggerSourceDir, filePath);
 
-})();
+      debug('Reading file "%s"', filePath);
 
-},{"./defaults":3,"./dereference":4,"./read":6,"./state":7,"./util":8,"lodash":78,"path":22,"swagger-schema-official/schema":79,"tv4":80}],6:[function(require,module,exports){
-(function() {
-  'use strict';
-
-  var fs = require('fs');
-  var path = require('path');
-  var http = require('http');
-  var url = require('url');
-  var yaml = require('js-yaml');
-  var _ = require('lodash');
-  var state = require('./state');
-  var util = require('./util');
-  var debug = require('./debug');
-
-  var read = module.exports = {
-    /**
-     * Reads a JSON or YAML file from the local filesystem or a remote URL and returns the parsed POJO.
-     * @param {string}    pathOrUrl   Local file path or URL, relative to the Swagger file.
-     * @param {function}  callback    function(err, parsedObject)
-     */
-    fileOrUrl: function(pathOrUrl, callback) {
-      try {
-        // Parse the path and determine whether it's a file or a URL by its protocol
-        var parsedUrl = url.parse(pathOrUrl);
-
-        if (isLocalFile(parsedUrl)) {
-          read.file(urlToRelativePath(parsedUrl), callback);
+      fs.readFile(filePath, {encoding: 'utf8'}, function(err, data) {
+        if (err) {
+          return errorHandler(err);
         }
-        else {
-          read.url(parsedUrl.href, callback);
+
+        try {
+          callback(null, parseJsonOrYaml(filePath, data, state));
         }
+        catch (e) {
+          parseError(e);
+        }
+      });
+    }
+    catch (e) {
+      errorHandler(e);
+    }
+  },
+
+
+  /**
+   * Reads a JSON or YAML file from the a remote URL and returns the parsed POJO.
+   * @param {string|Url}    urlPath     The file URL, relative to the Swagger file.
+   * @param {State}         state       The state for the current parse operation
+   * @param {function}      callback    function(err, parsedObject)
+   */
+  url: function(urlPath, state, callback) {
+    var href = urlPath;
+
+    // NOTE: When HTTP errors occur, they can trigger multiple on('error') events,
+    // So we need to make sure we only invoke the callback function ONCE.
+    callback = _.once(callback);
+
+    function downloadError(err) {
+      callback(util.error('Error downloading file "%s": \n%s: %s \n\n%s', href, err.name, err.message, err.stack));
+    }
+
+    function parseError(err) {
+      callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', href, err.name, err.message, err.stack));
+    }
+
+    try {
+      // Parse the URL, if it's not already parsed
+      urlPath = url.parse(urlPath);
+
+      if (isRelativeUrl(urlPath)) {
+        // Resolve the url, relative to the Swagger file
+        urlPath = url.parse(url.resolve(state.swaggerSourceDir + '/', urlToRelativePath(urlPath)));
       }
-      catch (e) {
-        callback(e);
-      }
-    },
 
+      href = urlPath.href;
 
-    /**
-     * Reads a JSON or YAML file from the local filesystem and returns the parsed POJO.
-     * @param {string}    filePath        Local file path, relative to the Swagger file.
-     * @param {function}  callback        function(err, parsedObject)
-     */
-    file: function(filePath, callback) {
-      function errorHandler(err) {
-        callback(util.error('Error opening file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
-      }
+      var options = {
+        host: urlPath.host,
+        hostname: urlPath.hostname,
+        port: urlPath.port,
+        path: urlPath.path,
+        auth: urlPath.auth,
+        headers: {'Content-Type': 'application/json'}
+      };
 
-      function parseError(err) {
-        callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
-      }
+      debug('Downloading file "%s"', href);
 
-      try {
-        // Get the file path, relative to the Swagger file's directory
-        filePath = path.resolve(state.swaggerSourceDir, filePath);
+      var req = http.get(options, function(res) {
+        var body = '';
 
-        debug('Reading file "%s"', filePath);
+        if (_.isFunction(res.setEncoding)) {
+          res.setEncoding('utf8');
+        }
 
-        fs.readFile(filePath, {encoding: 'utf8'}, function(err, data) {
-          if (err) {
-            return errorHandler(err);
+        res.on('data', function(data) {
+          body += data;
+        });
+
+        res.on('end', function() {
+          if (res.statusCode >= 400) {
+            return downloadError(new Error('HTTP ERROR ' + res.statusCode + ': ' + body));
           }
 
           try {
-            callback(null, parseJsonOrYaml(filePath, data));
+            callback(null, parseJsonOrYaml(href, body, state));
           }
           catch (e) {
             parseError(e);
           }
         });
-      }
-      catch (e) {
-        errorHandler(e);
-      }
-    },
 
-
-    /**
-     * Reads a JSON or YAML file from the a remote URL and returns the parsed POJO.
-     * @param {string|Url}    urlPath     The file URL, relative to the Swagger file.
-     * @param {function}      callback    function(err, parsedObject)
-     */
-    url: function(urlPath, callback) {
-      var href = urlPath;
-
-      // NOTE: When HTTP errors occur, they can trigger multiple on('error') events,
-      // So we need to make sure we only invoke the callback function ONCE.
-      callback = _.once(callback);
-
-      function downloadError(err) {
-        callback(util.error('Error downloading file "%s": \n%s: %s \n\n%s', href, err.name, err.message, err.stack));
-      }
-
-      function parseError(err) {
-        callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', href, err.name, err.message, err.stack));
-      }
-
-      try {
-        // Parse the URL, if it's not already parsed
-        urlPath = url.parse(urlPath);
-
-        if (isRelativeUrl(urlPath)) {
-          // Resolve the url, relative to the Swagger file
-          urlPath = url.parse(url.resolve(state.swaggerSourceDir + '/', urlToRelativePath(urlPath)));
-        }
-
-        href = urlPath.href;
-
-        var options = {
-          host: urlPath.host,
-          hostname: urlPath.hostname,
-          port: urlPath.port,
-          path: urlPath.path,
-          auth: urlPath.auth,
-          headers: {'Content-Type': 'application/json'}
-        };
-
-        debug('Downloading file "%s"', href);
-
-        var req = http.get(options, function(res) {
-          var body = '';
-
-          if (_.isFunction(res.setEncoding)) {
-            res.setEncoding('utf8');
-          }
-
-          res.on('data', function(data) {
-            body += data;
-          });
-
-          res.on('end', function() {
-            if (res.statusCode >= 400) {
-              return downloadError(new Error('HTTP ERROR ' + res.statusCode + ': ' + body));
-            }
-
-            try {
-              callback(null, parseJsonOrYaml(href, body));
-            }
-            catch (e) {
-              parseError(e);
-            }
-          });
-
-          res.on('error', function(e) {
-            downloadError(e);
-          });
-        });
-
-        if (_.isFunction(req.setTimeout)) {
-          req.setTimeout(5000);
-        }
-
-        req.on('timeout', function() {
-          req.abort();
-        });
-
-        req.on('error', function(e) {
+        res.on('error', function(e) {
           downloadError(e);
         });
+      });
+
+      if (_.isFunction(req.setTimeout)) {
+        req.setTimeout(5000);
       }
-      catch (e) {
+
+      req.on('timeout', function() {
+        req.abort();
+      });
+
+      req.on('error', function(e) {
         downloadError(e);
-      }
+      });
     }
-  };
+    catch (e) {
+      downloadError(e);
+    }
+  }
+};
 
 
-  /**
-   * Determines if we're running in a browser, in which case, the "fs" module is unavailable.
-   * @returns {boolean}
-   */
-  function isBrowser() {
-    return !_.isFunction(fs.readFile);
+/**
+ * Determines if we're running in a browser, in which case, the "fs" module is unavailable.
+ * @returns {boolean}
+ */
+function isBrowser() {
+  return !_.isFunction(fs.readFile);
+}
+
+
+/**
+ * Determines whether the given path points to a local file that exists.
+ * @param   {Url}       parsedUrl     A parsed Url object
+ * @param {State}       state         The state for the current parse operation
+ * @returns {boolean}
+ */
+function isLocalFile(parsedUrl, state) {
+  if (isBrowser()) {
+    // Local files aren't supported in browsers
+    return false;
   }
 
-
-  /**
-   * Determines whether the given path points to a local file that exists.
-   * @param   {Url}       parsedUrl     A parsed Url object
-   * @returns {boolean}
-   */
-  function isLocalFile(parsedUrl) {
-    if (isBrowser()) {
-      // Local files aren't supported in browsers
-      return false;
-    }
-
-    if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
-      // If the path exists locally, then treat the URL as a local file
-      var relativePath = urlToRelativePath(parsedUrl);
-      var filePath = path.resolve(state.swaggerSourceDir, relativePath);
-      return fs.existsSync(filePath);
-    }
-
-    // If it's anything other than "http" or "https", then assume it's a local file.
-    // This includes "file://", "/absolute/paths", "relative/paths", and "c:\windows\paths"
-    return true;
+  if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+    // If the path exists locally, then treat the URL as a local file
+    var relativePath = urlToRelativePath(parsedUrl);
+    var filePath = path.resolve(state.swaggerSourceDir, relativePath);
+    return fs.existsSync(filePath);
   }
 
+  // If it's anything other than "http" or "https", then assume it's a local file.
+  // This includes "file://", "/absolute/paths", "relative/paths", and "c:\windows\paths"
+  return true;
+}
 
-  /**
-   * Return the equivalent relative file path for a given url.
-   * @param   {Url}       parsedUrl     A parsed Url object
-   * @returns {string}
-   */
-  function urlToRelativePath(parsedUrl) {
-    if (isRelativeUrl(parsedUrl)) {
-      // "http://../../file.yaml" => "../../file.yaml"
-      return parsedUrl.href.substr(parsedUrl.protocol.length + 2);
-    }
 
-    // "http://localhost/folder/subfolder/file.yaml" => "folder/subfolder/file.yaml"
-    return parsedUrl.pathname;
+/**
+ * Return the equivalent relative file path for a given url.
+ * @param   {Url}       parsedUrl     A parsed Url object
+ * @returns {string}
+ */
+function urlToRelativePath(parsedUrl) {
+  if (isRelativeUrl(parsedUrl)) {
+    // "http://../../file.yaml" => "../../file.yaml"
+    return parsedUrl.href.substr(parsedUrl.protocol.length + 2);
   }
 
+  // "http://localhost/folder/subfolder/file.yaml" => "folder/subfolder/file.yaml"
+  return parsedUrl.pathname;
+}
 
-  /**
-   * Treats a URL as relative if its hostname is "." or ".."
-   * NOTE: This is an undocumented feature that's only intended for cross-platform testing. Don't rely on it!
-   * @param   {Url}       parsedUrl     A parsed Url object
-   * @returns {boolean}
-   */
-  function isRelativeUrl(parsedUrl) {
-    return parsedUrl.host === '.' || parsedUrl.host === '..';
+
+/**
+ * Treats a URL as relative if its hostname is "." or ".."
+ * NOTE: This is an undocumented feature that's only intended for cross-platform testing. Don't rely on it!
+ * @param   {Url}       parsedUrl     A parsed Url object
+ * @returns {boolean}
+ */
+function isRelativeUrl(parsedUrl) {
+  return parsedUrl.host === '.' || parsedUrl.host === '..';
+}
+
+
+/**
+ * Parses a JSON or YAML string into a POJO.
+ * @param   {string}  pathOrUrl
+ * @param   {string}  data
+ * @param   {State}   state
+ * @returns {object}
+ */
+function parseJsonOrYaml(pathOrUrl, data, state) {
+  var parsedObject;
+  if (state.options.parseYaml) {
+    debug('  Parsing YAML file "%s"', pathOrUrl);
+    parsedObject = yaml.safeLoad(data);
+  }
+  else {
+    debug('  Parsing JSON file "%s"', pathOrUrl);
+    parsedObject = JSON.parse(data);
   }
 
-
-  /**
-   * Parses a JSON or YAML string into a POJO.
-   * @param   {string} pathOrUrl
-   * @param   {string} data
-   * @returns {object}
-   */
-  function parseJsonOrYaml(pathOrUrl, data) {
-    var parsedObject;
-    if (state.options.parseYaml) {
-      debug('  Parsing YAML file "%s"', pathOrUrl);
-      parsedObject = yaml.safeLoad(data);
-    }
-    else {
-      debug('  Parsing JSON file "%s"', pathOrUrl);
-      parsedObject = JSON.parse(data);
-    }
-
-    if (_.isEmpty(parsedObject)) {
-      throw util.syntaxError('Parsed value is empty');
-    }
-    if (!_.isPlainObject(parsedObject)) {
-      throw util.syntaxError('Parsed value is not a valid JavaScript object');
-    }
-
-    debug('  Parsed successfully');
-    return parsedObject;
+  if (_.isEmpty(parsedObject)) {
+    throw util.syntaxError('Parsed value is empty');
+  }
+  if (!_.isPlainObject(parsedObject)) {
+    throw util.syntaxError('Parsed value is not a valid JavaScript object');
   }
 
-})();
+  debug('  Parsed successfully');
+  return parsedObject;
+}
 
-},{"./debug":2,"./state":7,"./util":8,"fs":9,"http":16,"js-yaml":47,"lodash":78,"path":22,"url":41}],7:[function(require,module,exports){
-(function() {
-  'use strict';
+
+},{"./debug":2,"./util":8,"fs":9,"http":16,"js-yaml":47,"lodash":78,"path":22,"url":41}],7:[function(require,module,exports){
+'use strict';
+
+module.exports = State;
+
+/**
+ * The state for the current parsing operation
+ * @constructor
+ */
+function State() {
+  /**
+   * The directory where the Swagger file is located
+   * (used for resolving relative file references)
+   */
+  this.swaggerSourceDir = null;
 
   /**
-   * The state for the current parsing operation
-   * @type {{swaggerSourceDir: null, options: null, swaggerObject: null, resolvedPointers: {}}}
+   * The options for the parsing operation
+   * @type {defaults}
    */
-  var state = module.exports = {
-    /**
-     * The directory where the Swagger file is located
-     * (used for resolving relative file references)
-     */
-    swaggerSourceDir: null,
+  this.options = null;
 
-    /**
-     * The options for the parsing operation
-     * @type {defaults}
-     */
-    options: null,
+  /**
+   * The entire SwaggerObject
+   * (used for resolving schema references)
+   */
+  this.swaggerObject = null;
 
-    /**
-     * The entire SwaggerObject
-     * (used for resolving schema references)
-     */
-    swaggerObject: null,
+  /**
+   * A map of resolved "$ref" pointers to their values
+   */
+  this.resolvedPointers = {};
+}
 
-    /**
-     * A map of resolved "$ref" pointers to their values
-     */
-    resolvedPointers: {},
-
-    /**
-     * Resets the parse state to default values.
-     */
-    reset: function() {
-      state.swaggerSourceDir = null;
-      state.options = null;
-      state.swaggerObject = null;
-      state.resolvedPointers = {};
-    }
-  };
-
-})();
 
 },{}],8:[function(require,module,exports){
 (function (process){
-(function() {
-  'use strict';
+'use strict';
 
-  var format = require('util').format;
-  var _ = require('lodash');
-
-
-  module.exports = {
-    /**
-     * Asynchronously invokes the given callback function with the given parameters.
-     * This allows the call stack to unwind, which is necessary because there can be a LOT of
-     * recursive calls when dereferencing large Swagger specs.
-     * @param {function} callback
-     * @param {*}     [err]
-     * @param {...*}  [params]
-     */
-    doCallback: function(callback, err, params) {
-      var args = _.rest(arguments);
-      process.nextTick(function() {
-        callback.apply(null, args);
-      });
-    },
+var format = require('util').format;
+var _ = require('lodash');
 
 
-    /**
-     * Creates an Error with a formatted string message.
-     * @param   {string}      message
-     * @param   {...*}        [params]
-     * @returns {Error}
-     */
-    error: function(message, params) {
-      return new Error(format.apply(null, [message].concat(_.rest(arguments))));
-    },
+module.exports = {
+  /**
+   * Asynchronously invokes the given callback function with the given parameters.
+   * This allows the call stack to unwind, which is necessary because there can be a LOT of
+   * recursive calls when dereferencing large Swagger specs.
+   * @param {function} callback
+   * @param {*}     [err]
+   * @param {...*}  [params]
+   */
+  doCallback: function(callback, err, params) {
+    var args = _.rest(arguments);
+    process.nextTick(function() {
+      callback.apply(null, args);
+    });
+  },
 
 
-    /**
-     * Creates a SyntaxError with a formatted string message.
-     * @param   {string}      message
-     * @param   {...*}        [params]
-     * @returns {SyntaxError}
-     */
-    syntaxError: function(message, params) {
-      return new SyntaxError(format.apply(null, [message].concat(_.rest(arguments))));
-    }
-  };
+  /**
+   * Creates an Error with a formatted string message.
+   * @param   {string}      message
+   * @param   {...*}        [params]
+   * @returns {Error}
+   */
+  error: function(message, params) {
+    return new Error(format.apply(null, [message].concat(_.rest(arguments))));
+  },
 
-})();
+
+  /**
+   * Creates a SyntaxError with a formatted string message.
+   * @param   {string}      message
+   * @param   {...*}        [params]
+   * @returns {SyntaxError}
+   */
+  syntaxError: function(message, params) {
+    return new SyntaxError(format.apply(null, [message].concat(_.rest(arguments))));
+  }
+};
 
 }).call(this,require('_process'))
 },{"_process":23,"lodash":78,"util":43}],9:[function(require,module,exports){

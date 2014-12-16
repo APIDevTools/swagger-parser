@@ -32,6 +32,30 @@ describe('env.parser.parse tests', function() {
         });
       }
     );
+
+    it('should parse multiple files simultaneously',
+      function(done) {
+        var counter = 0;
+
+        env.parser.parse(env.files.getPath('shorthand-refs.yaml'), function(err, swagger) {
+          expect(err).to.be.null;
+          expect(swagger).to.deep.equal(env.files.dereferenced.shorthandRefs);
+          if (++counter === 3) done();
+        });
+
+        env.parser.parse(env.files.getPath('minimal.json'), function(err, swagger) {
+          expect(err).to.be.null;
+          expect(swagger).to.deep.equal(env.files.parsed.minimal);
+          if (++counter === 3) done();
+        });
+
+        env.parser.parse(env.files.getPath('nested-refs.yaml'), function(err, swagger) {
+          expect(err).to.be.null;
+          expect(swagger).to.deep.equal(env.files.dereferenced.nestedRefs);
+          if (++counter === 3) done();
+        });
+      }
+    );
   });
 
 
