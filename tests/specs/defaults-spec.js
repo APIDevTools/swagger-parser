@@ -1,3 +1,5 @@
+require('../test-environment.js');
+
 describe('env.parser.defaults tests', function() {
   'use strict';
 

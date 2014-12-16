@@ -1,3 +1,5 @@
+require('../test-environment.js');
+
 describe('Package exports tests', function() {
   'use strict';
 

@@ -1,3 +1,5 @@
+require('../test-environment.js');
+
 describe('Dereferencing tests', function() {
   'use strict';
 

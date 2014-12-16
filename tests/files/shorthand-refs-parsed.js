@@ -1,3 +1,5 @@
+require('../test-environment.js');
+
 env.files.parsed.shorthandRefs =
 {
   'swagger': '2.0',

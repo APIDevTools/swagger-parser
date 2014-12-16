@@ -22,7 +22,9 @@
   "main": "index.js",
   "scripts": {
     "build": "gulp build",
-    "test": "istanbul cover _mocha -- --recursive tests && karma start --single-run"
+    "test": "istanbul cover _mocha -- --recursive tests && karma start --single-run",
+    "mocha": "mocha --recursive tests",
+    "karma": "karma start --single-run"
   },
   "repository": {
     "type": "git",

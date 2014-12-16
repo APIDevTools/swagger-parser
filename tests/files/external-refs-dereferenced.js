@@ -1,3 +1,5 @@
+require('../test-environment.js');
+
 env.files.dereferenced.externalRefs =
 {
   'swagger': '2.0',

@@ -48,7 +48,7 @@
        */
       getPath: function(fileName) {
         if (env.isNode) {
-          return path.join(__dirname, 'files', fileName);
+          return path.join(__dirname, 'files', fileName); // jshint ignore:line
         }
         else {
           return env.__dirname + '/files/' + fileName;
@@ -94,6 +94,7 @@
     // Set globals for use in tests
     window.env = env;
     window.expect = window.chai.expect;
+    window.require = function() {};
   }
 
 })();

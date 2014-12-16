@@ -1,3 +1,5 @@
+require('../../test-environment.js');
+
 env.files.parsed.invalid =
 {
   swagger: '2.0',
