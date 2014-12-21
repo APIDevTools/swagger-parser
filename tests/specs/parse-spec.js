@@ -59,7 +59,7 @@ describe('env.parser.parse tests', function() {
       }
     );
 
-    it('should return a State object as the third parameter',
+    it('should return the State object as the third parameter to the callback',
       function(done) {
         env.parser.parse(env.files.getPath('external-refs.yaml'), function(err, swagger, state) {
           expect(err).to.be.null;
@@ -84,6 +84,42 @@ describe('env.parser.parse tests', function() {
 
           done();
         });
+      }
+    );
+
+    it('should return different State objects when parsing multiple files simultaneously',
+      function(done) {
+        var states = [];
+
+        env.parser.parse(env.files.getPath('shorthand-refs.yaml'), function(err, swagger, state) {
+          expect(err).to.be.null;
+          expect(state.swaggerObject).to.deep.equal(env.files.dereferenced.shorthandRefs);
+          states.push(state);
+          compareStates();
+        });
+
+        env.parser.parse(env.files.getPath('minimal.json'), function(err, swagger, state) {
+          expect(err).to.be.null;
+          expect(state.swaggerObject).to.deep.equal(env.files.parsed.minimal);
+          states.push(state);
+          compareStates();
+        });
+
+        env.parser.parse(env.files.getPath('nested-refs.yaml'), function(err, swagger, state) {
+          expect(err).to.be.null;
+          expect(state.swaggerObject).to.deep.equal(env.files.dereferenced.nestedRefs);
+          states.push(state);
+          compareStates();
+        });
+
+        function compareStates() {
+          if (states.length === 3) {
+            expect(states[0]).not.to.equal(states[1]);
+            expect(states[0]).not.to.equal(states[2]);
+            expect(states[1]).not.to.equal(states[2]);
+            done();
+          }
+        }
       }
     );
 
