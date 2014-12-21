@@ -340,7 +340,7 @@ function parse(swaggerFile, options, callback) {
       }
 
       // We're done.  Invoke the callback.
-      util.doCallback(callback, null, swaggerObject);
+      util.doCallback(callback, null, swaggerObject, state);
     });
   });
 }
@@ -432,6 +432,7 @@ module.exports = read = {
         }
 
         try {
+          state.files.push(filePath);
           callback(null, parseJsonOrYaml(filePath, data, state));
         }
         catch (e) {
@@ -505,6 +506,7 @@ module.exports = read = {
           }
 
           try {
+            state.urls.push(urlPath);
             callback(null, parseJsonOrYaml(href, body, state));
           }
           catch (e) {
@@ -654,6 +656,18 @@ function State() {
    * (used for resolving schema references)
    */
   this.swaggerObject = null;
+
+  /**
+   * The full path and filename of files that have been read during the parsing operation.
+   * @type {string[]}
+   */
+  this.files = [];
+
+  /**
+   * The parsed URLs that have been downloaded during the parsing operation.
+   * @type {url.Url[]}
+   */
+  this.urls = [];
 
   /**
    * A map of resolved "$ref" pointers to their values

@@ -58,6 +58,35 @@ describe('env.parser.parse tests', function() {
         });
       }
     );
+
+    it('should return a State object as the third parameter',
+      function(done) {
+        env.parser.parse(env.files.getPath('external-refs.yaml'), function(err, swagger, state) {
+          expect(err).to.be.null;
+          expect(state).to.be.an('object');
+          expect(state.options).to.deep.equal(env.parser.defaults);
+          expect(state.swaggerObject).to.deep.equal(env.files.dereferenced.externalRefs);
+
+          if (env.isBrowser) {
+            expect(state.files).to.have.lengthOf(0);
+            expect(state.urls).to.have.lengthOf(3);
+            expect(state.urls[0].pathname).to.contain('external-refs.yaml');
+            expect(state.urls[1].pathname).to.contain('error.yaml');
+            expect(state.urls[2].pathname).to.contain('pet.yaml');
+          }
+          else {
+            expect(state.urls).to.have.lengthOf(0);
+            expect(state.files).to.have.lengthOf(3);
+            expect(state.files[0]).to.contain('external-refs.yaml');
+            expect(state.files[1]).to.contain('error.yaml');
+            expect(state.files[2]).to.contain('pet.yaml');
+          }
+
+          done();
+        });
+      }
+    );
+
   });
 
 
