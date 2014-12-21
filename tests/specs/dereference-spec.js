@@ -75,6 +75,17 @@ describe('Dereferencing tests', function() {
       }
     );
 
+    it('should dereference non-object references',
+      function(done) {
+        env.parser.parse(env.files.getPath('non-object-refs.yaml'), function(err, swagger) {
+          expect(err).to.be.null;
+          expect(swagger).to.deep.equal(env.files.dereferenced.nonObjectRefs);
+
+          done();
+        });
+      }
+    );
+
     it('identical shorthand references should resolve to the same object instance',
       function(done) {
         env.parser.parse(env.files.getPath('shorthand-refs.yaml'), function(err, swagger) {
@@ -85,6 +96,7 @@ describe('Dereferencing tests', function() {
           // Both pointers should point to the swagger.definitions.pet object
           expect(petParameter).to.equal(swagger.definitions.pet);
           expect(petResponse).to.equal(swagger.definitions.pet);
+          expect(swagger.definitions.pet).to.deep.equal(env.files.parsed.pet);
 
           done();
         });
@@ -94,12 +106,15 @@ describe('Dereferencing tests', function() {
     it('identical external references should resolve to the same object instance',
       function(done) {
         env.parser.parse(env.files.getPath('external-refs.yaml'), function(err, swagger) {
-          // Two $ref pointers to "http://./pet.yaml"
+          // Three $ref pointers to "http://./pet.yaml"
           var petParameter = swagger.paths['/pets'].post.parameters[0].schema;
           var petResponse = swagger.paths['/pets'].post.responses['200'].schema;
+          var petError = swagger.paths['/pets'].post.responses.default.schema.properties.pet;
 
           // The same object instance should be used to resolve both pointers
           expect(petParameter).to.equal(petResponse);
+          expect(petParameter).to.equal(petError);
+          expect(petParameter).to.deep.equal(env.files.parsed.pet);
 
           // There is no "definitions" object, because the definitions are external
           expect(swagger.definitions).to.be.undefined;
@@ -118,9 +133,14 @@ describe('Dereferencing tests', function() {
           // $ref pointer to "pet"
           var petResponse = swagger.paths['/pets'].post.responses['200'].schema;
 
+          // $ref pointer to "http://./pet.yaml"
+          var petError = swagger.paths['/pets'].post.responses.default.schema.properties.pet;
+
           // Both pointers should point to the swagger.definitions.pet object
           expect(petParameter).to.equal(swagger.definitions.pet);
           expect(petResponse).to.equal(swagger.definitions.pet);
+          expect(petError).to.equal(swagger.definitions.pet);
+          expect(swagger.definitions.pet).to.deep.equal(env.files.parsed.pet);
 
           done();
         });
@@ -151,6 +171,7 @@ describe('Dereferencing tests', function() {
           expect(error404Pet).to.equal(swagger.definitions.pet);
           expect(error500Pet).to.equal(swagger.definitions.pet);
           expect(errorPet).to.equal(swagger.definitions.pet);
+          expect(swagger.definitions.pet).to.deep.equal(env.files.parsed.pet);
 
           // $ref pointer to "error"
           var error404 = swagger.paths['/pets'].post.responses['404'].schema;
@@ -165,6 +186,74 @@ describe('Dereferencing tests', function() {
           expect(error404).to.equal(swagger.definitions.error);
           expect(error500).to.equal(swagger.definitions.error);
           expect(error).to.equal(swagger.definitions.error);
+
+          done();
+        });
+      }
+    );
+
+    it('references to the same non-object should resolve to the same instance',
+      function(done) {
+        env.parser.parse(env.files.getPath('non-object-refs.yaml'), function(err, swagger) {
+          // Two $ref pointers to "#/definitions/pet/properties/type/enum" (an array)
+          var enumPointer1 = swagger.paths['/pets'].post.parameters[0].schema.properties.type.enum;
+          var enumPointer2 = swagger.paths['/pets'].post.responses.default.schema.properties.message.enum;
+
+          // The same object instance should be used to resolve both pointers
+          expect(enumPointer1).to.equal(swagger.definitions.pet.properties.type.enum);
+          expect(enumPointer2).to.equal(swagger.definitions.pet.properties.type.enum);
+          expect(swagger.definitions.pet.properties.type.enum).to.have.members(['cat', 'dog', 'bird']);
+
+
+          done();
+        });
+      }
+    );
+
+    it('multiple references to an external $ref should only parse the file once',
+      function(done) {
+        env.parser.parse(env.files.getPath('refs.yaml'), function(err, swagger, state) {
+          expect(err).to.be.null;
+
+          if (env.isBrowser) {
+            expect(state.files).to.have.lengthOf(0);
+            expect(state.urls).to.have.lengthOf(3);
+            expect(state.urls[0].pathname).to.contain('refs.yaml');
+            expect(state.urls[1].pathname).to.contain('pet.yaml');
+            expect(state.urls[2].pathname).to.contain('error.yaml');
+          }
+          else {
+            expect(state.urls).to.have.lengthOf(0);
+            expect(state.files).to.have.lengthOf(3);
+            expect(state.files[0]).to.contain('refs.yaml');
+            expect(state.files[1]).to.contain('pet.yaml');
+            expect(state.files[2]).to.contain('error.yaml');
+          }
+
+          done();
+        });
+      }
+    );
+
+    it('multiple references to an external file should only parse the file once',
+      function(done) {
+        env.parser.parse(env.files.getPath('external-refs.yaml'), function(err, swagger, state) {
+          expect(err).to.be.null;
+
+          if (env.isBrowser) {
+            expect(state.files).to.have.lengthOf(0);
+            expect(state.urls).to.have.lengthOf(3);
+            expect(state.urls[0].pathname).to.contain('refs.yaml');
+            expect(state.urls[1].pathname).to.contain('error.yaml');
+            expect(state.urls[2].pathname).to.contain('pet.yaml');
+          }
+          else {
+            expect(state.urls).to.have.lengthOf(0);
+            expect(state.files).to.have.lengthOf(3);
+            expect(state.files[0]).to.contain('refs.yaml');
+            expect(state.files[1]).to.contain('error.yaml');
+            expect(state.files[2]).to.contain('pet.yaml');
+          }
 
           done();
         });

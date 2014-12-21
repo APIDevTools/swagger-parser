@@ -41,19 +41,7 @@ env.files.parsed.refs =
   },
   'definitions': {
     'pet': {
-      'properties': {
-        'type': {
-          'enum': [
-            'cat',
-            'dog',
-            'bird'
-          ],
-          'type': 'string'
-        },
-        'name': {
-          'type': 'string'
-        }
-      }
+      '$ref': 'http://./pet.yaml'
     }
   }
 };
