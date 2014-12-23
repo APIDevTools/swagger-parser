@@ -65,6 +65,9 @@ var read = require('./read');
 var util = require('./util');
 var debug = require('./debug');
 
+// RegExp pattern for external pointers
+// (e.g. "http://company.com", "https://company.com", "./file.yaml", "../../file.yaml")
+var externalPointerPattern = /^(https?\:\/\/|\.)/i;
 
 module.exports = dereference;
 
@@ -172,23 +175,13 @@ function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, state,
     util.doCallback(callback, err, resolved, alreadyResolved);
   }
 
-
   try {
     // If we've already resolved this pointer, then return the resolved value
     if (_.has(state.resolvedPointers, pointerValue)) {
       return returnResolvedValue(null, state.resolvedPointers[pointerValue], true);
     }
 
-    if (isInternalPointer(pointerValue)) {
-      // "#/paths/users/responses/200" => "paths.users.responses.200"
-      var deepProperty = pointerValue.substr(2).replace(/\//g, '.');
-
-      // Get the property value from the schema
-      resolved = resultDeep(state.swaggerObject, deepProperty);
-      state.resolvedPointers[pointerValue] = resolved;
-      returnResolvedValue(null, resolved);
-    }
-    else if (isExternalPointer(pointerValue)) {
+    if (isExternalPointer(pointerValue)) {
       // Set the resolved value to an empty object for now, so other reference pointers
       // can point to this object.  Once we finish downloading the URL, we can update
       // the empty object with the real data.
@@ -206,8 +199,18 @@ function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, state,
       );
     }
     else {
-      // Swagger allows a shorthand reference syntax (e.g. "Product" => "#/definitions/Product")
-      resolved = _.result(state.swaggerObject.definitions, pointerValue);
+      var propertyPath;
+      if (pointerValue.indexOf('#/') === 0) {
+        // "#/paths/users/responses/200" => "paths.users.responses.200"
+        propertyPath = pointerValue.substr(2).replace(/\//g, '.');
+      }
+      else {
+        // "pet" => "definitions.pet"
+        propertyPath = 'definitions.' + pointerValue.replace(/\//g, '.');
+      }
+
+      // Get the property value from the schema
+      resolved = resultDeep(state.swagger, propertyPath);
       state.resolvedPointers[pointerValue] = resolved;
       returnResolvedValue(null, resolved);
     }
@@ -219,20 +222,11 @@ function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, state,
 
 
 /**
- * Determines whether the given $ref pointer value references a path in Swagger spec.
- * @returns {boolean}
- */
-function isInternalPointer(pointerValue) {
-  return pointerValue && pointerValue.indexOf('#/') === 0;
-}
-
-
-/**
  * Determines whether the given $ref pointer value references an external file.
  * @returns {boolean}
  */
 function isExternalPointer(pointerValue) {
-  return pointerValue && (pointerValue.indexOf('http://') === 0 || pointerValue.indexOf('https://') === 0);
+  return pointerValue && externalPointerPattern.test(pointerValue);
 }
 
 
@@ -304,7 +298,7 @@ function parse(swaggerFile, options, callback) {
 
   // Create a new state object for this parse operation
   var state = new State();
-  state.swaggerSourceDir = path.dirname(swaggerFile);
+  state.baseDir = path.dirname(swaggerFile);
   state.options = options;
 
   read.fileOrUrl(swaggerFile, state, function(err, swaggerObject) {
@@ -312,7 +306,7 @@ function parse(swaggerFile, options, callback) {
       return util.doCallback(callback, err);
     }
 
-    state.swaggerObject = swaggerObject;
+    state.swagger = swaggerObject;
 
     // Validate the version number
     var version = swaggerObject.swagger;
@@ -389,153 +383,140 @@ module.exports = read = {
    */
   fileOrUrl: function(pathOrUrl, state, callback) {
     try {
-      // Parse the path and determine whether it's a file or a URL by its protocol
-      var parsedUrl = url.parse(pathOrUrl);
+      // Resolve the path/URL relative to the Swagger file
+      pathOrUrl = url.resolve(state.baseDir + '/', pathOrUrl);
 
-      if (isLocalFile(parsedUrl, state)) {
-        read.file(urlToRelativePath(parsedUrl), state, callback);
+      // Determine whether its a local file or a URL
+      var parsedUrl = url.parse(pathOrUrl);
+      if (isLocalFile(parsedUrl)) {
+        readFile(parsedUrl.href, state, callback);
       }
       else {
-        read.url(parsedUrl.href, state, callback);
+        readUrl(parsedUrl, state, callback);
       }
     }
     catch (e) {
       callback(e);
     }
-  },
+  }
+};
 
 
-  /**
-   * Reads a JSON or YAML file from the local filesystem and returns the parsed POJO.
-   * @param {string}    filePath        Local file path, relative to the Swagger file.
-   * @param {State}     state           The state for the current parse operation
-   * @param {function}  callback        function(err, parsedObject)
-   */
-  file: function(filePath, state, callback) {
-    function errorHandler(err) {
-      callback(util.error('Error opening file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
-    }
+/**
+ * Reads a JSON or YAML file from the local filesystem and returns the parsed POJO.
+ * @param {string}    filePath        The full, absolute path of the file (NOT RELATIVE!)
+ * @param {State}     state           The state for the current parse operation
+ * @param {function}  callback        function(err, parsedObject)
+ */
+function readFile(filePath, state, callback) {
+  function errorHandler(err) {
+    callback(util.error('Error opening file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
+  }
 
-    function parseError(err) {
-      callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
-    }
+  function parseError(err) {
+    callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
+  }
 
-    try {
-      // Get the file path, relative to the Swagger file's directory
-      filePath = path.resolve(state.swaggerSourceDir, filePath);
+  try {
+    debug('Reading file "%s"', filePath);
 
-      debug('Reading file "%s"', filePath);
+    fs.readFile(filePath, {encoding: 'utf8'}, function(err, data) {
+      if (err) {
+        return errorHandler(err);
+      }
 
-      fs.readFile(filePath, {encoding: 'utf8'}, function(err, data) {
-        if (err) {
-          return errorHandler(err);
+      try {
+        state.files.push(filePath);
+        callback(null, parseJsonOrYaml(filePath, data, state));
+      }
+      catch (e) {
+        parseError(e);
+      }
+    });
+  }
+  catch (e) {
+    errorHandler(e);
+  }
+}
+
+
+/**
+ * Reads a JSON or YAML file from the a remote URL and returns the parsed POJO.
+ * @param {Url}       parsedUrl   The full, parsed URL
+ * @param {State}     state       The state for the current parse operation
+ * @param {function}  callback    function(err, parsedObject)
+ */
+function readUrl(parsedUrl, state, callback) {
+  // NOTE: When HTTP errors occur, they can trigger multiple on('error') events,
+  // So we need to make sure we only invoke the callback function ONCE.
+  callback = _.once(callback);
+
+  function downloadError(err) {
+    callback(util.error('Error downloading file "%s": \n%s: %s \n\n%s', parsedUrl.href, err.name, err.message, err.stack));
+  }
+
+  function parseError(err) {
+    callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', parsedUrl.href, err.name, err.message, err.stack));
+  }
+
+  try {
+    var options = {
+      host: parsedUrl.host,
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port,
+      path: parsedUrl.path,
+      auth: parsedUrl.auth,
+      headers: {'Content-Type': 'application/json'}
+    };
+
+    debug('Downloading file "%s"', parsedUrl.href);
+
+    var req = http.get(options, function(res) {
+      var body = '';
+
+      if (_.isFunction(res.setEncoding)) {
+        res.setEncoding('utf8');
+      }
+
+      res.on('data', function(data) {
+        body += data;
+      });
+
+      res.on('end', function() {
+        if (res.statusCode >= 400) {
+          return downloadError(new Error('HTTP ERROR ' + res.statusCode + ': ' + body));
         }
 
         try {
-          state.files.push(filePath);
-          callback(null, parseJsonOrYaml(filePath, data, state));
+          state.urls.push(parsedUrl);
+          callback(null, parseJsonOrYaml(parsedUrl.href, body, state));
         }
         catch (e) {
           parseError(e);
         }
       });
-    }
-    catch (e) {
-      errorHandler(e);
-    }
-  },
 
-
-  /**
-   * Reads a JSON or YAML file from the a remote URL and returns the parsed POJO.
-   * @param {string|Url}    urlPath     The file URL, relative to the Swagger file.
-   * @param {State}         state       The state for the current parse operation
-   * @param {function}      callback    function(err, parsedObject)
-   */
-  url: function(urlPath, state, callback) {
-    var href = urlPath;
-
-    // NOTE: When HTTP errors occur, they can trigger multiple on('error') events,
-    // So we need to make sure we only invoke the callback function ONCE.
-    callback = _.once(callback);
-
-    function downloadError(err) {
-      callback(util.error('Error downloading file "%s": \n%s: %s \n\n%s', href, err.name, err.message, err.stack));
-    }
-
-    function parseError(err) {
-      callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', href, err.name, err.message, err.stack));
-    }
-
-    try {
-      // Parse the URL, if it's not already parsed
-      urlPath = url.parse(urlPath);
-
-      if (isRelativeUrl(urlPath)) {
-        // Resolve the url, relative to the Swagger file
-        urlPath = url.parse(url.resolve(state.swaggerSourceDir + '/', urlToRelativePath(urlPath)));
-      }
-
-      href = urlPath.href;
-
-      var options = {
-        host: urlPath.host,
-        hostname: urlPath.hostname,
-        port: urlPath.port,
-        path: urlPath.path,
-        auth: urlPath.auth,
-        headers: {'Content-Type': 'application/json'}
-      };
-
-      debug('Downloading file "%s"', href);
-
-      var req = http.get(options, function(res) {
-        var body = '';
-
-        if (_.isFunction(res.setEncoding)) {
-          res.setEncoding('utf8');
-        }
-
-        res.on('data', function(data) {
-          body += data;
-        });
-
-        res.on('end', function() {
-          if (res.statusCode >= 400) {
-            return downloadError(new Error('HTTP ERROR ' + res.statusCode + ': ' + body));
-          }
-
-          try {
-            state.urls.push(urlPath);
-            callback(null, parseJsonOrYaml(href, body, state));
-          }
-          catch (e) {
-            parseError(e);
-          }
-        });
-
-        res.on('error', function(e) {
-          downloadError(e);
-        });
-      });
-
-      if (_.isFunction(req.setTimeout)) {
-        req.setTimeout(5000);
-      }
-
-      req.on('timeout', function() {
-        req.abort();
-      });
-
-      req.on('error', function(e) {
+      res.on('error', function(e) {
         downloadError(e);
       });
+    });
+
+    if (_.isFunction(req.setTimeout)) {
+      req.setTimeout(5000);
     }
-    catch (e) {
+
+    req.on('timeout', function() {
+      req.abort();
+    });
+
+    req.on('error', function(e) {
       downloadError(e);
-    }
+    });
   }
-};
+  catch (e) {
+    downloadError(e);
+  }
+}
 
 
 /**
@@ -550,52 +531,22 @@ function isBrowser() {
 /**
  * Determines whether the given path points to a local file that exists.
  * @param   {Url}       parsedUrl     A parsed Url object
- * @param {State}       state         The state for the current parse operation
  * @returns {boolean}
  */
-function isLocalFile(parsedUrl, state) {
+function isLocalFile(parsedUrl) {
   if (isBrowser()) {
     // Local files aren't supported in browsers
     return false;
   }
 
-  if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
-    // If the path exists locally, then treat the URL as a local file
-    var relativePath = urlToRelativePath(parsedUrl);
-    var filePath = path.resolve(state.swaggerSourceDir, relativePath);
-    return fs.existsSync(filePath);
+  // If the path exists locally, then treat the URL as a local file
+  if (fs.existsSync(parsedUrl.pathname)) {
+    return true;
   }
 
-  // If it's anything other than "http" or "https", then assume it's a local file.
-  // This includes "file://", "/absolute/paths", "relative/paths", and "c:\windows\paths"
-  return true;
-}
-
-
-/**
- * Return the equivalent relative file path for a given url.
- * @param   {Url}       parsedUrl     A parsed Url object
- * @returns {string}
- */
-function urlToRelativePath(parsedUrl) {
-  if (isRelativeUrl(parsedUrl)) {
-    // "http://../../file.yaml" => "../../file.yaml"
-    return parsedUrl.href.substr(parsedUrl.protocol.length + 2);
-  }
-
-  // "http://localhost/folder/subfolder/file.yaml" => "folder/subfolder/file.yaml"
-  return parsedUrl.pathname;
-}
-
-
-/**
- * Treats a URL as relative if its hostname is "." or ".."
- * NOTE: This is an undocumented feature that's only intended for cross-platform testing. Don't rely on it!
- * @param   {Url}       parsedUrl     A parsed Url object
- * @returns {boolean}
- */
-function isRelativeUrl(parsedUrl) {
-  return parsedUrl.host === '.' || parsedUrl.host === '..';
+  // If all else fails, then determine based on the protocol
+  // NOTE: The following are all considered local files: "file://path/to/file", "/path/to/file", "c:\path\to\file"
+  return parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:';
 }
 
 
@@ -640,10 +591,10 @@ module.exports = State;
  */
 function State() {
   /**
-   * The directory where the Swagger file is located
-   * (used for resolving relative file references)
+   * The directory of the Swagger file
+   * (used as the base directory for resolving relative file references)
    */
-  this.swaggerSourceDir = null;
+  this.baseDir = null;
 
   /**
    * The options for the parsing operation
@@ -652,25 +603,24 @@ function State() {
   this.options = null;
 
   /**
-   * The entire SwaggerObject
-   * (used for resolving schema references)
+   * The Swagger object that is being parsed.
    */
-  this.swaggerObject = null;
+  this.swagger = null;
 
   /**
-   * The full path and filename of files that have been read during the parsing operation.
+   * The files that have been read during the parsing operation.
    * @type {string[]}
    */
   this.files = [];
 
   /**
-   * The parsed URLs that have been downloaded during the parsing operation.
+   * The URLs that have been downloaded during the parsing operation.
    * @type {url.Url[]}
    */
   this.urls = [];
 
   /**
-   * A map of resolved "$ref" pointers to their values
+   * A map of resolved "$ref" pointers and values
    */
   this.resolvedPointers = {};
 }

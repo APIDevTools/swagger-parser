@@ -106,7 +106,7 @@ describe('Dereferencing tests', function() {
     it('identical external references should resolve to the same object instance',
       function(done) {
         env.parser.parse(env.files.getPath('external-refs.yaml'), function(err, swagger) {
-          // Three $ref pointers to "http://./pet.yaml"
+          // Three $ref pointers to "./pet.yaml"
           var petParameter = swagger.paths['/pets'].post.parameters[0].schema;
           var petResponse = swagger.paths['/pets'].post.responses['200'].schema;
           var petError = swagger.paths['/pets'].post.responses.default.schema.properties.pet;
@@ -133,7 +133,7 @@ describe('Dereferencing tests', function() {
           // $ref pointer to "pet"
           var petResponse = swagger.paths['/pets'].post.responses['200'].schema;
 
-          // $ref pointer to "http://./pet.yaml"
+          // $ref pointer to "./pet.yaml"
           var petError = swagger.paths['/pets'].post.responses.default.schema.properties.pet;
 
           // Both pointers should point to the swagger.definitions.pet object
@@ -291,7 +291,7 @@ describe('Dereferencing tests', function() {
       function(done) {
         env.parser.parse(env.files.getPath('bad/invalid-external-refs.yaml'), function(err, swagger) {
           expect(err).to.be.an.instanceOf(SyntaxError);
-          expect(err.message).to.match(/Error downloading file ".*doesnotexist\.yaml"/);
+          expect(err.message).to.match(/ENOENT|Error downloading file ".*doesnotexist\.yaml"/);
           expect(swagger).to.be.undefined;
 
           done();

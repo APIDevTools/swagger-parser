@@ -4,4 +4,4 @@ properties:
   message:
     type: string
   pet:
-    $ref: http://./pet.yaml
+    $ref: ./pet.yaml

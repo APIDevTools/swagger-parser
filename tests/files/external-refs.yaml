@@ -12,13 +12,13 @@ paths:
           required: true
           description: references the "pet.yaml" file
           schema:
-            $ref: http://./pet.yaml
+            $ref: ./pet.yaml
       responses:
         200:
           description: references the "pet.yaml" file
           schema:
-            $ref: http://./pet.yaml
+            $ref: ./pet.yaml
         default:
           description: references the "error.yaml" file
           schema:
-            $ref: http://./error.yaml
+            $ref: ./error.yaml

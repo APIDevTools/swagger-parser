@@ -65,7 +65,7 @@ describe('env.parser.parse tests', function() {
           expect(err).to.be.null;
           expect(state).to.be.an('object');
           expect(state.options).to.deep.equal(env.parser.defaults);
-          expect(state.swaggerObject).to.deep.equal(env.files.dereferenced.externalRefs);
+          expect(state.swagger).to.deep.equal(env.files.dereferenced.externalRefs);
 
           if (env.isBrowser) {
             expect(state.files).to.have.lengthOf(0);
@@ -93,21 +93,21 @@ describe('env.parser.parse tests', function() {
 
         env.parser.parse(env.files.getPath('shorthand-refs.yaml'), function(err, swagger, state) {
           expect(err).to.be.null;
-          expect(state.swaggerObject).to.deep.equal(env.files.dereferenced.shorthandRefs);
+          expect(state.swagger).to.deep.equal(env.files.dereferenced.shorthandRefs);
           states.push(state);
           compareStates();
         });
 
         env.parser.parse(env.files.getPath('minimal.json'), function(err, swagger, state) {
           expect(err).to.be.null;
-          expect(state.swaggerObject).to.deep.equal(env.files.parsed.minimal);
+          expect(state.swagger).to.deep.equal(env.files.parsed.minimal);
           states.push(state);
           compareStates();
         });
 
         env.parser.parse(env.files.getPath('nested-refs.yaml'), function(err, swagger, state) {
           expect(err).to.be.null;
-          expect(state.swaggerObject).to.deep.equal(env.files.dereferenced.nestedRefs);
+          expect(state.swagger).to.deep.equal(env.files.dereferenced.nestedRefs);
           states.push(state);
           compareStates();
         });

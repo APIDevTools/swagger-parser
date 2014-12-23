@@ -21,7 +21,7 @@ paths:
         default:
           description: An external $ref pointer
           schema:
-            $ref: http://./error.yaml
+            $ref: ./error.yaml
 definitions:
   pet:
-    $ref: http://./pet.yaml
+    $ref: ./pet.yaml

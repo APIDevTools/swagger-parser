@@ -21,7 +21,7 @@ env.files.parsed.refs =
           'default': {
             'description': 'An external $ref pointer',
             'schema': {
-              '$ref': 'http://./error.yaml'
+              '$ref': './error.yaml'
             }
           }
         },
@@ -41,7 +41,7 @@ env.files.parsed.refs =
   },
   'definitions': {
     'pet': {
-      '$ref': 'http://./pet.yaml'
+      '$ref': './pet.yaml'
     }
   }
 };
