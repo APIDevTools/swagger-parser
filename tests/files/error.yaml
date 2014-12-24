@@ -1,7 +1,0 @@
-properties:
-  code:
-    type: integer
-  message:
-    type: string
-  pet:
-    $ref: ./pet.yaml

@@ -21,7 +21,7 @@ env.files.parsed.externalRefs =
           'default': {
             'description': 'references the "error.yaml" file',
             'schema': {
-              '$ref': './error.yaml'
+              '$ref': 'error.json'
             }
           }
         },
@@ -29,7 +29,7 @@ env.files.parsed.externalRefs =
           {
             'required': true,
             'schema': {
-              '$ref': './pet.yaml'
+              '$ref': 'pet.yaml'
             },
             'description': 'references the "pet.yaml" file',
             'in': 'body',

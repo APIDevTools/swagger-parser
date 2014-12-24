@@ -71,14 +71,14 @@ describe('env.parser.parse tests', function() {
             expect(state.files).to.have.lengthOf(0);
             expect(state.urls).to.have.lengthOf(3);
             expect(state.urls[0].pathname).to.contain('external-refs.yaml');
-            expect(state.urls[1].pathname).to.contain('error.yaml');
+            expect(state.urls[1].pathname).to.contain('error.json');
             expect(state.urls[2].pathname).to.contain('pet.yaml');
           }
           else {
             expect(state.urls).to.have.lengthOf(0);
             expect(state.files).to.have.lengthOf(3);
             expect(state.files[0]).to.contain('external-refs.yaml');
-            expect(state.files[1]).to.contain('error.yaml');
+            expect(state.files[1]).to.contain('error.json');
             expect(state.files[2]).to.contain('pet.yaml');
           }
 

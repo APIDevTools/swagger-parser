@@ -61,13 +61,14 @@ module.exports = {
 'use strict';
 
 var _ = require('lodash');
+var url = require('url');
 var read = require('./read');
 var util = require('./util');
 var debug = require('./debug');
 
 // RegExp pattern for external pointers
 // (e.g. "http://company.com", "https://company.com", "./file.yaml", "../../file.yaml")
-var externalPointerPattern = /^(https?\:\/\/|\.)/i;
+var externalPointerPattern = /^https?\:\/\/|^\.|\.yaml$|\.json$/i;
 
 module.exports = dereference;
 
@@ -150,11 +151,11 @@ function dereference(obj, schemaPath, state, callback) {
  * @param   {string}    pointerValue    the pointer value to resolve
  * @param   {object}    targetObj       the object that will be updated to include the resolved reference
  * @param   {string}    targetProp      the property name on targetObj to be updated with the resolved reference
-   * @param {State}     state           the state for the current parse operation
+ * @param   {State}     state           the state for the current parse operation
  * @param   {function}  callback
  */
 function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, state, callback) {
-  var resolved;
+  var isExternal;
 
   if (_.isEmpty(pointerValue)) {
     return util.doCallback(callback, util.syntaxError('Empty $ref pointer at "%s"', pointerPath));
@@ -176,43 +177,23 @@ function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, state,
   }
 
   try {
+    if (isExternalPointer(pointerValue)) {
+      // Normalize the pointer value by resolving the path/URL relative to the Swagger file.
+      // NOTE: Normalizes the pointer value helps ensure that different pointers end up resolving to the same value
+      pointerValue = url.resolve(state.baseDir, pointerValue);
+      isExternal = true;
+    }
+
     // If we've already resolved this pointer, then return the resolved value
     if (_.has(state.resolvedPointers, pointerValue)) {
       return returnResolvedValue(null, state.resolvedPointers[pointerValue], true);
     }
 
-    if (isExternalPointer(pointerValue)) {
-      // Set the resolved value to an empty object for now, so other reference pointers
-      // can point to this object.  Once we finish downloading the URL, we can update
-      // the empty object with the real data.
-      state.resolvedPointers[pointerValue] = {};
-
-      read.fileOrUrl(pointerValue, state,
-        function(err, data) {
-          if (!err) {
-            // Now that we've finished downloaded the data, update the empty object we created earlier
-            data = _.extend(state.resolvedPointers[pointerValue], data);
-          }
-
-          return returnResolvedValue(err, data);
-        }
-      );
+    if (isExternal) {
+      resolveExternalPointer(pointerValue, state, returnResolvedValue);
     }
     else {
-      var propertyPath;
-      if (pointerValue.indexOf('#/') === 0) {
-        // "#/paths/users/responses/200" => "paths.users.responses.200"
-        propertyPath = pointerValue.substr(2).replace(/\//g, '.');
-      }
-      else {
-        // "pet" => "definitions.pet"
-        propertyPath = 'definitions.' + pointerValue.replace(/\//g, '.');
-      }
-
-      // Get the property value from the schema
-      resolved = resultDeep(state.swagger, propertyPath);
-      state.resolvedPointers[pointerValue] = resolved;
-      returnResolvedValue(null, resolved);
+      resolveInternalPointer(pointerValue, state, returnResolvedValue);
     }
   }
   catch (e) {
@@ -227,6 +208,55 @@ function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, state,
  */
 function isExternalPointer(pointerValue) {
   return pointerValue && externalPointerPattern.test(pointerValue);
+}
+
+
+/**
+ * Resolves a pointer to a property in the Swagger spec.
+ * @param   {string}    pointer         The $ref pointer (e.g. "pet", "#/parameters/pet")
+ * @param   {State}     state           the state for the current parse operation
+ * @param   {function}  callback
+ */
+function resolveInternalPointer(pointer, state, callback) {
+  var propertyPath;
+  if (pointer.indexOf('#/') === 0) {
+    // "#/paths/users/responses/200" => "paths.users.responses.200"
+    propertyPath = pointer.substr(2).replace(/\//g, '.');
+  }
+  else {
+    // "pet" => "definitions.pet"
+    propertyPath = 'definitions.' + pointer.replace(/\//g, '.');
+  }
+
+  // Get the property value from the schema
+  var resolved = resultDeep(state.swagger, propertyPath);
+  state.resolvedPointers[pointer] = resolved;
+  callback(null, resolved);
+}
+
+
+/**
+ * Resolves a pointer to an external file or URL.
+ * @param   {string}    pathOrUrl       the full, absolute path or URL
+ * @param   {State}     state           the state for the current parse operation
+ * @param   {function}  callback
+ */
+function resolveExternalPointer(pathOrUrl, state, callback) {
+  // Set the resolved value to an empty object for now, so other reference pointers
+  // can point to this object.  Once we finish reading the file, we will update
+  // the empty object with the real data.
+  state.resolvedPointers[pathOrUrl] = {};
+
+  read.fileOrUrl(pathOrUrl, state,
+    function(err, data) {
+      if (!err) {
+        // Now that we've finished downloaded the data, update the empty object we created earlier
+        data = _.extend(state.resolvedPointers[pathOrUrl], data);
+      }
+
+      return callback(err, data);
+    }
+  );
 }
 
 
@@ -252,10 +282,12 @@ function resultDeep(obj, key) {
 }
 
 
-},{"./debug":2,"./read":6,"./util":8,"lodash":78}],5:[function(require,module,exports){
+},{"./debug":2,"./read":6,"./util":8,"lodash":78,"url":41}],5:[function(require,module,exports){
+(function (process){
 'use strict';
 
 var path = require('path');
+var url = require('url');
 var tv4 = require('tv4');
 var swaggerSchema = require('swagger-schema-official/schema');
 var _ = require('lodash');
@@ -274,8 +306,8 @@ module.exports = parse;
 /**
  * Parses the given Swagger file, validates it, and dereferences "$ref" pointers.
  *
- * @param {string} swaggerFile
- * the path of a YAML or JSON file.
+ * @param {string} swaggerPath
+ * the file path or URL of a YAML or JSON Swagger spec.
  *
  * @param {defaults} options
  * options to enable/disable certain features. This object will be merged with the {@link defaults} object.
@@ -283,7 +315,7 @@ module.exports = parse;
  * @param {function} callback
  * the callback function that will be passed the parsed SwaggerObject
  */
-function parse(swaggerFile, options, callback) {
+function parse(swaggerPath, options, callback) {
   // Shift args if necessary
   if (_.isFunction(options)) {
     callback = options;
@@ -296,12 +328,15 @@ function parse(swaggerFile, options, callback) {
 
   options = _.merge({}, defaults, options);
 
+  // Resolve the file path or url, relative to the CWD
+  swaggerPath = url.resolve(process.cwd(), swaggerPath);
+
   // Create a new state object for this parse operation
   var state = new State();
-  state.baseDir = path.dirname(swaggerFile);
+  state.baseDir = path.dirname(swaggerPath) + '/';
   state.options = options;
 
-  read.fileOrUrl(swaggerFile, state, function(err, swaggerObject) {
+  read.fileOrUrl(swaggerPath, state, function(err, swaggerObject) {
     if (err) {
       return util.doCallback(callback, err);
     }
@@ -313,7 +348,7 @@ function parse(swaggerFile, options, callback) {
     if (supportedSwaggerVersions.indexOf(version) === -1) {
       return util.doCallback(callback, util.syntaxError(
         'Error in "%s". \nUnsupported Swagger version: %d. Swagger-Server only supports version %s',
-        swaggerFile, version, supportedSwaggerVersions.join(', ')));
+        swaggerPath, version, supportedSwaggerVersions.join(', ')));
     }
 
     // Dereference the SwaggerObject by resolving "$ref" pointers
@@ -329,7 +364,7 @@ function parse(swaggerFile, options, callback) {
       }
 
       if (err) {
-        err = util.syntaxError('Error in "%s". \n%s', swaggerFile, err.message);
+        err = util.syntaxError('Error in "%s". \n%s', swaggerPath, err.message);
         return util.doCallback(callback, err);
       }
 
@@ -360,7 +395,8 @@ function validateAgainstSchema(swaggerObject, state) {
 }
 
 
-},{"./defaults":3,"./dereference":4,"./read":6,"./state":7,"./util":8,"lodash":78,"path":22,"swagger-schema-official/schema":79,"tv4":80}],6:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./defaults":3,"./dereference":4,"./read":6,"./state":7,"./util":8,"_process":23,"lodash":78,"path":22,"swagger-schema-official/schema":79,"tv4":80,"url":41}],6:[function(require,module,exports){
 'use strict';
 
 var fs = require('fs');
@@ -377,15 +413,12 @@ var read;
 module.exports = read = {
   /**
    * Reads a JSON or YAML file from the local filesystem or a remote URL and returns the parsed POJO.
-   * @param {string}    pathOrUrl   Local file path or URL, relative to the Swagger file.
+   * @param {string}    pathOrUrl   A full, absolute file path or URL
    * @param {State}     state       The state for the current parse operation
    * @param {function}  callback    function(err, parsedObject)
    */
   fileOrUrl: function(pathOrUrl, state, callback) {
     try {
-      // Resolve the path/URL relative to the Swagger file
-      pathOrUrl = url.resolve(state.baseDir + '/', pathOrUrl);
-
       // Determine whether its a local file or a URL
       var parsedUrl = url.parse(pathOrUrl);
       if (isLocalFile(parsedUrl)) {
