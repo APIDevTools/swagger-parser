@@ -1,8 +1,8 @@
 swagger: "2.0"
 info:
   version: 1.0.0
-  title: external refs
-  description: This file includes $refs to external files
+  title: different file extensions
+  description: This file has $refs to three different external "pet" objects
 paths:
   /pets:
     post:
@@ -15,10 +15,10 @@ paths:
             $ref: pet.yaml
       responses:
         200:
-          description: references the "pet.yaml" file
+          description: references the "pet.json" file
           schema:
-            $ref: ./pet.yaml  # This is equivalent to "pet.yaml", but we need to support both formats
+            $ref: pet.json
         default:
-          description: references the "error.json" file
+          description: references the "pet.yml" file
           schema:
-            $ref: error.json
+            $ref: pet.yml

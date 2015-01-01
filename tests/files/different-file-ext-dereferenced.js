@@ -1,19 +1,19 @@
 require('../test-environment.js');
 
-env.files.dereferenced.externalRefs =
+env.files.dereferenced.differentFileExt =
 {
   'swagger': '2.0',
   'info': {
     'version': '1.0.0',
-    'description': 'This file includes $refs to external files',
-    'title': 'external refs'
+    'description': 'This file has $refs to three different external "pet" objects',
+    'title': 'different file extensions'
   },
   'paths': {
     '/pets': {
       'post': {
         'responses': {
           '200': {
-            'description': 'references the "pet.yaml" file',
+            'description': 'references the "pet.json" file',
             'schema': {
               'properties': {
                 'type': {
@@ -31,29 +31,19 @@ env.files.dereferenced.externalRefs =
             }
           },
           'default': {
-            'description': 'references the "error.json" file',
+            'description': 'references the "pet.yml" file',
             'schema': {
               'properties': {
-                'message': {
+                'type': {
+                  'enum': [
+                    'cat',
+                    'dog',
+                    'bird'
+                  ],
                   'type': 'string'
                 },
-                'code': {
-                  'type': 'integer'
-                },
-                'pet': {
-                  'properties': {
-                    'type': {
-                      'enum': [
-                        'cat',
-                        'dog',
-                        'bird'
-                      ],
-                      'type': 'string'
-                    },
-                    'name': {
-                      'type': 'string'
-                    }
-                  }
+                'name': {
+                  'type': 'string'
                 }
               }
             }

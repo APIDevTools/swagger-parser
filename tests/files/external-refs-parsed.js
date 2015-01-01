@@ -19,7 +19,7 @@ env.files.parsed.externalRefs =
             }
           },
           'default': {
-            'description': 'references the "error.yaml" file',
+            'description': 'references the "error.json" file',
             'schema': {
               '$ref': 'error.json'
             }

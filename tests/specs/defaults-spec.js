@@ -44,7 +44,7 @@ describe('env.parser.defaults tests', function() {
 
       // This call should succeed, because options override defaults
       env.parser.parse(env.files.getPath('minimal.yaml'), options, function(err, swagger) {
-        expect(err).to.be.null;
+        if (err) return done(err);
         expect(swagger).to.be.an('object');
 
         done();

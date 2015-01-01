@@ -68,7 +68,7 @@ var debug = require('./debug');
 
 // RegExp pattern for external pointers
 // (e.g. "http://company.com", "https://company.com", "./file.yaml", "../../file.yaml")
-var externalPointerPattern = /^https?\:\/\/|^\.|\.yaml$|\.json$/i;
+var externalPointerPattern = /^https?\:\/\/|^\.|\.yml$|\.yaml$|\.json$/i;
 
 module.exports = dereference;
 
@@ -155,8 +155,6 @@ function dereference(obj, schemaPath, state, callback) {
  * @param   {function}  callback
  */
 function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, state, callback) {
-  var isExternal;
-
   if (_.isEmpty(pointerValue)) {
     return util.doCallback(callback, util.syntaxError('Empty $ref pointer at "%s"', pointerPath));
   }
@@ -177,19 +175,12 @@ function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, state,
   }
 
   try {
-    if (isExternalPointer(pointerValue)) {
-      // Normalize the pointer value by resolving the path/URL relative to the Swagger file.
-      // NOTE: Normalizes the pointer value helps ensure that different pointers end up resolving to the same value
-      pointerValue = url.resolve(state.baseDir, pointerValue);
-      isExternal = true;
-    }
+    var cachedReference = getCachedReference(pointerValue, state);
 
-    // If we've already resolved this pointer, then return the resolved value
-    if (_.has(state.resolvedPointers, pointerValue)) {
-      return returnResolvedValue(null, state.resolvedPointers[pointerValue], true);
+    if (cachedReference) {
+      returnResolvedValue(null, cachedReference, true);
     }
-
-    if (isExternal) {
+    else if (isExternalPointer(pointerValue)) {
       resolveExternalPointer(pointerValue, state, returnResolvedValue);
     }
     else {
@@ -203,11 +194,74 @@ function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, state,
 
 
 /**
+ * Returns the cached reference for the given pointer, if possible.
+ * @param   {string}    pointer         The $ref pointer (e.g. "pet", "#/parameters/pet")
+ * @param   {State}     state           the state for the current parse operation
+ */
+function getCachedReference(pointer, state) {
+  // Check for the non-normalized pointer
+  if (pointer in state.resolvedPointers) {
+    return state.resolvedPointers[pointer];
+  }
+
+  // Check for the normalized pointer
+  var normalized = normalizePointer(pointer, state);
+  if (normalized in state.resolvedPointers) {
+    // Cache the value under the non-normalized pointer too
+    return state.resolvedPointers[pointer] = state.resolvedPointers[normalized];
+  }
+
+  // It's not in the cache
+  return null;
+}
+
+
+/**
+ * Caches a resolved reference under the given pointer AND the normalized pointer.
+ * @param   {string}    pointer         The $ref pointer (e.g. "pet", "#/definitions/pet")
+ * @param   {string}    normalized      The normalized $ref pointer (e.g. "#/definitions/pet")
+ * @param   {object}    resolved        The resolved reference
+ * @param   {State}     state           the state for the current parse operation
+ */
+function cacheReference(pointer, normalized, resolved, state) {
+  state.resolvedPointers[pointer] = resolved;
+  state.resolvedPointers[normalized] = resolved;
+}
+
+
+/**
+ * Normalizes a pointer value.
+ * For example, "pet.yaml" and "./pet.yaml" both get normalized to "/swagger/base/dir/pet.yaml".
+ * @param   {string}    pointer         The $ref pointer (e.g. "pet", "#/parameters/pet")
+ * @param   {State}     state           the state for the current parse operation
+ * @returns {string}
+ */
+function normalizePointer(pointer, state) {
+  if (isExternalPointer(pointer)) {
+    // Normalize the pointer value by resolving the path/URL relative to the Swagger file.
+    return url.resolve(state.baseDir, pointer);
+  }
+  else {
+    if (pointer.indexOf('#/') === 0) {
+      // The pointer is already normalized (e.g. "#/parameters/username")
+      return pointer;
+    }
+    else {
+      // This is a shorthand pointer to a model definition
+      // "pet" => "#/definitions/pet"
+      return '#/definitions/' + pointer;
+    }
+  }
+}
+
+
+/**
  * Determines whether the given $ref pointer value references an external file.
+ * @param   {string}    pointer         The $ref pointer (e.g. "pet", "#/parameters/pet")
  * @returns {boolean}
  */
-function isExternalPointer(pointerValue) {
-  return pointerValue && externalPointerPattern.test(pointerValue);
+function isExternalPointer(pointer) {
+  return pointer && externalPointerPattern.test(pointer);
 }
 
 
@@ -219,42 +273,44 @@ function isExternalPointer(pointerValue) {
  */
 function resolveInternalPointer(pointer, state, callback) {
   var propertyPath;
-  if (pointer.indexOf('#/') === 0) {
-    // "#/paths/users/responses/200" => "paths.users.responses.200"
-    propertyPath = pointer.substr(2).replace(/\//g, '.');
-  }
-  else {
-    // "pet" => "definitions.pet"
-    propertyPath = 'definitions.' + pointer.replace(/\//g, '.');
-  }
+
+  // "pet" => "#/definitions/pet"
+  var normalized = normalizePointer(pointer, state);
+
+  // "#/paths/users/responses/200" => "paths.users.responses.200"
+  propertyPath = normalized.substr(2).replace(/\//g, '.');
 
   // Get the property value from the schema
   var resolved = resultDeep(state.swagger, propertyPath);
-  state.resolvedPointers[pointer] = resolved;
+  cacheReference(pointer, normalized, resolved, state);
   callback(null, resolved);
 }
 
 
 /**
  * Resolves a pointer to an external file or URL.
- * @param   {string}    pathOrUrl       the full, absolute path or URL
+ * @param   {string}    pointer         the full, absolute path or URL
  * @param   {State}     state           the state for the current parse operation
  * @param   {function}  callback
  */
-function resolveExternalPointer(pathOrUrl, state, callback) {
+function resolveExternalPointer(pointer, state, callback) {
+  // "./swagger.yaml" => "/full/path/to/swagger.yaml"
+  var normalized = normalizePointer(pointer, state);
+
   // Set the resolved value to an empty object for now, so other reference pointers
   // can point to this object.  Once we finish reading the file, we will update
   // the empty object with the real data.
-  state.resolvedPointers[pathOrUrl] = {};
+  var resolved = {};
+  cacheReference(pointer, normalized, resolved, state);
 
-  read.fileOrUrl(pathOrUrl, state,
+  read.fileOrUrl(normalized, state,
     function(err, data) {
       if (!err) {
         // Now that we've finished downloaded the data, update the empty object we created earlier
-        data = _.extend(state.resolvedPointers[pathOrUrl], data);
+        resolved = _.extend(resolved, data);
       }
 
-      return callback(err, data);
+      return callback(err, resolved);
     }
   );
 }
@@ -283,7 +339,6 @@ function resultDeep(obj, key) {
 
 
 },{"./debug":2,"./read":6,"./util":8,"lodash":78,"url":41}],5:[function(require,module,exports){
-(function (process){
 'use strict';
 
 var path = require('path');
@@ -296,7 +351,7 @@ var dereference = require('./dereference');
 var defaults = require('./defaults');
 var State = require('./state');
 var util = require('./util');
-
+var debug = require('./debug');
 
 var supportedSwaggerVersions = ['2.0'];
 
@@ -329,12 +384,16 @@ function parse(swaggerPath, options, callback) {
   options = _.merge({}, defaults, options);
 
   // Resolve the file path or url, relative to the CWD
-  swaggerPath = url.resolve(process.cwd(), swaggerPath);
+  var cwd = util.cwd();
+  debug('Resolving Swagger file path "%s", relative to "%s"', cwd, swaggerPath);
+  swaggerPath = url.resolve(cwd, swaggerPath);
+  debug('    Resolved to %s', swaggerPath);
 
   // Create a new state object for this parse operation
   var state = new State();
-  state.baseDir = path.dirname(swaggerPath) + '/';
   state.options = options;
+  state.baseDir = path.dirname(swaggerPath) + '/';
+  debug('Swagger base directory: %s', state.baseDir);
 
   read.fileOrUrl(swaggerPath, state, function(err, swaggerObject) {
     if (err) {
@@ -352,11 +411,14 @@ function parse(swaggerPath, options, callback) {
     }
 
     // Dereference the SwaggerObject by resolving "$ref" pointers
+    debug('Resolving $ref pointers in %s', swaggerPath);
     dereference(swaggerObject, '', state, function(err, swaggerObject) {
       if (!err) {
         try {
-          // Validate the spec against the Swagger schema
-          validateAgainstSchema(swaggerObject, state);
+          // Validate the spec against the Swagger schema (if enabled)
+          if (state.options.validateSpec) {
+            validateAgainstSchema(swaggerObject, swaggerPath);
+          }
         }
         catch (e) {
           err = e;
@@ -364,12 +426,13 @@ function parse(swaggerPath, options, callback) {
       }
 
       if (err) {
-        err = util.syntaxError('Error in "%s". \n%s', swaggerPath, err.message);
+        err = util.syntaxError(err, 'Error in "%s"', swaggerPath);
         return util.doCallback(callback, err);
       }
 
       // We're done.  Invoke the callback.
-      util.doCallback(callback, null, swaggerObject, state);
+      var metadata = _.omit(state, 'swagger', 'options');
+      util.doCallback(callback, null, swaggerObject, metadata);
     });
   });
 }
@@ -378,14 +441,10 @@ function parse(swaggerPath, options, callback) {
 /**
  * Validates the given SwaggerObject against the Swagger schema.
  */
-function validateAgainstSchema(swaggerObject, state) {
-  // Don't do anything if validation is disabled
-  if (!state.options.validateSpec) {
-    return;
-  }
-
-  // Validate against the schema
+function validateAgainstSchema(swaggerObject, swaggerPath) {
+  debug('Validating "%s" against the Swagger schema', swaggerPath);
   if (tv4.validate(swaggerObject, swaggerSchema)) {
+    debug('    Validated successfully');
     return true;
   }
   else {
@@ -395,12 +454,10 @@ function validateAgainstSchema(swaggerObject, state) {
 }
 
 
-}).call(this,require('_process'))
-},{"./defaults":3,"./dereference":4,"./read":6,"./state":7,"./util":8,"_process":23,"lodash":78,"path":22,"swagger-schema-official/schema":79,"tv4":80,"url":41}],6:[function(require,module,exports){
+},{"./debug":2,"./defaults":3,"./dereference":4,"./read":6,"./state":7,"./util":8,"lodash":78,"path":22,"swagger-schema-official/schema":79,"tv4":80,"url":41}],6:[function(require,module,exports){
 'use strict';
 
 var fs = require('fs');
-var path = require('path');
 var http = require('http');
 var url = require('url');
 var yaml = require('js-yaml');
@@ -443,11 +500,11 @@ module.exports = read = {
  */
 function readFile(filePath, state, callback) {
   function errorHandler(err) {
-    callback(util.error('Error opening file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
+    callback(util.error(err, 'Error opening file "%s"', filePath));
   }
 
   function parseError(err) {
-    callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', filePath, err.name, err.message, err.stack));
+    callback(util.syntaxError(err, 'Error parsing file "%s"', filePath));
   }
 
   try {
@@ -485,11 +542,11 @@ function readUrl(parsedUrl, state, callback) {
   callback = _.once(callback);
 
   function downloadError(err) {
-    callback(util.error('Error downloading file "%s": \n%s: %s \n\n%s', parsedUrl.href, err.name, err.message, err.stack));
+    callback(util.error(err, 'Error downloading file "%s"', parsedUrl.href));
   }
 
   function parseError(err) {
-    callback(util.syntaxError('Error parsing file "%s": \n%s: %s \n\n%s', parsedUrl.href, err.name, err.message, err.stack));
+    callback(util.syntaxError(err, 'Error parsing file "%s"', parsedUrl.href));
   }
 
   try {
@@ -553,21 +610,12 @@ function readUrl(parsedUrl, state, callback) {
 
 
 /**
- * Determines if we're running in a browser, in which case, the "fs" module is unavailable.
- * @returns {boolean}
- */
-function isBrowser() {
-  return !_.isFunction(fs.readFile);
-}
-
-
-/**
  * Determines whether the given path points to a local file that exists.
  * @param   {Url}       parsedUrl     A parsed Url object
  * @returns {boolean}
  */
 function isLocalFile(parsedUrl) {
-  if (isBrowser()) {
+  if (util.isBrowser()) {
     // Local files aren't supported in browsers
     return false;
   }
@@ -593,11 +641,11 @@ function isLocalFile(parsedUrl) {
 function parseJsonOrYaml(pathOrUrl, data, state) {
   var parsedObject;
   if (state.options.parseYaml) {
-    debug('  Parsing YAML file "%s"', pathOrUrl);
+    debug('Parsing YAML file "%s"', pathOrUrl);
     parsedObject = yaml.safeLoad(data);
   }
   else {
-    debug('  Parsing JSON file "%s"', pathOrUrl);
+    debug('Parsing JSON file "%s"', pathOrUrl);
     parsedObject = JSON.parse(data);
   }
 
@@ -608,12 +656,12 @@ function parseJsonOrYaml(pathOrUrl, data, state) {
     throw util.syntaxError('Parsed value is not a valid JavaScript object');
   }
 
-  debug('  Parsed successfully');
+  debug('    Parsed successfully');
   return parsedObject;
 }
 
 
-},{"./debug":2,"./util":8,"fs":9,"http":16,"js-yaml":47,"lodash":78,"path":22,"url":41}],7:[function(require,module,exports){
+},{"./debug":2,"./util":8,"fs":9,"http":16,"js-yaml":47,"lodash":78,"url":41}],7:[function(require,module,exports){
 'use strict';
 
 module.exports = State;
@@ -663,11 +711,13 @@ function State() {
 (function (process){
 'use strict';
 
+var fs = require('fs');
+var url = require('url');
 var format = require('util').format;
 var _ = require('lodash');
 
 
-module.exports = {
+var util = module.exports = {
   /**
    * Asynchronously invokes the given callback function with the given parameters.
    * This allows the call stack to unwind, which is necessary because there can be a LOT of
@@ -686,28 +736,108 @@ module.exports = {
 
   /**
    * Creates an Error with a formatted string message.
-   * @param   {string}      message
-   * @param   {...*}        [params]
-   * @returns {Error}
+   * @param     {Error}     [err]       The original error, if any
+   * @param     {string}    [message]   A user-friendly message about the source of the error
+   * @param     {...*}      [params]    One or more {@link util#format} params
+   * @returns   {Error}
    */
-  error: function(message, params) {
-    return new Error(format.apply(null, [message].concat(_.rest(arguments))));
+  error: function(err, message, params) {
+    if (err && err instanceof Error) {
+      return new Error(errorDump.apply(null, arguments));
+    }
+    else {
+      return new Error(format.apply(null, arguments));
+    }
   },
 
 
   /**
    * Creates a SyntaxError with a formatted string message.
-   * @param   {string}      message
-   * @param   {...*}        [params]
-   * @returns {SyntaxError}
+   * @param     {Error}     [err]       The original error, if any
+   * @param     {string}    [message]   A user-friendly message about the source of the error
+   * @param     {...*}      [params]    One or more {@link util#format} params
+   * @returns   {SyntaxError}
    */
-  syntaxError: function(message, params) {
-    return new SyntaxError(format.apply(null, [message].concat(_.rest(arguments))));
+  syntaxError: function(err, message, params) {
+    if (err && err instanceof Error) {
+      return new SyntaxError(errorDump.apply(null, arguments));
+    }
+    else {
+      return new SyntaxError(format.apply(null, arguments));
+    }
+  },
+
+
+  /**
+   * Determines if we're running in a browser.
+   * @returns {boolean}
+   */
+  isBrowser: function() {
+    return fs.readFile === undefined;
+  },
+
+
+  /**
+   * Normalizes the current working directory across environments (Linux, Mac, Windows, browsers).
+   * The returned path will use forward slashes ("/"), even on Windows,
+   * and will always include a trailing slash, even at the root of a website (e.g. "http://google.com/")
+   * @returns {string}
+   */
+  cwd: function() {
+    var path = util.isBrowser() ? window.location.href : process.cwd() + '/';
+
+    // Parse the path as a URL, which normalizes it across all platforms
+    var parsedUrl = url.parse(path);
+
+    // Remove the file name (if any) from the pathname
+    var lastSlash = parsedUrl.pathname.lastIndexOf('/') + 1;
+    parsedUrl.pathname = parsedUrl.pathname.substr(0, lastSlash);
+
+    // Remove everything after the pathname
+    parsedUrl.path = null;
+    parsedUrl.search = null;
+    parsedUrl.query = null;
+    parsedUrl.hash = null;
+
+    // Now re-parse the URL with only the remaining parts
+    return url.format(parsedUrl);
   }
 };
 
+
+
+/**
+* Returns detailed error information that can be written to a log, stderror, etc.
+* @param   {Error}     err         The Error object
+* @param   {string}    [message]   Optional message about where and why the error occurred.
+* @param   {...*}      [params]    One or more params to be passed to {@link util#format}
+*/
+function errorDump(err, message, params) {
+  // Format the message string
+  message = format.apply(null, _.rest(arguments)) + ': \n';
+
+  // Gather detailed error information
+  message += (err.name || 'Error') + ': ';
+
+  var stack = err.stack;
+
+  /* istanbul ignore else: Only IE doesn't have an Error.stack property */
+  if (stack) {
+    /* istanbul ignore if: Only Safari doesn't include Error.message in Error.stack */
+    if (stack.indexOf(err.message) === -1) {
+      message += err.message + ' \n';
+    }
+
+    return message + stack;
+  }
+  else {
+    return message + err.message;
+  }
+}
+
 }).call(this,require('_process'))
-},{"_process":23,"lodash":78,"util":43}],9:[function(require,module,exports){
+
+},{"_process":23,"fs":9,"lodash":78,"url":41,"util":43}],9:[function(require,module,exports){
 
 },{}],10:[function(require,module,exports){
 module.exports=require(9)
@@ -724,11 +854,12 @@ var ieee754 = require('ieee754')
 var isArray = require('is-array')
 
 exports.Buffer = Buffer
-exports.SlowBuffer = Buffer
+exports.SlowBuffer = SlowBuffer
 exports.INSPECT_MAX_BYTES = 50
 Buffer.poolSize = 8192 // not used by this implementation
 
 var kMaxLength = 0x3fffffff
+var rootParent = {}
 
 /**
  * If `Buffer.TYPED_ARRAY_SUPPORT`:
@@ -788,8 +919,6 @@ function Buffer (subject, encoding, noZero) {
   if (type === 'number')
     length = subject > 0 ? subject >>> 0 : 0
   else if (type === 'string') {
-    if (encoding === 'base64')
-      subject = base64clean(subject)
     length = Buffer.byteLength(subject, encoding)
   } else if (type === 'object' && subject !== null) { // assume object is array-like
     if (subject.type === 'Buffer' && isArray(subject.data))
@@ -798,7 +927,7 @@ function Buffer (subject, encoding, noZero) {
   } else
     throw new TypeError('must start with number, buffer, array or string')
 
-  if (this.length > kMaxLength)
+  if (length > kMaxLength)
     throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
       'size: 0x' + kMaxLength.toString(16) + ' bytes')
 
@@ -834,6 +963,18 @@ function Buffer (subject, encoding, noZero) {
     }
   }
 
+  if (length > 0 && length <= Buffer.poolSize)
+    buf.parent = rootParent
+
+  return buf
+}
+
+function SlowBuffer(subject, encoding, noZero) {
+  if (!(this instanceof SlowBuffer))
+    return new SlowBuffer(subject, encoding, noZero)
+
+  var buf = new Buffer(subject, encoding, noZero)
+  delete buf.parent
   return buf
 }
 
@@ -984,7 +1125,7 @@ Buffer.prototype.toString = function (encoding, start, end) {
 }
 
 Buffer.prototype.equals = function (b) {
-  if(!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
+  if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
   return Buffer.compare(this, b) === 0
 }
 
@@ -1044,7 +1185,7 @@ function hexWrite (buf, string, offset, length) {
 }
 
 function utf8Write (buf, string, offset, length) {
-  var charsWritten = blitBuffer(utf8ToBytes(string), buf, offset, length)
+  var charsWritten = blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length)
   return charsWritten
 }
 
@@ -1063,7 +1204,7 @@ function base64Write (buf, string, offset, length) {
 }
 
 function utf16leWrite (buf, string, offset, length) {
-  var charsWritten = blitBuffer(utf16leToBytes(string), buf, offset, length, 2)
+  var charsWritten = blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length, 2)
   return charsWritten
 }
 
@@ -1083,6 +1224,10 @@ Buffer.prototype.write = function (string, offset, length, encoding) {
   }
 
   offset = Number(offset) || 0
+
+  if (length < 0 || offset < 0 || offset > this.length)
+    throw new RangeError('attempt to write outside buffer bounds');
+
   var remaining = this.length - offset
   if (!length) {
     length = remaining
@@ -1161,13 +1306,19 @@ function asciiSlice (buf, start, end) {
   end = Math.min(buf.length, end)
 
   for (var i = start; i < end; i++) {
-    ret += String.fromCharCode(buf[i])
+    ret += String.fromCharCode(buf[i] & 0x7F)
   }
   return ret
 }
 
 function binarySlice (buf, start, end) {
-  return asciiSlice(buf, start, end)
+  var ret = ''
+  end = Math.min(buf.length, end)
+
+  for (var i = start; i < end; i++) {
+    ret += String.fromCharCode(buf[i])
+  }
+  return ret
 }
 
 function hexSlice (buf, start, end) {
@@ -1216,16 +1367,21 @@ Buffer.prototype.slice = function (start, end) {
   if (end < start)
     end = start
 
+  var newBuf
   if (Buffer.TYPED_ARRAY_SUPPORT) {
-    return Buffer._augment(this.subarray(start, end))
+    newBuf = Buffer._augment(this.subarray(start, end))
   } else {
     var sliceLen = end - start
-    var newBuf = new Buffer(sliceLen, undefined, true)
+    newBuf = new Buffer(sliceLen, undefined, true)
     for (var i = 0; i < sliceLen; i++) {
       newBuf[i] = this[i + start]
     }
-    return newBuf
   }
+
+  if (newBuf.length)
+    newBuf.parent = this.parent || this
+
+  return newBuf
 }
 
 /*
@@ -1236,6 +1392,35 @@ function checkOffset (offset, ext, length) {
     throw new RangeError('offset is not uint')
   if (offset + ext > length)
     throw new RangeError('Trying to access beyond buffer length')
+}
+
+Buffer.prototype.readUIntLE = function (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert)
+    checkOffset(offset, byteLength, this.length)
+
+  var val = this[offset]
+  var mul = 1
+  var i = 0
+  while (++i < byteLength && (mul *= 0x100))
+    val += this[offset + i] * mul
+
+  return val
+}
+
+Buffer.prototype.readUIntBE = function (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert)
+    checkOffset(offset, byteLength, this.length)
+
+  var val = this[offset + --byteLength]
+  var mul = 1
+  while (byteLength > 0 && (mul *= 0x100))
+    val += this[offset + --byteLength] * mul;
+
+  return val
 }
 
 Buffer.prototype.readUInt8 = function (offset, noAssert) {
@@ -1274,6 +1459,44 @@ Buffer.prototype.readUInt32BE = function (offset, noAssert) {
       ((this[offset + 1] << 16) |
       (this[offset + 2] << 8) |
       this[offset + 3])
+}
+
+Buffer.prototype.readIntLE = function (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert)
+    checkOffset(offset, byteLength, this.length)
+
+  var val = this[offset]
+  var mul = 1
+  var i = 0
+  while (++i < byteLength && (mul *= 0x100))
+    val += this[offset + i] * mul
+  mul *= 0x80
+
+  if (val >= mul)
+    val -= Math.pow(2, 8 * byteLength)
+
+  return val
+}
+
+Buffer.prototype.readIntBE = function (offset, byteLength, noAssert) {
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert)
+    checkOffset(offset, byteLength, this.length)
+
+  var i = byteLength
+  var mul = 1
+  var val = this[offset + --i]
+  while (i > 0 && (mul *= 0x100))
+    val += this[offset + --i] * mul
+  mul *= 0x80
+
+  if (val >= mul)
+    val -= Math.pow(2, 8 * byteLength)
+
+  return val
 }
 
 Buffer.prototype.readInt8 = function (offset, noAssert) {
@@ -1344,8 +1567,40 @@ Buffer.prototype.readDoubleBE = function (offset, noAssert) {
 
 function checkInt (buf, value, offset, ext, max, min) {
   if (!Buffer.isBuffer(buf)) throw new TypeError('buffer must be a Buffer instance')
-  if (value > max || value < min) throw new TypeError('value is out of bounds')
-  if (offset + ext > buf.length) throw new TypeError('index out of range')
+  if (value > max || value < min) throw new RangeError('value is out of bounds')
+  if (offset + ext > buf.length) throw new RangeError('index out of range')
+}
+
+Buffer.prototype.writeUIntLE = function (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert)
+    checkInt(this, value, offset, byteLength, Math.pow(2, 8 * byteLength), 0)
+
+  var mul = 1
+  var i = 0
+  this[offset] = value & 0xFF
+  while (++i < byteLength && (mul *= 0x100))
+    this[offset + i] = (value / mul) >>> 0 & 0xFF
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeUIntBE = function (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
+  if (!noAssert)
+    checkInt(this, value, offset, byteLength, Math.pow(2, 8 * byteLength), 0)
+
+  var i = byteLength - 1
+  var mul = 1
+  this[offset + i] = value & 0xFF
+  while (--i >= 0 && (mul *= 0x100))
+    this[offset + i] = (value / mul) >>> 0 & 0xFF
+
+  return offset + byteLength
 }
 
 Buffer.prototype.writeUInt8 = function (value, offset, noAssert) {
@@ -1425,6 +1680,50 @@ Buffer.prototype.writeUInt32BE = function (value, offset, noAssert) {
   return offset + 4
 }
 
+Buffer.prototype.writeIntLE = function (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) {
+    checkInt(this,
+             value,
+             offset,
+             byteLength,
+             Math.pow(2, 8 * byteLength - 1) - 1,
+             -Math.pow(2, 8 * byteLength - 1))
+  }
+
+  var i = 0
+  var mul = 1
+  var sub = value < 0 ? 1 : 0
+  this[offset] = value & 0xFF
+  while (++i < byteLength && (mul *= 0x100))
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeIntBE = function (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset >>> 0
+  if (!noAssert) {
+    checkInt(this,
+             value,
+             offset,
+             byteLength,
+             Math.pow(2, 8 * byteLength - 1) - 1,
+             -Math.pow(2, 8 * byteLength - 1))
+  }
+
+  var i = byteLength - 1
+  var mul = 1
+  var sub = value < 0 ? 1 : 0
+  this[offset + i] = value & 0xFF
+  while (--i >= 0 && (mul *= 0x100))
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+
+  return offset + byteLength
+}
+
 Buffer.prototype.writeInt8 = function (value, offset, noAssert) {
   value = +value
   offset = offset >>> 0
@@ -1490,8 +1789,9 @@ Buffer.prototype.writeInt32BE = function (value, offset, noAssert) {
 }
 
 function checkIEEE754 (buf, value, offset, ext, max, min) {
-  if (value > max || value < min) throw new TypeError('value is out of bounds')
-  if (offset + ext > buf.length) throw new TypeError('index out of range')
+  if (value > max || value < min) throw new RangeError('value is out of bounds')
+  if (offset + ext > buf.length) throw new RangeError('index out of range')
+  if (offset < 0) throw new RangeError('index out of range')
 }
 
 function writeFloat (buf, value, offset, littleEndian, noAssert) {
@@ -1530,18 +1830,19 @@ Buffer.prototype.copy = function (target, target_start, start, end) {
 
   if (!start) start = 0
   if (!end && end !== 0) end = this.length
+  if (target_start >= target.length) target_start = target.length
   if (!target_start) target_start = 0
+  if (end > 0 && end < start) end = start
 
   // Copy 0 bytes; we're done
-  if (end === start) return
-  if (target.length === 0 || source.length === 0) return
+  if (end === start) return 0
+  if (target.length === 0 || source.length === 0) return 0
 
   // Fatal error conditions
-  if (end < start) throw new TypeError('sourceEnd < sourceStart')
-  if (target_start < 0 || target_start >= target.length)
-    throw new TypeError('targetStart out of bounds')
-  if (start < 0 || start >= source.length) throw new TypeError('sourceStart out of bounds')
-  if (end < 0 || end > source.length) throw new TypeError('sourceEnd out of bounds')
+  if (target_start < 0)
+    throw new RangeError('targetStart out of bounds')
+  if (start < 0 || start >= source.length) throw new RangeError('sourceStart out of bounds')
+  if (end < 0) throw new RangeError('sourceEnd out of bounds')
 
   // Are we oob?
   if (end > this.length)
@@ -1558,6 +1859,8 @@ Buffer.prototype.copy = function (target, target_start, start, end) {
   } else {
     target._set(this.subarray(start, start + len), target_start)
   }
+
+  return len
 }
 
 // fill(value, start=0, end=buffer.length)
@@ -1566,14 +1869,14 @@ Buffer.prototype.fill = function (value, start, end) {
   if (!start) start = 0
   if (!end) end = this.length
 
-  if (end < start) throw new TypeError('end < start')
+  if (end < start) throw new RangeError('end < start')
 
   // Fill 0 bytes; we're done
   if (end === start) return
   if (this.length === 0) return
 
-  if (start < 0 || start >= this.length) throw new TypeError('start out of bounds')
-  if (end < 0 || end > this.length) throw new TypeError('end out of bounds')
+  if (start < 0 || start >= this.length) throw new RangeError('start out of bounds')
+  if (end < 0 || end > this.length) throw new RangeError('end out of bounds')
 
   var i
   if (typeof value === 'number') {
@@ -1639,11 +1942,15 @@ Buffer._augment = function (arr) {
   arr.compare = BP.compare
   arr.copy = BP.copy
   arr.slice = BP.slice
+  arr.readUIntLE = BP.readUIntLE
+  arr.readUIntBE = BP.readUIntBE
   arr.readUInt8 = BP.readUInt8
   arr.readUInt16LE = BP.readUInt16LE
   arr.readUInt16BE = BP.readUInt16BE
   arr.readUInt32LE = BP.readUInt32LE
   arr.readUInt32BE = BP.readUInt32BE
+  arr.readIntLE = BP.readIntLE
+  arr.readIntBE = BP.readIntBE
   arr.readInt8 = BP.readInt8
   arr.readInt16LE = BP.readInt16LE
   arr.readInt16BE = BP.readInt16BE
@@ -1654,10 +1961,14 @@ Buffer._augment = function (arr) {
   arr.readDoubleLE = BP.readDoubleLE
   arr.readDoubleBE = BP.readDoubleBE
   arr.writeUInt8 = BP.writeUInt8
+  arr.writeUIntLE = BP.writeUIntLE
+  arr.writeUIntBE = BP.writeUIntBE
   arr.writeUInt16LE = BP.writeUInt16LE
   arr.writeUInt16BE = BP.writeUInt16BE
   arr.writeUInt32LE = BP.writeUInt32LE
   arr.writeUInt32BE = BP.writeUInt32BE
+  arr.writeIntLE = BP.writeIntLE
+  arr.writeIntBE = BP.writeIntBE
   arr.writeInt8 = BP.writeInt8
   arr.writeInt16LE = BP.writeInt16LE
   arr.writeInt16BE = BP.writeInt16BE
@@ -1674,11 +1985,13 @@ Buffer._augment = function (arr) {
   return arr
 }
 
-var INVALID_BASE64_RE = /[^+\/0-9A-z]/g
+var INVALID_BASE64_RE = /[^+\/0-9A-z\-]/g
 
 function base64clean (str) {
   // Node strips out invalid characters like \n and \t from the string, base64-js does not
   str = stringtrim(str).replace(INVALID_BASE64_RE, '')
+  // Node converts strings with length < 2 to ''
+  if (str.length < 2) return ''
   // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
   while (str.length % 4 !== 0) {
     str = str + '='
@@ -1702,22 +2015,100 @@ function toHex (n) {
   return n.toString(16)
 }
 
-function utf8ToBytes (str) {
-  var byteArray = []
-  for (var i = 0; i < str.length; i++) {
-    var b = str.charCodeAt(i)
-    if (b <= 0x7F) {
-      byteArray.push(b)
-    } else {
-      var start = i
-      if (b >= 0xD800 && b <= 0xDFFF) i++
-      var h = encodeURIComponent(str.slice(start, i+1)).substr(1).split('%')
-      for (var j = 0; j < h.length; j++) {
-        byteArray.push(parseInt(h[j], 16))
+function utf8ToBytes(string, units) {
+  var codePoint, length = string.length
+  var leadSurrogate = null
+  units = units || Infinity
+  var bytes = []
+  var i = 0
+
+  for (; i<length; i++) {
+    codePoint = string.charCodeAt(i)
+
+    // is surrogate component
+    if (codePoint > 0xD7FF && codePoint < 0xE000) {
+
+      // last char was a lead
+      if (leadSurrogate) {
+
+        // 2 leads in a row
+        if (codePoint < 0xDC00) {
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          leadSurrogate = codePoint
+          continue
+        }
+
+        // valid surrogate pair
+        else {
+          codePoint = leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00 | 0x10000
+          leadSurrogate = null
+        }
+      }
+
+      // no lead yet
+      else {
+
+        // unexpected trail
+        if (codePoint > 0xDBFF) {
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        }
+
+        // unpaired lead
+        else if (i + 1 === length) {
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        }
+
+        // valid lead
+        else {
+          leadSurrogate = codePoint
+          continue
+        }
       }
     }
+
+    // valid bmp char, but last char was a lead
+    else if (leadSurrogate) {
+      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+      leadSurrogate = null
+    }
+
+    // encode utf8
+    if (codePoint < 0x80) {
+      if ((units -= 1) < 0) break
+      bytes.push(codePoint)
+    }
+    else if (codePoint < 0x800) {
+      if ((units -= 2) < 0) break
+      bytes.push(
+        codePoint >> 0x6 | 0xC0,
+        codePoint & 0x3F | 0x80
+      );
+    }
+    else if (codePoint < 0x10000) {
+      if ((units -= 3) < 0) break
+      bytes.push(
+        codePoint >> 0xC | 0xE0,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      );
+    }
+    else if (codePoint < 0x200000) {
+      if ((units -= 4) < 0) break
+      bytes.push(
+        codePoint >> 0x12 | 0xF0,
+        codePoint >> 0xC & 0x3F | 0x80,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      );
+    }
+    else {
+      throw new Error('Invalid code point')
+    }
   }
-  return byteArray
+
+  return bytes
 }
 
 function asciiToBytes (str) {
@@ -1729,10 +2120,13 @@ function asciiToBytes (str) {
   return byteArray
 }
 
-function utf16leToBytes (str) {
+function utf16leToBytes (str, units) {
   var c, hi, lo
   var byteArray = []
   for (var i = 0; i < str.length; i++) {
+
+    if ((units -= 2) < 0) break
+
     c = str.charCodeAt(i)
     hi = c >> 8
     lo = c % 256
@@ -1744,7 +2138,7 @@ function utf16leToBytes (str) {
 }
 
 function base64ToBytes (str) {
-  return base64.toByteArray(str)
+  return base64.toByteArray(base64clean(str))
 }
 
 function blitBuffer (src, dst, offset, length, unitSize) {
@@ -1780,12 +2174,16 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	var NUMBER = '0'.charCodeAt(0)
 	var LOWER  = 'a'.charCodeAt(0)
 	var UPPER  = 'A'.charCodeAt(0)
+	var PLUS_URL_SAFE = '-'.charCodeAt(0)
+	var SLASH_URL_SAFE = '_'.charCodeAt(0)
 
 	function decode (elt) {
 		var code = elt.charCodeAt(0)
-		if (code === PLUS)
+		if (code === PLUS ||
+		    code === PLUS_URL_SAFE)
 			return 62 // '+'
-		if (code === SLASH)
+		if (code === SLASH ||
+		    code === SLASH_URL_SAFE)
 			return 63 // '/'
 		if (code < NUMBER)
 			return -1 //no match
@@ -3110,6 +3508,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
+
 },{"_process":23}],23:[function(require,module,exports){
 // shim for using process in browser
 
@@ -3709,6 +4108,7 @@ process.chdir = function (dir) {
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
 },{}],25:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -3984,6 +4384,7 @@ function forEach (xs, f) {
 }
 
 }).call(this,require('_process'))
+
 },{"./_stream_readable":31,"./_stream_writable":33,"_process":23,"core-util-is":34,"inherits":20}],30:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -5018,6 +5419,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require('_process'))
+
 },{"_process":23,"buffer":11,"core-util-is":34,"events":15,"inherits":20,"isarray":21,"stream":39,"string_decoder/":40}],32:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -5620,6 +6022,7 @@ function endWritable(stream, state, cb) {
 }
 
 }).call(this,require('_process'))
+
 },{"./_stream_duplex":29,"_process":23,"buffer":11,"core-util-is":34,"inherits":20,"stream":39}],34:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
@@ -5730,6 +6133,7 @@ function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
 }).call(this,require("buffer").Buffer)
+
 },{"buffer":11}],35:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
@@ -7407,6 +7811,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
 },{"./support/isBuffer":42,"_process":23,"inherits":20}],44:[function(require,module,exports){
 
 /**
@@ -7421,6 +7826,17 @@ exports.formatArgs = formatArgs;
 exports.save = save;
 exports.load = load;
 exports.useColors = useColors;
+
+/**
+ * Use chrome.storage.local if we are in an app
+ */
+
+var storage;
+
+if (typeof chrome !== 'undefined' && typeof chrome.storage !== 'undefined')
+  storage = chrome.storage.local;
+else
+  storage = window.localStorage;
 
 /**
  * Colors.
@@ -7511,10 +7927,10 @@ function formatArgs() {
  */
 
 function log() {
-  // This hackery is required for IE8,
-  // where the `console.log` function doesn't have 'apply'
-  return 'object' == typeof console
-    && 'function' == typeof console.log
+  // this hackery is required for IE8/9, where
+  // the `console.log` function doesn't have 'apply'
+  return 'object' === typeof console
+    && console.log
     && Function.prototype.apply.call(console.log, console, arguments);
 }
 
@@ -7528,9 +7944,9 @@ function log() {
 function save(namespaces) {
   try {
     if (null == namespaces) {
-      localStorage.removeItem('debug');
+      storage.removeItem('debug');
     } else {
-      localStorage.debug = namespaces;
+      storage.debug = namespaces;
     }
   } catch(e) {}
 }
@@ -7545,7 +7961,7 @@ function save(namespaces) {
 function load() {
   var r;
   try {
-    r = localStorage.debug;
+    r = storage.debug;
   } catch(e) {}
   return r;
 }
@@ -8905,13 +9321,13 @@ function skipSeparationSpace(state, allowComments, checkIndent) {
         state.lineIndent++;
         ch = state.input.charCodeAt(++state.position);
       }
-
-      if (state.lineIndent < checkIndent) {
-        throwWarning(state, 'deficient indentation');
-      }
     } else {
       break;
     }
+  }
+
+  if (-1 !== checkIndent && 0 !== lineBreaks && state.lineIndent < checkIndent) {
+    throwWarning(state, 'deficient indentation');
   }
 
   return lineBreaks;
@@ -9809,8 +10225,8 @@ function composeNode(state, parentIndent, nodeContext, allowToSeek, allowCompact
   var allowBlockStyles,
       allowBlockScalars,
       allowBlockCollections,
+      indentStatus = 1, // 1: this>parent, 0: this=parent, -1: this<parent
       atNewLine  = false,
-      isIndented = true,
       hasContent = false,
       typeIndex,
       typeQuantity,
@@ -9832,33 +10248,28 @@ function composeNode(state, parentIndent, nodeContext, allowToSeek, allowCompact
     if (skipSeparationSpace(state, true, -1)) {
       atNewLine = true;
 
-      if (state.lineIndent === parentIndent) {
-        isIndented = false;
-
-      } else if (state.lineIndent > parentIndent) {
-        isIndented = true;
-
-      } else {
-        return false;
+      if (state.lineIndent > parentIndent) {
+        indentStatus = 1;
+      } else if (state.lineIndent === parentIndent) {
+        indentStatus = 0;
+      } else if (state.lineIndent < parentIndent) {
+        indentStatus = -1;
       }
     }
   }
 
-  if (isIndented) {
+  if (1 === indentStatus) {
     while (readTagProperty(state) || readAnchorProperty(state)) {
       if (skipSeparationSpace(state, true, -1)) {
         atNewLine = true;
+        allowBlockCollections = allowBlockStyles;
 
         if (state.lineIndent > parentIndent) {
-          isIndented = true;
-          allowBlockCollections = allowBlockStyles;
-
+          indentStatus = 1;
         } else if (state.lineIndent === parentIndent) {
-          isIndented = false;
-          allowBlockCollections = allowBlockStyles;
-
-        } else {
-          return true;
+          indentStatus = 0;
+        } else if (state.lineIndent < parentIndent) {
+          indentStatus = -1;
         }
       } else {
         allowBlockCollections = false;
@@ -9870,7 +10281,7 @@ function composeNode(state, parentIndent, nodeContext, allowToSeek, allowCompact
     allowBlockCollections = atNewLine || allowCompact;
   }
 
-  if (isIndented || CONTEXT_BLOCK_OUT === nodeContext) {
+  if (1 === indentStatus || CONTEXT_BLOCK_OUT === nodeContext) {
     if (CONTEXT_FLOW_IN === nodeContext || CONTEXT_FLOW_OUT === nodeContext) {
       flowIndent = parentIndent;
     } else {
@@ -9879,7 +10290,7 @@ function composeNode(state, parentIndent, nodeContext, allowToSeek, allowCompact
 
     blockIndent = state.position - state.lineStart;
 
-    if (isIndented) {
+    if (1 === indentStatus) {
       if (allowBlockCollections &&
           (readBlockSequence(state, blockIndent) ||
            readBlockMapping(state, blockIndent, flowIndent)) ||
@@ -9910,7 +10321,9 @@ function composeNode(state, parentIndent, nodeContext, allowToSeek, allowCompact
           state.anchorMap[state.anchor] = state.result;
         }
       }
-    } else {
+    } else if (0 === indentStatus) {
+      // Special case: block sequences are allowed to have same indentation level as the parent.
+      // http://www.yaml.org/spec/1.2/spec.html#id2799784
       hasContent = allowBlockCollections && readBlockSequence(state, blockIndent);
     }
   }
@@ -10525,6 +10938,10 @@ var BASE64_MAP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
 
 
 function resolveYamlBinary(data) {
+  if (null === data) {
+    return false;
+  }
+
   var code, idx, bitlen = 0, len = 0, max = data.length, map = BASE64_MAP;
 
   // Convert one by one.
@@ -10647,6 +11064,10 @@ module.exports = new Type('tag:yaml.org,2002:binary', {
 var Type = require('../type');
 
 function resolveYamlBoolean(data) {
+  if (null === data) {
+    return false;
+  }
+
   var max = data.length;
 
   return (max === 4 && (data === 'true' || data === 'True' || data === 'TRUE')) ||
@@ -10690,6 +11111,10 @@ var YAML_FLOAT_PATTERN = new RegExp(
   '|\\.(?:nan|NaN|NAN))$');
 
 function resolveYamlFloat(data) {
+  if (null === data) {
+    return false;
+  }
+
   var value, sign, base, digits;
 
   if (!YAML_FLOAT_PATTERN.test(data)) {
@@ -10805,6 +11230,10 @@ function isDecCode(c) {
 }
 
 function resolveYamlInteger(data) {
+  if (null === data) {
+    return false;
+  }
+
   var max = data.length,
       index = 0,
       hasDigits = false,
@@ -10987,6 +11416,10 @@ try {
 var Type = require('../../type');
 
 function resolveJavascriptFunction(data) {
+  if (null === data) {
+    return false;
+  }
+
   try {
     var source = '(' + data + ')',
         ast    = esprima.parse(source, { range: true }),
@@ -11054,6 +11487,14 @@ module.exports = new Type('tag:yaml.org,2002:js/function', {
 var Type = require('../../type');
 
 function resolveJavascriptRegExp(data) {
+  if (null === data) {
+    return false;
+  }
+
+  if (0 === data.length) {
+    return false;
+  }
+
   var regexp = data,
       tail   = /\/([gim]*)$/.exec(data),
       modifiers = '';
@@ -11161,7 +11602,8 @@ module.exports = new Type('tag:yaml.org,2002:js/undefined', {
 var Type = require('../type');
 
 module.exports = new Type('tag:yaml.org,2002:map', {
-  kind: 'mapping'
+  kind: 'mapping',
+  construct: function (data) { return null !== data ? data : {}; }
 });
 
 },{"../type":60}],69:[function(require,module,exports){
@@ -11170,12 +11612,12 @@ module.exports = new Type('tag:yaml.org,2002:map', {
 var Type = require('../type');
 
 function resolveYamlMerge(data) {
-  return '<<' === data;
+  return '<<' === data || null === data;
 }
 
 module.exports = new Type('tag:yaml.org,2002:merge', {
   kind: 'scalar',
-  resolve: resolveYamlMerge,
+  resolve: resolveYamlMerge
 });
 
 },{"../type":60}],70:[function(require,module,exports){
@@ -11184,6 +11626,10 @@ module.exports = new Type('tag:yaml.org,2002:merge', {
 var Type = require('../type');
 
 function resolveYamlNull(data) {
+  if (null === data) {
+    return true;
+  }
+
   var max = data.length;
 
   return (max === 1 && data === '~') ||
@@ -11221,6 +11667,10 @@ var _hasOwnProperty = Object.prototype.hasOwnProperty;
 var _toString       = Object.prototype.toString;
 
 function resolveYamlOmap(data) {
+  if (null === data) {
+    return true;
+  }
+
   var objectKeys = [], index, length, pair, pairKey, pairHasKey,
       object = data;
 
@@ -11256,9 +11706,14 @@ function resolveYamlOmap(data) {
   return true;
 }
 
+function constructYamlOmap(data) {
+  return null !== data ? data : [];
+}
+
 module.exports = new Type('tag:yaml.org,2002:omap', {
   kind: 'sequence',
-  resolve: resolveYamlOmap
+  resolve: resolveYamlOmap,
+  construct: constructYamlOmap
 });
 
 },{"../type":60}],72:[function(require,module,exports){
@@ -11269,6 +11724,10 @@ var Type = require('../type');
 var _toString = Object.prototype.toString;
 
 function resolveYamlPairs(data) {
+  if (null === data) {
+    return true;
+  }
+
   var index, length, pair, keys, result,
       object = data;
 
@@ -11294,6 +11753,10 @@ function resolveYamlPairs(data) {
 }
 
 function constructYamlPairs(data) {
+  if (null === data) {
+    return [];
+  }
+
   var index, length, pair, keys, result,
       object = data;
 
@@ -11322,7 +11785,8 @@ module.exports = new Type('tag:yaml.org,2002:pairs', {
 var Type = require('../type');
 
 module.exports = new Type('tag:yaml.org,2002:seq', {
-  kind: 'sequence'
+  kind: 'sequence',
+  construct: function (data) { return null !== data ? data : []; }
 });
 
 },{"../type":60}],74:[function(require,module,exports){
@@ -11333,6 +11797,10 @@ var Type = require('../type');
 var _hasOwnProperty = Object.prototype.hasOwnProperty;
 
 function resolveYamlSet(data) {
+  if (null === data) {
+    return true;
+  }
+
   var key, object = data;
 
   for (key in object) {
@@ -11346,9 +11814,14 @@ function resolveYamlSet(data) {
   return true;
 }
 
+function constructYamlSet(data) {
+  return null !== data ? data : {};
+}
+
 module.exports = new Type('tag:yaml.org,2002:set', {
   kind: 'mapping',
-  resolve: resolveYamlSet
+  resolve: resolveYamlSet,
+  construct: constructYamlSet
 });
 
 },{"../type":60}],75:[function(require,module,exports){
@@ -11357,7 +11830,8 @@ module.exports = new Type('tag:yaml.org,2002:set', {
 var Type = require('../type');
 
 module.exports = new Type('tag:yaml.org,2002:str', {
-  kind: 'scalar'
+  kind: 'scalar',
+  construct: function (data) { return null !== data ? data : ''; }
 });
 
 },{"../type":60}],76:[function(require,module,exports){
@@ -11378,6 +11852,10 @@ var YAML_TIMESTAMP_REGEXP = new RegExp(
   '(?::([0-9][0-9]))?))?)?$');         // [11] tz_minute
 
 function resolveYamlTimestamp(data) {
+  if (null === data) {
+    return false;
+  }
+
   var match, year, month, day, hour, minute, second, fraction = 0,
       delta = null, tz_hour, tz_minute, date;
 
@@ -22155,6 +22633,7 @@ parseStatement: true, parseSourceElement: true */
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
 },{}],79:[function(require,module,exports){
 module.exports={
   "title": "A JSON Schema for Swagger 2.0 API.",

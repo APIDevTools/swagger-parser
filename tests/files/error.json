@@ -7,7 +7,7 @@
       "type": "integer"
     },
     "pet": {
-      "$ref": "./pet.yaml"
+      "$ref": "../files/pet.yaml"
     }
   }
 }
