@@ -91,10 +91,10 @@ parser.parse("swagger.yaml", options, function(err, api, metadata) {
 The three parameters are as follows:
 
 
-### `swaggerFile` - string (_required_)
+#### `swaggerPath` - string (_required_)
 The file path or URL of the Swagger file.  Relative paths are allowed.  In Node, the path is relative to `process.cwd()`.  In the browser, it's relative to the URL of the page.
 
-### `options` - object (_optional_)
+#### `options` - object (_optional_)
 An object containing one or more of the following properties:
 
 * __parseYaml__ (default: true) - 
@@ -109,7 +109,7 @@ Determines whether `$ref` pointers will be dereferenced if they point to externa
 * __validateSpec__ (default: true) - 
 Determines whether your Swagger spec will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger Object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-) may be missing properties, have properties of the wrong data type, etc.
 
-### `callback` - function (_required_)
+#### `callback` - function (_required_)
 The callback function is called when the Swagger file and all referenced files have been downloaded, parsed, validated, and dereferenced.  
 
 * __err__ (Error object) -
