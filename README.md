@@ -17,10 +17,10 @@ Features
 * Supports Swagger specs in __JSON or YAML__ format
 * __Validates__ against the [official Swagger 2.0 schema](http://github.com/reverb/swagger-spec/blob/master/versions/2.0.md)
 * Dereferences all __$ref__ pointers, including pointers to __external files and URLs__
-* Intelligently resolves and caches external files and URLs
-* Tested in Node.js and all major web browsers (Chrome, IE, Firefox, Safari)
+* __Tested__ in Node.js and all major web browsers on Windows, Mac, and Linux
+* Asynchronously downloads and __caches__ external files and URLs
 * Nested $ref pointers are supported, even in external files and URLs
-* Multiple $ref pointers to the same definition are resolved to the same object instance, thus maintaining [strict reference equality](https://github.com/BigstickCarpet/swagger-parser/blob/29ebda3ca739574791ebc24913121d6d765ce24f/tests/specs/dereference-spec.js#L110)
+* Multiple $ref pointers to the same definition are resolved to the same object instance, thus maintaining [strict reference equality](https://github.com/BigstickCarpet/swagger-parser/blob/e1867cd9b14666a726264ba45641f2e4761edf61/tests/specs/dereference-spec.js#L127)
 
 
 Basic Example
@@ -37,7 +37,7 @@ The `api` parameter that's passed to the callback function is the parsed, valida
 
 Installation and Use
 --------------------------
-### Node
+#### Node
 ````bash
 npm install swagger-parser
 ````
@@ -49,7 +49,7 @@ var parser = require("swagger-parser");
 parser.parse('swagger.yaml', function(err, api, metadata) { ... });
 ````
 
-### Bower
+#### Bower
 ````bash
 bower install swagger-parser
 ````
@@ -63,7 +63,7 @@ Then add this to your HTML page:
 </script>
 ````
 
-### AMD (Require.js)
+#### AMD (Require.js)
 Just add `swagger-parser` to your AMD module's dependencies, or `require("swagger-parser")` explicitly.
 
 ````javascript
@@ -73,8 +73,10 @@ define("myModule", ["swagger-parser"], function(parser) {
 ````
 
 
-`Parser.parse()`
+The API
 --------------------------
+### `Parser.parse()`
+
 This method can be called with two parameters (as shown above), or with three parameters, like this:
 
 ````javascript
@@ -89,10 +91,10 @@ parser.parse("swagger.yaml", options, function(err, api, metadata) {
 The three parameters are as follows:
 
 
-## `swaggerFile` - string (_required_)
+### `swaggerFile` - string (_required_)
 The file path or URL of the Swagger file.  Relative paths are allowed.  In Node, the path is relative to `process.cwd()`.  In the browser, it's relative to the URL of the page.
 
-## `options` - object (_optional_)
+### `options` - object (_optional_)
 An object containing one or more of the following properties:
 
 * __parseYaml__ (default: true) - 
@@ -107,7 +109,7 @@ Determines whether `$ref` pointers will be dereferenced if they point to externa
 * __validateSpec__ (default: true) - 
 Determines whether your Swagger spec will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger Object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-) may be missing properties, have properties of the wrong data type, etc.
 
-## `callback` - function (_required_)
+### `callback` - function (_required_)
 The callback function is called when the Swagger file and all referenced files have been downloaded, parsed, validated, and dereferenced.  
 
 * __err__ (Error object) -
