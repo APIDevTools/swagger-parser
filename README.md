@@ -3,7 +3,7 @@ Swagger-Parser
 #### Parses, validates, and dereferences JSON/YAML Swagger specs in Node and browsers
 
 [![Build Status](https://img.shields.io/travis/BigstickCarpet/swagger-parser.svg)](https://travis-ci.org/BigstickCarpet/swagger-parser)
-[![Dependencies](https://david-dm.org/bigstickcarpet/swagger-parser.svg)](https://david-dm.org/bigstickcarpet/swagger-parser)
+[![Dependencies](https://img.shields.io/david/bigstickcarpet/swagger-parser.svg)](https://david-dm.org/bigstickcarpet/swagger-parser)
 [![Code Climate Score](https://codeclimate.com/github/BigstickCarpet/swagger-parser/badges/gpa.svg)](https://codeclimate.com/github/BigstickCarpet/swagger-parser)
 [![Codacy Score](http://img.shields.io/codacy/6d686f916836433b9c013379fbe1052c.svg)](https://www.codacy.com/public/jamesmessinger/swagger-parser)
 [![Coverage Status](https://img.shields.io/coveralls/BigstickCarpet/swagger-parser.svg)](https://coveralls.io/r/BigstickCarpet/swagger-parser)
@@ -75,9 +75,9 @@ define("myModule", ["swagger-parser"], function(parser) {
 
 The API
 --------------------------
-### `Parser.parse()`
+### `Parser.parse(swaggerPath, [options], callback)`
 
-This method can be called with two parameters (as shown above), or with three parameters, like this:
+This method can be called with two parameters (as shown in previous examples), or with three parameters, like this:
 
 ````javascript
 var options = { 

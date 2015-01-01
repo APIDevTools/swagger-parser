@@ -42,7 +42,7 @@
     "tv4": "^1.1.0"
   },
   "devDependencies": {
-    "browserify": "^7.0.0",
+    "browserify": "^8.0.0",
     "chai": "^1.10.0",
     "coveralls": "^2.11.2",
     "gulp": "^3.8.10",
@@ -63,7 +63,7 @@
     "karma-safari-launcher": "^0.1.1",
     "karma-sinon": "^1.0.4",
     "mocha": "^2.0.1",
-    "nock": "^0.51.0",
+    "nock": "^0.52.0",
     "sinon": "^1.12.1",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.0.0"
