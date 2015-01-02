@@ -126,7 +126,7 @@ person:
       type: string
     spouse:
       type:
-        $ref: person
+        $ref: person   # circular reference
 ````
 
 
