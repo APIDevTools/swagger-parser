@@ -14,13 +14,13 @@ Swagger-Parser
 
 Features
 --------------------------
-* Supports Swagger specs in __JSON or YAML__ format
+* Parses Swagger specs in __JSON or YAML__ format
 * __Validates__ against the [official Swagger 2.0 schema](http://github.com/reverb/swagger-spec/blob/master/versions/2.0.md)
 * Dereferences all __$ref__ pointers, including pointers to __external files and URLs__
-* __Tested__ in Node.js and all major web browsers on Windows, Mac, and Linux
 * Asynchronously downloads and __caches__ external files and URLs
-* Nested $ref pointers are supported, even in external files and URLs
-* Multiple $ref pointers to the same definition are resolved to the same object instance, thus maintaining [strict reference equality](https://github.com/BigstickCarpet/swagger-parser/blob/e1867cd9b14666a726264ba45641f2e4761edf61/tests/specs/dereference-spec.js#L127)
+* __Tested__ in Node.js and all major web browsers on Windows, Mac, and Linux
+* Supports nested $ref pointers, even in external files and URLs
+* Multiple $ref pointers to the same definition are resolved to the same object instance, thus maintaining [strict reference equality](https://github.com/BigstickCarpet/swagger-parser/blob/a525d5e6f3a2af1774d0bcc283cb59737f02bb1e/tests/specs/dereference-spec.js#L137)
 
 
 Basic Example
@@ -117,7 +117,7 @@ I welcome any contributions, enhancements, and bug-fixes.  [File an issue](https
 
 Here are some things currently on the to-do list:
 
-* __Recursive (circular) $ref pointers__ - Recursive (circular) `$ref` pointers are __not__ currently supported.  So something like this won't work:
+* __Circular $ref pointers__ - Circular `$ref` pointers are a bit of an edge case, but it would be nice to support them anyway.  Currently, something like this won't work:
 
 ````yaml
 person:
