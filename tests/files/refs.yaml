@@ -3,6 +3,11 @@ info:
   version: 1.0.0
   title: refs
   description: This file includes all three types of $ref pointers (relative, shorhand, and external)
+
+definitions:
+  pet:
+    $ref: pet.yaml
+
 paths:
   /pets:
     post:
@@ -18,10 +23,11 @@ paths:
           description: A shorthand $ref pointer
           schema:
             $ref: pet
-        default:
+        500:
           description: An external $ref pointer
           schema:
             $ref: ./error.json
-definitions:
-  pet:
-    $ref: pet.yaml
+        default:
+          description: A really roundabout way to get to "pet"
+          schema:
+            $ref: "#/paths//pets/post/responses/200/schema" # This is a good test of resolveInternal$Ref's logic

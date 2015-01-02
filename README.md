@@ -32,7 +32,7 @@ swagger.parser.parse("swagger.yaml", function(err, api, metadata) {
   }
 });
 ````
-The `api` parameter that's passed to the callback function is the parsed, validated, and dereferenced [Swagger Object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-).
+The `api` parameter that's passed to the callback function is the parsed, validated, and dereferenced [Swagger object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-).
 
 
 Installation and Use
@@ -77,57 +77,38 @@ The API
 --------------------------
 ### `Parser.parse(swaggerPath, [options], callback)`
 
-This method can be called with two parameters (as shown in previous examples), or with three parameters, like this:
+* __`swaggerPath`__ (_required_) - string<br>
+The file path or URL of your Swagger file.  Relative paths are allowed.  In Node, the path is relative to `process.cwd()`.  In the browser, it's relative to the URL of the page.
 
-````javascript
-var options = { 
-    dereferencePointers: false, 
-    validateSpec: false 
-};
-parser.parse("swagger.yaml", options, function(err, api, metadata) {
-  ...
-});
-````
-The three parameters are as follows:
+* __`options`__ (_optional_) - object<br>
+An object containing one or more parsing options. See [options](#options) below.
 
+* __`callback`__ (_required_) - function(err, api, metadata)<br>
+Called after the parsing is finished, or when an error occurs.  See [callback](#callback) below for details.
 
-#### `swaggerPath` - string (_required_)
-The file path or URL of the Swagger file.  Relative paths are allowed.  In Node, the path is relative to `process.cwd()`.  In the browser, it's relative to the URL of the page.
+#### Options
+|Property               |Type        |Default       |Description
+|:----------------------|:-----------|:-------------|:----------
+|`parseYaml`            |bool        |true          |Determines whether the parser will allow Swagger specs in YAML format.  If set to `false`, then only JSON will be allowed. 
+|`resolve$Refs`         |bool        |true          |Determines whether `$ref` pointers will be resolved.  If set to `false`, then the resulting Swagger object will contain [Reference objects](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-) instead of the objects they reference.
+|`resolveExternal$Refs` |bool        |true          |Determines whether `$ref` pointers will be resolved if they point to external files or URLs.  If set to `false` then the resulting Swagger object will contain [Reference objects](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-) for external pointers instead of the objects they reference.
+|`validateSchema`        |bool       |true          |Determines whether your API will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-) may be missing properties, have properties of the wrong data type, etc.
 
-#### `options` - object (_optional_)
-An object containing one or more of the following properties:
+#### Callback
+|Parameter  |Type                |Description
+|:----------|:-------------------|:----------
+|`err`      |Error               |`null` unless an error occurred.
+|`api`      |[Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object-) |The complete Swagger API object. Or `undefined` if an error occurred
+|`metadata`  |object             |This parameter can usually be ignored. It provides useful information about the parsing operation itself.
 
-* __parseYaml__ (default: true) - 
-Determines whether the parser will allow Swagger specs in YAML format.  If set to `false`, then only JSON will be allowed. 
+The `metadata` parameter is an object with the following properties:
 
-* __dereferencePointers__ (default: true) - 
-Determines whether `$ref` pointers will be dereferenced.  If set to `false`, then the resulting SwaggerObject will contain [Reference Objects](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-) instead of the objects they reference.
-
-* __dereferenceExternalPointers__ (default: true) - 
-Determines whether `$ref` pointers will be dereferenced if they point to external files (e.g. "http://company.com/my/schema.yaml").  If set to `false` then the resulting SwaggerObject will contain [Reference Objects](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-) for external pointers instead of the objects they reference.
-
-* __validateSpec__ (default: true) - 
-Determines whether your Swagger spec will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger Object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-) may be missing properties, have properties of the wrong data type, etc.
-
-#### `callback` - function (_required_)
-The callback function is called when the Swagger file and all referenced files have been downloaded, parsed, validated, and dereferenced.  
-
-* __err__ (Error object) -
-If an error occurred during parsing, then this will be the `Error` object; otherwise, this parameter will be `null`. You should always check the `err` parameter first, because the other parameters may be `undefined` if an error occurred.
-
-* __api__ (Swagger object) -
-If the file(s) were parsed successfully, then this object is the complete Swagger API object.   See the [official Swagger 2.0 specification](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object-) for details.
-
-* __metadata__ (object) -
-This object provides useful information about the parsing operation itself, namely:
-
-    * __baseDir__ (string) - The directory of the main Swagger file, which is the base directory used to resolve any relative $ref pointers.
-    
-    * __files__ (array of strings) - The full paths of all files that were parsed. This only includes local files, _not_ URLs.  If The main Swagger file was local, then it will be the first item in this array.
-    
-    * __urls__ (array of objects) - The URLs that were parsed.  Each item in the array is a [URL object](http://nodejs.org/api/url.html#url_url), which lets you easily access the full URL, or specific parts of it.
-    
-    * __resolvedPointers__ (object) - A map of all the $ref pointers that were resolved, and the objects they resolved to. 
+|Property   |Type                |Description
+|:----------|:-------------------|:----------
+|`baseDir`  |string              |The directory of the main Swagger file, which is the base directory used to resolve any external $ref pointers.
+|`files`    |array of strings    |The full paths of all files that were parsed. This only includes local files, _not_ URLs.  If `Parser.parse()` was called with a local file path, then it will be the first item in this array.
+|`urls`     |array of [URL objects](http://nodejs.org/api/url.html#url_url)|The URLs that were parsed.  If `Parser.parse()` was called with a URL, then it will be the first item in this array.
+|`$refs`    |object              |A map of all the $ref pointers that were resolved, and the objects they resolved to.
 
 
 Contributing

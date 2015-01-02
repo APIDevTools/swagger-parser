@@ -1,0 +1,17 @@
+post:
+  parameters:
+    - name: pet
+      in: body
+      required: true
+      description: a shorthand $ref pointer to an external definition
+      schema:
+        $ref: pet
+  responses:
+    200:
+      description: a document-relative $ref pointer to an external definition
+      schema:
+        $ref: "#/definitions/pet"
+    default:
+      description: a shorthand $ref pointer to an external definition that contains more backrefs
+      schema:
+        $ref: error

@@ -18,10 +18,16 @@ env.files.parsed.refs =
               '$ref': 'pet'
             }
           },
-          'default': {
+          '500': {
             'description': 'An external $ref pointer',
             'schema': {
               '$ref': './error.json'
+            }
+          },
+          'default': {
+            'description': 'A really roundabout way to get to "pet"',
+            'schema': {
+              '$ref': '#/paths//pets/post/responses/200/schema'
             }
           }
         },

@@ -1,19 +1,19 @@
 require('../test-environment.js');
 
-env.files.dereferenced.refs =
+env.files.dereferenced.externalBackRefs =
 {
   'swagger': '2.0',
   'info': {
     'version': '1.0.0',
-    'description': 'This file includes all three types of $ref pointers (relative, shorhand, and external)',
-    'title': 'refs'
+    'description': 'This file includes $refs to external files.  Those files contain $refs back to definitions in this file.\n',
+    'title': 'external back-refs'
   },
   'paths': {
     '/pets': {
       'post': {
         'responses': {
           '200': {
-            'description': 'A shorthand $ref pointer',
+            'description': 'a document-relative $ref pointer to an external definition',
             'schema': {
               'properties': {
                 'type': {
@@ -30,12 +30,17 @@ env.files.dereferenced.refs =
               }
             }
           },
-          '500': {
-            'description': 'An external $ref pointer',
+          'default': {
+            'description': 'a shorthand $ref pointer to an external definition that contains more backrefs',
             'schema': {
               'properties': {
                 'message': {
-                  'type': 'string'
+                  'type': 'string',
+                  'enum': [
+                    'cat',
+                    'dog',
+                    'bird'
+                  ]
                 },
                 'code': {
                   'type': 'integer'
@@ -54,24 +59,6 @@ env.files.dereferenced.refs =
                       'type': 'string'
                     }
                   }
-                }
-              }
-            }
-          },
-          'default': {
-            'description': 'A really roundabout way to get to "pet"',
-            'schema': {
-              'properties': {
-                'type': {
-                  'enum': [
-                    'cat',
-                    'dog',
-                    'bird'
-                  ],
-                  'type': 'string'
-                },
-                'name': {
-                  'type': 'string'
                 }
               }
             }
@@ -95,7 +82,7 @@ env.files.dereferenced.refs =
                 }
               }
             },
-            'description': 'A document-relative $ref pointer',
+            'description': 'a shorthand $ref pointer to an external definition',
             'in': 'body',
             'name': 'pet'
           }
@@ -116,6 +103,36 @@ env.files.dereferenced.refs =
         },
         'name': {
           'type': 'string'
+        }
+      }
+    },
+    'error': {
+      'properties': {
+        'message': {
+          'type': 'string',
+          'enum': [
+            'cat',
+            'dog',
+            'bird'
+          ]
+        },
+        'code': {
+          'type': 'integer'
+        },
+        'pet': {
+          'properties': {
+            'type': {
+              'enum': [
+                'cat',
+                'dog',
+                'bird'
+              ],
+              'type': 'string'
+            },
+            'name': {
+              'type': 'string'
+            }
+          }
         }
       }
     }

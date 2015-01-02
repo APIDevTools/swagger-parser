@@ -16,59 +16,55 @@
 },{"./lib/defaults":3,"./lib/parse":5}],2:[function(require,module,exports){
 module.exports = require('debug')('swagger:parser');
 
-},{"debug":44}],3:[function(require,module,exports){
+},{"debug":45}],3:[function(require,module,exports){
 /**
  * The default parsing options.
  * @name defaults
- * @type {{parseYaml: boolean, dereferencePointers: boolean, dereferenceExternalPointers: boolean, validateSpec: boolean}}
+ * @type {{parseYaml: boolean, resolve$Refs: boolean, resolveExternal$Refs: boolean, validateSchema: boolean}}
  */
 module.exports = {
-  /**
-   * Determines whether the parser will allow Swagger specs in YAML format.
-   * If set to `false`, then only JSON will be allowed.  Defaults to `true`.
-   * @type {boolean}
-   */
-  parseYaml: true,
+    /**
+     * Determines whether the parser will allow Swagger specs in YAML format.
+     * If set to `false`, then only JSON will be allowed.  Defaults to `true`.
+     * @type {boolean}
+     */
+    parseYaml: true,
 
-  /**
-   * Determines whether `$ref` pointers will be dereferenced.
-   * If set to `false`, then the resulting SwaggerObject will contain ReferenceObjects instead of the objects they reference.
-   * (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-)
-   * Defaults to `true`.
-   * @type {boolean}
-   */
-  dereferencePointers: true,
+    /**
+     * Determines whether `$ref` pointers will be dereferenced.
+     * If set to `false`, then the resulting Swagger object will contain ReferenceObjects instead of the objects they reference.
+     * (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-)
+     * Defaults to `true`.
+     * @type {boolean}
+     */
+    resolve$Refs: true,
 
-  /**
-   * Determines whether `$ref` pointers will be dereferenced if they point to external files (e.g. "http://company.com/my/schema.json").
-   * If set to `false`, then the resulting SwaggerObject will contain ReferenceObjects instead of the objects they reference.
-   * (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-)
-   * Defaults to `true`.
-   * @type {boolean}
-   */
-  dereferenceExternalPointers: true,
+    /**
+     * Determines whether `$ref` pointers will be dereferenced if they point to external files (e.g. "http://company.com/my/schema.json").
+     * If set to `false`, then the resulting Swagger object will contain ReferenceObjects instead of the objects they reference.
+     * (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-)
+     * Defaults to `true`.
+     * @type {boolean}
+     */
+    resolveExternal$Refs: true,
 
-  /**
-   * Determines whether the Swagger spec will be validated against the Swagger schema.
-   * If set to `false`, then the resulting SwaggerObject may be missing properties, have properties of the wrong data type, etc.
-   * Defaults to `true`.
-   * @type {boolean}
-   */
-  validateSpec: true
+    /**
+     * Determines whether the API will be validated against the Swagger schema.
+     * If set to `false`, then the resulting Swagger object may be missing properties, have properties of the wrong data type, etc.
+     * Defaults to `true`.
+     * @type {boolean}
+     */
+    validateSchema: true
 };
 
 },{}],4:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash');
-var url = require('url');
-var read = require('./read');
+var resolve = require('./resolve');
 var util = require('./util');
 var debug = require('./debug');
 
-// RegExp pattern for external pointers
-// (e.g. "http://company.com", "https://company.com", "./file.yaml", "../../file.yaml")
-var externalPointerPattern = /^https?\:\/\/|^\.|\.yml$|\.yaml$|\.json$/i;
 
 module.exports = dereference;
 
@@ -76,269 +72,44 @@ module.exports = dereference;
 /**
  * Dereferences the given Swagger spec, replacing "$ref" pointers
  * with their corresponding object references.
- * @param {object}    obj
- * @param {string}    schemaPath
- * @param {State}     state
- * @param {function}  callback
+ *
+ * @param   {SwaggerObject} api             The Swagger API to dereference
+ * @param   {State}         state           The state for the current parse operation
+ * @param   {function}      callback
  */
-function dereference(obj, schemaPath, state, callback) {
-  // Do nothing if dereferencing is disabled
-  if (!state.options.dereferencePointers) {
-    return util.doCallback(callback, null, obj);
-  }
-
-  function dereferenceNextItem(err) {
-    if (err || keys.length === 0) {
-      // We're done!  Invoke the callback
-      return util.doCallback(callback, err || null, obj);
+function dereference(api, state, callback) {
+    if (!state.options.resolve$Refs) {
+        // Dereferencing is disabled, so just return the API as-is
+        util.doCallback(callback, null, api);
+        return;
     }
 
-    var key = keys.pop();
-    var value = obj[key];
-    var fullPath = schemaPath + key;
+    // Resolve all $ref pointers
+    resolve(api, state, function(err, api) {
+        if (err) {
+            util.doCallback(callback, err);
+            return;
+        }
 
-    if (_.has(value, '$ref')) {
-      // We found a "$ref" pointer!  So resolve it.
-      var pointerPath = fullPath + '/$ref';
-      var pointerValue = value.$ref;
+        // Replace all $ref pointers with the resolved values
+        util.crawlObject(api, callback,
+            function(parent, propName, propPath, continueCrawling) {
+                var $ref = parent[propName].$ref;
 
-      if (isExternalPointer(pointerValue) && !state.options.dereferenceExternalPointers) {
-        // This is an external pointer, and we're not resolving those, so just move along
-        dereferenceNextItem();
-      }
-      else {
-        resolvePointer(pointerPath, pointerValue, obj, key, state,
-          function(err, resolved, alreadyResolved) {
-            if (err || alreadyResolved) {
-              // The pointer had already been resolved, so no need to recurse over it
-              dereferenceNextItem(err);
+                if ($ref && _.has(state.$refs, $ref)) {
+                    // We found a $ref pointer!  So replace it.
+                    parent[propName] = state.$refs[$ref];
+                }
+
+                // NOTE: This will also crawl the reference object that we just added,
+                // and replace any nested $ref pointers in it.
+                continueCrawling();
             }
-            else {
-              // Recursively dereference the resolved reference
-              dereference(resolved, pointerPath, state, function(err) {
-                dereferenceNextItem(err);
-              });
-            }
-          }
         );
-      }
-    }
-    else if (_.isPlainObject(value) || _.isArray(value)) {
-      // Recursively dereference each item in the object/array
-      dereference(value, fullPath, state, function(err, reference) {
-        obj[key] = reference;
-        dereferenceNextItem(err);
-      });
-    }
-    else {
-      // This is just a normal value (string, number, boolean, date, etc.)
-      // so just skip it and dereference the next item.
-      dereferenceNextItem();
-    }
-  }
-
-  schemaPath += '/';
-
-  // Loop through each item in the object/array
-  var keys = _.keys(obj);
-  dereferenceNextItem();
+    });
 }
 
-
-/**
- * Resolves a "$ref" pointer.
- * @param   {string}    pointerPath     the path to the $ref property. This is only used for logging purposes.
- * @param   {string}    pointerValue    the pointer value to resolve
- * @param   {object}    targetObj       the object that will be updated to include the resolved reference
- * @param   {string}    targetProp      the property name on targetObj to be updated with the resolved reference
- * @param   {State}     state           the state for the current parse operation
- * @param   {function}  callback
- */
-function resolvePointer(pointerPath, pointerValue, targetObj, targetProp, state, callback) {
-  if (_.isEmpty(pointerValue)) {
-    return util.doCallback(callback, util.syntaxError('Empty $ref pointer at "%s"', pointerPath));
-  }
-
-  function returnResolvedValue(err, resolved, alreadyResolved) {
-    if (!err && resolved === undefined) {
-      err = util.syntaxError('Unable to resolve %s.  The path "%s" could not be found in the Swagger file.',
-        pointerPath, pointerValue);
-    }
-
-    if (!err) {
-      // Update the target object with the resolved value
-      targetObj[targetProp] = resolved;
-    }
-
-    debug('Resolved %s => %s', pointerPath, pointerValue);
-    util.doCallback(callback, err, resolved, alreadyResolved);
-  }
-
-  try {
-    var cachedReference = getCachedReference(pointerValue, state);
-
-    if (cachedReference) {
-      returnResolvedValue(null, cachedReference, true);
-    }
-    else if (isExternalPointer(pointerValue)) {
-      resolveExternalPointer(pointerValue, state, returnResolvedValue);
-    }
-    else {
-      resolveInternalPointer(pointerValue, state, returnResolvedValue);
-    }
-  }
-  catch (e) {
-    util.doCallback(callback, e);
-  }
-}
-
-
-/**
- * Returns the cached reference for the given pointer, if possible.
- * @param   {string}    pointer         The $ref pointer (e.g. "pet", "#/parameters/pet")
- * @param   {State}     state           the state for the current parse operation
- */
-function getCachedReference(pointer, state) {
-  // Check for the non-normalized pointer
-  if (pointer in state.resolvedPointers) {
-    return state.resolvedPointers[pointer];
-  }
-
-  // Check for the normalized pointer
-  var normalized = normalizePointer(pointer, state);
-  if (normalized in state.resolvedPointers) {
-    // Cache the value under the non-normalized pointer too
-    return state.resolvedPointers[pointer] = state.resolvedPointers[normalized];
-  }
-
-  // It's not in the cache
-  return null;
-}
-
-
-/**
- * Caches a resolved reference under the given pointer AND the normalized pointer.
- * @param   {string}    pointer         The $ref pointer (e.g. "pet", "#/definitions/pet")
- * @param   {string}    normalized      The normalized $ref pointer (e.g. "#/definitions/pet")
- * @param   {object}    resolved        The resolved reference
- * @param   {State}     state           the state for the current parse operation
- */
-function cacheReference(pointer, normalized, resolved, state) {
-  state.resolvedPointers[pointer] = resolved;
-  state.resolvedPointers[normalized] = resolved;
-}
-
-
-/**
- * Normalizes a pointer value.
- * For example, "pet.yaml" and "./pet.yaml" both get normalized to "/swagger/base/dir/pet.yaml".
- * @param   {string}    pointer         The $ref pointer (e.g. "pet", "#/parameters/pet")
- * @param   {State}     state           the state for the current parse operation
- * @returns {string}
- */
-function normalizePointer(pointer, state) {
-  if (isExternalPointer(pointer)) {
-    // Normalize the pointer value by resolving the path/URL relative to the Swagger file.
-    return url.resolve(state.baseDir, pointer);
-  }
-  else {
-    if (pointer.indexOf('#/') === 0) {
-      // The pointer is already normalized (e.g. "#/parameters/username")
-      return pointer;
-    }
-    else {
-      // This is a shorthand pointer to a model definition
-      // "pet" => "#/definitions/pet"
-      return '#/definitions/' + pointer;
-    }
-  }
-}
-
-
-/**
- * Determines whether the given $ref pointer value references an external file.
- * @param   {string}    pointer         The $ref pointer (e.g. "pet", "#/parameters/pet")
- * @returns {boolean}
- */
-function isExternalPointer(pointer) {
-  return pointer && externalPointerPattern.test(pointer);
-}
-
-
-/**
- * Resolves a pointer to a property in the Swagger spec.
- * @param   {string}    pointer         The $ref pointer (e.g. "pet", "#/parameters/pet")
- * @param   {State}     state           the state for the current parse operation
- * @param   {function}  callback
- */
-function resolveInternalPointer(pointer, state, callback) {
-  var propertyPath;
-
-  // "pet" => "#/definitions/pet"
-  var normalized = normalizePointer(pointer, state);
-
-  // "#/paths/users/responses/200" => "paths.users.responses.200"
-  propertyPath = normalized.substr(2).replace(/\//g, '.');
-
-  // Get the property value from the schema
-  var resolved = resultDeep(state.swagger, propertyPath);
-  cacheReference(pointer, normalized, resolved, state);
-  callback(null, resolved);
-}
-
-
-/**
- * Resolves a pointer to an external file or URL.
- * @param   {string}    pointer         the full, absolute path or URL
- * @param   {State}     state           the state for the current parse operation
- * @param   {function}  callback
- */
-function resolveExternalPointer(pointer, state, callback) {
-  // "./swagger.yaml" => "/full/path/to/swagger.yaml"
-  var normalized = normalizePointer(pointer, state);
-
-  // Set the resolved value to an empty object for now, so other reference pointers
-  // can point to this object.  Once we finish reading the file, we will update
-  // the empty object with the real data.
-  var resolved = {};
-  cacheReference(pointer, normalized, resolved, state);
-
-  read.fileOrUrl(normalized, state,
-    function(err, data) {
-      if (!err) {
-        // Now that we've finished downloaded the data, update the empty object we created earlier
-        resolved = _.extend(resolved, data);
-      }
-
-      return callback(err, resolved);
-    }
-  );
-}
-
-
-/**
- * Crawls the property tree to return the value of the specified property.
- */
-function resultDeep(obj, key) {
-  // "my.deep.property" => ["my", "deep", "property"]
-  var propNames = key.split('.');
-
-  // Traverse each property/function
-  for (var i = 0; i < propNames.length; i++) {
-    var propName = propNames[i];
-    obj = _.result(obj, propName);
-
-    // Exit the loop early if we get a falsy value
-    if (!obj) {
-      break;
-    }
-  }
-
-  return obj;
-}
-
-
-},{"./debug":2,"./read":6,"./util":8,"lodash":78,"url":41}],5:[function(require,module,exports){
+},{"./debug":2,"./resolve":7,"./util":9,"lodash":79}],5:[function(require,module,exports){
 'use strict';
 
 var path = require('path');
@@ -371,90 +142,112 @@ module.exports = parse;
  * the callback function that will be passed the parsed SwaggerObject
  */
 function parse(swaggerPath, options, callback) {
-  // Shift args if necessary
-  if (_.isFunction(options)) {
-    callback = options;
-    options = undefined;
-  }
-
-  if (!_.isFunction(callback)) {
-    throw new Error('A callback function must be provided');
-  }
-
-  options = _.merge({}, defaults, options);
-
-  // Resolve the file path or url, relative to the CWD
-  var cwd = util.cwd();
-  debug('Resolving Swagger file path "%s", relative to "%s"', cwd, swaggerPath);
-  swaggerPath = url.resolve(cwd, swaggerPath);
-  debug('    Resolved to %s', swaggerPath);
-
-  // Create a new state object for this parse operation
-  var state = new State();
-  state.options = options;
-  state.baseDir = path.dirname(swaggerPath) + '/';
-  debug('Swagger base directory: %s', state.baseDir);
-
-  read.fileOrUrl(swaggerPath, state, function(err, swaggerObject) {
-    if (err) {
-      return util.doCallback(callback, err);
+    // Shift args if necessary
+    if (_.isFunction(options)) {
+        callback = options;
+        options = undefined;
     }
 
-    state.swagger = swaggerObject;
-
-    // Validate the version number
-    var version = swaggerObject.swagger;
-    if (supportedSwaggerVersions.indexOf(version) === -1) {
-      return util.doCallback(callback, util.syntaxError(
-        'Error in "%s". \nUnsupported Swagger version: %d. Swagger-Server only supports version %s',
-        swaggerPath, version, supportedSwaggerVersions.join(', ')));
+    if (!_.isFunction(callback)) {
+        throw new Error('A callback function must be provided');
     }
 
-    // Dereference the SwaggerObject by resolving "$ref" pointers
-    debug('Resolving $ref pointers in %s', swaggerPath);
-    dereference(swaggerObject, '', state, function(err, swaggerObject) {
-      if (!err) {
-        try {
-          // Validate the spec against the Swagger schema (if enabled)
-          if (state.options.validateSpec) {
-            validateAgainstSchema(swaggerObject, swaggerPath);
-          }
-        }
-        catch (e) {
-          err = e;
-        }
-      }
+    // Create a new state object for this parse operation
+    var state = new State();
+    state.options = _.merge({}, defaults, options);
 
-      if (err) {
-        err = util.syntaxError(err, 'Error in "%s"', swaggerPath);
-        return util.doCallback(callback, err);
-      }
-
-      // We're done.  Invoke the callback.
-      var metadata = _.omit(state, 'swagger', 'options');
-      util.doCallback(callback, null, swaggerObject, metadata);
+    // Parse, dereference, and validate
+    parseSwaggerFile(swaggerPath, state, function(err, api) {
+        errBack(err) ||
+        dereference(api, state, function(err, api) {
+            errBack(err) ||
+            validateAgainstSchema(api, state, function(err, api) {
+                errBack(err) ||
+                finished(api, state);
+            });
+        });
     });
-  });
+
+    // Done!
+    function finished(api, state) {
+        var metadata = _.pick(state, 'baseDir', 'files', 'urls', '$refs');
+        util.doCallback(callback, null, api, metadata);
+    }
+
+    // Error!
+    function errBack(err) {
+        if (err) {
+            util.doCallback(callback, util.syntaxError(err, 'Error in "%s"', swaggerPath));
+        }
+        return !!err;
+    }
 }
 
 
 /**
- * Validates the given SwaggerObject against the Swagger schema.
+ * Parses the given JSON or YAML file or URL.
+ * @param   {string}    filePath        The absolute or relative file path
+ * @param   {State}     state           The state for the current parse operation
+ * @param   {function}  callback
  */
-function validateAgainstSchema(swaggerObject, swaggerPath) {
-  debug('Validating "%s" against the Swagger schema', swaggerPath);
-  if (tv4.validate(swaggerObject, swaggerSchema)) {
-    debug('    Validated successfully');
-    return true;
-  }
-  else {
-    throw util.syntaxError('%s \nData path: "%s" \nSchema path: "%s"\n',
-      tv4.error.message, tv4.error.dataPath, tv4.error.schemaPath);
-  }
+function parseSwaggerFile(filePath, state, callback) {
+    // Resolve the file path or url, relative to the CWD
+    var cwd = util.cwd();
+    debug('Resolving Swagger file path "%s", relative to "%s"', filePath, cwd);
+    filePath = url.resolve(cwd, filePath);
+    debug('    Resolved to %s', filePath);
+
+    // Update the state
+    state.swaggerPath = filePath;
+    state.baseDir = path.dirname(filePath) + '/';
+    debug('Swagger base directory: %s', state.baseDir);
+
+    // Parse the file
+    read.fileOrUrl(filePath, state, function(err, api) {
+        if (err) {
+            util.doCallback(callback, err);
+        }
+        else if (supportedSwaggerVersions.indexOf(api.swagger) === -1) {
+            return util.doCallback(callback, util.syntaxError(
+                'Unsupported Swagger version: %d. Swagger-Parser only supports version %s',
+                api.swagger, supportedSwaggerVersions.join(', ')));
+        }
+        else {
+            state.swagger = api;
+            util.doCallback(callback, null, api);
+        }
+    });
 }
 
 
-},{"./debug":2,"./defaults":3,"./dereference":4,"./read":6,"./state":7,"./util":8,"lodash":78,"path":22,"swagger-schema-official/schema":79,"tv4":80,"url":41}],6:[function(require,module,exports){
+/**
+ * Validates the given Swagger API against the Swagger schema.
+ * @param   {SwaggerObject} api         The absolute or relative file path
+ * @param   {State}         state       The state for the current parse operation
+ * @param   {function}      callback
+ */
+function validateAgainstSchema(api, state, callback) {
+    if (state.options.validateSchema) {
+        debug('Validating "%s" against the Swagger schema', state.swaggerPath);
+
+        if (tv4.validate(api, swaggerSchema)) {
+            debug('    Validated successfully');
+            util.doCallback(callback, null, api);
+        }
+        else {
+            util.doCallback(callback, util.syntaxError(
+                '%s \nData path: "%s" \nSchema path: "%s"\n',
+                tv4.error.message, tv4.error.dataPath, tv4.error.schemaPath));
+        }
+    }
+    else {
+        // Schema validation is disabled, so just return the API as-is
+        util.doCallback(callback, null, api);
+    }
+}
+
+
+},{"./debug":2,"./defaults":3,"./dereference":4,"./read":6,"./state":8,"./util":9,"lodash":79,"path":23,"swagger-schema-official/schema":80,"tv4":81,"url":42}],6:[function(require,module,exports){
 'use strict';
 
 var fs = require('fs');
@@ -468,27 +261,27 @@ var debug = require('./debug');
 var read;
 
 module.exports = read = {
-  /**
-   * Reads a JSON or YAML file from the local filesystem or a remote URL and returns the parsed POJO.
-   * @param {string}    pathOrUrl   A full, absolute file path or URL
-   * @param {State}     state       The state for the current parse operation
-   * @param {function}  callback    function(err, parsedObject)
-   */
-  fileOrUrl: function(pathOrUrl, state, callback) {
-    try {
-      // Determine whether its a local file or a URL
-      var parsedUrl = url.parse(pathOrUrl);
-      if (isLocalFile(parsedUrl)) {
-        readFile(parsedUrl.href, state, callback);
-      }
-      else {
-        readUrl(parsedUrl, state, callback);
-      }
+    /**
+     * Reads a JSON or YAML file from the local filesystem or a remote URL and returns the parsed POJO.
+     * @param {string}    pathOrUrl   A full, absolute file path or URL
+     * @param {State}     state       The state for the current parse operation
+     * @param {function}  callback    function(err, parsedObject)
+     */
+    fileOrUrl: function(pathOrUrl, state, callback) {
+        try {
+            // Determine whether its a local file or a URL
+            var parsedUrl = url.parse(pathOrUrl);
+            if (isLocalFile(parsedUrl)) {
+                readFile(parsedUrl.href, state, callback);
+            }
+            else {
+                readUrl(parsedUrl, state, callback);
+            }
+        }
+        catch (e) {
+            callback(e);
+        }
     }
-    catch (e) {
-      callback(e);
-    }
-  }
 };
 
 
@@ -499,34 +292,34 @@ module.exports = read = {
  * @param {function}  callback        function(err, parsedObject)
  */
 function readFile(filePath, state, callback) {
-  function errorHandler(err) {
-    callback(util.error(err, 'Error opening file "%s"', filePath));
-  }
+    function errorHandler(err) {
+        callback(util.error(err, 'Error opening file "%s"', filePath));
+    }
 
-  function parseError(err) {
-    callback(util.syntaxError(err, 'Error parsing file "%s"', filePath));
-  }
+    function parseError(err) {
+        callback(util.syntaxError(err, 'Error parsing file "%s"', filePath));
+    }
 
-  try {
-    debug('Reading file "%s"', filePath);
+    try {
+        debug('Reading file "%s"', filePath);
 
-    fs.readFile(filePath, {encoding: 'utf8'}, function(err, data) {
-      if (err) {
-        return errorHandler(err);
-      }
+        fs.readFile(filePath, {encoding: 'utf8'}, function(err, data) {
+            if (err) {
+                return errorHandler(err);
+            }
 
-      try {
-        state.files.push(filePath);
-        callback(null, parseJsonOrYaml(filePath, data, state));
-      }
-      catch (e) {
-        parseError(e);
-      }
-    });
-  }
-  catch (e) {
-    errorHandler(e);
-  }
+            try {
+                state.files.push(filePath);
+                callback(null, parseJsonOrYaml(filePath, data, state));
+            }
+            catch (e) {
+                parseError(e);
+            }
+        });
+    }
+    catch (e) {
+        errorHandler(e);
+    }
 }
 
 
@@ -537,75 +330,75 @@ function readFile(filePath, state, callback) {
  * @param {function}  callback    function(err, parsedObject)
  */
 function readUrl(parsedUrl, state, callback) {
-  // NOTE: When HTTP errors occur, they can trigger multiple on('error') events,
-  // So we need to make sure we only invoke the callback function ONCE.
-  callback = _.once(callback);
+    // NOTE: When HTTP errors occur, they can trigger multiple on('error') events,
+    // So we need to make sure we only invoke the callback function ONCE.
+    callback = _.once(callback);
 
-  function downloadError(err) {
-    callback(util.error(err, 'Error downloading file "%s"', parsedUrl.href));
-  }
-
-  function parseError(err) {
-    callback(util.syntaxError(err, 'Error parsing file "%s"', parsedUrl.href));
-  }
-
-  try {
-    var options = {
-      host: parsedUrl.host,
-      hostname: parsedUrl.hostname,
-      port: parsedUrl.port,
-      path: parsedUrl.path,
-      auth: parsedUrl.auth,
-      headers: {'Content-Type': 'application/json'}
-    };
-
-    debug('Downloading file "%s"', parsedUrl.href);
-
-    var req = http.get(options, function(res) {
-      var body = '';
-
-      if (_.isFunction(res.setEncoding)) {
-        res.setEncoding('utf8');
-      }
-
-      res.on('data', function(data) {
-        body += data;
-      });
-
-      res.on('end', function() {
-        if (res.statusCode >= 400) {
-          return downloadError(new Error('HTTP ERROR ' + res.statusCode + ': ' + body));
-        }
-
-        try {
-          state.urls.push(parsedUrl);
-          callback(null, parseJsonOrYaml(parsedUrl.href, body, state));
-        }
-        catch (e) {
-          parseError(e);
-        }
-      });
-
-      res.on('error', function(e) {
-        downloadError(e);
-      });
-    });
-
-    if (_.isFunction(req.setTimeout)) {
-      req.setTimeout(5000);
+    function downloadError(err) {
+        callback(util.error(err, 'Error downloading file "%s"', parsedUrl.href));
     }
 
-    req.on('timeout', function() {
-      req.abort();
-    });
+    function parseError(err) {
+        callback(util.syntaxError(err, 'Error parsing file "%s"', parsedUrl.href));
+    }
 
-    req.on('error', function(e) {
-      downloadError(e);
-    });
-  }
-  catch (e) {
-    downloadError(e);
-  }
+    try {
+        var options = {
+            host: parsedUrl.host,
+            hostname: parsedUrl.hostname,
+            port: parsedUrl.port,
+            path: parsedUrl.path,
+            auth: parsedUrl.auth,
+            headers: {'Content-Type': 'application/json'}
+        };
+
+        debug('Downloading file "%s"', parsedUrl.href);
+
+        var req = http.get(options, function(res) {
+            var body = '';
+
+            if (_.isFunction(res.setEncoding)) {
+                res.setEncoding('utf8');
+            }
+
+            res.on('data', function(data) {
+                body += data;
+            });
+
+            res.on('end', function() {
+                if (res.statusCode >= 400) {
+                    return downloadError(new Error('HTTP ERROR ' + res.statusCode + ': ' + body));
+                }
+
+                try {
+                    state.urls.push(parsedUrl);
+                    callback(null, parseJsonOrYaml(parsedUrl.href, body, state));
+                }
+                catch (e) {
+                    parseError(e);
+                }
+            });
+
+            res.on('error', function(e) {
+                downloadError(e);
+            });
+        });
+
+        if (_.isFunction(req.setTimeout)) {
+            req.setTimeout(5000);
+        }
+
+        req.on('timeout', function() {
+            req.abort();
+        });
+
+        req.on('error', function(e) {
+            downloadError(e);
+        });
+    }
+    catch (e) {
+        downloadError(e);
+    }
 }
 
 
@@ -615,19 +408,19 @@ function readUrl(parsedUrl, state, callback) {
  * @returns {boolean}
  */
 function isLocalFile(parsedUrl) {
-  if (util.isBrowser()) {
-    // Local files aren't supported in browsers
-    return false;
-  }
+    if (util.isBrowser()) {
+        // Local files aren't supported in browsers
+        return false;
+    }
 
-  // If the path exists locally, then treat the URL as a local file
-  if (fs.existsSync(parsedUrl.pathname)) {
-    return true;
-  }
+    // If the path exists locally, then treat the URL as a local file
+    if (fs.existsSync(parsedUrl.pathname)) {
+        return true;
+    }
 
-  // If all else fails, then determine based on the protocol
-  // NOTE: The following are all considered local files: "file://path/to/file", "/path/to/file", "c:\path\to\file"
-  return parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:';
+    // If all else fails, then determine based on the protocol
+    // NOTE: The following are all considered local files: "file://path/to/file", "/path/to/file", "c:\path\to\file"
+    return parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:';
 }
 
 
@@ -639,29 +432,325 @@ function isLocalFile(parsedUrl) {
  * @returns {object}
  */
 function parseJsonOrYaml(pathOrUrl, data, state) {
-  var parsedObject;
-  if (state.options.parseYaml) {
-    debug('Parsing YAML file "%s"', pathOrUrl);
-    parsedObject = yaml.safeLoad(data);
-  }
-  else {
-    debug('Parsing JSON file "%s"', pathOrUrl);
-    parsedObject = JSON.parse(data);
-  }
+    var parsedObject;
+    if (state.options.parseYaml) {
+        debug('Parsing YAML file "%s"', pathOrUrl);
+        parsedObject = yaml.safeLoad(data);
+    }
+    else {
+        debug('Parsing JSON file "%s"', pathOrUrl);
+        parsedObject = JSON.parse(data);
+    }
 
-  if (_.isEmpty(parsedObject)) {
-    throw util.syntaxError('Parsed value is empty');
-  }
-  if (!_.isPlainObject(parsedObject)) {
-    throw util.syntaxError('Parsed value is not a valid JavaScript object');
-  }
+    if (_.isEmpty(parsedObject)) {
+        throw util.syntaxError('Parsed value is empty');
+    }
+    if (!_.isPlainObject(parsedObject)) {
+        throw util.syntaxError('Parsed value is not a valid JavaScript object');
+    }
 
-  debug('    Parsed successfully');
-  return parsedObject;
+    debug('    Parsed successfully');
+    return parsedObject;
 }
 
 
-},{"./debug":2,"./util":8,"fs":9,"http":16,"js-yaml":47,"lodash":78,"url":41}],7:[function(require,module,exports){
+},{"./debug":2,"./util":9,"fs":10,"http":17,"js-yaml":48,"lodash":79,"url":42}],7:[function(require,module,exports){
+'use strict';
+
+var _ = require('lodash');
+var url = require('url');
+var read = require('./read');
+var util = require('./util');
+var debug = require('./debug');
+
+
+module.exports = resolve;
+
+
+// RegExp pattern for external $ref pointers
+// (e.g. "http://company.com", "https://company.com", "./file.yaml", "../../file.yaml")
+var external$RefPattern = /^https?\:\/\/|^\.|\.yml$|\.yaml$|\.json$/i;
+
+
+/**
+ * Resolves all $ref pointers in the given Swagger API.
+ * NOTE: The API is not modified or dereferenced. The resolved $ref values are stored in {@link State.$refs}
+ *
+ * @param   {SwaggerObject} api             The Swagger API to resolve
+ * @param   {State}         state           The state for the current parse operation
+ * @param   {function}      callback
+ */
+function resolve(api, state, callback) {
+    debug('Resolving $ref pointers in %s', state.swaggerPath);
+    resolveObject(api, '', state, callback);
+}
+
+
+/**
+ * Recursively resolves all $ref pointers in the given object.
+ * NOTE: The object is not modified or dereferenced. The resolved $ref values are stored in {@link State.$refs}
+ *
+ * @param   {object}    obj         The object to resolve
+ * @param   {string}    objPath     The API path to the object. This is only used for logging purposes.
+ * @param   {State}     state       The state for the current parse operation
+ * @param   {function}  callback
+ */
+function resolveObject(obj, objPath, state, callback) {
+    // Recursively crawl the object
+    util.crawlObject(obj, objPath, callback,
+        // Inspect each nested object.
+        function(parent, propName, propPath, continueCrawling) {
+            // If it's a $ref pointer, then resolve it
+            resolveIf$Ref(parent[propName], propPath, state, continueCrawling);
+        }
+    );
+}
+
+
+/**
+ * Determines whether the given object is a $ref pointer.
+ * If it is, then it will be fully resolved, and the resolved value will be passed to the callback function.
+ * If it's not a $ref pointer, then the object is passed directly to the callback function.
+ *
+ * @param   {*}         value       The value to check. Can be any data type, not just an object.
+ * @param   {string}    valuePath   The API path to the value. This is only used for logging purposes.
+ * @param   {State}     state       The state for the current parse operation
+ * @param   {function}  callback
+ */
+function resolveIf$Ref(value, valuePath, state, callback) {
+    if (_.has(value, '$ref')) {
+        if (isExternal$Ref(value.$ref) && !state.options.resolveExternal$Refs) {
+            // Resolving external pointers is disabled, so return the $ref as-is
+            util.doCallback(callback, null, value);
+        }
+        else {
+            // This is a $ref pointer, so resolve it
+            var $refPath = valuePath + '/$ref';
+            resolve$Ref(value.$ref, $refPath, state, callback);
+        }
+    }
+    else {
+        // It's not a $ref pointer, so return it as-is
+        util.doCallback(callback, null, value);
+    }
+}
+
+
+/**
+ * Recursively a $ref pointer.
+ * NOTE: The $ref pointer is not modified or dereferenced. The resolved $ref values are stored in {@link State.$refs}
+ *
+ * @param   {string}    $ref        The $ref pointer value to resolve
+ * @param   {string}    $refPath    The path to the $ref pointer. This is only used for logging purposes.
+ * @param   {State}     state       The state for the current parse operation
+ * @param   {function}  callback
+ */
+function resolve$Ref($ref, $refPath, state, callback) {
+    try {
+        // Check for invalid values
+        if (_.isEmpty($ref)) {
+            util.doCallback(callback, util.syntaxError('Empty $ref pointer at "%s"', $refPath));
+            return;
+        }
+
+        // See if we've already resolved this $ref pointer
+        var cachedReference = getCached$Ref($ref, state);
+        if (cachedReference) {
+            debug('Resolved %s => %s', $refPath, $ref);
+            util.doCallback(callback, null, cachedReference, true);
+            return;
+        }
+
+        // Determine if it's internal or external
+        if (isExternal$Ref($ref)) {
+            resolveExternal$Ref($ref, state, recursiveResolve);
+        }
+        else {
+            resolveInternal$Ref($ref, state, recursiveResolve);
+        }
+    }
+    catch (e) {
+        util.doCallback(callback, e);
+    }
+
+
+    function recursiveResolve(err, resolved, cached) {
+        if (err) {
+            util.doCallback(callback, err);
+            return;
+        }
+
+        if (resolved === undefined) {
+            util.doCallback(callback,
+                util.syntaxError('Unable to resolve %s.  \n"%s" could not be found.', $refPath, $ref));
+            return;
+        }
+
+        debug('Resolved %s => %s', $refPath, $ref);
+
+        // The $ref might have resolved to another $ref, so resolve recursively until we get to an object
+        resolveIf$Ref(resolved, $refPath, state,
+            function(err, resolved, cached) {
+                if (err) {
+                    util.doCallback(callback, err);
+                    return;
+                }
+
+                // We've resolved the $ref to something solid (an object, array, scalar value, etc.),
+                // So cache the resolved value.
+                cache$Ref($ref, resolved, state);
+
+                // The resolved object could have nested $refs, so we need to crawl it
+                resolveObject(resolved, $refPath, state,
+                    function(err, resolved) {
+                        if (err) {
+                            util.doCallback(callback, err);
+                            return;
+                        }
+
+                        util.doCallback(callback, null, resolved, cached);
+                    }
+                );
+            }
+        );
+    }
+}
+
+
+/**
+ * Determines whether the given $ref pointer value references an external file.
+ *
+ * @param   {string}    $ref         The $ref pointer (e.g. "pet", "#/parameters/pet")
+ * @returns {boolean}
+ */
+function isExternal$Ref($ref) {
+    return $ref && external$RefPattern.test($ref);
+}
+
+
+/**
+ * Resolves a pointer to a property in the Swagger spec.
+ * NOTE: This is a shallow resolve. This function is called recursively by {@link resolve$Ref} to do deep resolves.
+ *
+ * @param   {string}    $ref         The $ref pointer (e.g. "pet", "#/parameters/pet")
+ * @param   {State}     state        The state for the current parse operation
+ * @param   {function}  callback
+ */
+function resolveInternal$Ref($ref, state, callback) {
+    // "pet" => "#/definitions/pet"
+    var normalized = normalize$Ref($ref, state);
+
+    // "#/paths//users/responses/200" => ["/paths", "//users", "/responses", "/200"]
+    var pathArray = normalized.match(/\/(\/?[^\/]+)/g);
+
+    // Traverse the Swagger API
+    var resolved = state.swagger;
+    for (var i = 0; i < pathArray.length; i++) {
+        var propName = pathArray[i].substr(1);
+        resolved = _.result(resolved, propName);
+
+        // Exit the loop early if we get a falsy value
+        if (!resolved) {
+            break;
+        }
+    }
+
+    callback(null, resolved);
+}
+
+
+/**
+ * Resolves a pointer to an external file or URL.
+ * NOTE: This is a shallow resolve. This function is called recursively by {@link resolve$Ref} to do deep resolves.
+ *
+ * @param   {string}    $ref         The full, absolute path or URL
+ * @param   {State}     state        The state for the current parse operation
+ * @param   {function}  callback
+ */
+function resolveExternal$Ref($ref, state, callback) {
+    // "./swagger.yaml" => "/full/path/to/swagger.yaml"
+    var normalized = normalize$Ref($ref, state);
+
+    read.fileOrUrl(normalized, state,
+        function(err, data) {
+            return callback(err, data);
+        }
+    );
+}
+
+
+/**
+ * Normalizes a pointer value.
+ * For example, "pet.yaml" and "./pet.yaml" both get normalized to "/swagger/base/dir/pet.yaml".
+ *
+ * @param   {string}    $ref         The $ref pointer (e.g. "pet", "#/parameters/pet")
+ * @param   {State}     state        The state for the current parse operation
+ * @returns {string}
+ */
+function normalize$Ref($ref, state) {
+    if (isExternal$Ref($ref)) {
+        // Normalize the pointer value by resolving the path/URL relative to the Swagger file.
+        return url.resolve(state.baseDir, $ref);
+    }
+    else {
+        if ($ref.indexOf('#/') === 0) {
+            // The pointer is already normalized (e.g. "#/parameters/username")
+            return $ref;
+        }
+        else {
+            // This is a shorthand pointer to a model definition
+            // "pet" => "#/definitions/pet"
+            return '#/definitions/' + $ref;
+        }
+    }
+}
+
+
+/**
+ * Returns the cached reference for the given pointer, if possible.
+ *
+ * @param   {string}    $ref         The $ref pointer (e.g. "pet", "#/parameters/pet")
+ * @param   {State}     state        The state for the current parse operation
+ */
+function getCached$Ref($ref, state) {
+    // Check for the non-normalized pointer
+    if ($ref in state.$refs) {
+        return state.$refs[$ref];
+    }
+
+    // Check for the normalized pointer
+    var normalized = normalize$Ref($ref, state);
+    if (normalized in state.$refs) {
+        // Cache the value under the non-normalized pointer too
+        return state.$refs[$ref] = state.$refs[normalized];
+    }
+
+    // It's not in the cache
+    return null;
+}
+
+
+/**
+ * Caches a resolved reference under the given pointer AND the normalized pointer.
+ *
+ * @param   {string}    $ref         The $ref pointer (e.g. "pet", "#/definitions/pet")
+ * @param   {object}    resolved     The resolved reference
+ * @param   {State}     state        The state for the current parse operation
+ */
+function cache$Ref($ref, resolved, state) {
+    var normalized = normalize$Ref($ref, state);
+
+    /* istanbul ignore if: This check is here to help detect subtle bugs and edge-cases */
+    if ($ref in state.$refs || normalized in state.$refs) {
+        throw util.error('Swagger-Parser encountered an error while resolving a $ref pointer: "%s". ' +
+        'This is most likely a bug in Swagger-Parser, not in your code. Please report this issue on GitHub.', $ref);
+    }
+
+    state.$refs[$ref] = resolved;
+    state.$refs[normalized] = resolved;
+}
+
+},{"./debug":2,"./read":6,"./util":9,"lodash":79,"url":42}],8:[function(require,module,exports){
 'use strict';
 
 module.exports = State;
@@ -671,43 +760,55 @@ module.exports = State;
  * @constructor
  */
 function State() {
-  /**
-   * The directory of the Swagger file
-   * (used as the base directory for resolving relative file references)
-   */
-  this.baseDir = null;
+    /**
+     * The path of the main Swagger file that's being parsed
+     * @type {string}
+     */
+    this.swaggerPath = '';
 
-  /**
-   * The options for the parsing operation
-   * @type {defaults}
-   */
-  this.options = null;
+    /**
+     * The options for the parsing operation
+     * @type {defaults}
+     */
+    this.options = null;
 
-  /**
-   * The Swagger object that is being parsed.
-   */
-  this.swagger = null;
+    /**
+     * The Swagger API that is being parsed.
+     * @type {SwaggerObject}
+     */
+    this.swagger = null;
 
-  /**
-   * The files that have been read during the parsing operation.
-   * @type {string[]}
-   */
-  this.files = [];
+    /**
+     * The directory of the Swagger file
+     * (used as the base directory for resolving relative file references)
+     */
+    this.baseDir = null;
 
-  /**
-   * The URLs that have been downloaded during the parsing operation.
-   * @type {url.Url[]}
-   */
-  this.urls = [];
+    /**
+     * The files that have been read during the parsing operation.
+     * @type {string[]}
+     */
+    this.files = [];
 
-  /**
-   * A map of resolved "$ref" pointers and values
-   */
-  this.resolvedPointers = {};
+    /**
+     * The URLs that have been downloaded during the parsing operation.
+     * @type {url.Url[]}
+     */
+    this.urls = [];
+
+    /**
+     * A map of "$ref" pointers and their resolved values
+     */
+    this.$refs = {};
 }
 
 
-},{}],8:[function(require,module,exports){
+/**
+ * The Swagger object (https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-)
+ * @typedef {{swagger: string, info: {}, paths: {}}} SwaggerObject
+ */
+
+},{}],9:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -718,130 +819,203 @@ var _ = require('lodash');
 
 
 var util = module.exports = {
-  /**
-   * Asynchronously invokes the given callback function with the given parameters.
-   * This allows the call stack to unwind, which is necessary because there can be a LOT of
-   * recursive calls when dereferencing large Swagger specs.
-   * @param {function} callback
-   * @param {*}     [err]
-   * @param {...*}  [params]
-   */
-  doCallback: function(callback, err, params) {
-    var args = _.rest(arguments);
-    process.nextTick(function() {
-      callback.apply(null, args);
-    });
-  },
+    /**
+     * Asynchronously invokes the given callback function with the given parameters.
+     *
+     * @param {function} callback
+     * @param {*}     [err]
+     * @param {...*}  [params]
+     */
+    doCallback: function(callback, err, params) {
+        var args = _.rest(arguments);
+        process.nextTick(function() {
+            callback.apply(null, args);
+        });
+    },
 
 
-  /**
-   * Creates an Error with a formatted string message.
-   * @param     {Error}     [err]       The original error, if any
-   * @param     {string}    [message]   A user-friendly message about the source of the error
-   * @param     {...*}      [params]    One or more {@link util#format} params
-   * @returns   {Error}
-   */
-  error: function(err, message, params) {
-    if (err && err instanceof Error) {
-      return new Error(errorDump.apply(null, arguments));
+    /**
+     * Recursively crawls an object, and calls the given function for each nested object.
+     *
+     * @param   {object|*[]}    obj
+     * The object (or array) to be crawled
+     *
+     * @param   {string}        [path]
+     * The starting path of the object (e.g. "/definitions/pet")
+     *
+     * @param   {function}      callback
+     * Called when the entire object tree is done being crawled, or when an error occurs.
+     * The signature is `function(err, obj)`.
+     *
+     * @param   {function}      forEach
+     * Called for each nested object in the tree. The signature is `function(parent, propName, propPath, continue)`,
+     * where `parent` is the parent object, `propName` is the name of the nested object property,
+     * `propPath` is a full path of nested object (e.g. "/paths//get/responses/200/schema"),
+     * and `continue` is a function to call to resume crawling the object.
+     */
+    crawlObject: function(obj, path, callback, forEach) {
+        // Shift args if needed
+        if (_.isFunction(path)) {
+            forEach = callback;
+            callback = path;
+            path = '';
+        }
+
+        // Loop through each item in the object/array
+        var properties = _.keys(obj);
+        crawlNextProperty();
+
+        function crawlNextProperty(err) {
+            if (err) {
+                // An error occurred, so stop crawling and bubble it up
+                util.doCallback(callback, err);
+                return;
+            }
+            else if (properties.length === 0) {
+                // We've crawled all of this object's properties, so we're done.
+                util.doCallback(callback, null, obj);
+                return;
+            }
+
+            var propName = properties.pop();
+            var propValue = obj[propName];
+            var propPath = path + '/' + propName;
+
+            if (_.isPlainObject(propValue)) {
+                // Found an object property, so call the callback
+                util.doCallback(forEach, obj, propName, propPath, function(err) {
+                    if (err) {
+                        // An error occurred, so bubble it up
+                        crawlNextProperty(err);
+                    }
+                    else {
+                        // Crawl the nested object (re-fetch it from the parent obj, in case it has changed)
+                        util.crawlObject(obj[propName], propPath, crawlNextProperty, forEach);
+                    }
+                });
+            }
+            else if (_.isArray(propValue)) {
+                // This is an array property, so crawl its items
+                util.crawlObject(propValue, propPath, crawlNextProperty, forEach);
+            }
+            else {
+                // This isn't an object property, so skip it
+                crawlNextProperty();
+            }
+        }
+    },
+
+
+    /**
+     * Creates an Error with a formatted string message.
+     *
+     * @param     {Error}     [err]       The original error, if any
+     * @param     {string}    [message]   A user-friendly message about the source of the error
+     * @param     {...*}      [params]    One or more {@link util#format} params
+     * @returns   {Error}
+     */
+    error: function(err, message, params) {
+        if (err && err instanceof Error) {
+            return new Error(errorDump.apply(null, arguments));
+        }
+        else {
+            return new Error(format.apply(null, arguments));
+        }
+    },
+
+
+    /**
+     * Creates a SyntaxError with a formatted string message.
+     *
+     * @param     {Error}     [err]       The original error, if any
+     * @param     {string}    [message]   A user-friendly message about the source of the error
+     * @param     {...*}      [params]    One or more {@link util#format} params
+     * @returns   {SyntaxError}
+     */
+    syntaxError: function(err, message, params) {
+        if (err && err instanceof Error) {
+            return new SyntaxError(errorDump.apply(null, arguments));
+        }
+        else {
+            return new SyntaxError(format.apply(null, arguments));
+        }
+    },
+
+
+    /**
+     * Determines if we're running in a browser.
+     * @returns {boolean}
+     */
+    isBrowser: function() {
+        return fs.readFile === undefined;
+    },
+
+
+    /**
+     * Normalizes the current working directory across environments (Linux, Mac, Windows, browsers).
+     * The returned path will use forward slashes ("/"), even on Windows,
+     * and will always include a trailing slash, even at the root of a website (e.g. "http://google.com/")
+     * @returns {string}
+     */
+    cwd: function() {
+        var path = util.isBrowser() ? window.location.href : process.cwd() + '/';
+
+        // Parse the path as a URL, which normalizes it across all platforms
+        var parsedUrl = url.parse(path);
+
+        // Remove the file name (if any) from the pathname
+        var lastSlash = parsedUrl.pathname.lastIndexOf('/') + 1;
+        parsedUrl.pathname = parsedUrl.pathname.substr(0, lastSlash);
+
+        // Remove everything after the pathname
+        parsedUrl.path = null;
+        parsedUrl.search = null;
+        parsedUrl.query = null;
+        parsedUrl.hash = null;
+
+        // Now re-parse the URL with only the remaining parts
+        return url.format(parsedUrl);
     }
-    else {
-      return new Error(format.apply(null, arguments));
-    }
-  },
-
-
-  /**
-   * Creates a SyntaxError with a formatted string message.
-   * @param     {Error}     [err]       The original error, if any
-   * @param     {string}    [message]   A user-friendly message about the source of the error
-   * @param     {...*}      [params]    One or more {@link util#format} params
-   * @returns   {SyntaxError}
-   */
-  syntaxError: function(err, message, params) {
-    if (err && err instanceof Error) {
-      return new SyntaxError(errorDump.apply(null, arguments));
-    }
-    else {
-      return new SyntaxError(format.apply(null, arguments));
-    }
-  },
-
-
-  /**
-   * Determines if we're running in a browser.
-   * @returns {boolean}
-   */
-  isBrowser: function() {
-    return fs.readFile === undefined;
-  },
-
-
-  /**
-   * Normalizes the current working directory across environments (Linux, Mac, Windows, browsers).
-   * The returned path will use forward slashes ("/"), even on Windows,
-   * and will always include a trailing slash, even at the root of a website (e.g. "http://google.com/")
-   * @returns {string}
-   */
-  cwd: function() {
-    var path = util.isBrowser() ? window.location.href : process.cwd() + '/';
-
-    // Parse the path as a URL, which normalizes it across all platforms
-    var parsedUrl = url.parse(path);
-
-    // Remove the file name (if any) from the pathname
-    var lastSlash = parsedUrl.pathname.lastIndexOf('/') + 1;
-    parsedUrl.pathname = parsedUrl.pathname.substr(0, lastSlash);
-
-    // Remove everything after the pathname
-    parsedUrl.path = null;
-    parsedUrl.search = null;
-    parsedUrl.query = null;
-    parsedUrl.hash = null;
-
-    // Now re-parse the URL with only the remaining parts
-    return url.format(parsedUrl);
-  }
 };
 
 
-
 /**
-* Returns detailed error information that can be written to a log, stderror, etc.
-* @param   {Error}     err         The Error object
-* @param   {string}    [message]   Optional message about where and why the error occurred.
-* @param   {...*}      [params]    One or more params to be passed to {@link util#format}
-*/
+ * Returns detailed error information that can be written to a log, stderror, etc.
+ *
+ * @param   {Error}     err         The Error object
+ * @param   {string}    [message]   Optional message about where and why the error occurred.
+ * @param   {...*}      [params]    One or more params to be passed to {@link util#format}
+ */
 function errorDump(err, message, params) {
-  // Format the message string
-  message = format.apply(null, _.rest(arguments)) + ': \n';
+    // Format the message string
+    message = format.apply(null, _.rest(arguments)) + ': \n';
 
-  // Gather detailed error information
-  message += (err.name || 'Error') + ': ';
+    // Gather detailed error information
+    message += (err.name || 'Error') + ': ';
 
-  var stack = err.stack;
+    var stack = err.stack;
 
-  /* istanbul ignore else: Only IE doesn't have an Error.stack property */
-  if (stack) {
-    /* istanbul ignore if: Only Safari doesn't include Error.message in Error.stack */
-    if (stack.indexOf(err.message) === -1) {
-      message += err.message + ' \n';
+    /* istanbul ignore else: Only IE doesn't have an Error.stack property */
+    if (stack) {
+        /* istanbul ignore if: Only Safari doesn't include Error.message in Error.stack */
+        if (stack.indexOf(err.message) === -1) {
+            message += err.message + ' \n';
+        }
+
+        return message + stack;
     }
-
-    return message + stack;
-  }
-  else {
-    return message + err.message;
-  }
+    else {
+        return message + err.message;
+    }
 }
 
 }).call(this,require('_process'))
 
-},{"_process":23,"fs":9,"lodash":78,"url":41,"util":43}],9:[function(require,module,exports){
+},{"_process":24,"fs":10,"lodash":79,"url":42,"util":44}],10:[function(require,module,exports){
 
-},{}],10:[function(require,module,exports){
-module.exports=require(9)
-},{"/Users/James/Code/my-code/swagger/parser/node_modules/browserify/lib/_empty.js":9}],11:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"dup":10}],12:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -2159,7 +2333,7 @@ function decodeUtf8Char (str) {
   }
 }
 
-},{"base64-js":12,"ieee754":13,"is-array":14}],12:[function(require,module,exports){
+},{"base64-js":13,"ieee754":14,"is-array":15}],13:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -2285,7 +2459,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -2371,7 +2545,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 
 /**
  * isArray
@@ -2406,7 +2580,7 @@ module.exports = isArray || function (val) {
   return !! val && '[object Array]' == str.call(val);
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2709,7 +2883,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var http = module.exports;
 var EventEmitter = require('events').EventEmitter;
 var Request = require('./lib/request');
@@ -2855,7 +3029,7 @@ http.STATUS_CODES = {
     510 : 'Not Extended',               // RFC 2774
     511 : 'Network Authentication Required' // RFC 6585
 };
-},{"./lib/request":17,"events":15,"url":41}],17:[function(require,module,exports){
+},{"./lib/request":18,"events":16,"url":42}],18:[function(require,module,exports){
 var Stream = require('stream');
 var Response = require('./response');
 var Base64 = require('Base64');
@@ -3066,7 +3240,7 @@ var isXHR2Compatible = function (obj) {
     if (typeof FormData !== 'undefined' && obj instanceof FormData) return true;
 };
 
-},{"./response":18,"Base64":19,"inherits":20,"stream":39}],18:[function(require,module,exports){
+},{"./response":19,"Base64":20,"inherits":21,"stream":40}],19:[function(require,module,exports){
 var Stream = require('stream');
 var util = require('util');
 
@@ -3188,7 +3362,7 @@ var isArray = Array.isArray || function (xs) {
     return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{"stream":39,"util":43}],19:[function(require,module,exports){
+},{"stream":40,"util":44}],20:[function(require,module,exports){
 ;(function () {
 
   var object = typeof exports != 'undefined' ? exports : this; // #8: web workers
@@ -3250,7 +3424,7 @@ var isArray = Array.isArray || function (xs) {
 
 }());
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -3275,12 +3449,12 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -3509,7 +3683,7 @@ var substr = 'ab'.substr(-1) === 'b'
 
 }).call(this,require('_process'))
 
-},{"_process":23}],23:[function(require,module,exports){
+},{"_process":24}],24:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -3597,7 +3771,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 (function (global){
 /*! http://mths.be/punycode v1.2.4 by @mathias */
 ;(function(root) {
@@ -4109,7 +4283,7 @@ process.chdir = function (dir) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4195,7 +4369,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4282,16 +4456,16 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":25,"./encode":26}],28:[function(require,module,exports){
+},{"./decode":26,"./encode":27}],29:[function(require,module,exports){
 module.exports = require("./lib/_stream_duplex.js")
 
-},{"./lib/_stream_duplex.js":29}],29:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":30}],30:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4385,7 +4559,7 @@ function forEach (xs, f) {
 
 }).call(this,require('_process'))
 
-},{"./_stream_readable":31,"./_stream_writable":33,"_process":23,"core-util-is":34,"inherits":20}],30:[function(require,module,exports){
+},{"./_stream_readable":32,"./_stream_writable":34,"_process":24,"core-util-is":35,"inherits":21}],31:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4433,7 +4607,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./_stream_transform":32,"core-util-is":34,"inherits":20}],31:[function(require,module,exports){
+},{"./_stream_transform":33,"core-util-is":35,"inherits":21}],32:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -5420,7 +5594,7 @@ function indexOf (xs, x) {
 
 }).call(this,require('_process'))
 
-},{"_process":23,"buffer":11,"core-util-is":34,"events":15,"inherits":20,"isarray":21,"stream":39,"string_decoder/":40}],32:[function(require,module,exports){
+},{"_process":24,"buffer":12,"core-util-is":35,"events":16,"inherits":21,"isarray":22,"stream":40,"string_decoder/":41}],33:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5632,7 +5806,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":29,"core-util-is":34,"inherits":20}],33:[function(require,module,exports){
+},{"./_stream_duplex":30,"core-util-is":35,"inherits":21}],34:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6023,7 +6197,7 @@ function endWritable(stream, state, cb) {
 
 }).call(this,require('_process'))
 
-},{"./_stream_duplex":29,"_process":23,"buffer":11,"core-util-is":34,"inherits":20,"stream":39}],34:[function(require,module,exports){
+},{"./_stream_duplex":30,"_process":24,"buffer":12,"core-util-is":35,"inherits":21,"stream":40}],35:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6134,10 +6308,10 @@ function objectToString(o) {
 }
 }).call(this,require("buffer").Buffer)
 
-},{"buffer":11}],35:[function(require,module,exports){
+},{"buffer":12}],36:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
-},{"./lib/_stream_passthrough.js":30}],36:[function(require,module,exports){
+},{"./lib/_stream_passthrough.js":31}],37:[function(require,module,exports){
 var Stream = require('stream'); // hack to fix a circular dependency issue when used with browserify
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = Stream;
@@ -6147,13 +6321,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":29,"./lib/_stream_passthrough.js":30,"./lib/_stream_readable.js":31,"./lib/_stream_transform.js":32,"./lib/_stream_writable.js":33,"stream":39}],37:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":30,"./lib/_stream_passthrough.js":31,"./lib/_stream_readable.js":32,"./lib/_stream_transform.js":33,"./lib/_stream_writable.js":34,"stream":40}],38:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":32}],38:[function(require,module,exports){
+},{"./lib/_stream_transform.js":33}],39:[function(require,module,exports){
 module.exports = require("./lib/_stream_writable.js")
 
-},{"./lib/_stream_writable.js":33}],39:[function(require,module,exports){
+},{"./lib/_stream_writable.js":34}],40:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6282,7 +6456,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":15,"inherits":20,"readable-stream/duplex.js":28,"readable-stream/passthrough.js":35,"readable-stream/readable.js":36,"readable-stream/transform.js":37,"readable-stream/writable.js":38}],40:[function(require,module,exports){
+},{"events":16,"inherits":21,"readable-stream/duplex.js":29,"readable-stream/passthrough.js":36,"readable-stream/readable.js":37,"readable-stream/transform.js":38,"readable-stream/writable.js":39}],41:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6505,7 +6679,7 @@ function base64DetectIncompleteChar(buffer) {
   this.charLength = this.charReceived ? 3 : 0;
 }
 
-},{"buffer":11}],41:[function(require,module,exports){
+},{"buffer":12}],42:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7214,14 +7388,14 @@ function isNullOrUndefined(arg) {
   return  arg == null;
 }
 
-},{"punycode":24,"querystring":27}],42:[function(require,module,exports){
+},{"punycode":25,"querystring":28}],43:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -7812,7 +7986,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":42,"_process":23,"inherits":20}],44:[function(require,module,exports){
+},{"./support/isBuffer":43,"_process":24,"inherits":21}],45:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -7972,7 +8146,7 @@ function load() {
 
 exports.enable(load());
 
-},{"./debug":45}],45:[function(require,module,exports){
+},{"./debug":46}],46:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -8171,7 +8345,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":46}],46:[function(require,module,exports){
+},{"ms":47}],47:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -8284,7 +8458,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 'use strict';
 
 
@@ -8293,7 +8467,7 @@ var yaml = require('./lib/js-yaml.js');
 
 module.exports = yaml;
 
-},{"./lib/js-yaml.js":48}],48:[function(require,module,exports){
+},{"./lib/js-yaml.js":49}],49:[function(require,module,exports){
 'use strict';
 
 
@@ -8334,7 +8508,7 @@ module.exports.parse          = deprecated('parse');
 module.exports.compose        = deprecated('compose');
 module.exports.addConstructor = deprecated('addConstructor');
 
-},{"./js-yaml/dumper":50,"./js-yaml/exception":51,"./js-yaml/loader":52,"./js-yaml/schema":54,"./js-yaml/schema/core":55,"./js-yaml/schema/default_full":56,"./js-yaml/schema/default_safe":57,"./js-yaml/schema/failsafe":58,"./js-yaml/schema/json":59,"./js-yaml/type":60}],49:[function(require,module,exports){
+},{"./js-yaml/dumper":51,"./js-yaml/exception":52,"./js-yaml/loader":53,"./js-yaml/schema":55,"./js-yaml/schema/core":56,"./js-yaml/schema/default_full":57,"./js-yaml/schema/default_safe":58,"./js-yaml/schema/failsafe":59,"./js-yaml/schema/json":60,"./js-yaml/type":61}],50:[function(require,module,exports){
 'use strict';
 
 
@@ -8398,7 +8572,7 @@ module.exports.repeat         = repeat;
 module.exports.isNegativeZero = isNegativeZero;
 module.exports.extend         = extend;
 
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 'use strict';
 
 
@@ -8954,7 +9128,7 @@ function safeDump(input, options) {
 module.exports.dump     = dump;
 module.exports.safeDump = safeDump;
 
-},{"./common":49,"./exception":51,"./schema/default_full":56,"./schema/default_safe":57}],51:[function(require,module,exports){
+},{"./common":50,"./exception":52,"./schema/default_full":57,"./schema/default_safe":58}],52:[function(require,module,exports){
 'use strict';
 
 
@@ -8981,7 +9155,7 @@ YAMLException.prototype.toString = function toString(compact) {
 
 module.exports = YAMLException;
 
-},{}],52:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 'use strict';
 
 
@@ -10552,7 +10726,7 @@ module.exports.load        = load;
 module.exports.safeLoadAll = safeLoadAll;
 module.exports.safeLoad    = safeLoad;
 
-},{"./common":49,"./exception":51,"./mark":53,"./schema/default_full":56,"./schema/default_safe":57}],53:[function(require,module,exports){
+},{"./common":50,"./exception":52,"./mark":54,"./schema/default_full":57,"./schema/default_safe":58}],54:[function(require,module,exports){
 'use strict';
 
 
@@ -10632,7 +10806,7 @@ Mark.prototype.toString = function toString(compact) {
 
 module.exports = Mark;
 
-},{"./common":49}],54:[function(require,module,exports){
+},{"./common":50}],55:[function(require,module,exports){
 'use strict';
 
 
@@ -10737,7 +10911,7 @@ Schema.create = function createSchema() {
 
 module.exports = Schema;
 
-},{"./common":49,"./exception":51,"./type":60}],55:[function(require,module,exports){
+},{"./common":50,"./exception":52,"./type":61}],56:[function(require,module,exports){
 // Standard YAML's Core schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2804923
 //
@@ -10757,7 +10931,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":54,"./json":59}],56:[function(require,module,exports){
+},{"../schema":55,"./json":60}],57:[function(require,module,exports){
 // JS-YAML's default schema for `load` function.
 // It is not described in the YAML specification.
 //
@@ -10784,7 +10958,7 @@ module.exports = Schema.DEFAULT = new Schema({
   ]
 });
 
-},{"../schema":54,"../type/js/function":65,"../type/js/regexp":66,"../type/js/undefined":67,"./default_safe":57}],57:[function(require,module,exports){
+},{"../schema":55,"../type/js/function":66,"../type/js/regexp":67,"../type/js/undefined":68,"./default_safe":58}],58:[function(require,module,exports){
 // JS-YAML's default schema for `safeLoad` function.
 // It is not described in the YAML specification.
 //
@@ -10814,7 +10988,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":54,"../type/binary":61,"../type/merge":69,"../type/omap":71,"../type/pairs":72,"../type/set":74,"../type/timestamp":76,"./core":55}],58:[function(require,module,exports){
+},{"../schema":55,"../type/binary":62,"../type/merge":70,"../type/omap":72,"../type/pairs":73,"../type/set":75,"../type/timestamp":77,"./core":56}],59:[function(require,module,exports){
 // Standard YAML's Failsafe schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2802346
 
@@ -10833,7 +11007,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":54,"../type/map":68,"../type/seq":73,"../type/str":75}],59:[function(require,module,exports){
+},{"../schema":55,"../type/map":69,"../type/seq":74,"../type/str":76}],60:[function(require,module,exports){
 // Standard YAML's JSON schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2803231
 //
@@ -10860,7 +11034,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":54,"../type/bool":62,"../type/float":63,"../type/int":64,"../type/null":70,"./failsafe":58}],60:[function(require,module,exports){
+},{"../schema":55,"../type/bool":63,"../type/float":64,"../type/int":65,"../type/null":71,"./failsafe":59}],61:[function(require,module,exports){
 'use strict';
 
 var YAMLException = require('./exception');
@@ -10923,7 +11097,7 @@ function Type(tag, options) {
 
 module.exports = Type;
 
-},{"./exception":51}],61:[function(require,module,exports){
+},{"./exception":52}],62:[function(require,module,exports){
 'use strict';
 
 
@@ -11058,7 +11232,7 @@ module.exports = new Type('tag:yaml.org,2002:binary', {
   represent: representYamlBinary
 });
 
-},{"../type":60,"buffer":10}],62:[function(require,module,exports){
+},{"../type":61,"buffer":11}],63:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11097,7 +11271,7 @@ module.exports = new Type('tag:yaml.org,2002:bool', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":60}],63:[function(require,module,exports){
+},{"../type":61}],64:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -11209,7 +11383,7 @@ module.exports = new Type('tag:yaml.org,2002:float', {
   defaultStyle: 'lowercase'
 });
 
-},{"../common":49,"../type":60}],64:[function(require,module,exports){
+},{"../common":50,"../type":61}],65:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -11394,7 +11568,7 @@ module.exports = new Type('tag:yaml.org,2002:int', {
   }
 });
 
-},{"../common":49,"../type":60}],65:[function(require,module,exports){
+},{"../common":50,"../type":61}],66:[function(require,module,exports){
 'use strict';
 
 var esprima;
@@ -11481,7 +11655,7 @@ module.exports = new Type('tag:yaml.org,2002:js/function', {
   represent: representJavascriptFunction
 });
 
-},{"../../type":60,"esprima":77}],66:[function(require,module,exports){
+},{"../../type":61,"esprima":78}],67:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -11567,7 +11741,7 @@ module.exports = new Type('tag:yaml.org,2002:js/regexp', {
   represent: representJavascriptRegExp
 });
 
-},{"../../type":60}],67:[function(require,module,exports){
+},{"../../type":61}],68:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -11596,7 +11770,7 @@ module.exports = new Type('tag:yaml.org,2002:js/undefined', {
   represent: representJavascriptUndefined
 });
 
-},{"../../type":60}],68:[function(require,module,exports){
+},{"../../type":61}],69:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11606,7 +11780,7 @@ module.exports = new Type('tag:yaml.org,2002:map', {
   construct: function (data) { return null !== data ? data : {}; }
 });
 
-},{"../type":60}],69:[function(require,module,exports){
+},{"../type":61}],70:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11620,7 +11794,7 @@ module.exports = new Type('tag:yaml.org,2002:merge', {
   resolve: resolveYamlMerge
 });
 
-},{"../type":60}],70:[function(require,module,exports){
+},{"../type":61}],71:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11658,7 +11832,7 @@ module.exports = new Type('tag:yaml.org,2002:null', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":60}],71:[function(require,module,exports){
+},{"../type":61}],72:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11716,7 +11890,7 @@ module.exports = new Type('tag:yaml.org,2002:omap', {
   construct: constructYamlOmap
 });
 
-},{"../type":60}],72:[function(require,module,exports){
+},{"../type":61}],73:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11779,7 +11953,7 @@ module.exports = new Type('tag:yaml.org,2002:pairs', {
   construct: constructYamlPairs
 });
 
-},{"../type":60}],73:[function(require,module,exports){
+},{"../type":61}],74:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11789,7 +11963,7 @@ module.exports = new Type('tag:yaml.org,2002:seq', {
   construct: function (data) { return null !== data ? data : []; }
 });
 
-},{"../type":60}],74:[function(require,module,exports){
+},{"../type":61}],75:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11824,7 +11998,7 @@ module.exports = new Type('tag:yaml.org,2002:set', {
   construct: constructYamlSet
 });
 
-},{"../type":60}],75:[function(require,module,exports){
+},{"../type":61}],76:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11834,7 +12008,7 @@ module.exports = new Type('tag:yaml.org,2002:str', {
   construct: function (data) { return null !== data ? data : ''; }
 });
 
-},{"../type":60}],76:[function(require,module,exports){
+},{"../type":61}],77:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11934,7 +12108,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
   represent: representYamlTimestamp
 });
 
-},{"../type":60}],77:[function(require,module,exports){
+},{"../type":61}],78:[function(require,module,exports){
 /*
   Copyright (C) 2012 Ariya Hidayat <ariya.hidayat@gmail.com>
   Copyright (C) 2012 Mathias Bynens <mathias@qiwi.be>
@@ -15844,7 +16018,7 @@ parseStatement: true, parseSourceElement: true */
 }));
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],78:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -22634,7 +22808,7 @@ parseStatement: true, parseSourceElement: true */
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],79:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 module.exports={
   "title": "A JSON Schema for Swagger 2.0 API.",
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -24117,7 +24291,7 @@ module.exports={
     }
   }
 }
-},{}],80:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 /*
 Author: Geraint Luff and others
 Year: 2013

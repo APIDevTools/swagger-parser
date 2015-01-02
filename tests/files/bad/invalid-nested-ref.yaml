@@ -1,0 +1,20 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: invalid nested refs
+  description: This file has a $ref with no value
+paths:
+  /pets:
+    post:
+      responses:
+        default:
+          description: references the "pet" definition
+          schema:
+            $ref: pet3
+definitions:
+  pet1:
+    $ref: doesnotexist
+  pet2:
+    $ref: pet1
+  pet3:
+    $ref: pet2

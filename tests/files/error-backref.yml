@@ -1,0 +1,9 @@
+properties:
+  message:
+    type: string
+    enum:
+      $ref: "#/definitions/pet/properties/type/enum"
+  code:
+    type: integer
+  pet:
+    $ref: pet
