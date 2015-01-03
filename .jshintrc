@@ -78,5 +78,13 @@
 
     // Custom Globals
     "globals": {
+        "_"             : true,
+        "env"           : true,
+        "describe"      : true,
+        "it"            : true,
+        "beforeEach"    : true,
+        "afterEach"     : true,
+        "expect"        : true,
+        "sinon"         : true
     }
 }

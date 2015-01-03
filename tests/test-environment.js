@@ -84,7 +84,13 @@
             return function() {
                 fn.apply(null, params);
             };
-        }
+        },
+
+
+        /**
+         * A no-op function
+         */
+        noop: function() {}
     };
 
 

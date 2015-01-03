@@ -65,7 +65,37 @@ describe('env.parser.parse tests', function() {
     describe('Failure tests', function() {
         it('should throw an error if called with no params',
             function() {
-                expect(env.call(env.parser.parse)).to.throw(/A callback function must be provided/);
+                expect(env.call(env.parser.parse)).to.throw(/No Swagger file path was specified/);
+            }
+        );
+
+        it('should throw an error if called with only a file path',
+            function() {
+                expect(env.call(env.parser.parse, 'foo')).to.throw(/A callback function must be provided/);
+            }
+        );
+
+        it('should throw an error if called with only an options object',
+            function() {
+                expect(env.call(env.parser.parse, {parseYaml: true})).to.throw(/No Swagger file path was specified/);
+            }
+        );
+
+        it('should throw an error if called with only a callback',
+            function() {
+                expect(env.call(env.parser.parse, env.noop)).to.throw(/No Swagger file path was specified/);
+            }
+        );
+
+        it('should throw an error if called with only an options object and a callback',
+            function() {
+                expect(env.call(env.parser.parse, {parseYaml: true}, env.noop)).to.throw(/No Swagger file path was specified/);
+            }
+        );
+
+        it('should throw an error if called with only a file path and an options object',
+            function() {
+                expect(env.call(env.parser.parse, 'foo', {parseYaml: true})).to.throw(/A callback function must be provided/);
             }
         );
 
