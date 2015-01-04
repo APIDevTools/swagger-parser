@@ -1,6 +1,6 @@
 require('../test-environment.js');
 
-env.files.dereferenced.externalBackRefs =
+env.dereferenced.externalBackRefs =
 {
   'swagger': '2.0',
   'info': {
@@ -106,7 +106,7 @@ env.files.dereferenced.externalBackRefs =
         }
       }
     },
-    'error': {
+    "error": {
       'properties': {
         'message': {
           'type': 'string',

@@ -28,51 +28,9 @@
 
 
         /**
-         * Helpers for accessing/testing the YAML and JSON Swagger files.
+         * A no-op function
          */
-        files: {
-            /**
-             * Parsed (but not dereferenced) Swagger files.
-             */
-            parsed: {},
-
-
-            /**
-             * Parsed and dereferenced Swagger files.
-             */
-            dereferenced: {},
-
-
-            /**
-             * Returns the relative path of the given test file, based on the current environment.
-             */
-            getPath: function(fileName) {
-                if (env.isNode) {
-                    return path.join('tests', 'files', fileName);
-                }
-                else if (window.location.href.indexOf(env.__dirname) === 0) {
-                    // We're running in the "/tests" directory
-                    return 'files/' + fileName;
-                }
-                else {
-                    // We're running from a different path, so use the absolute path, but remove the hostname
-                    return env.__dirname.replace(/^https?:\/\/[^\/]+(\/.*)/, '$1/files/' + fileName);
-                }
-            },
-
-
-            /**
-             * Returns the absolute path of the given test file, based on the current environment.
-             */
-            getAbsolutePath: function(fileName) {
-                if (env.isNode) {
-                    return url.parse(__dirname + '/files/' + fileName).href; // jshint ignore:line
-                }
-                else {
-                    return env.__dirname + '/files/' + fileName;
-                }
-            }
-        },
+        noop: function() {},
 
 
         /**
@@ -88,16 +46,79 @@
 
 
         /**
-         * A no-op function
+         * Resolved (but not dereferenced) API objects.
          */
-        noop: function() {}
+        resolved: {},
+
+
+        /**
+         * Resolved and dereferenced API objects.
+         */
+        dereferenced: {},
+
+
+        /**
+         * Returns the relative path of the given test file, based on the current environment.
+         */
+        getPath: function(fileName) {
+            if (env.isNode) {
+                return path.join('tests', 'files', fileName);
+            }
+            else if (window.location.href.indexOf(env.__dirname) === 0) {
+                // We're running in the "/tests" directory
+                return 'files/' + fileName;
+            }
+            else {
+                // We're running from a different path, so use the absolute path, but remove the hostname
+                return env.__dirname.replace(/^https?:\/\/[^\/]+(\/.*)/, '$1/files/' + fileName);
+            }
+        },
+
+
+        /**
+         * Returns the absolute path of the given test file, based on the current environment.
+         */
+        getAbsolutePath: function(fileName) {
+            if (env.isNode) {
+                return url.parse(__dirname + '/files/' + fileName).href; // jshint ignore:line
+            }
+            else {
+                return env.__dirname + '/files/' + fileName;
+            }
+        },
+
+
+        /**
+         * Determines whether the given object is a valid metadata object
+         */
+        isMetadata: function(metadata) {
+            try {
+                expect(typeof(metadata)).to.equal('object');
+                expect(Object.keys(metadata)).to.have.same.members(['baseDir', 'files', 'urls', '$refs']);
+                expect(metadata.baseDir).to.be.a('string').and.not.to.be.empty();
+                expect(metadata.$refs).to.be.an('object');
+                expect(metadata.files).to.be.an('array');
+                expect(metadata.urls).to.be.an('array');
+                expect(metadata.files.length + metadata.urls.length).to.be.above(0);
+                metadata.files.forEach(function(file) {
+                    expect(file).to.be.a('string').and.not.to.be.empty();
+                });
+                metadata.urls.forEach(function(url) {
+                    expect(url).to.be.an('object').with.property('href').that.is.not.empty();
+                });
+                return true;
+            }
+            catch (e) {
+                return false;
+            }
+        }
     };
 
 
     if (env.isNode) {
         // Set env properties for Node.js
         env.global = global;
-        env.parser = require('../index.js');
+        env.parser = require('../');
         env.__filename = __filename;
         env.__dirname = __dirname;
 

@@ -1,6 +1,6 @@
 require('../test-environment.js');
 
-env.files.parsed.shorthandRefs =
+env.resolved.shorthandRefs =
 {
   'swagger': '2.0',
   'info': {
@@ -55,13 +55,16 @@ env.files.parsed.shorthandRefs =
         }
       }
     },
-    'error': {
+    "error": {
       'properties': {
         'message': {
           'type': 'string'
         },
         'code': {
           'type': 'integer'
+        },
+        'pet': {
+          '$ref': 'pet'
         }
       }
     }

@@ -1,6 +1,6 @@
 require('../test-environment.js');
 
-env.files.dereferenced.nestedRefs =
+env.dereferenced.nestedRefs =
 {
   'info': {
     'version': '1.0.0',
@@ -61,7 +61,7 @@ env.files.dereferenced.nestedRefs =
             'description': 'A nested reference to "error" and "pet"',
             'schema': {
               'properties': {
-                'error': {
+                "error": {
                   'properties': {
                     'pet': {
                       'properties': {
@@ -133,7 +133,7 @@ env.files.dereferenced.nestedRefs =
         }
       }
     },
-    'error': {
+    "error": {
       'properties': {
         'pet': {
           'properties': {
@@ -160,7 +160,7 @@ env.files.dereferenced.nestedRefs =
     },
     'errorWrapper': {
       'properties': {
-        'error': {
+        "error": {
           'properties': {
             'pet': {
               'properties': {

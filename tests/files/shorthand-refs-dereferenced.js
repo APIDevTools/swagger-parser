@@ -1,6 +1,6 @@
 require('../test-environment.js');
 
-env.files.dereferenced.shorthandRefs =
+env.dereferenced.shorthandRefs =
 {
   'swagger': '2.0',
   'info': {
@@ -39,6 +39,21 @@ env.files.dereferenced.shorthandRefs =
                 },
                 'code': {
                   'type': 'integer'
+                },
+                'pet': {
+                  'properties': {
+                    'type': {
+                      'enum': [
+                        'cat',
+                        'dog',
+                        'bird'
+                      ],
+                      'type': 'string'
+                    },
+                    'name': {
+                      'type': 'string'
+                    }
+                  }
                 }
               }
             }
@@ -86,13 +101,28 @@ env.files.dereferenced.shorthandRefs =
         }
       }
     },
-    'error': {
+    "error": {
       'properties': {
         'message': {
           'type': 'string'
         },
         'code': {
           'type': 'integer'
+        },
+        'pet': {
+          'properties': {
+            'type': {
+              'enum': [
+                'cat',
+                'dog',
+                'bird'
+              ],
+              'type': 'string'
+            },
+            'name': {
+              'type': 'string'
+            }
+          }
         }
       }
     }

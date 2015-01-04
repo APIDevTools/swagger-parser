@@ -20,7 +20,8 @@ Features
 * Asynchronously downloads and __caches__ external files and URLs
 * __Tested__ in Node.js and all major web browsers on Windows, Mac, and Linux
 * Supports nested $ref pointers, even in external files and URLs
-* Multiple $ref pointers to the same definition are resolved to the same object instance, thus maintaining [strict reference equality](https://github.com/BigstickCarpet/swagger-parser/blob/a525d5e6f3a2af1774d0bcc283cb59737f02bb1e/tests/specs/dereference-spec.js#L137)
+* Supports circular $ref pointers (see [notes](#circular$refs) below)
+* Multiple $ref pointers to the same object are resolved to the same object instance, thus maintaining [strict reference equality](https://github.com/BigstickCarpet/swagger-parser/blob/a525d5e6f3a2af1774d0bcc283cb59737f02bb1e/tests/specs/dereference-spec.js#L137)
 
 
 Basic Example
@@ -90,17 +91,19 @@ Called after the parsing is finished, or when an error occurs.  See [callback](#
 |Property               |Type        |Default       |Description
 |:----------------------|:-----------|:-------------|:----------
 |`parseYaml`            |bool        |true          |Determines whether the parser will allow Swagger specs in YAML format.  If set to `false`, then only JSON will be allowed. 
-|`resolve$Refs`         |bool        |true          |Determines whether `$ref` pointers will be resolved.  If set to `false`, then the resulting Swagger object will contain [Reference objects](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-) instead of the objects they reference.
-|`resolveExternal$Refs` |bool        |true          |Determines whether `$ref` pointers will be resolved if they point to external files or URLs.  If set to `false` then the resulting Swagger object will contain [Reference objects](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-) for external pointers instead of the objects they reference.
-|`validateSchema`        |bool       |true          |Determines whether your API will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-) may be missing properties, have properties of the wrong data type, etc.
+|`dereference$Refs`     |bool        |true          |Determines whether `$ref` pointers in the Swagger API will be replaced with their resolved objects.  Different `$ref` pointers that resolve to the same object will maintain [strict reference equality](https://github.com/BigstickCarpet/swagger-parser/blob/a525d5e6f3a2af1774d0bcc283cb59737f02bb1e/tests/specs/dereference-spec.js#L137).  Setting this option to `false` will leave the `$ref` pointers in the Swagger API, but you can still access the resolved values using the [metadata object](#metadata).
+|`resolve$Refs`         |bool        |true          |Determines whether `$ref` pointers will be resolved.  Setting this option to `false` effectively disables `dereference$Refs` as well. The difference is that the [metadata object](#metadata) won't be populated either.
+|`resolveExternal$Refs` |bool        |true          |Determines whether `$ref` pointers will be resolved if they point to external files or URLs.  Internal `$ref` pointers will still be resolved and dereferenced.
+|`validateSchema`       |bool        |true          |Determines whether your API will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-) may be missing properties, have properties of the wrong data type, etc.
 
 #### Callback
 |Parameter  |Type                |Description
 |:----------|:-------------------|:----------
 |`err`      |Error               |`null` unless an error occurred.
-|`api`      |[Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object-) |The complete Swagger API object. Or `undefined` if an error occurred
-|`metadata`  |object             |This parameter can usually be ignored. It provides useful information about the parsing operation itself.
+|`api`      |[Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object-) |The complete Swagger API object. Or `null` if an error occurred
+|`metadata` |object              |This parameter provides extra information about the parsing operation. It is always provided, even if there's an error.
 
+#### Metadata
 The `metadata` parameter is an object with the following properties:
 
 |Property   |Type                |Description
@@ -108,7 +111,7 @@ The `metadata` parameter is an object with the following properties:
 |`baseDir`  |string              |The directory of the main Swagger file, which is the base directory used to resolve any external $ref pointers.
 |`files`    |array of strings    |The full paths of all files that were parsed. This only includes local files, _not_ URLs.  If `Parser.parse()` was called with a local file path, then it will be the first item in this array.
 |`urls`     |array of [URL objects](http://nodejs.org/api/url.html#url_url)|The URLs that were parsed.  If `Parser.parse()` was called with a URL, then it will be the first item in this array.
-|`$refs`    |object              |A map of all the $ref pointers that were resolved, and the objects they resolved to.
+|`$refs`    |object              |A map of all the $ref pointers that were resolved, and the objects they resolved to.  If an error occurs while resolving a reference, then this object will still contain the $refs that were successfully parsed up to that point.
 
 
 Contributing

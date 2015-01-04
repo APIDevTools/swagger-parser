@@ -1,6 +1,6 @@
 require('../test-environment.js');
 
-env.files.dereferenced.differentFileExt =
+env.dereferenced.differentFileExt =
 {
   'swagger': '2.0',
   'info': {

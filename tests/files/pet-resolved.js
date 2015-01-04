@@ -1,6 +1,6 @@
 require('../test-environment.js');
 
-env.files.parsed.pet =
+env.resolved.petExternal =
 {
   '$ref': 'pet.yaml'
 };

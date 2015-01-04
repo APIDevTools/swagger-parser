@@ -37,4 +37,5 @@ definitions:
         type: integer
       message:
         type: string
-
+      pet:
+        $ref: pet

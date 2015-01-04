@@ -1,6 +1,6 @@
 require('../test-environment.js');
 
-env.files.dereferenced.refs =
+env.dereferenced.refs =
 {
   'swagger': '2.0',
   'info': {

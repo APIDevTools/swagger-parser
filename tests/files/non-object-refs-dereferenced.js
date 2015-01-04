@@ -1,6 +1,6 @@
 require('../test-environment.js');
 
-env.files.dereferenced.nonObjectRefs =
+env.dereferenced.nonObjectRefs =
 {
   'info': {
     'version': '1.0.0',
@@ -74,7 +74,7 @@ env.files.dereferenced.nonObjectRefs =
         }
       }
     },
-    'error': {
+    "error": {
       'properties': {
         'message': {
           'type': 'string'

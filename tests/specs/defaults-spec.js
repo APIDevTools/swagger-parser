@@ -11,10 +11,13 @@ describe('env.parser.defaults tests', function() {
 
     it('should be initialized with the default values',
         function() {
-            expect(env.parser.defaults.parseYaml).to.equal(true);
-            expect(env.parser.defaults.resolve$Refs).to.equal(true);
-            expect(env.parser.defaults.resolveExternal$Refs).to.equal(true);
-            expect(env.parser.defaults.validateSchema).to.equal(true);
+            expect(env.parser.defaults).to.deep.equal({
+                parseYaml: true,
+                resolve$Refs: true,
+                resolveExternal$Refs: true,
+                dereference$Refs: true,
+                validateSchema: true
+            });
         }
     );
 
@@ -24,10 +27,11 @@ describe('env.parser.defaults tests', function() {
             env.parser.defaults.parseYaml = false;
 
             // Which means this call should fail
-            env.parser.parse(env.files.getPath('minimal.yaml'), function(err, swagger) {
+            env.parser.parse(env.getPath('minimal.yaml'), function(err, api, metadata) {
                 expect(err).to.be.an.instanceOf(SyntaxError);
                 expect(err.message).to.contain('Error parsing file');
-                expect(swagger).to.be.undefined;
+                expect(api).to.be.null();
+                expect(metadata).to.satisfy(env.isMetadata);
 
                 done();
             });
@@ -43,9 +47,9 @@ describe('env.parser.defaults tests', function() {
             var options = {parseYaml: true};
 
             // This call should succeed, because options override defaults
-            env.parser.parse(env.files.getPath('minimal.yaml'), options, function(err, swagger) {
+            env.parser.parse(env.getPath('minimal.yaml'), options, function(err, api) {
                 if (err) return done(err);
-                expect(swagger).to.be.an('object');
+                expect(api).to.be.an('object');
 
                 done();
             });

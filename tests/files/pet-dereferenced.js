@@ -1,6 +1,6 @@
 require('../test-environment.js');
 
-env.files.dereferenced.pet =
+env.resolved.pet = env.dereferenced.pet =
 {
   properties: {
     name: {

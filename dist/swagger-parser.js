@@ -4,19 +4,16 @@
 
   /**
    * @name parser
-   * @type {{parse: (parse), defaults: defaults}}
+   * @type {{parse: function, defaults: defaults}}
    */
   module.exports = {
-    parse: require('./lib/parse'),
-    defaults: require('./lib/defaults')
+    parse: require('./parse'),
+    defaults: require('./defaults')
   };
 
 })();
 
-},{"./lib/defaults":3,"./lib/parse":5}],2:[function(require,module,exports){
-module.exports = require('debug')('swagger:parser');
-
-},{"debug":45}],3:[function(require,module,exports){
+},{"./defaults":2,"./parse":4}],2:[function(require,module,exports){
 /**
  * The default parsing options.
  * @name defaults
@@ -25,48 +22,43 @@ module.exports = require('debug')('swagger:parser');
 module.exports = {
     /**
      * Determines whether the parser will allow Swagger specs in YAML format.
-     * If set to `false`, then only JSON will be allowed.  Defaults to `true`.
+     * If set to `false`, then only JSON will be allowed.
      * @type {boolean}
      */
     parseYaml: true,
 
     /**
-     * Determines whether `$ref` pointers will be dereferenced.
-     * If set to `false`, then the resulting Swagger object will contain ReferenceObjects instead of the objects they reference.
-     * (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-)
-     * Defaults to `true`.
+     * Determines whether `$ref` pointers will be resolved.
      * @type {boolean}
      */
     resolve$Refs: true,
 
     /**
-     * Determines whether `$ref` pointers will be dereferenced if they point to external files (e.g. "http://company.com/my/schema.json").
-     * If set to `false`, then the resulting Swagger object will contain ReferenceObjects instead of the objects they reference.
-     * (see https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#reference-object-)
-     * Defaults to `true`.
+     * Determines whether `$ref` pointers will be resolved if they point to external files or URLs.
      * @type {boolean}
      */
     resolveExternal$Refs: true,
 
     /**
+     * Determines whether `$ref` pointers in the Swagger API object will be replaced with their resolved objects.
+     * @type {boolean}
+     */
+    dereference$Refs: true,
+
+    /**
      * Determines whether the API will be validated against the Swagger schema.
-     * If set to `false`, then the resulting Swagger object may be missing properties, have properties of the wrong data type, etc.
-     * Defaults to `true`.
      * @type {boolean}
      */
     validateSchema: true
 };
 
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 'use strict';
 
-var _ = require('lodash');
-var resolve = require('./resolve');
-var util = require('./util');
-var debug = require('./debug');
-
-
 module.exports = dereference;
+
+var _ = require('lodash');
+var util = require('./util');
 
 
 /**
@@ -78,39 +70,36 @@ module.exports = dereference;
  * @param   {function}      callback
  */
 function dereference(api, state, callback) {
-    if (!state.options.resolve$Refs) {
-        // Dereferencing is disabled, so just return the API as-is
+    if (!state.options.dereference$Refs || !state.options.resolve$Refs) {
+        // Dereferencing/Resolving is disabled, so just return the API as-is
         util.doCallback(callback, null, api);
         return;
     }
 
-    // Resolve all $ref pointers
-    resolve(api, state, function(err, api) {
-        if (err) {
-            util.doCallback(callback, err);
-            return;
-        }
+    // Replace all $ref pointers with their resolved values
+    util.crawlObject(api, callback,
+        function(parent, propName, propPath, continueCrawling) {
+            var $ref = parent[propName].$ref;
 
-        // Replace all $ref pointers with the resolved values
-        util.crawlObject(api, callback,
-            function(parent, propName, propPath, continueCrawling) {
-                var $ref = parent[propName].$ref;
-
-                if ($ref && _.has(state.$refs, $ref)) {
-                    // We found a $ref pointer!  So replace it.
+            if ($ref) {
+                // We found a $ref pointer.  Do we have a corresponding resolved value?
+                if (_.has(state.$refs, $ref)) {
+                    // Replace the $ref pointer with its resolved value
                     parent[propName] = state.$refs[$ref];
                 }
-
-                // NOTE: This will also crawl the reference object that we just added,
-                // and replace any nested $ref pointers in it.
-                continueCrawling();
             }
-        );
-    });
+
+            // NOTE: This will also crawl the resolved value that we just added
+            // and replace any nested $ref pointers in it too.
+            continueCrawling();
+        }
+    );
 }
 
-},{"./debug":2,"./resolve":7,"./util":9,"lodash":79}],5:[function(require,module,exports){
+},{"./util":8,"lodash":78}],4:[function(require,module,exports){
 'use strict';
+
+module.exports = parse;
 
 var path = require('path');
 var url = require('url');
@@ -118,15 +107,13 @@ var tv4 = require('tv4');
 var swaggerSchema = require('swagger-schema-official/schema');
 var _ = require('lodash');
 var read = require('./read');
+var resolve = require('./resolve');
 var dereference = require('./dereference');
 var defaults = require('./defaults');
 var State = require('./state');
 var util = require('./util');
-var debug = require('./debug');
 
 var supportedSwaggerVersions = ['2.0'];
-
-module.exports = parse;
 
 
 /**
@@ -148,7 +135,7 @@ function parse(swaggerPath, options, callback) {
         options = undefined;
     }
 
-    if (!_.isString(swaggerPath)) {
+    if (_.isEmpty(swaggerPath) || !_.isString(swaggerPath)) {
         throw new Error('No Swagger file path was specified');
     }
 
@@ -163,25 +150,30 @@ function parse(swaggerPath, options, callback) {
     // Parse, dereference, and validate
     parseSwaggerFile(swaggerPath, state, function(err, api) {
         errBack(err) ||
-        dereference(api, state, function(err, api) {
+        resolve(api, state, function(err, api) {
             errBack(err) ||
-            validateAgainstSchema(api, state, function(err, api) {
+            dereference(api, state, function(err, api) {
                 errBack(err) ||
-                finished(api, state);
+                validateAgainstSchema(api, state, function(err, api) {
+                    errBack(err) ||
+                    finished(api, state);
+                });
             });
         });
     });
 
     // Done!
-    function finished(api, state) {
-        var metadata = _.pick(state, 'baseDir', 'files', 'urls', '$refs');
-        util.doCallback(callback, null, api, metadata);
+    function finished(api) {
+        util.doCallback(callback, null, api, getMetadata(state));
     }
 
     // Error!
     function errBack(err) {
         if (err) {
-            util.doCallback(callback, util.syntaxError(err, 'Error in "%s"', swaggerPath));
+            util.doCallback(callback,
+                util.newSyntaxError(err, 'Error in "%s"', swaggerPath),
+                null,
+                getMetadata(state));
         }
         return !!err;
     }
@@ -197,14 +189,14 @@ function parse(swaggerPath, options, callback) {
 function parseSwaggerFile(filePath, state, callback) {
     // Resolve the file path or url, relative to the CWD
     var cwd = util.cwd();
-    debug('Resolving Swagger file path "%s", relative to "%s"', filePath, cwd);
+    util.debug('Resolving Swagger file path "%s", relative to "%s"', filePath, cwd);
     filePath = url.resolve(cwd, filePath);
-    debug('    Resolved to %s', filePath);
+    util.debug('    Resolved to %s', filePath);
 
     // Update the state
     state.swaggerPath = filePath;
     state.baseDir = path.dirname(filePath) + '/';
-    debug('Swagger base directory: %s', state.baseDir);
+    util.debug('Swagger base directory: %s', state.baseDir);
 
     // Parse the file
     read.fileOrUrl(filePath, state, function(err, api) {
@@ -212,7 +204,7 @@ function parseSwaggerFile(filePath, state, callback) {
             util.doCallback(callback, err);
         }
         else if (supportedSwaggerVersions.indexOf(api.swagger) === -1) {
-            return util.doCallback(callback, util.syntaxError(
+            return util.doCallback(callback, util.newSyntaxError(
                 'Unsupported Swagger version: %d. Swagger-Parser only supports version %s',
                 api.swagger, supportedSwaggerVersions.join(', ')));
         }
@@ -232,14 +224,14 @@ function parseSwaggerFile(filePath, state, callback) {
  */
 function validateAgainstSchema(api, state, callback) {
     if (state.options.validateSchema) {
-        debug('Validating "%s" against the Swagger schema', state.swaggerPath);
+        util.debug('Validating "%s" against the Swagger schema', state.swaggerPath);
 
         if (tv4.validate(api, swaggerSchema)) {
-            debug('    Validated successfully');
+            util.debug('    Validated successfully');
             util.doCallback(callback, null, api);
         }
         else {
-            util.doCallback(callback, util.syntaxError(
+            util.doCallback(callback, util.newSyntaxError(
                 '%s \nData path: "%s" \nSchema path: "%s"\n',
                 tv4.error.message, tv4.error.dataPath, tv4.error.schemaPath));
         }
@@ -251,7 +243,17 @@ function validateAgainstSchema(api, state, callback) {
 }
 
 
-},{"./debug":2,"./defaults":3,"./dereference":4,"./read":6,"./state":8,"./util":9,"lodash":79,"path":23,"swagger-schema-official/schema":80,"tv4":81,"url":42}],6:[function(require,module,exports){
+/**
+ * Returns the metadata for the current parse operation
+ * @param   {State}     state           The state for the current parse operation
+ * @returns {State}
+ */
+function getMetadata(state) {
+    return _.pick(state, 'baseDir', 'files', 'urls', '$refs');
+}
+
+
+},{"./defaults":2,"./dereference":3,"./read":5,"./resolve":6,"./state":7,"./util":8,"lodash":78,"path":22,"swagger-schema-official/schema":79,"tv4":80,"url":41}],5:[function(require,module,exports){
 'use strict';
 
 var fs = require('fs');
@@ -260,11 +262,8 @@ var url = require('url');
 var yaml = require('js-yaml');
 var _ = require('lodash');
 var util = require('./util');
-var debug = require('./debug');
 
-var read;
-
-module.exports = read = {
+module.exports = {
     /**
      * Reads a JSON or YAML file from the local filesystem or a remote URL and returns the parsed POJO.
      * @param {string}    pathOrUrl   A full, absolute file path or URL
@@ -276,9 +275,11 @@ module.exports = read = {
             // Determine whether its a local file or a URL
             var parsedUrl = url.parse(pathOrUrl);
             if (isLocalFile(parsedUrl)) {
+                state.files.push(parsedUrl.href);
                 readFile(parsedUrl.href, state, callback);
             }
             else {
+                state.urls.push(parsedUrl);
                 readUrl(parsedUrl, state, callback);
             }
         }
@@ -297,15 +298,15 @@ module.exports = read = {
  */
 function readFile(filePath, state, callback) {
     function errorHandler(err) {
-        callback(util.error(err, 'Error opening file "%s"', filePath));
+        callback(util.newError(err, 'Error opening file "%s"', filePath));
     }
 
     function parseError(err) {
-        callback(util.syntaxError(err, 'Error parsing file "%s"', filePath));
+        callback(util.newSyntaxError(err, 'Error parsing file "%s"', filePath));
     }
 
     try {
-        debug('Reading file "%s"', filePath);
+        util.debug('Reading file "%s"', filePath);
 
         fs.readFile(filePath, {encoding: 'utf8'}, function(err, data) {
             if (err) {
@@ -313,7 +314,6 @@ function readFile(filePath, state, callback) {
             }
 
             try {
-                state.files.push(filePath);
                 callback(null, parseJsonOrYaml(filePath, data, state));
             }
             catch (e) {
@@ -339,11 +339,11 @@ function readUrl(parsedUrl, state, callback) {
     callback = _.once(callback);
 
     function downloadError(err) {
-        callback(util.error(err, 'Error downloading file "%s"', parsedUrl.href));
+        callback(util.newError(err, 'Error downloading file "%s"', parsedUrl.href));
     }
 
     function parseError(err) {
-        callback(util.syntaxError(err, 'Error parsing file "%s"', parsedUrl.href));
+        callback(util.newSyntaxError(err, 'Error parsing file "%s"', parsedUrl.href));
     }
 
     try {
@@ -356,7 +356,7 @@ function readUrl(parsedUrl, state, callback) {
             headers: {'Content-Type': 'application/json'}
         };
 
-        debug('Downloading file "%s"', parsedUrl.href);
+        util.debug('Downloading file "%s"', parsedUrl.href);
 
         var req = http.get(options, function(res) {
             var body = '';
@@ -371,11 +371,13 @@ function readUrl(parsedUrl, state, callback) {
 
             res.on('end', function() {
                 if (res.statusCode >= 400) {
-                    return downloadError(new Error('HTTP ERROR ' + res.statusCode + ': ' + body));
+                    return downloadError(util.newError('HTTP ERROR %d: %s', res.statusCode, body));
+                }
+                else if (res.statusCode === 204 || _.isEmpty(body)) {
+                    return downloadError(util.newError('HTTP 204: No Content'));
                 }
 
                 try {
-                    state.urls.push(parsedUrl);
                     callback(null, parseJsonOrYaml(parsedUrl.href, body, state));
                 }
                 catch (e) {
@@ -438,37 +440,35 @@ function isLocalFile(parsedUrl) {
 function parseJsonOrYaml(pathOrUrl, data, state) {
     var parsedObject;
     if (state.options.parseYaml) {
-        debug('Parsing YAML file "%s"', pathOrUrl);
+        util.debug('Parsing YAML file "%s"', pathOrUrl);
         parsedObject = yaml.safeLoad(data);
     }
     else {
-        debug('Parsing JSON file "%s"', pathOrUrl);
+        util.debug('Parsing JSON file "%s"', pathOrUrl);
         parsedObject = JSON.parse(data);
     }
 
     if (_.isEmpty(parsedObject)) {
-        throw util.syntaxError('Parsed value is empty');
+        throw util.newSyntaxError('Parsed value is empty');
     }
     if (!_.isPlainObject(parsedObject)) {
-        throw util.syntaxError('Parsed value is not a valid JavaScript object');
+        throw util.newSyntaxError('Parsed value is not a valid JavaScript object');
     }
 
-    debug('    Parsed successfully');
+    util.debug('    Parsed successfully');
     return parsedObject;
 }
 
 
-},{"./debug":2,"./util":9,"fs":10,"http":17,"js-yaml":48,"lodash":79,"url":42}],7:[function(require,module,exports){
+},{"./util":8,"fs":9,"http":16,"js-yaml":47,"lodash":78,"url":41}],6:[function(require,module,exports){
 'use strict';
+
+module.exports = resolve;
 
 var _ = require('lodash');
 var url = require('url');
 var read = require('./read');
 var util = require('./util');
-var debug = require('./debug');
-
-
-module.exports = resolve;
 
 
 // RegExp pattern for external $ref pointers
@@ -485,7 +485,13 @@ var external$RefPattern = /^https?\:\/\/|^\.|\.yml$|\.yaml$|\.json$/i;
  * @param   {function}      callback
  */
 function resolve(api, state, callback) {
-    debug('Resolving $ref pointers in %s', state.swaggerPath);
+    if (!state.options.resolve$Refs) {
+        // Resolving is disabled, so just return the API as-is
+        util.doCallback(callback, null, api);
+        return;
+    }
+
+    util.debug('Resolving $ref pointers in %s', state.swaggerPath);
     resolveObject(api, '', state, callback);
 }
 
@@ -553,14 +559,14 @@ function resolve$Ref($ref, $refPath, state, callback) {
     try {
         // Check for invalid values
         if (_.isEmpty($ref)) {
-            util.doCallback(callback, util.syntaxError('Empty $ref pointer at "%s"', $refPath));
+            util.doCallback(callback, util.newSyntaxError('Empty $ref pointer at "%s"', $refPath));
             return;
         }
 
         // See if we've already resolved this $ref pointer
         var cachedReference = getCached$Ref($ref, state);
         if (cachedReference) {
-            debug('Resolved %s => %s', $refPath, $ref);
+            util.debug('Resolved %s => %s', $refPath, $ref);
             util.doCallback(callback, null, cachedReference, true);
             return;
         }
@@ -586,11 +592,11 @@ function resolve$Ref($ref, $refPath, state, callback) {
 
         if (resolved === undefined) {
             util.doCallback(callback,
-                util.syntaxError('Unable to resolve %s.  \n"%s" could not be found.', $refPath, $ref));
+                util.newSyntaxError('Unable to resolve %s.  \n"%s" could not be found.', $refPath, $ref));
             return;
         }
 
-        debug('Resolved %s => %s', $refPath, $ref);
+        util.debug('Resolved %s => %s', $refPath, $ref);
 
         // The $ref might have resolved to another $ref, so resolve recursively until we get to an object
         resolveIf$Ref(resolved, $refPath, state,
@@ -746,7 +752,7 @@ function cache$Ref($ref, resolved, state) {
 
     /* istanbul ignore if: This check is here to help detect subtle bugs and edge-cases */
     if ($ref in state.$refs || normalized in state.$refs) {
-        throw util.error('Swagger-Parser encountered an error while resolving a $ref pointer: "%s". ' +
+        throw util.newError('Swagger-Parser encountered an error while resolving a $ref pointer: "%s". ' +
         'This is most likely a bug in Swagger-Parser, not in your code. Please report this issue on GitHub.', $ref);
     }
 
@@ -754,7 +760,7 @@ function cache$Ref($ref, resolved, state) {
     state.$refs[normalized] = resolved;
 }
 
-},{"./debug":2,"./read":6,"./util":9,"lodash":79,"url":42}],8:[function(require,module,exports){
+},{"./read":5,"./util":8,"lodash":78,"url":41}],7:[function(require,module,exports){
 'use strict';
 
 module.exports = State;
@@ -812,7 +818,7 @@ function State() {
  * @typedef {{swagger: string, info: {}, paths: {}}} SwaggerObject
  */
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -823,6 +829,14 @@ var _ = require('lodash');
 
 
 var util = module.exports = {
+    /**
+     * Writes messages to stdout.
+     * Log messages are suppressed by default, but can be enabled by setting the DEBUG variable.
+     * @type {function}
+     */
+    debug: require('debug')('swagger:parser'),
+
+
     /**
      * Asynchronously invokes the given callback function with the given parameters.
      *
@@ -918,7 +932,7 @@ var util = module.exports = {
      * @param     {...*}      [params]    One or more {@link util#format} params
      * @returns   {Error}
      */
-    error: function(err, message, params) {
+    newError: function(err, message, params) {
         if (err && err instanceof Error) {
             return new Error(errorDump.apply(null, arguments));
         }
@@ -936,7 +950,7 @@ var util = module.exports = {
      * @param     {...*}      [params]    One or more {@link util#format} params
      * @returns   {SyntaxError}
      */
-    syntaxError: function(err, message, params) {
+    newSyntaxError: function(err, message, params) {
         if (err && err instanceof Error) {
             return new SyntaxError(errorDump.apply(null, arguments));
         }
@@ -1015,11 +1029,11 @@ function errorDump(err, message, params) {
 
 }).call(this,require('_process'))
 
-},{"_process":24,"fs":10,"lodash":79,"url":42,"util":44}],10:[function(require,module,exports){
+},{"_process":23,"debug":44,"fs":9,"lodash":78,"url":41,"util":43}],9:[function(require,module,exports){
 
-},{}],11:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"dup":10}],12:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
+arguments[4][9][0].apply(exports,arguments)
+},{"dup":9}],11:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -2337,7 +2351,7 @@ function decodeUtf8Char (str) {
   }
 }
 
-},{"base64-js":13,"ieee754":14,"is-array":15}],13:[function(require,module,exports){
+},{"base64-js":12,"ieee754":13,"is-array":14}],12:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -2463,7 +2477,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -2549,7 +2563,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 
 /**
  * isArray
@@ -2584,7 +2598,7 @@ module.exports = isArray || function (val) {
   return !! val && '[object Array]' == str.call(val);
 };
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2887,7 +2901,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var http = module.exports;
 var EventEmitter = require('events').EventEmitter;
 var Request = require('./lib/request');
@@ -3033,7 +3047,7 @@ http.STATUS_CODES = {
     510 : 'Not Extended',               // RFC 2774
     511 : 'Network Authentication Required' // RFC 6585
 };
-},{"./lib/request":18,"events":16,"url":42}],18:[function(require,module,exports){
+},{"./lib/request":17,"events":15,"url":41}],17:[function(require,module,exports){
 var Stream = require('stream');
 var Response = require('./response');
 var Base64 = require('Base64');
@@ -3244,7 +3258,7 @@ var isXHR2Compatible = function (obj) {
     if (typeof FormData !== 'undefined' && obj instanceof FormData) return true;
 };
 
-},{"./response":19,"Base64":20,"inherits":21,"stream":40}],19:[function(require,module,exports){
+},{"./response":18,"Base64":19,"inherits":20,"stream":39}],18:[function(require,module,exports){
 var Stream = require('stream');
 var util = require('util');
 
@@ -3366,7 +3380,7 @@ var isArray = Array.isArray || function (xs) {
     return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{"stream":40,"util":44}],20:[function(require,module,exports){
+},{"stream":39,"util":43}],19:[function(require,module,exports){
 ;(function () {
 
   var object = typeof exports != 'undefined' ? exports : this; // #8: web workers
@@ -3428,7 +3442,7 @@ var isArray = Array.isArray || function (xs) {
 
 }());
 
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -3453,12 +3467,12 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],23:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -3687,7 +3701,7 @@ var substr = 'ab'.substr(-1) === 'b'
 
 }).call(this,require('_process'))
 
-},{"_process":24}],24:[function(require,module,exports){
+},{"_process":23}],23:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -3775,7 +3789,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],25:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 (function (global){
 /*! http://mths.be/punycode v1.2.4 by @mathias */
 ;(function(root) {
@@ -4287,7 +4301,7 @@ process.chdir = function (dir) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4373,7 +4387,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4460,16 +4474,16 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],28:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":26,"./encode":27}],29:[function(require,module,exports){
+},{"./decode":25,"./encode":26}],28:[function(require,module,exports){
 module.exports = require("./lib/_stream_duplex.js")
 
-},{"./lib/_stream_duplex.js":30}],30:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":29}],29:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4563,7 +4577,7 @@ function forEach (xs, f) {
 
 }).call(this,require('_process'))
 
-},{"./_stream_readable":32,"./_stream_writable":34,"_process":24,"core-util-is":35,"inherits":21}],31:[function(require,module,exports){
+},{"./_stream_readable":31,"./_stream_writable":33,"_process":23,"core-util-is":34,"inherits":20}],30:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4611,7 +4625,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./_stream_transform":33,"core-util-is":35,"inherits":21}],32:[function(require,module,exports){
+},{"./_stream_transform":32,"core-util-is":34,"inherits":20}],31:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -5598,7 +5612,7 @@ function indexOf (xs, x) {
 
 }).call(this,require('_process'))
 
-},{"_process":24,"buffer":12,"core-util-is":35,"events":16,"inherits":21,"isarray":22,"stream":40,"string_decoder/":41}],33:[function(require,module,exports){
+},{"_process":23,"buffer":11,"core-util-is":34,"events":15,"inherits":20,"isarray":21,"stream":39,"string_decoder/":40}],32:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5810,7 +5824,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":30,"core-util-is":35,"inherits":21}],34:[function(require,module,exports){
+},{"./_stream_duplex":29,"core-util-is":34,"inherits":20}],33:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6201,7 +6215,7 @@ function endWritable(stream, state, cb) {
 
 }).call(this,require('_process'))
 
-},{"./_stream_duplex":30,"_process":24,"buffer":12,"core-util-is":35,"inherits":21,"stream":40}],35:[function(require,module,exports){
+},{"./_stream_duplex":29,"_process":23,"buffer":11,"core-util-is":34,"inherits":20,"stream":39}],34:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6312,10 +6326,10 @@ function objectToString(o) {
 }
 }).call(this,require("buffer").Buffer)
 
-},{"buffer":12}],36:[function(require,module,exports){
+},{"buffer":11}],35:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
-},{"./lib/_stream_passthrough.js":31}],37:[function(require,module,exports){
+},{"./lib/_stream_passthrough.js":30}],36:[function(require,module,exports){
 var Stream = require('stream'); // hack to fix a circular dependency issue when used with browserify
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = Stream;
@@ -6325,13 +6339,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":30,"./lib/_stream_passthrough.js":31,"./lib/_stream_readable.js":32,"./lib/_stream_transform.js":33,"./lib/_stream_writable.js":34,"stream":40}],38:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":29,"./lib/_stream_passthrough.js":30,"./lib/_stream_readable.js":31,"./lib/_stream_transform.js":32,"./lib/_stream_writable.js":33,"stream":39}],37:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":33}],39:[function(require,module,exports){
+},{"./lib/_stream_transform.js":32}],38:[function(require,module,exports){
 module.exports = require("./lib/_stream_writable.js")
 
-},{"./lib/_stream_writable.js":34}],40:[function(require,module,exports){
+},{"./lib/_stream_writable.js":33}],39:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6460,7 +6474,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":16,"inherits":21,"readable-stream/duplex.js":29,"readable-stream/passthrough.js":36,"readable-stream/readable.js":37,"readable-stream/transform.js":38,"readable-stream/writable.js":39}],41:[function(require,module,exports){
+},{"events":15,"inherits":20,"readable-stream/duplex.js":28,"readable-stream/passthrough.js":35,"readable-stream/readable.js":36,"readable-stream/transform.js":37,"readable-stream/writable.js":38}],40:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6683,7 +6697,7 @@ function base64DetectIncompleteChar(buffer) {
   this.charLength = this.charReceived ? 3 : 0;
 }
 
-},{"buffer":12}],42:[function(require,module,exports){
+},{"buffer":11}],41:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7392,14 +7406,14 @@ function isNullOrUndefined(arg) {
   return  arg == null;
 }
 
-},{"punycode":25,"querystring":28}],43:[function(require,module,exports){
+},{"punycode":24,"querystring":27}],42:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],44:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -7990,7 +8004,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":43,"_process":24,"inherits":21}],45:[function(require,module,exports){
+},{"./support/isBuffer":42,"_process":23,"inherits":20}],44:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -8150,7 +8164,7 @@ function load() {
 
 exports.enable(load());
 
-},{"./debug":46}],46:[function(require,module,exports){
+},{"./debug":45}],45:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -8349,7 +8363,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":47}],47:[function(require,module,exports){
+},{"ms":46}],46:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -8462,7 +8476,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],48:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 
@@ -8471,7 +8485,7 @@ var yaml = require('./lib/js-yaml.js');
 
 module.exports = yaml;
 
-},{"./lib/js-yaml.js":49}],49:[function(require,module,exports){
+},{"./lib/js-yaml.js":48}],48:[function(require,module,exports){
 'use strict';
 
 
@@ -8512,7 +8526,7 @@ module.exports.parse          = deprecated('parse');
 module.exports.compose        = deprecated('compose');
 module.exports.addConstructor = deprecated('addConstructor');
 
-},{"./js-yaml/dumper":51,"./js-yaml/exception":52,"./js-yaml/loader":53,"./js-yaml/schema":55,"./js-yaml/schema/core":56,"./js-yaml/schema/default_full":57,"./js-yaml/schema/default_safe":58,"./js-yaml/schema/failsafe":59,"./js-yaml/schema/json":60,"./js-yaml/type":61}],50:[function(require,module,exports){
+},{"./js-yaml/dumper":50,"./js-yaml/exception":51,"./js-yaml/loader":52,"./js-yaml/schema":54,"./js-yaml/schema/core":55,"./js-yaml/schema/default_full":56,"./js-yaml/schema/default_safe":57,"./js-yaml/schema/failsafe":58,"./js-yaml/schema/json":59,"./js-yaml/type":60}],49:[function(require,module,exports){
 'use strict';
 
 
@@ -8576,7 +8590,7 @@ module.exports.repeat         = repeat;
 module.exports.isNegativeZero = isNegativeZero;
 module.exports.extend         = extend;
 
-},{}],51:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 'use strict';
 
 
@@ -9132,7 +9146,7 @@ function safeDump(input, options) {
 module.exports.dump     = dump;
 module.exports.safeDump = safeDump;
 
-},{"./common":50,"./exception":52,"./schema/default_full":57,"./schema/default_safe":58}],52:[function(require,module,exports){
+},{"./common":49,"./exception":51,"./schema/default_full":56,"./schema/default_safe":57}],51:[function(require,module,exports){
 'use strict';
 
 
@@ -9159,7 +9173,7 @@ YAMLException.prototype.toString = function toString(compact) {
 
 module.exports = YAMLException;
 
-},{}],53:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 'use strict';
 
 
@@ -10730,7 +10744,7 @@ module.exports.load        = load;
 module.exports.safeLoadAll = safeLoadAll;
 module.exports.safeLoad    = safeLoad;
 
-},{"./common":50,"./exception":52,"./mark":54,"./schema/default_full":57,"./schema/default_safe":58}],54:[function(require,module,exports){
+},{"./common":49,"./exception":51,"./mark":53,"./schema/default_full":56,"./schema/default_safe":57}],53:[function(require,module,exports){
 'use strict';
 
 
@@ -10810,7 +10824,7 @@ Mark.prototype.toString = function toString(compact) {
 
 module.exports = Mark;
 
-},{"./common":50}],55:[function(require,module,exports){
+},{"./common":49}],54:[function(require,module,exports){
 'use strict';
 
 
@@ -10915,7 +10929,7 @@ Schema.create = function createSchema() {
 
 module.exports = Schema;
 
-},{"./common":50,"./exception":52,"./type":61}],56:[function(require,module,exports){
+},{"./common":49,"./exception":51,"./type":60}],55:[function(require,module,exports){
 // Standard YAML's Core schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2804923
 //
@@ -10935,7 +10949,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":55,"./json":60}],57:[function(require,module,exports){
+},{"../schema":54,"./json":59}],56:[function(require,module,exports){
 // JS-YAML's default schema for `load` function.
 // It is not described in the YAML specification.
 //
@@ -10962,7 +10976,7 @@ module.exports = Schema.DEFAULT = new Schema({
   ]
 });
 
-},{"../schema":55,"../type/js/function":66,"../type/js/regexp":67,"../type/js/undefined":68,"./default_safe":58}],58:[function(require,module,exports){
+},{"../schema":54,"../type/js/function":65,"../type/js/regexp":66,"../type/js/undefined":67,"./default_safe":57}],57:[function(require,module,exports){
 // JS-YAML's default schema for `safeLoad` function.
 // It is not described in the YAML specification.
 //
@@ -10992,7 +11006,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":55,"../type/binary":62,"../type/merge":70,"../type/omap":72,"../type/pairs":73,"../type/set":75,"../type/timestamp":77,"./core":56}],59:[function(require,module,exports){
+},{"../schema":54,"../type/binary":61,"../type/merge":69,"../type/omap":71,"../type/pairs":72,"../type/set":74,"../type/timestamp":76,"./core":55}],58:[function(require,module,exports){
 // Standard YAML's Failsafe schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2802346
 
@@ -11011,7 +11025,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":55,"../type/map":69,"../type/seq":74,"../type/str":76}],60:[function(require,module,exports){
+},{"../schema":54,"../type/map":68,"../type/seq":73,"../type/str":75}],59:[function(require,module,exports){
 // Standard YAML's JSON schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2803231
 //
@@ -11038,7 +11052,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":55,"../type/bool":63,"../type/float":64,"../type/int":65,"../type/null":71,"./failsafe":59}],61:[function(require,module,exports){
+},{"../schema":54,"../type/bool":62,"../type/float":63,"../type/int":64,"../type/null":70,"./failsafe":58}],60:[function(require,module,exports){
 'use strict';
 
 var YAMLException = require('./exception');
@@ -11101,7 +11115,7 @@ function Type(tag, options) {
 
 module.exports = Type;
 
-},{"./exception":52}],62:[function(require,module,exports){
+},{"./exception":51}],61:[function(require,module,exports){
 'use strict';
 
 
@@ -11236,7 +11250,7 @@ module.exports = new Type('tag:yaml.org,2002:binary', {
   represent: representYamlBinary
 });
 
-},{"../type":61,"buffer":11}],63:[function(require,module,exports){
+},{"../type":60,"buffer":10}],62:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11275,7 +11289,7 @@ module.exports = new Type('tag:yaml.org,2002:bool', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":61}],64:[function(require,module,exports){
+},{"../type":60}],63:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -11387,7 +11401,7 @@ module.exports = new Type('tag:yaml.org,2002:float', {
   defaultStyle: 'lowercase'
 });
 
-},{"../common":50,"../type":61}],65:[function(require,module,exports){
+},{"../common":49,"../type":60}],64:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -11572,7 +11586,7 @@ module.exports = new Type('tag:yaml.org,2002:int', {
   }
 });
 
-},{"../common":50,"../type":61}],66:[function(require,module,exports){
+},{"../common":49,"../type":60}],65:[function(require,module,exports){
 'use strict';
 
 var esprima;
@@ -11659,7 +11673,7 @@ module.exports = new Type('tag:yaml.org,2002:js/function', {
   represent: representJavascriptFunction
 });
 
-},{"../../type":61,"esprima":78}],67:[function(require,module,exports){
+},{"../../type":60,"esprima":77}],66:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -11745,7 +11759,7 @@ module.exports = new Type('tag:yaml.org,2002:js/regexp', {
   represent: representJavascriptRegExp
 });
 
-},{"../../type":61}],68:[function(require,module,exports){
+},{"../../type":60}],67:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -11774,7 +11788,7 @@ module.exports = new Type('tag:yaml.org,2002:js/undefined', {
   represent: representJavascriptUndefined
 });
 
-},{"../../type":61}],69:[function(require,module,exports){
+},{"../../type":60}],68:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11784,7 +11798,7 @@ module.exports = new Type('tag:yaml.org,2002:map', {
   construct: function (data) { return null !== data ? data : {}; }
 });
 
-},{"../type":61}],70:[function(require,module,exports){
+},{"../type":60}],69:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11798,7 +11812,7 @@ module.exports = new Type('tag:yaml.org,2002:merge', {
   resolve: resolveYamlMerge
 });
 
-},{"../type":61}],71:[function(require,module,exports){
+},{"../type":60}],70:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11836,7 +11850,7 @@ module.exports = new Type('tag:yaml.org,2002:null', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":61}],72:[function(require,module,exports){
+},{"../type":60}],71:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11894,7 +11908,7 @@ module.exports = new Type('tag:yaml.org,2002:omap', {
   construct: constructYamlOmap
 });
 
-},{"../type":61}],73:[function(require,module,exports){
+},{"../type":60}],72:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11957,7 +11971,7 @@ module.exports = new Type('tag:yaml.org,2002:pairs', {
   construct: constructYamlPairs
 });
 
-},{"../type":61}],74:[function(require,module,exports){
+},{"../type":60}],73:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11967,7 +11981,7 @@ module.exports = new Type('tag:yaml.org,2002:seq', {
   construct: function (data) { return null !== data ? data : []; }
 });
 
-},{"../type":61}],75:[function(require,module,exports){
+},{"../type":60}],74:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12002,7 +12016,7 @@ module.exports = new Type('tag:yaml.org,2002:set', {
   construct: constructYamlSet
 });
 
-},{"../type":61}],76:[function(require,module,exports){
+},{"../type":60}],75:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12012,7 +12026,7 @@ module.exports = new Type('tag:yaml.org,2002:str', {
   construct: function (data) { return null !== data ? data : ''; }
 });
 
-},{"../type":61}],77:[function(require,module,exports){
+},{"../type":60}],76:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12112,7 +12126,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
   represent: representYamlTimestamp
 });
 
-},{"../type":61}],78:[function(require,module,exports){
+},{"../type":60}],77:[function(require,module,exports){
 /*
   Copyright (C) 2012 Ariya Hidayat <ariya.hidayat@gmail.com>
   Copyright (C) 2012 Mathias Bynens <mathias@qiwi.be>
@@ -16022,7 +16036,7 @@ parseStatement: true, parseSourceElement: true */
 }));
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],79:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -22812,7 +22826,7 @@ parseStatement: true, parseSourceElement: true */
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],80:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 module.exports={
   "title": "A JSON Schema for Swagger 2.0 API.",
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -24295,7 +24309,7 @@ module.exports={
     }
   }
 }
-},{}],81:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 /*
 Author: Geraint Luff and others
 Year: 2013

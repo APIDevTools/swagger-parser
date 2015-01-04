@@ -3,7 +3,7 @@ require('../test-environment.js');
 describe('Package exports tests', function() {
     'use strict';
 
-    it('should export swagger.parser',
+    it('should export api.parser',
         function() {
             expect(env.parser).to.be.an('object');
         }

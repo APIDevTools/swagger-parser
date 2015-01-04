@@ -50,7 +50,7 @@
    */
   function getBrowserifyStream() {
     var bundle = browserify({
-      entries: ['./index.js'],
+      entries: ['./lib/index.js'],
       standalone: 'swagger.parser',
       debug: true
     }).bundle();

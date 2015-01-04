@@ -1,6 +1,6 @@
 require('../test-environment.js');
 
-env.files.parsed.refs =
+env.resolved.refs =
 {
   'swagger': '2.0',
   'info': {
