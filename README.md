@@ -20,8 +20,8 @@ Features
 * Asynchronously downloads and __caches__ external files and URLs
 * __Tested__ in Node.js and all major web browsers on Windows, Mac, and Linux
 * Supports nested $ref pointers, even in external files and URLs
-* Supports circular $ref pointers (see [notes](#circular$refs) below)
-* Multiple $ref pointers to the same object are resolved to the [same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/a525d5e6f3a2af1774d0bcc283cb59737f02bb1e/tests/specs/dereference-spec.js#L137)
+* Supports circular $ref pointers (see [notes](#circular-refs) below)
+* Multiple $ref pointers to the same object are resolved to the [same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124)
 
 
 Basic Example
@@ -78,20 +78,20 @@ The API
 --------------------------
 ### `Parser.parse(swaggerPath, [options], callback)`
 
-* __`swaggerPath`__ (_required_) - string<br>
+* __swaggerPath__ (_required_) - `string`<br>
 The file path or URL of your Swagger file.  Relative paths are allowed.  In Node, the path is relative to `process.cwd()`.  In the browser, it's relative to the URL of the page.
 
-* __`options`__ (_optional_) - object<br>
+* __options__ (_optional_) - `object`<br>
 An object containing one or more parsing options. See [options](#options) below.
 
-* __`callback`__ (_required_) - function(err, api, metadata)<br>
+* __callback__ (_required_) - `function(err, api, metadata)`<br>
 Called after the parsing is finished, or when an error occurs.  See [callback](#callback) below for details.
 
 #### Options
 |Property               |Type        |Default       |Description
 |:----------------------|:-----------|:-------------|:----------
 |`parseYaml`            |bool        |true          |Determines whether the parser will allow Swagger specs in YAML format.  If set to `false`, then only JSON will be allowed. 
-|`dereference$Refs`     |bool        |true          |Determines whether `$ref` pointers in the Swagger API will be replaced with their resolved values.  Different `$ref` pointers that resolve to the same object will be replaced with [the same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/a525d5e6f3a2af1774d0bcc283cb59737f02bb1e/tests/specs/dereference-spec.js#L137).  Setting this option to `false` will leave the `$ref` pointers in the Swagger API, but you can still access the resolved values using the [metadata object](#metadata).
+|`dereference$Refs`     |bool        |true          |Determines whether `$ref` pointers in the Swagger API will be replaced with their resolved values.  Different `$ref` pointers that resolve to the same object will be replaced with [the same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124).  Setting this option to `false` will leave the `$ref` pointers in the Swagger API, but you can still access the resolved values using the [metadata object](#metadata).
 |`resolve$Refs`         |bool        |true          |Determines whether `$ref` pointers will be resolved.  Setting this option to `false` effectively disables `dereference$Refs` as well. The difference is that the [metadata object](#metadata) won't be populated either.
 |`resolveExternal$Refs` |bool        |true          |Determines whether `$ref` pointers will be resolved if they point to external files or URLs.  Internal `$ref` pointers will still be resolved and dereferenced.
 |`validateSchema`       |bool        |true          |Determines whether your API will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-) may be missing properties, have properties of the wrong data type, etc.
@@ -116,7 +116,7 @@ The `metadata` parameter is an object with the following properties:
 
 Circular $Refs
 --------------------------
-Swagger files can contain [circular $ref pointers](), and Swagger-Parser will correctly parse them, resolve their values, and validate them against the Swagger schema.  However, Swagger-Parser __does not dereference__ circular references because this can easily cause stack overflows when the Swagger object is serialized, as well as other, more subtle bugs.
+Swagger files can contain [circular $ref pointers](https://github.com/BigstickCarpet/swagger-parser/blob/master/tests/files/circular-refs.yaml), and Swagger-Parser will correctly parse them, resolve their values, and validate them against the Swagger schema.  However, Swagger-Parser __does not dereference__ circular references because this can easily cause stack overflows when the Swagger object is serialized, as well as other, more subtle bugs.
 
 If your Swagger API includes circular references, then the callback will receive a `ReferenceError` to alert you that the Swagger object was not fully dereferenced. However, you can choose to ignore this error and use the `api` parameter anyway. All non-circular `$ref` pointers in the Swagger object will still be resolved and dereferenced like always.  Circular `$ref` pointers will not be dereferenced, but they _will_ be resolved, so you can access their resolved values in `metadata.$refs`.
 
