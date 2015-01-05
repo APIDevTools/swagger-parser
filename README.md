@@ -118,7 +118,7 @@ Circular $Refs
 --------------------------
 Swagger files can contain [circular $ref pointers](https://github.com/BigstickCarpet/swagger-parser/blob/master/tests/files/circular-refs.yaml), and Swagger-Parser will correctly parse them, resolve their values, and validate them against the Swagger schema.  However, Swagger-Parser __does not dereference__ circular references because this can easily cause stack overflows when the Swagger object is serialized, as well as other, more subtle bugs.
 
-If your Swagger API includes circular references, then the callback will receive a `ReferenceError` to alert you that the Swagger object was not fully dereferenced. However, you can choose to ignore this error and use the `api` parameter anyway. All non-circular `$ref` pointers in the Swagger object will still be resolved and dereferenced like always.  Circular `$ref` pointers will not be dereferenced, but they _will_ be resolved, so you can access their resolved values in `metadata.$refs`.
+If your Swagger API includes circular references, then the callback will receive a `ReferenceError` to alert you that the Swagger object was not fully dereferenced. However, you can choose to ignore this error and use the `api` parameter anyway. All non-circular `$ref` pointers in the Swagger object will still be resolved and dereferenced like always.  Circular `$ref` pointers will not be dereferenced, but they _will_ be resolved, so you can access their resolved values in [`metadata.$refs`](#metadata).
 
 ````yaml
 person:
