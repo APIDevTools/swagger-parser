@@ -76,24 +76,71 @@ function dereference(api, state, callback) {
         return;
     }
 
+    var circularRefs = 0;
+
     // Replace all $ref pointers with their resolved values
-    util.crawlObject(api, callback,
-        function(parent, propName, propPath, continueCrawling) {
+    util.crawlObject(api, finished,
+        function(parents, propName, propPath, continueCrawling) {
+            var parent = _.last(parents);
             var $ref = parent[propName].$ref;
 
             if ($ref) {
                 // We found a $ref pointer.  Do we have a corresponding resolved value?
-                if (_.has(state.$refs, $ref)) {
-                    // Replace the $ref pointer with its resolved value
-                    parent[propName] = state.$refs[$ref];
+                var resolved = state.$refs[$ref];
+
+                if (resolved) {
+                    // We have a resolved value.  But is it a circular reference?
+                    if (isCircularReference(resolved, parents)) {
+                        // It's a circular reference, so don't dereference it.
+                        circularRefs++;
+                        util.debug('Circular reference detected at %s', propPath);
+                    }
+                    else {
+                        // Replace the $ref pointer with its resolved value
+                        parent[propName] = resolved;
+                    }
                 }
             }
 
             // NOTE: This will also crawl the resolved value that we just added
             // and replace any nested $ref pointers in it too.
-            continueCrawling();
+            util.doCallback(continueCrawling);
         }
     );
+
+    // Done!
+    function finished(err) {
+        if (!err && circularRefs) {
+            err = new ReferenceError(circularRefs + ' circular reference(s) detected');
+        }
+
+        util.doCallback(callback, err, api);
+    }
+}
+
+
+/**
+ * Determines whether a resolved $ref value is a circular reference.
+ *
+ * @param   {object}    resolved    The resolved value of a $ref pointer
+ * @param   {object[]}  parents     An array of resolved parent objects
+ * @returns {boolean}
+ */
+function isCircularReference(resolved, parents) {
+    var isCircular = false;
+
+    // Determine if the resolved value contains any of its parents
+    util.crawlObject(resolved,
+        function(props, propName, propPath, continueCrawling) {
+            var prop = _.last(props)[propName];
+            isCircular = _.contains(parents, prop);
+
+            // Continue crawling the resolved object, unless we found a circular reference
+            continueCrawling(isCircular);
+        }
+    );
+
+    return isCircular;
 }
 
 },{"./util":8,"lodash":78}],4:[function(require,module,exports){
@@ -147,6 +194,8 @@ function parse(swaggerPath, options, callback) {
     var state = new State();
     state.options = _.merge({}, defaults, options);
 
+    var circular$RefError = null;
+
     // Parse, dereference, and validate
     parseSwaggerFile(swaggerPath, state, function(err, api) {
         errBack(err) ||
@@ -164,12 +213,19 @@ function parse(swaggerPath, options, callback) {
 
     // Done!
     function finished(api) {
-        util.doCallback(callback, null, api, getMetadata(state));
+        util.doCallback(callback, circular$RefError, api, getMetadata(state));
     }
 
     // Error!
     function errBack(err) {
         if (err) {
+            // Ignore circular-reference errors and keep going
+            if (err instanceof ReferenceError) {
+                circular$RefError = err;
+                return false;
+            }
+
+            // For any other error, abort immediately
             util.doCallback(callback,
                 util.newSyntaxError(err, 'Error in "%s"', swaggerPath),
                 null,
@@ -509,9 +565,9 @@ function resolveObject(obj, objPath, state, callback) {
     // Recursively crawl the object
     util.crawlObject(obj, objPath, callback,
         // Inspect each nested object.
-        function(parent, propName, propPath, continueCrawling) {
+        function(parents, propName, propPath, continueCrawling) {
             // If it's a $ref pointer, then resolve it
-            resolveIf$Ref(parent[propName], propPath, state, continueCrawling);
+            resolveIf$Ref(_.last(parents)[propName], propPath, state, continueCrawling);
         }
     );
 }
@@ -840,6 +896,9 @@ var util = module.exports = {
     /**
      * Asynchronously invokes the given callback function with the given parameters.
      *
+     * NOTE: This unwinds the call stack, which avoids stack overflows
+     *       that occur when crawling very complex Swagger APIs
+     *
      * @param {function} callback
      * @param {*}     [err]
      * @param {...*}  [params]
@@ -854,6 +913,7 @@ var util = module.exports = {
 
     /**
      * Recursively crawls an object, and calls the given function for each nested object.
+     * This function can be used synchronously or asynchronously.
      *
      * @param   {object|*[]}    obj
      * The object (or array) to be crawled
@@ -861,13 +921,13 @@ var util = module.exports = {
      * @param   {string}        [path]
      * The starting path of the object (e.g. "/definitions/pet")
      *
-     * @param   {function}      callback
+     * @param   {function}      [callback]
      * Called when the entire object tree is done being crawled, or when an error occurs.
      * The signature is `function(err, obj)`.
      *
      * @param   {function}      forEach
-     * Called for each nested object in the tree. The signature is `function(parent, propName, propPath, continue)`,
-     * where `parent` is the parent object, `propName` is the name of the nested object property,
+     * Called for each nested object in the tree. The signature is `function(parents, propName, propPath, continue)`,
+     * where `parents` is an array of parent objects, `propName` is the name of the nested object property,
      * `propPath` is a full path of nested object (e.g. "/paths//get/responses/200/schema"),
      * and `continue` is a function to call to resume crawling the object.
      */
@@ -878,6 +938,14 @@ var util = module.exports = {
             callback = path;
             path = '';
         }
+        if (!_.isFunction(forEach)) {
+            forEach = callback;
+            callback = _.noop;
+        }
+
+        // Keep a stack of parent objects
+        var parents = forEach.__parents = forEach.__parents || [];
+        parents.push(obj);
 
         // Loop through each item in the object/array
         var properties = _.keys(obj);
@@ -886,12 +954,14 @@ var util = module.exports = {
         function crawlNextProperty(err) {
             if (err) {
                 // An error occurred, so stop crawling and bubble it up
-                util.doCallback(callback, err);
+                forEach.__parents.pop();
+                callback(err);
                 return;
             }
             else if (properties.length === 0) {
                 // We've crawled all of this object's properties, so we're done.
-                util.doCallback(callback, null, obj);
+                forEach.__parents.pop();
+                callback(null, obj);
                 return;
             }
 
@@ -901,7 +971,7 @@ var util = module.exports = {
 
             if (_.isPlainObject(propValue)) {
                 // Found an object property, so call the callback
-                util.doCallback(forEach, obj, propName, propPath, function(err) {
+                forEach(parents, propName, propPath, function(err) {
                     if (err) {
                         // An error occurred, so bubble it up
                         crawlNextProperty(err);

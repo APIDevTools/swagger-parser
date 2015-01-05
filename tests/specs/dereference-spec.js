@@ -95,6 +95,29 @@ describe('Dereferencing tests', function() {
                 });
             }
         );
+
+        it('should partially-dereference circular references',
+            function(done) {
+                env.parser.parse(env.getPath('circular-refs.yaml'), function(err, api, metadata) {
+                    expect(err).to.be.an.instanceOf(ReferenceError);
+                    expect(err.message).to.contain('5 circular reference(s) detected');
+                    expect(metadata).to.satisfy(env.isMetadata);
+
+                    // The API should be partially dereferenced
+                    // (only non-circular $refs are resolved)
+                    expect(api).to.deep.equal(env.dereferenced.circularRefs);
+
+                    // The metadata should contain the circular and non-circular $refs
+                    var $refs = {};
+                    $refs['person'] = $refs['#/definitions/person'] = env.dereferenced.circularRefsPerson;
+                    $refs['parent'] = $refs['#/definitions/parent'] = env.dereferenced.circularRefsParent;
+                    $refs['child'] = $refs['#/definitions/child'] = env.dereferenced.circularRefsChild;
+                    expect(metadata.$refs).to.deep.equal($refs);
+
+                    done();
+                });
+            }
+        );
     });
 
 

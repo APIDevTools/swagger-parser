@@ -21,7 +21,7 @@ Features
 * __Tested__ in Node.js and all major web browsers on Windows, Mac, and Linux
 * Supports nested $ref pointers, even in external files and URLs
 * Supports circular $ref pointers (see [notes](#circular$refs) below)
-* Multiple $ref pointers to the same object are resolved to the same object instance, thus maintaining [strict reference equality](https://github.com/BigstickCarpet/swagger-parser/blob/a525d5e6f3a2af1774d0bcc283cb59737f02bb1e/tests/specs/dereference-spec.js#L137)
+* Multiple $ref pointers to the same object are resolved to the [same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/a525d5e6f3a2af1774d0bcc283cb59737f02bb1e/tests/specs/dereference-spec.js#L137)
 
 
 Basic Example
@@ -91,7 +91,7 @@ Called after the parsing is finished, or when an error occurs.  See [callback](#
 |Property               |Type        |Default       |Description
 |:----------------------|:-----------|:-------------|:----------
 |`parseYaml`            |bool        |true          |Determines whether the parser will allow Swagger specs in YAML format.  If set to `false`, then only JSON will be allowed. 
-|`dereference$Refs`     |bool        |true          |Determines whether `$ref` pointers in the Swagger API will be replaced with their resolved objects.  Different `$ref` pointers that resolve to the same object will maintain [strict reference equality](https://github.com/BigstickCarpet/swagger-parser/blob/a525d5e6f3a2af1774d0bcc283cb59737f02bb1e/tests/specs/dereference-spec.js#L137).  Setting this option to `false` will leave the `$ref` pointers in the Swagger API, but you can still access the resolved values using the [metadata object](#metadata).
+|`dereference$Refs`     |bool        |true          |Determines whether `$ref` pointers in the Swagger API will be replaced with their resolved values.  Different `$ref` pointers that resolve to the same object will be replaced with [the same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/a525d5e6f3a2af1774d0bcc283cb59737f02bb1e/tests/specs/dereference-spec.js#L137).  Setting this option to `false` will leave the `$ref` pointers in the Swagger API, but you can still access the resolved values using the [metadata object](#metadata).
 |`resolve$Refs`         |bool        |true          |Determines whether `$ref` pointers will be resolved.  Setting this option to `false` effectively disables `dereference$Refs` as well. The difference is that the [metadata object](#metadata) won't be populated either.
 |`resolveExternal$Refs` |bool        |true          |Determines whether `$ref` pointers will be resolved if they point to external files or URLs.  Internal `$ref` pointers will still be resolved and dereferenced.
 |`validateSchema`       |bool        |true          |Determines whether your API will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-) may be missing properties, have properties of the wrong data type, etc.
@@ -114,13 +114,11 @@ The `metadata` parameter is an object with the following properties:
 |`$refs`    |object              |A map of all the $ref pointers that were resolved, and the objects they resolved to.  If an error occurs while resolving a reference, then this object will still contain the $refs that were successfully parsed up to that point.
 
 
-Contributing
+Circular $Refs
 --------------------------
-I welcome any contributions, enhancements, and bug-fixes.  [File an issue](https://github.com/BigstickCarpet/swagger-parser/issues) on GitHub and [submit a pull request](https://github.com/BigstickCarpet/swagger-parser/pulls).  Use JSHint to make sure your code passes muster.  (see [.jshintrc](.jshintrc)).
+Swagger files can contain [circular $ref pointers](), and Swagger-Parser will correctly parse them, resolve their values, and validate them against the Swagger schema.  However, Swagger-Parser __does not dereference__ circular references because this can easily cause stack overflows when the Swagger object is serialized, as well as other, more subtle bugs.
 
-Here are some things currently on the to-do list:
-
-* __Circular $ref pointers__ - Circular `$ref` pointers are a bit of an edge case, but it would be nice to support them anyway.  Currently, something like this won't work:
+If your Swagger API includes circular references, then the callback will receive a `ReferenceError` to alert you that the Swagger object was not fully dereferenced. However, you can choose to ignore this error and use the `api` parameter anyway. All non-circular `$ref` pointers in the Swagger object will still be resolved and dereferenced like always.  Circular `$ref` pointers will not be dereferenced, but they _will_ be resolved, so you can access their resolved values in `metadata.$refs`.
 
 ````yaml
 person:
@@ -132,6 +130,11 @@ person:
         $ref: person   # circular reference
 ````
 
+
+
+Contributing
+--------------------------
+I welcome any contributions, enhancements, and bug-fixes.  [File an issue](https://github.com/BigstickCarpet/swagger-parser/issues) on GitHub and [submit a pull request](https://github.com/BigstickCarpet/swagger-parser/pulls).  Use JSHint to make sure your code passes muster.  (see [.jshintrc](.jshintrc)).
 
 License
 --------------------------

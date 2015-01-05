@@ -20,7 +20,7 @@ definitions:
       children:
         type: array
         items:
-          $ref: child
+          $ref: child   # indirect circular reference
 
   child:
     properties:
@@ -32,7 +32,7 @@ definitions:
           $ref: parent  # indirect circular reference
 
 paths:
-  /pets:
+  /circular:
     post:
       responses:
         200:

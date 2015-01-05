@@ -8,7 +8,7 @@ env.resolved.circularRefs =
     "title": "circular refs"
   },
   "paths": {
-    "/pets": {
+    "/circular": {
       "post": {
         "responses": {
           "200": {
