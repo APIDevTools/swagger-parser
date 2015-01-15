@@ -118,6 +118,28 @@ describe('Dereferencing tests', function() {
                 });
             }
         );
+
+        it('should dereference an already-parsed object',
+            function(done) {
+                env.parser.parse(env.resolved.nestedRefs, function(err, api, metadata) {
+                    if (err) return done(err);
+                    expect(api).to.deep.equal(env.dereferenced.nestedRefs);
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
+
+        it('should have no effect on an already-dereferenced object',
+            function(done) {
+                env.parser.parse(env.dereferenced.refs, function(err, api, metadata) {
+                    if (err) return done(err);
+                    expect(api).to.deep.equal(env.dereferenced.refs);
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
     });
 
 

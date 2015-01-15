@@ -26,6 +26,40 @@ describe('env.parser.parse tests', function() {
             }
         );
 
+        it('can be called with a String object',
+            function(done) {
+                //noinspection JSPrimitiveTypeWrapperUsage
+                env.parser.parse(new String(env.getPath('minimal.yaml')), function(err, api, metadata) {
+                    if (err) return done(err);
+                    expect(api).to.deep.equal(env.resolved.minimal);
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
+
+        it('can be called with an already-parsed object',
+            function(done) {
+                env.parser.parse(env.resolved.nestedRefs, function(err, api, metadata) {
+                    if (err) return done(err);
+                    expect(api).to.deep.equal(env.dereferenced.nestedRefs);
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
+
+        it('can be called with an already-dereferenced object',
+            function(done) {
+                env.parser.parse(env.dereferenced.refs, function(err, api, metadata) {
+                    if (err) return done(err);
+                    expect(api).to.deep.equal(env.dereferenced.refs);
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
+
         it('should ignore Swagger schema violations when "validateSchema" is false',
             function(done) {
                 env.parser.parse(env.getPath('bad/invalid.yaml'), {validateSchema: false}, function(err, api, metadata) {
@@ -38,7 +72,7 @@ describe('env.parser.parse tests', function() {
             }
         );
 
-        it('should parse multiple files simultaneously',
+        it('can parse multiple files simultaneously',
             function(done) {
                 var counter = 0;
 
@@ -71,7 +105,7 @@ describe('env.parser.parse tests', function() {
     describe('Failure tests', function() {
         it('should throw an error if called with no params',
             function() {
-                expect(env.call(env.parser.parse)).to.throw(/No Swagger file path was specified/);
+                expect(env.call(env.parser.parse)).to.throw(/Expected a Swagger file or object/);
             }
         );
 
@@ -81,21 +115,15 @@ describe('env.parser.parse tests', function() {
             }
         );
 
-        it('should throw an error if called with only an options object',
+        it('should throw an error if called with only an object',
             function() {
-                expect(env.call(env.parser.parse, {parseYaml: true})).to.throw(/No Swagger file path was specified/);
+                expect(env.call(env.parser.parse, env.resolved.minimal)).to.throw(/A callback function must be provided/);
             }
         );
 
         it('should throw an error if called with only a callback',
             function() {
-                expect(env.call(env.parser.parse, env.noop)).to.throw(/No Swagger file path was specified/);
-            }
-        );
-
-        it('should throw an error if called with only an options object and a callback',
-            function() {
-                expect(env.call(env.parser.parse, {parseYaml: true}, env.noop)).to.throw(/No Swagger file path was specified/);
+                expect(env.call(env.parser.parse, env.noop)).to.throw(/Expected a Swagger file or object/);
             }
         );
 
@@ -107,7 +135,26 @@ describe('env.parser.parse tests', function() {
 
         it('should throw an error if the filename is blank',
             function() {
-                expect(env.call(env.parser.parse, '')).to.throw(/No Swagger file path was specified/);
+                expect(env.call(env.parser.parse, '')).to.throw(/Expected a Swagger file or object/);
+            }
+        );
+
+        it('should throw an error if the filename is a blank String object',
+            function() {
+                //noinspection JSPrimitiveTypeWrapperUsage
+                expect(env.call(env.parser.parse, new String())).to.throw(/Expected a Swagger file or object/);
+            }
+        );
+
+        it('should return an error if called with only an options object and a callback',
+            function(done) {
+                env.parser.parse({parseYaml: true}, function(err, api, metadata) {
+                    expect(err).to.be.an.instanceOf(Error);
+                    expect(err.message).to.contain('The object is not a valid Swagger API definition');
+                    expect(api).to.be.null();
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
             }
         );
 
@@ -128,6 +175,18 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse('http://nonexistent-server.com/nonexistent-file.json', function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(Error);
                     expect(err.message).to.match(/Error downloading file|Error parsing file/);
+                    expect(api).to.be.null();
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
+
+        it('should return an error if an already-parsed object contains external refs that cannot be resolved',
+            function(done) {
+                env.parser.parse(env.resolved.refs, function(err, api, metadata) {
+                    expect(err).to.be.an.instanceOf(SyntaxError);
+                    expect(err.message).to.match(/Error opening file|Error downloading file/);
                     expect(api).to.be.null();
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();

@@ -99,7 +99,6 @@
                 expect(metadata.$refs).to.be.an('object');
                 expect(metadata.files).to.be.an('array');
                 expect(metadata.urls).to.be.an('array');
-                expect(metadata.files.length + metadata.urls.length).to.be.above(0);
                 metadata.files.forEach(function(file) {
                     expect(file).to.be.a('string').and.not.to.be.empty();
                 });

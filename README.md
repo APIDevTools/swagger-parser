@@ -78,8 +78,10 @@ The API
 --------------------------
 ### `Parser.parse(swaggerPath, [options], callback)`
 
-* __swaggerPath__ (_required_) - `string`<br>
+* __swagger__ (_required_) - `string` or `object`<br>
 The file path or URL of your Swagger file.  Relative paths are allowed.  In Node, the path is relative to `process.cwd()`.  In the browser, it's relative to the URL of the page.
+<br><br>
+If you pass an object instead of a string, then the parsing step will be skipped, but the object will still be validated, resolved, and dereferenced just like normal.
 
 * __options__ (_optional_) - `object`<br>
 An object containing one or more parsing options. See [options](#options) below.
@@ -108,7 +110,7 @@ The `metadata` parameter is an object with the following properties:
 
 |Property   |Type                |Description
 |:----------|:-------------------|:----------
-|`baseDir`  |string              |The directory of the main Swagger file, which is the base directory used to resolve any external $ref pointers.
+|`baseDir`  |string              |The base directory used to resolve any external $ref pointers.  If you passed a file path/URL to the `parse` method, then the `baseDir` is the directory of that file.  If you passed an object, then `baseDir` is set to `process.cwd()` in Node, or the URL of the current page in browsers.
 |`files`    |array of strings    |The full paths of all files that were parsed. This only includes local files, _not_ URLs.  If `Parser.parse()` was called with a local file path, then it will be the first item in this array.
 |`urls`     |array of [URL objects](http://nodejs.org/api/url.html#url_url)|The URLs that were parsed.  If `Parser.parse()` was called with a URL, then it will be the first item in this array.
 |`$refs`    |object              |A map of all the $ref pointers that were resolved, and the objects they resolved to.  If an error occurs while resolving a reference, then this object will still contain the $refs that were successfully parsed up to that point.

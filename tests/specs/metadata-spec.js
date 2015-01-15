@@ -272,4 +272,61 @@ describe('Metadata tests', function() {
         }
     );
 
+    it('should return resolved internal and external pointers in metadata for an already-parsed object',
+        function(done) {
+            env.parser.parse(env.resolved.nestedRefs, function(err, api, metadata) {
+                if (err) return done(err);
+                expect(metadata).to.satisfy(env.isMetadata);
+
+                // Since there was no Swagger file, the "files" and "urls" arrays should both be empty
+                expect(metadata.files).to.have.lengthOf(0);
+                expect(metadata.urls).to.have.lengthOf(0);
+
+                // "pet" is referenced via shorthand and document-relative pointers.
+                // Both of them should be references to the same object instance, and should be fully dereferenced
+                expect(metadata.$refs.pet).to.equal(metadata.$refs['#/definitions/pet']);
+                expect(metadata.$refs.pet).to.deep.equal(env.dereferenced.pet);
+
+                // "error" is referenced via shorthand and document-relative pointers.
+                // Both of them should be references to the same object instance, and should be fully dereferenced
+                expect(metadata.$refs.error).to.equal(metadata.$refs['#/definitions/error']);
+                expect(metadata.$refs.error).to.deep.equal(env.dereferenced.error);
+
+                // "errorWrapper" is only referenced via shorthand, but there should also be a pointer with the normalized path.
+                expect(metadata.$refs.errorWrapper).to.equal(metadata.$refs['#/definitions/errorWrapper']);
+                expect(metadata.$refs.errorWrapper).to.deep.equal(env.dereferenced.errorWrapper);
+
+                // These should be all the pointers
+                expect(Object.keys(metadata.$refs)).to.have.same.members([
+                    'pet',
+                    '#/definitions/pet',
+                    'error',
+                    '#/definitions/error',
+                    'errorWrapper',
+                    '#/definitions/errorWrapper'
+                ]);
+
+                done();
+            });
+        }
+    );
+
+    it('should not return any resolved pointers in metadata for an already-dereferenced object',
+        function(done) {
+            env.parser.parse(env.dereferenced.refs, function(err, api, metadata) {
+                if (err) return done(err);
+                expect(metadata).to.satisfy(env.isMetadata);
+
+                // Since there was no Swagger file, the "files" and "urls" arrays should both be empty
+                expect(metadata.files).to.have.lengthOf(0);
+                expect(metadata.urls).to.have.lengthOf(0);
+
+                // Since the object was already dereferenced, there should be no resolved pointers
+                expect(metadata.$refs).to.deep.equal({});
+
+                done();
+            });
+        }
+    );
+
 });

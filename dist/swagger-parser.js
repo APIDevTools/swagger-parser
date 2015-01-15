@@ -1,15 +1,15 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),(f.swagger||(f.swagger={})).parser=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function() {
-  'use strict';
+    'use strict';
 
-  /**
-   * @name parser
-   * @type {{parse: function, defaults: defaults}}
-   */
-  module.exports = {
-    parse: require('./parse'),
-    defaults: require('./defaults')
-  };
+    /**
+     * @name parser
+     * @type {{parse: function, defaults: defaults}}
+     */
+    module.exports = {
+        parse: require('./parse'),
+        defaults: require('./defaults')
+    };
 
 })();
 
@@ -166,24 +166,25 @@ var supportedSwaggerVersions = ['2.0'];
 /**
  * Parses the given Swagger file, validates it, and dereferences "$ref" pointers.
  *
- * @param {string} swaggerPath
- * the file path or URL of a YAML or JSON Swagger spec.
+ * @param {string|SwaggerObject} swagger
+ * The file path or URL of a YAML or JSON Swagger spec.
+ * Or an already-parsed Swagger API object, which will still be dereferenced and validated.
  *
  * @param {defaults} options
- * options to enable/disable certain features. This object will be merged with the {@link defaults} object.
+ * Options to enable/disable certain features. This object will be merged with the {@link defaults} object.
  *
  * @param {function} callback
- * the callback function that will be passed the parsed SwaggerObject
+ * The callback function that will be passed the parsed SwaggerObject
  */
-function parse(swaggerPath, options, callback) {
+function parse(swagger, options, callback) {
     // Shift args if necessary
     if (_.isFunction(options)) {
         callback = options;
         options = undefined;
     }
 
-    if (_.isEmpty(swaggerPath) || !_.isString(swaggerPath)) {
-        throw new Error('No Swagger file path was specified');
+    if (_.isEmpty(swagger)) {
+        throw new Error('Expected a Swagger file or object');
     }
 
     if (!_.isFunction(callback)) {
@@ -197,7 +198,7 @@ function parse(swaggerPath, options, callback) {
     var circular$RefError = null;
 
     // Parse, dereference, and validate
-    parseSwaggerFile(swaggerPath, state, function(err, api) {
+    parseSwaggerFile(swagger, state, function(err, api) {
         errBack(err) ||
         resolve(api, state, function(err, api) {
             errBack(err) ||
@@ -227,7 +228,7 @@ function parse(swaggerPath, options, callback) {
 
             // For any other error, abort immediately
             util.doCallback(callback,
-                util.newSyntaxError(err, 'Error in "%s"', swaggerPath),
+                util.newSyntaxError(err, 'Error in Swagger definition'),
                 null,
                 getMetadata(state));
         }
@@ -237,27 +238,30 @@ function parse(swaggerPath, options, callback) {
 
 
 /**
- * Parses the given JSON or YAML file or URL.
- * @param   {string}    filePath        The absolute or relative file path
- * @param   {State}     state           The state for the current parse operation
- * @param   {function}  callback
+ * Parses the given JSON or YAML file/URL or Swagger object, and verifies that it's a supported Swagger API.
+ *
+ * @param   {string|SwaggerObject}  swagger     The absolute or relative file path, URL, or Swagger object.
+ * @param   {State}                 state       The state for the current parse operation
+ * @param   {function}              callback
  */
-function parseSwaggerFile(filePath, state, callback) {
-    // Resolve the file path or url, relative to the CWD
-    var cwd = util.cwd();
-    util.debug('Resolving Swagger file path "%s", relative to "%s"', filePath, cwd);
-    filePath = url.resolve(cwd, filePath);
-    util.debug('    Resolved to %s', filePath);
+function parseSwaggerFile(swagger, state, callback) {
+    if (_.isString(swagger)) {
+        // Open/download the file/URL
+        var pathOrUrl = resolveSwaggerPath(swagger, state);
+        read.fileOrUrl(pathOrUrl, state, verifyParsedAPI);
+    }
+    else {
+        // It's already a parsed object, but we still need to validate it
+        resolveSwaggerPath('', state);
+        verifyParsedAPI(null, _.cloneDeep(swagger));
+    }
 
-    // Update the state
-    state.swaggerPath = filePath;
-    state.baseDir = path.dirname(filePath) + '/';
-    util.debug('Swagger base directory: %s', state.baseDir);
-
-    // Parse the file
-    read.fileOrUrl(filePath, state, function(err, api) {
+    function verifyParsedAPI(err, api) {
         if (err) {
             util.doCallback(callback, err);
+        }
+        else if (!(api.swagger && api.info && api.paths)) {
+            return util.doCallback(callback, util.newSyntaxError('The object is not a valid Swagger API definition'));
         }
         else if (supportedSwaggerVersions.indexOf(api.swagger) === -1) {
             return util.doCallback(callback, util.newSyntaxError(
@@ -268,12 +272,39 @@ function parseSwaggerFile(filePath, state, callback) {
             state.swagger = api;
             util.doCallback(callback, null, api);
         }
-    });
+    }
+}
+
+
+/**
+ * Resolves the given file path or URL to determine the Swagger base directory.
+ *
+ * @param   {string}    pathOrUrl       The absolute or relative file or URL
+ * @param   {State}     state           The state for the current parse operation
+ * @returns {string}                    The resolved absolute file path or URL
+ */
+function resolveSwaggerPath(pathOrUrl, state) {
+    // Coerce String objects to string primitives
+    pathOrUrl = pathOrUrl.toString();
+
+    // Resolve the file path or url, relative to the CWD
+    var cwd = util.cwd();
+    util.debug('Resolving Swagger path "%s", relative to "%s"', pathOrUrl, cwd);
+    pathOrUrl = url.resolve(cwd, pathOrUrl);
+    util.debug('    Resolved to %s', pathOrUrl);
+
+    // Update the state
+    state.swaggerPath = pathOrUrl;
+    state.baseDir = path.dirname(pathOrUrl) + '/';
+    util.debug('Swagger base directory: %s', state.baseDir);
+
+    return pathOrUrl;
 }
 
 
 /**
  * Validates the given Swagger API against the Swagger schema.
+ *
  * @param   {SwaggerObject} api         The absolute or relative file path
  * @param   {State}         state       The state for the current parse operation
  * @param   {function}      callback
@@ -301,6 +332,7 @@ function validateAgainstSchema(api, state, callback) {
 
 /**
  * Returns the metadata for the current parse operation
+ *
  * @param   {State}     state           The state for the current parse operation
  * @returns {State}
  */
@@ -896,8 +928,7 @@ var util = module.exports = {
     /**
      * Asynchronously invokes the given callback function with the given parameters.
      *
-     * NOTE: This unwinds the call stack, which avoids stack overflows
-     *       that occur when crawling very complex Swagger APIs
+     * NOTE: This unwinds the call stack, which avoids stack overflows that can occur when crawling very complex Swagger APIs
      *
      * @param {function} callback
      * @param {*}     [err]
