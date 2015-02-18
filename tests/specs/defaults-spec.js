@@ -38,7 +38,7 @@ describe('env.parser.defaults tests', function() {
         }
     );
 
-    it.only('should override defaults with options when parsing',
+    it('should override defaults with options when parsing',
         function(done) {
             // Disable YAML parsing by default
             env.parser.defaults.parseYaml = false;

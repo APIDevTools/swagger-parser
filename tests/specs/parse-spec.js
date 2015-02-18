@@ -151,7 +151,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse({parseYaml: true}, function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(Error);
                     expect(err.message).to.contain('The object is not a valid Swagger API definition');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -163,7 +163,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('nonexistent-file.json'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(Error);
                     expect(err.message).to.match(/Error opening file|Error downloading file/);
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -175,7 +175,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse('http://nonexistent-server.com/nonexistent-file.json', function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(Error);
                     expect(err.message).to.match(/Error downloading file|Error parsing file/);
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -187,7 +187,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.resolved.refs, function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.match(/Error opening file|Error downloading file/);
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -199,7 +199,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('minimal.yaml'), {parseYaml: false}, function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('Error parsing file');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -211,7 +211,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('bad/blank.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.match(/Parsed value is empty|HTTP 204: No Content/);
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -223,7 +223,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('bad/blank.yaml'), {parseYaml: false}, function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.match(/Unexpected end of input|HTTP 204: No Content/);
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -235,7 +235,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('bad/old-version.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('Unsupported Swagger version: 1.2');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -247,7 +247,31 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('bad/newer-version.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('Unsupported Swagger version: 3');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
+
+        it('should return an error if the Swagger version is a number',
+            function(done) {
+                env.parser.parse(env.getPath('bad/numeric-version.yaml'), function(err, api, metadata) {
+                    expect(err).to.be.an.instanceOf(SyntaxError);
+                    expect(err.message).to.contain('Swagger version number must be a string (e.g. "2.0") not a number');
+                    expect(api).to.be.null;
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
+
+        it('should return an error if the API version is a number',
+            function(done) {
+                env.parser.parse(env.getPath('bad/numeric-info-version.yaml'), function(err, api, metadata) {
+                    expect(err).to.be.an.instanceOf(SyntaxError);
+                    expect(err.message).to.contain('API version number must be a string (e.g. "1.0.0") not a number');
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -259,7 +283,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('bad/malformed.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('Error parsing file');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -271,7 +295,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('bad/malformed.json'), {parseYaml: false}, function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('Error parsing file');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -283,7 +307,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('bad/invalid.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('Additional properties not allowed');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -295,7 +319,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('bad/invalid-external-protocol.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(Error);
                     expect(err.message).to.contain('"abc://google.com" could not be found');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -307,7 +331,7 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('bad/invalid-external-host.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(Error);
                     expect(err.message).to.contain('URI');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -333,7 +357,7 @@ describe('env.parser.parse tests', function() {
                         env.parser.parse(MOCK_URL, function(err, api, metadata) {
                             expect(err).to.be.an.instanceOf(Error);
                             expect(err.message).to.contain('HTTP 204: No Content');
-                            expect(api).to.be.null();
+                            expect(api).to.be.null;
                             expect(metadata).to.satisfy(env.isMetadata);
                             done();
                         });
@@ -347,7 +371,7 @@ describe('env.parser.parse tests', function() {
                         env.parser.parse(MOCK_URL, function(err, api, metadata) {
                             expect(err).to.be.an.instanceOf(Error);
                             expect(err.message).to.contain('HTTP ERROR 404');
-                            expect(api).to.be.null();
+                            expect(api).to.be.null;
                             expect(metadata).to.satisfy(env.isMetadata);
                             done();
                         });
@@ -361,7 +385,7 @@ describe('env.parser.parse tests', function() {
                         env.parser.parse(MOCK_URL, function(err, api, metadata) {
                             expect(err).to.be.an.instanceOf(Error);
                             expect(err.message).to.contain('HTTP ERROR 500');
-                            expect(api).to.be.null();
+                            expect(api).to.be.null;
                             expect(metadata).to.satisfy(env.isMetadata);
                             done();
                         });
@@ -375,7 +399,7 @@ describe('env.parser.parse tests', function() {
                         env.parser.parse(MOCK_URL, function(err, api, metadata) {
                             expect(err).to.be.an.instanceOf(SyntaxError);
                             expect(err.message).to.contain('Error parsing file');
-                            expect(api).to.be.null();
+                            expect(api).to.be.null;
                             expect(metadata).to.satisfy(env.isMetadata);
                             done();
                         });
