@@ -31,7 +31,7 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       // Third-Party libs
-      'node_modules/lodash/dist/lodash.js',
+      'node_modules/lodash/index.js',
 
       // Swagger-Parser
       'dist/swagger-parser.js',

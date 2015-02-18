@@ -322,7 +322,7 @@ describe('Dereferencing tests', function() {
                 env.parser.parse(env.getPath('bad/invalid-shorthand-refs.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('"doesnotexist" could not be found');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
 
                     done();
@@ -335,7 +335,7 @@ describe('Dereferencing tests', function() {
                 env.parser.parse(env.getPath('bad/invalid-internal-refs.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('"#/definitions/doesnotexist" could not be found');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
 
                     done();
@@ -348,7 +348,7 @@ describe('Dereferencing tests', function() {
                 env.parser.parse(env.getPath('bad/invalid-external-refs.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.match(/ENOENT|Error downloading file ".*doesnotexist\.yaml"/);
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
 
                     done();
@@ -361,7 +361,7 @@ describe('Dereferencing tests', function() {
                 env.parser.parse(env.getPath('bad/empty-refs.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('Empty $ref pointer');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
 
                     done();
@@ -374,7 +374,7 @@ describe('Dereferencing tests', function() {
                 env.parser.parse(env.getPath('bad/invalid-nested-ref.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('"doesnotexist" could not be found');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
 
                     done();
@@ -387,7 +387,7 @@ describe('Dereferencing tests', function() {
                 env.parser.parse(env.getPath('bad/invalid-nested-obj.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('"foobar" could not be found');
-                    expect(api).to.be.null();
+                    expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
 
                     done();

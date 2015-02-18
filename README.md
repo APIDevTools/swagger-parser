@@ -8,6 +8,7 @@ Swagger-Parser
 [![Codacy Score](http://img.shields.io/codacy/6d686f916836433b9c013379fbe1052c.svg)](https://www.codacy.com/public/jamesmessinger/swagger-parser)
 [![Coverage Status](https://img.shields.io/coveralls/BigstickCarpet/swagger-parser.svg)](https://coveralls.io/r/BigstickCarpet/swagger-parser)
 
+[![Downloads](https://img.shields.io/npm/dm/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
 [![npm](http://img.shields.io/npm/v/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
 [![Bower](http://img.shields.io/bower/v/swagger-parser.svg)](#bower)
 [![License](https://img.shields.io/npm/l/swagger-parser.svg)](LICENSE)
