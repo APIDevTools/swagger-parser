@@ -1,5 +1,6 @@
 {
   "name": "swagger-parser",
+  "version": "2.1.3",
   "description": "Parses a JSON or YAML Swagger spec, validates it against the Swagger schema, and dereferences all $ref pointers",
   "keywords": [
     "json",
