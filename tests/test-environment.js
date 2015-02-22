@@ -37,7 +37,7 @@ var env = {
      * This is useful for `expect(fn).to.throw` tests.
      */
     call: function(fn, params) {
-        params = _.drop(arguments);
+        params = Array.prototype.slice.call(arguments, 1);
         return function() {
             fn.apply(null, params);
         };
@@ -126,7 +126,6 @@ if (env.isNode) {
     global.sinon = require('sinon');
     global.path = require('path');
     global.url = require('url');
-    global._ = require('lodash');
 }
 else {
     // Set env properties for browsers
@@ -138,6 +137,5 @@ else {
     // Set globals for use in tests
     window.env = env;
     window.expect = window.chai.expect;
-    window.require = function() {
-    };
+    window.require = function() {};
 }
