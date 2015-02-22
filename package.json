@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "Swagger JSON/YAML parser and validator for Node and browsers",
   "keywords": [
     "swagger",
