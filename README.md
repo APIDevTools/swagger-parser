@@ -34,7 +34,7 @@ swagger.parser.parse("swagger.yaml", function(err, api, metadata) {
   }
 });
 ````
-The `api` parameter that's passed to the callback function is the parsed, validated, and dereferenced [Swagger object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-).
+The `api` parameter that's passed to the callback function is the parsed, validated, and dereferenced [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object).
 
 
 Installation and Use
@@ -97,13 +97,13 @@ Called after the parsing is finished, or when an error occurs.  See [callback](#
 |`dereference$Refs`     |bool        |true          |Determines whether `$ref` pointers in the Swagger API will be replaced with their resolved values.  Different `$ref` pointers that resolve to the same object will be replaced with [the same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124).  Setting this option to `false` will leave the `$ref` pointers in the Swagger API, but you can still access the resolved values using the [metadata object](#metadata).
 |`resolve$Refs`         |bool        |true          |Determines whether `$ref` pointers will be resolved.  Setting this option to `false` effectively disables `dereference$Refs` as well. The difference is that the [metadata object](#metadata) won't be populated either.
 |`resolveExternal$Refs` |bool        |true          |Determines whether `$ref` pointers will be resolved if they point to external files or URLs.  Internal `$ref` pointers will still be resolved and dereferenced.
-|`validateSchema`       |bool        |true          |Determines whether your API will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger object](https://github.com/wordnik/swagger-spec/blob/master/versions/2.0.md#swagger-object-) may be missing properties, have properties of the wrong data type, etc.
+|`validateSchema`       |bool        |true          |Determines whether your API will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object) may be missing properties, have properties of the wrong data type, etc.
 
 #### Callback
 |Parameter  |Type                |Description
 |:----------|:-------------------|:----------
 |`err`      |Error               |`null` unless an error occurred.
-|`api`      |[Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object-) |The complete Swagger API object. Or `null` if an error occurred
+|`api`      |[Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object) |The complete Swagger API object. Or `null` if an error occurred
 |`metadata` |object              |This parameter provides extra information about the parsing operation. It is always provided, even if there's an error.
 
 #### Metadata
