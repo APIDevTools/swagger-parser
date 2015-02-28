@@ -359,14 +359,14 @@ function getMetadata(state) {
 module.exports = read;
 
 var fs             = require('fs'),
+    path           = require('path'),
     http           = require('http'),
     url            = require('url'),
     yaml           = require('js-yaml'),
     util           = require('./util'),
     _once          = require('lodash/function/once'),
     _isEmpty       = require('lodash/lang/isEmpty'),
-    _isFunction    = require('lodash/lang/isFunction'),
-    _isPlainObject = require('lodash/lang/isPlainObject');
+    _isFunction    = require('lodash/lang/isFunction');
 
 
 /**
@@ -543,44 +543,57 @@ function isLocalFile(parsedUrl) {
  */
 function parseJsonOrYaml(pathOrUrl, data, state) {
     var parsedObject;
-    if (state.options.parseYaml) {
-        util.debug('Parsing YAML file "%s"', pathOrUrl);
-        parsedObject = yaml.safeLoad(data);
+
+    try {
+        if (state.options.parseYaml) {
+            util.debug('Parsing YAML file "%s"', pathOrUrl);
+            parsedObject = yaml.safeLoad(data);
+        }
+        else {
+            util.debug('Parsing JSON file "%s"', pathOrUrl);
+            parsedObject = JSON.parse(data);
+        }
+
+        if (_isEmpty(parsedObject)) {
+            //noinspection ExceptionCaughtLocallyJS
+            throw util.newSyntaxError('Parsed value is empty');
+        }
+
+        util.debug('    Parsed successfully');
     }
-    else {
-        util.debug('Parsing JSON file "%s"', pathOrUrl);
-        parsedObject = JSON.parse(data);
+    catch (e) {
+        var ext = path.extname(pathOrUrl).toLowerCase();
+        if (['.json', '.yaml', '.yml'].indexOf(ext) === -1) {
+            // It's not a YAML or JSON file, so ignore the parsing error and just treat it as a string
+            parsedObject = data;
+        }
+        else {
+            throw e;
+        }
     }
 
-    if (_isEmpty(parsedObject)) {
-        throw util.newSyntaxError('Parsed value is empty');
-    }
-    if (!_isPlainObject(parsedObject)) {
-        throw util.newSyntaxError('Parsed value is not a valid JavaScript object');
-    }
-
-    util.debug('    Parsed successfully');
     return parsedObject;
 }
 
 
-},{"./util":8,"fs":9,"http":16,"js-yaml":48,"lodash/function/once":84,"lodash/lang/isEmpty":119,"lodash/lang/isFunction":120,"lodash/lang/isPlainObject":124,"url":42}],6:[function(require,module,exports){
+},{"./util":8,"fs":9,"http":16,"js-yaml":48,"lodash/function/once":84,"lodash/lang/isEmpty":119,"lodash/lang/isFunction":120,"path":21,"url":42}],6:[function(require,module,exports){
 'use strict';
 
 module.exports = resolve;
 
-var url      = require('url'),
-    read     = require('./read'),
-    util     = require('./util'),
-    _last    = require('lodash/array/last'),
-    _result    = require('lodash/object/result'),
-    _has     = require('lodash/object/has'),
-    _isEmpty = require('lodash/lang/isEmpty');
+var url       = require('url'),
+    read      = require('./read'),
+    util      = require('./util'),
+    _last     = require('lodash/array/last'),
+    _result   = require('lodash/object/result'),
+    _has      = require('lodash/object/has'),
+    _isEmpty  = require('lodash/lang/isEmpty');
 
 
-// RegExp pattern for external $ref pointers
-// (e.g. "http://company.com", "https://company.com", "./file.yaml", "../../file.yaml")
-var external$RefPattern = /^https?\:\/\/|^\.|\.yml$|\.yaml$|\.json$/i;
+// RegExp pattern to detect external $ref pointers.
+// Matches anything that starts with "http://" or contains a period (".")
+// (e.g. "http://localhost/some/path", "company.com/some/path", "file.yaml", "..\..\file.yaml", "./fileWithoutExt")
+var external$RefPattern = /(^https?\:\/\/)|(\.)/i;
 
 
 /**
@@ -996,6 +1009,12 @@ var util = module.exports = {
         if (!_isFunction(forEach)) {
             forEach = callback;
             callback = _noop;
+        }
+
+        // Do nothing if it's not an object or array
+        if (!_isPlainObject(obj) && !_isArray(obj)) {
+            callback(null, obj);
+            return;
         }
 
         // Keep a stack of parent objects
@@ -17536,8 +17555,11 @@ function isIterateeCall(value, index, object) {
   } else {
     prereq = type == 'string' && index in object;
   }
-  var other = object[index];
-  return prereq && (value === value ? value === other : other !== other);
+  if (prereq) {
+    var other = object[index];
+    return value === value ? value === other : other !== other;
+  }
+  return false;
 }
 
 module.exports = isIterateeCall;
