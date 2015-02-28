@@ -14,17 +14,21 @@ describe('Metadata tests', function() {
 
                 if (env.isBrowser) {
                     expect(metadata.files).to.have.lengthOf(0);
-                    expect(metadata.urls).to.have.lengthOf(3);
+                    expect(metadata.urls).to.have.lengthOf(5);
                     expect(metadata.urls[0].href).to.equal(env.getAbsolutePath('external-refs.yaml'));
                     expect(metadata.urls[1].href).to.equal(env.getAbsolutePath('error.json'));
                     expect(metadata.urls[2].href).to.equal(env.getAbsolutePath('pet.yaml'));
+                    expect(metadata.urls[3].href).to.equal(env.getAbsolutePath('text.txt'));
+                    expect(metadata.urls[4].href).to.equal(env.getAbsolutePath('pet'));
                 }
                 else {
                     expect(metadata.urls).to.have.lengthOf(0);
-                    expect(metadata.files).to.have.lengthOf(3);
+                    expect(metadata.files).to.have.lengthOf(5);
                     expect(metadata.files[0]).to.equal(env.getAbsolutePath('external-refs.yaml'));
                     expect(metadata.files[1]).to.equal(env.getAbsolutePath('error.json'));
                     expect(metadata.files[2]).to.equal(env.getAbsolutePath('pet.yaml'));
+                    expect(metadata.files[3]).to.equal(env.getAbsolutePath('text.txt'));
+                    expect(metadata.files[4]).to.equal(env.getAbsolutePath('pet'));
                 }
 
                 done();
@@ -89,18 +93,37 @@ describe('Metadata tests', function() {
                 // And all of them should be fully dereferenced
                 expect($ref1).to.deep.equal(env.dereferenced.pet);
 
-                // "error.yaml" is only referenced one way, but there should also be a pointer with the absolute path.
-                var $ref5 = metadata.$refs['error.json'];
-                var $ref6 = metadata.$refs[env.getAbsolutePath('error.json')];
+                // "pet" (no file extension) is only referenced one way, but there should also be a pointer with the absolute path.
+                var $ref5 = metadata.$refs['./pet'];
+                var $ref6 = metadata.$refs[env.getAbsolutePath('pet')];
 
                 // All of them should be references to the same object instance
                 expect($ref5).to.equal($ref6);
 
                 // And all of them should be fully dereferenced
-                expect($ref5).to.deep.equal(env.dereferenced.error);
+                expect($ref5).to.deep.equal(env.dereferenced.pet);
+
+                // "error.yaml" is only referenced one way, but there should also be a pointer with the absolute path.
+                var $ref7 = metadata.$refs['error.json'];
+                var $ref8 = metadata.$refs[env.getAbsolutePath('error.json')];
+
+                // All of them should be references to the same object instance
+                expect($ref7).to.equal($ref8);
+
+                // And all of them should be fully dereferenced
+                expect($ref7).to.deep.equal(env.dereferenced.error);
+
+                // "text.txt" is only referenced one way, but there should also be a pointer with the absolute path.
+                var $ref9 = metadata.$refs['text.txt'];
+                var $ref10 = metadata.$refs[env.getAbsolutePath('text.txt')];
+
+                // They should both contain the same string
+                expect($ref9).to.be.a('string');
+                expect($ref10).to.be.a('string');
+                expect($ref9).to.equal($ref10);
 
                 // And there shouldn't be any other pointers
-                expect(Object.keys(metadata.$refs)).to.have.lengthOf(6);
+                expect(Object.keys(metadata.$refs)).to.have.lengthOf(10);
 
                 done();
             });

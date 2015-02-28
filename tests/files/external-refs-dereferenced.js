@@ -30,6 +30,31 @@ env.dereferenced.externalRefs =
               }
             }
           },
+          '300': {
+            'description': 'references a file with no extension',
+            'schema': {
+              'properties': {
+                'type': {
+                  'enum': [
+                    'cat',
+                    'dog',
+                    'bird'
+                  ],
+                  'type': 'string'
+                },
+                'name': {
+                  'type': 'string'
+                }
+              }
+            }
+          },
+          '400': {
+            'description': 'references a plain-text file',
+            'schema': {
+              'type': 'string',
+              'example': '{\n    \"This\": is just: a plain text file.\n\nNot: valid\n    - JSON\n    - or\n    - YAML\n}\n'
+            }
+          },
           'default': {
             'description': 'references the "error.json" file',
             'schema': {

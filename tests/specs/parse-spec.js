@@ -174,7 +174,7 @@ describe('env.parser.parse tests', function() {
             function(done) {
                 env.parser.parse('http://nonexistent-server.com/nonexistent-file.json', function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(Error);
-                    expect(err.message).to.match(/Error downloading file|Error parsing file/);
+                    expect(err.message).to.match(/Error downloading file|Error parsing file|The object is not a valid Swagger API definition/);
                     expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
@@ -307,18 +307,6 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('bad/invalid.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('Additional properties not allowed');
-                    expect(api).to.be.null;
-                    expect(metadata).to.satisfy(env.isMetadata);
-                    done();
-                });
-            }
-        );
-
-        it('should return an error if an external reference uses an invalid protocol',
-            function(done) {
-                env.parser.parse(env.getPath('bad/invalid-external-protocol.yaml'), function(err, api, metadata) {
-                    expect(err).to.be.an.instanceOf(Error);
-                    expect(err.message).to.contain('"abc://google.com" could not be found');
                     expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();

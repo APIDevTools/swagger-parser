@@ -18,6 +18,21 @@ env.resolved.externalRefs =
               '$ref': './pet.yaml'
             }
           },
+          '300': {
+            'description': 'references a file with no extension',
+            'schema': {
+              '$ref': './pet'
+            }
+          },
+          '400': {
+            'description': 'references a plain-text file',
+            'schema': {
+              'type': 'string',
+              'example': {
+                '$ref': 'text.txt'
+              }
+            }
+          },
           'default': {
             'description': 'references the "error.json" file',
             'schema': {

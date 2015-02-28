@@ -78,7 +78,9 @@ describe('Resolution tests', function() {
                     // The $refs should be normalized but NOT dereferenced
                     var $refs = {};
                     $refs['pet.yaml'] = $refs['./pet.yaml'] = $refs['../files/pet.yaml'] = $refs[env.getAbsolutePath('pet.yaml')] = env.resolved.pet;
+                    $refs['./pet'] = $refs[env.getAbsolutePath('pet')] = env.resolved.pet;
                     $refs['error.json'] = $refs[env.getAbsolutePath('error.json')] = env.resolved.errorExternal;
+                    $refs['text.txt'] = $refs[env.getAbsolutePath('text.txt')] = env.resolved.text;
 
                     expect(metadata).to.satisfy(env.isMetadata);
                     expect(metadata.$refs).to.deep.equal($refs);
@@ -386,7 +388,9 @@ describe('Resolution tests', function() {
                     expect(paths).to.have.same.members([
                         env.getAbsolutePath('external-refs.yaml'),
                         env.getAbsolutePath('error.json'),
-                        env.getAbsolutePath('pet.yaml')
+                        env.getAbsolutePath('pet.yaml'),
+                        env.getAbsolutePath('pet'),
+                        env.getAbsolutePath('text.txt')
                     ]);
 
                     done();
