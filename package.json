@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Swagger JSON/YAML parser and validator for Node and browsers",
   "keywords": [
     "swagger",
@@ -29,7 +29,7 @@
     "test": "istanbul cover _mocha -- --recursive tests && karma start --single-run",
     "mocha": "mocha --recursive tests",
     "karma": "karma start --single-run",
-    "release": "npm-check-updates -u && npm update && npm run build && npm test && bump --prompt --push"
+    "release": "npm-check-updates -u && npm update && npm run build && npm test && bump --prompt --tag --push --all"
   },
   "repository": {
     "type": "git",
@@ -67,7 +67,7 @@
     "nock": "^0.59",
     "npm-check-updates": "^1.5.1",
     "sinon": "^1.12.2",
-    "version-bump-prompt": "^0.2.5",
+    "version-bump-prompt": "^1.0.1",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.0.0"
   }
