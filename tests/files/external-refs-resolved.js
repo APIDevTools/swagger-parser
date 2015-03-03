@@ -33,6 +33,15 @@ env.resolved.externalRefs =
               }
             }
           },
+          '500': {
+            'description': 'references a binary file',
+            'schema': {
+              'type': 'file',
+              'example': {
+                '$ref': 'image.gif'
+              }
+            }
+          },
           'default': {
             'description': 'references the "error.json" file',
             'schema': {

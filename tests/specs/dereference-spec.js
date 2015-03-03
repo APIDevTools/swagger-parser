@@ -39,6 +39,15 @@ describe('Dereferencing tests', function() {
             function(done) {
                 env.parser.parse(env.getPath('external-refs.yaml'), function(err, api) {
                     if (err) return done(err);
+
+                    if (env.isBrowser) {
+                        // Browsers differ in how they convert binary data to strings,
+                        // so we can't compare the exact data for the external image file
+                        var imageSchema = api.paths['/pets'].post.responses[500].schema;
+                        expect(imageSchema.example).to.be.a('string').and.not.empty;
+                        imageSchema.example = '';
+                    }
+
                     expect(api).to.deep.equal(env.dereferenced.externalRefs);
                     done();
                 });

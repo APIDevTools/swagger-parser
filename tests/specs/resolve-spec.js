@@ -82,6 +82,18 @@ describe('Resolution tests', function() {
                     $refs['error.json'] = $refs[env.getAbsolutePath('error.json')] = env.resolved.errorExternal;
                     $refs['text.txt'] = $refs[env.getAbsolutePath('text.txt')] = env.resolved.text;
 
+                    if (env.isNode) {
+                        $refs['image.gif'] = $refs[env.getAbsolutePath('image.gif')] = env.resolved.image;
+                    }
+                    else {
+                        // Browsers differ in how they convert binary data to strings,
+                        // so we can't compare the exact data for the external image file
+                        expect(metadata.$refs['image.gif']).to.be.a('string').and.not.empty;
+                        expect(metadata.$refs['image.gif']).to.equal(metadata.$refs[env.getAbsolutePath('image.gif')]);
+                        delete metadata.$refs['image.gif'];
+                        delete metadata.$refs[env.getAbsolutePath('image.gif')]
+                    }
+
                     expect(metadata).to.satisfy(env.isMetadata);
                     expect(metadata.$refs).to.deep.equal($refs);
 
@@ -390,7 +402,8 @@ describe('Resolution tests', function() {
                         env.getAbsolutePath('error.json'),
                         env.getAbsolutePath('pet.yaml'),
                         env.getAbsolutePath('pet'),
-                        env.getAbsolutePath('text.txt')
+                        env.getAbsolutePath('text.txt'),
+                        env.getAbsolutePath('image.gif')
                     ]);
 
                     done();

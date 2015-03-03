@@ -14,21 +14,23 @@ describe('Metadata tests', function() {
 
                 if (env.isBrowser) {
                     expect(metadata.files).to.have.lengthOf(0);
-                    expect(metadata.urls).to.have.lengthOf(5);
+                    expect(metadata.urls).to.have.lengthOf(6);
                     expect(metadata.urls[0].href).to.equal(env.getAbsolutePath('external-refs.yaml'));
                     expect(metadata.urls[1].href).to.equal(env.getAbsolutePath('error.json'));
                     expect(metadata.urls[2].href).to.equal(env.getAbsolutePath('pet.yaml'));
-                    expect(metadata.urls[3].href).to.equal(env.getAbsolutePath('text.txt'));
-                    expect(metadata.urls[4].href).to.equal(env.getAbsolutePath('pet'));
+                    expect(metadata.urls[3].href).to.equal(env.getAbsolutePath('image.gif'));
+                    expect(metadata.urls[4].href).to.equal(env.getAbsolutePath('text.txt'));
+                    expect(metadata.urls[5].href).to.equal(env.getAbsolutePath('pet'));
                 }
                 else {
                     expect(metadata.urls).to.have.lengthOf(0);
-                    expect(metadata.files).to.have.lengthOf(5);
+                    expect(metadata.files).to.have.lengthOf(6);
                     expect(metadata.files[0]).to.equal(env.getAbsolutePath('external-refs.yaml'));
                     expect(metadata.files[1]).to.equal(env.getAbsolutePath('error.json'));
                     expect(metadata.files[2]).to.equal(env.getAbsolutePath('pet.yaml'));
-                    expect(metadata.files[3]).to.equal(env.getAbsolutePath('text.txt'));
-                    expect(metadata.files[4]).to.equal(env.getAbsolutePath('pet'));
+                    expect(metadata.files[3]).to.equal(env.getAbsolutePath('image.gif'));
+                    expect(metadata.files[4]).to.equal(env.getAbsolutePath('text.txt'));
+                    expect(metadata.files[5]).to.equal(env.getAbsolutePath('pet'));
                 }
 
                 done();
@@ -117,13 +119,34 @@ describe('Metadata tests', function() {
                 var $ref9 = metadata.$refs['text.txt'];
                 var $ref10 = metadata.$refs[env.getAbsolutePath('text.txt')];
 
-                // They should both contain the same string
-                expect($ref9).to.be.a('string');
-                expect($ref10).to.be.a('string');
+                // They should both be references to the same Buffer
+                if (env.isNode) {
+                    expect($ref9).to.be.an.instanceOf(Buffer);
+                    expect($ref10).to.be.an.instanceOf(Buffer);
+                }
+                else {
+                    expect($ref9).to.be.a('string');
+                    expect($ref10).to.be.a('string');
+                }
                 expect($ref9).to.equal($ref10);
 
+                // "image.gif" is only referenced one way, but there should also be a pointer with the absolute path.
+                var $ref11 = metadata.$refs['image.gif'];
+                var $ref12 = metadata.$refs[env.getAbsolutePath('image.gif')];
+
+                // They should both be references to the same Buffer
+                if (env.isNode) {
+                    expect($ref11).to.be.an.instanceOf(Buffer);
+                    expect($ref12).to.be.an.instanceOf(Buffer);
+                }
+                else {
+                    expect($ref11).to.be.a('string');
+                    expect($ref12).to.be.a('string');
+                }
+                expect($ref11).to.equal($ref12);
+
                 // And there shouldn't be any other pointers
-                expect(Object.keys(metadata.$refs)).to.have.lengthOf(10);
+                expect(Object.keys(metadata.$refs)).to.have.lengthOf(12);
 
                 done();
             });

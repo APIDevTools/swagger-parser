@@ -36,6 +36,8 @@ module.exports = function(config) {
 
       // Swagger-Parser Tests
       'tests/test-environment.js',
+      'tests/files/text-resolved.js',
+      'tests/files/image-resolved.js',
       'tests/files/**/*-resolved.js',
       'tests/files/**/*-dereferenced.js',
       'tests/specs/**/*-spec.js',

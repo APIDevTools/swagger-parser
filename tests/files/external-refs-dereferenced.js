@@ -1,4 +1,6 @@
 require('../test-environment.js');
+require('./text-resolved.js');
+require('./image-resolved.js');
 
 env.dereferenced.externalRefs =
 {
@@ -52,7 +54,14 @@ env.dereferenced.externalRefs =
             'description': 'references a plain-text file',
             'schema': {
               'type': 'string',
-              'example': '{\n    \"This\": is just: a plain text file.\n\nNot: valid\n    - JSON\n    - or\n    - YAML\n}\n'
+              'example': env.resolved.text
+            }
+          },
+          '500': {
+            'description': 'references a binary file',
+            'schema': {
+              'type': 'file',
+              'example': env.resolved.image
             }
           },
           'default': {
