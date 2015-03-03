@@ -26,3 +26,6 @@
 *.png binary
 *.jpg binary
 *.jpeg binary
+
+# Omit specific test files from being modified
+/tests/files/text.txt binary
