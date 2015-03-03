@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Swagger JSON/YAML parser and validator for Node and browsers",
   "keywords": [
     "swagger",
@@ -36,7 +36,7 @@
     "url": "https://github.com/BigstickCarpet/swagger-parser.git"
   },
   "dependencies": {
-    "debug": "^2.1.1",
+    "debug": "^2.1.2",
     "js-yaml": "^3.2.7",
     "lodash": "^3.3.1",
     "swagger-schema-official": "2.0.0-a33091a",
