@@ -60,16 +60,18 @@ var env = {
      * Returns the relative path of the given test file, based on the current environment.
      */
     getPath: function(fileName) {
+        var encodedFileName = encodeURIComponent(fileName).split('%2F').join('/');
+
         if (env.isNode) {
             return path.join('tests', 'files', fileName);
         }
         else if (window.location.href.indexOf(env.__dirname) === 0) {
             // We're running in the "/tests" directory
-            return 'files/' + fileName;
+            return 'files/' + encodedFileName;
         }
         else {
             // We're running from a different path, so use the absolute path, but remove the hostname
-            return env.__dirname.replace(/^https?:\/\/[^\/]+(\/.*)/, '$1/files/' + fileName);
+            return env.__dirname.replace(/^https?:\/\/[^\/]+(\/.*)/, '$1/files/' + encodedFileName);
         }
     },
 
@@ -79,7 +81,7 @@ var env = {
      */
     getAbsolutePath: function(fileName) {
         if (env.isNode) {
-            return url.parse(__dirname + '/files/' + fileName).href; // jshint ignore:line
+            return path.join(__dirname, 'files', fileName || '/');
         }
         else {
             return env.__dirname + '/files/' + fileName;

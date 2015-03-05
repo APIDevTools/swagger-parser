@@ -26,6 +26,22 @@ describe('env.parser.parse tests', function() {
             }
         );
 
+        it('should parse a file with special characters in the path',
+            function(done) {
+                var swaggerFilePath = '__({[ ! % & $ # @ ` ~ ,)}]__/__({[ ! % & $ # @ ` ~ ,)}]__.yaml';
+                if (env.isBrowser) {
+                    swaggerFilePath = '__({[ ! % & $ # @ ` ~ ,)}]__/__({[ ! % & $ # @ ` ~ ,)}]__-web.yaml';
+                }
+
+                env.parser.parse(env.getPath(swaggerFilePath), function(err, api, metadata) {
+                    if (err) return done(err);
+                    expect(api).to.deep.equal(env.dereferenced.specialCharacters);
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
+
         it('can be called with a String object',
             function(done) {
                 //noinspection JSPrimitiveTypeWrapperUsage
@@ -318,7 +334,7 @@ describe('env.parser.parse tests', function() {
             function(done) {
                 env.parser.parse(env.getPath('bad/invalid-external-host.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(Error);
-                    expect(err.message).to.contain('URI');
+                    expect(err.message).to.match(/Error downloading file|URI malformed|malformed URI|URI error|URIError/);
                     expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();

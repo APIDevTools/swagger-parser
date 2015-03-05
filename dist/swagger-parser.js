@@ -296,21 +296,18 @@ function parseSwaggerFile(swagger, state, callback) {
  * @returns {string}                    The resolved absolute file path or URL
  */
 function resolveSwaggerPath(pathOrUrl, state) {
-    // Coerce String objects to string primitives
-    pathOrUrl = pathOrUrl.toString();
-
     // Resolve the file path or url, relative to the CWD
     var cwd = util.cwd();
-    util.debug('Resolving Swagger path "%s", relative to "%s"', pathOrUrl, cwd);
-    pathOrUrl = url.resolve(cwd, pathOrUrl);
-    util.debug('    Resolved to %s', pathOrUrl);
+    var resolvedPath = util.resolvePath(cwd, pathOrUrl + '');
+    state.swaggerPath = resolvedPath;
 
-    // Update the state
-    state.swaggerPath = pathOrUrl;
-    state.baseDir = path.dirname(pathOrUrl) + '/';
+    // Get the directory of the Swagger file.
+    // Always append a path separator, since this is a directory path, not a file path;
+    // otherwise, {@link url#resolve} will treat it as a file path, which won't work.
+    state.baseDir = path.dirname(resolvedPath) + (util.isBrowser() ? '/' : path.sep);
     util.debug('Swagger base directory: %s', state.baseDir);
 
-    return pathOrUrl;
+    return resolvedPath;
 }
 
 
@@ -379,9 +376,9 @@ function read(pathOrUrl, state, callback) {
     try {
         // Determine whether its a local file or a URL
         var parsedUrl = url.parse(pathOrUrl);
-        if (isLocalFile(parsedUrl)) {
-            state.files.push(parsedUrl.href);
-            readFile(parsedUrl.href, state, callback);
+        if (isLocalFile(pathOrUrl)) {
+            state.files.push(pathOrUrl);
+            readFile(pathOrUrl, state, callback);
         }
         else {
             state.urls.push(parsedUrl);
@@ -525,9 +522,7 @@ function isLocalFile(parsedUrl) {
         return true;
     }
 
-    // If all else fails, then determine based on the protocol
-    // NOTE: The following are all considered local files: "file://path/to/file", "/path/to/file", "c:\path\to\file"
-    return parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:';
+    return util.isLocalPath(parsedUrl);
 }
 
 
@@ -578,8 +573,7 @@ function parseJsonOrYaml(pathOrUrl, data, state) {
 
 module.exports = resolve;
 
-var url       = require('url'),
-    read      = require('./read'),
+var read      = require('./read'),
     util      = require('./util'),
     _last     = require('lodash/array/last'),
     _result   = require('lodash/object/result'),
@@ -817,7 +811,7 @@ function resolveExternal$Ref($ref, state, callback) {
 function normalize$Ref($ref, state) {
     if (isExternal$Ref($ref)) {
         // Normalize the pointer value by resolving the path/URL relative to the Swagger file.
-        return url.resolve(state.baseDir, $ref);
+        return util.resolvePath(state.baseDir, $ref);
     }
     else {
         if ($ref.indexOf('#/') === 0) {
@@ -877,7 +871,7 @@ function cache$Ref($ref, resolved, state) {
     state.$refs[normalized] = resolved;
 }
 
-},{"./read":5,"./util":8,"lodash/array/last":80,"lodash/lang/isEmpty":119,"lodash/object/has":128,"lodash/object/result":133,"url":42}],7:[function(require,module,exports){
+},{"./read":5,"./util":8,"lodash/array/last":80,"lodash/lang/isEmpty":119,"lodash/object/has":128,"lodash/object/result":133}],7:[function(require,module,exports){
 'use strict';
 
 module.exports = State;
@@ -940,6 +934,7 @@ function State() {
 'use strict';
 
 var fs             = require('fs'),
+    Path           = require('path'),
     url            = require('url'),
     format         = require('util').format,
     _drop          = require('lodash/array/drop'),
@@ -1111,6 +1106,57 @@ var util = module.exports = {
 
 
     /**
+     * Determines whether the given path is a local path (as opposed to a remote path or URL).
+     * NOTE: This does NOT verify that the path exists or is valid.
+     *
+     * @param   {string}    path    A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
+     * @returns {boolean}
+     */
+    isLocalPath: function(path) {
+        // NOTE: The following are all considered local files: "file://path/to/file", "/path/to/file", "c:\path\to\file"
+        var pathAsUrl = url.parse(path);
+        return pathAsUrl.protocol !== 'http:' && pathAsUrl.protocol !== 'https:';
+    },
+
+
+    /**
+     * Resolves the given paths to an absolute path.
+     * NOTE: This does NOT verify that the path exists or is valid.
+     *
+     * @param   {string}    basePath
+     * The base path, which must be absolute (e.g. "/base/path", "c:\base\path", "http://company.com/base/path")
+     *
+     * @param   {string}    path
+     * The path to be resolved, which may be relative or absolute. (e.g. "path/to/file", "path\to\file")
+     *
+     * @returns {string}
+     * The resolved, absolute path. (e.g. "/full/path/to/file", "c:\full\path\to\file", "http://company.com/full/path/to/file")
+     */
+    resolvePath: function(basePath, path) {
+        util.debug('Resolving path "%s", relative to "%s"', path, basePath);
+
+        if (!util.isBrowser() && util.isLocalPath(basePath)) {
+            // Convert local paths to URLs first, so they play nice with url.resolve().
+            basePath = url.format({pathname: encodeURI(basePath)});
+            path = url.format({pathname: encodeURI(path)});
+        }
+
+        // url.resolve() works across all environments (Linux, Mac, Windows, browsers),
+        // even if basePath and path are different types (e.g. one is a URL, the other is a local path)
+        var resolvedUrl = url.resolve(basePath, path);
+
+        if (!util.isBrowser() && util.isLocalPath(resolvedUrl)) {
+            // Convert the URL string back to a local path
+            resolvedUrl = decodeURIComponent(resolvedUrl);
+            resolvedUrl = Path.normalize(resolvedUrl);
+        }
+
+        util.debug('    Resolved to %s', resolvedUrl);
+        return resolvedUrl;
+    },
+
+
+    /**
      * Normalizes the current working directory across environments (Linux, Mac, Windows, browsers).
      * The returned path will use forward slashes ("/"), even on Windows,
      * and will always include a trailing slash, even at the root of a website (e.g. "http://google.com/")
@@ -1170,7 +1216,7 @@ function errorDump(err, message, params) {
 
 }).call(this,require('_process'))
 
-},{"_process":22,"debug":45,"fs":9,"lodash/array/drop":79,"lodash/lang/isArray":118,"lodash/lang/isFunction":120,"lodash/lang/isPlainObject":124,"lodash/object/keys":129,"lodash/utility/noop":139,"url":42,"util":44}],9:[function(require,module,exports){
+},{"_process":22,"debug":45,"fs":9,"lodash/array/drop":79,"lodash/lang/isArray":118,"lodash/lang/isFunction":120,"lodash/lang/isPlainObject":124,"lodash/object/keys":129,"lodash/utility/noop":139,"path":21,"url":42,"util":44}],9:[function(require,module,exports){
 
 },{}],10:[function(require,module,exports){
 arguments[4][9][0].apply(exports,arguments)
