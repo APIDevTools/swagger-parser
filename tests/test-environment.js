@@ -120,7 +120,7 @@ if (env.isNode) {
     env.global = global;
     env.parser = require('../');
     env.__filename = __filename;
-    env.__dirname = __dirname;
+    env.__dirname = __dirname = __dirname.substr(0, 1).toLowerCase() + __dirname.substr(1); // C:\ => c:\
 
     // Set globals for use in tests
     global.env = env;
