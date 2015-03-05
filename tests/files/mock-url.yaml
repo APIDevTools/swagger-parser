@@ -1,0 +1,13 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: mock url
+  description: This file includes $refs to a mock HTTP server
+paths:
+  /pets:
+    post:
+      responses:
+        default:
+          description: references the mock HTTP server
+          schema:
+            $ref: http://mock/path/to/api.yaml

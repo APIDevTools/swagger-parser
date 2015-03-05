@@ -342,76 +342,88 @@ describe('env.parser.parse tests', function() {
             }
         );
 
+    });
+
+
+    describe('Mock HTTP tests', function() {
+        var MOCK_URL = 'http://mock/path/to/api.yaml';
+
+        function mockHttpResponse(responseCode, response) {
+            var nock = require('nock');
+            nock('http://mock').get('/path/to/api.yaml').reply(responseCode, response);
+        }
 
         // TODO: Find an XHR mock that works with Browserify's "http" module, so we can run these tests in browsers too
         if (env.isNode) {
+            it('should parse an API that includes external $refs to remote URLs',
+                function(done) {
+                    mockHttpResponse(200, 'type: object');
 
-            describe('Mock HTTP tests', function() {
-                var MOCK_URL = 'http://mock/path/to/api.yaml';
-
-                function mockHttpResponse(responseCode, response) {
-                    var nock = require('nock');
-                    nock('http://mock').get('/path/to/api.yaml').reply(responseCode, response);
+                    env.parser.parse(env.getPath('mock-url.yaml'), function(err, api, metadata) {
+                        if (err) return done(err);
+                        expect(api).to.deep.equal(env.dereferenced.mockUrl);
+                        expect(metadata).to.satisfy(env.isMetadata);
+                        done();
+                    });
                 }
+            );
 
-                it('should return an error if an HTTP 204 error occurs',
-                    function(done) {
-                        mockHttpResponse(204);
+            it('should return an error if an HTTP 204 error occurs',
+                function(done) {
+                    mockHttpResponse(204);
 
-                        env.parser.parse(MOCK_URL, function(err, api, metadata) {
-                            expect(err).to.be.an.instanceOf(Error);
-                            expect(err.message).to.contain('HTTP 204: No Content');
-                            expect(api).to.be.null;
-                            expect(metadata).to.satisfy(env.isMetadata);
-                            done();
-                        });
-                    }
-                );
+                    env.parser.parse(MOCK_URL, function(err, api, metadata) {
+                        expect(err).to.be.an.instanceOf(Error);
+                        expect(err.message).to.contain('HTTP 204: No Content');
+                        expect(api).to.be.null;
+                        expect(metadata).to.satisfy(env.isMetadata);
+                        done();
+                    });
+                }
+            );
 
-                it('should return an error if an HTTP 4XX error occurs',
-                    function(done) {
-                        mockHttpResponse(404);
+            it('should return an error if an HTTP 4XX error occurs',
+                function(done) {
+                    mockHttpResponse(404);
 
-                        env.parser.parse(MOCK_URL, function(err, api, metadata) {
-                            expect(err).to.be.an.instanceOf(Error);
-                            expect(err.message).to.contain('HTTP ERROR 404');
-                            expect(api).to.be.null;
-                            expect(metadata).to.satisfy(env.isMetadata);
-                            done();
-                        });
-                    }
-                );
+                    env.parser.parse(MOCK_URL, function(err, api, metadata) {
+                        expect(err).to.be.an.instanceOf(Error);
+                        expect(err.message).to.contain('HTTP ERROR 404');
+                        expect(api).to.be.null;
+                        expect(metadata).to.satisfy(env.isMetadata);
+                        done();
+                    });
+                }
+            );
 
-                it('should return an error if an HTTP 5XX error occurs',
-                    function(done) {
-                        mockHttpResponse(500);
+            it('should return an error if an HTTP 5XX error occurs',
+                function(done) {
+                    mockHttpResponse(500);
 
-                        env.parser.parse(MOCK_URL, function(err, api, metadata) {
-                            expect(err).to.be.an.instanceOf(Error);
-                            expect(err.message).to.contain('HTTP ERROR 500');
-                            expect(api).to.be.null;
-                            expect(metadata).to.satisfy(env.isMetadata);
-                            done();
-                        });
-                    }
-                );
+                    env.parser.parse(MOCK_URL, function(err, api, metadata) {
+                        expect(err).to.be.an.instanceOf(Error);
+                        expect(err.message).to.contain('HTTP ERROR 500');
+                        expect(api).to.be.null;
+                        expect(metadata).to.satisfy(env.isMetadata);
+                        done();
+                    });
+                }
+            );
 
-                it('should return an error if the response is invalid JSON or YAML',
-                    function(done) {
-                        mockHttpResponse(200, ':');
+            it('should return an error if the response is invalid JSON or YAML',
+                function(done) {
+                    mockHttpResponse(200, ':');
 
-                        env.parser.parse(MOCK_URL, function(err, api, metadata) {
-                            expect(err).to.be.an.instanceOf(SyntaxError);
-                            expect(err.message).to.contain('Error parsing file');
-                            expect(api).to.be.null;
-                            expect(metadata).to.satisfy(env.isMetadata);
-                            done();
-                        });
-                    }
-                );
-            });
-
+                    env.parser.parse(MOCK_URL, function(err, api, metadata) {
+                        expect(err).to.be.an.instanceOf(SyntaxError);
+                        expect(err.message).to.contain('Error parsing file');
+                        expect(api).to.be.null;
+                        expect(metadata).to.satisfy(env.isMetadata);
+                        done();
+                    });
+                }
+            );
         }
-
     });
+
 });

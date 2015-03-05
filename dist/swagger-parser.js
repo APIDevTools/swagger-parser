@@ -147,8 +147,7 @@ function isCircularReference(resolved, parents) {
 
 module.exports = parse;
 
-var path                     = require('path'),
-    url                      = require('url'),
+var Path                     = require('path'),
     tv4                      = require('tv4'),
     swaggerSchema            = require('swagger-schema-official/schema'),
     read                     = require('./read'),
@@ -251,8 +250,8 @@ function parse(swagger, options, callback) {
 function parseSwaggerFile(swagger, state, callback) {
     if (_isString(swagger)) {
         // Open/download the file/URL
-        var pathOrUrl = resolveSwaggerPath(swagger, state);
-        read(pathOrUrl, state, verifyParsedAPI);
+        var path = resolveSwaggerPath(swagger, state);
+        read(path, state, verifyParsedAPI);
     }
     else {
         // It's already a parsed object, but we still need to validate it
@@ -291,20 +290,19 @@ function parseSwaggerFile(swagger, state, callback) {
 /**
  * Resolves the given file path or URL to determine the Swagger base directory.
  *
- * @param   {string}    pathOrUrl       The absolute or relative file or URL
- * @param   {State}     state           The state for the current parse operation
- * @returns {string}                    The resolved absolute file path or URL
+ * @param   {string}    path        The absolute or relative file or URL
+ * @param   {State}     state       The state for the current parse operation
+ * @returns {string}                The resolved absolute file path or URL
  */
-function resolveSwaggerPath(pathOrUrl, state) {
+function resolveSwaggerPath(path, state) {
     // Resolve the file path or url, relative to the CWD
     var cwd = util.cwd();
-    var resolvedPath = util.resolvePath(cwd, pathOrUrl + '');
+    var resolvedPath = util.resolvePath(cwd, path + '');
     state.swaggerPath = resolvedPath;
 
     // Get the directory of the Swagger file.
-    // Always append a path separator, since this is a directory path, not a file path;
-    // otherwise, {@link url#resolve} will treat it as a file path, which won't work.
-    state.baseDir = path.dirname(resolvedPath) + (util.isBrowser() ? '/' : path.sep);
+    // Always append a trailing slash, to ensure that it behaves properly with {@link url#resolve}.
+    state.baseDir = Path.dirname(resolvedPath) + (util.isBrowser() ? '/' : Path.sep);
     util.debug('Swagger base directory: %s', state.baseDir);
 
     return resolvedPath;
@@ -350,13 +348,13 @@ function getMetadata(state) {
 }
 
 
-},{"./defaults":2,"./dereference":3,"./read":5,"./resolve":6,"./state":7,"./util":8,"lodash/lang/cloneDeep":116,"lodash/lang/isEmpty":119,"lodash/lang/isFunction":120,"lodash/lang/isNumber":122,"lodash/lang/isString":125,"lodash/object/merge":131,"lodash/object/pick":132,"path":21,"swagger-schema-official/schema":140,"tv4":141,"url":42}],5:[function(require,module,exports){
+},{"./defaults":2,"./dereference":3,"./read":5,"./resolve":6,"./state":7,"./util":8,"lodash/lang/cloneDeep":116,"lodash/lang/isEmpty":119,"lodash/lang/isFunction":120,"lodash/lang/isNumber":122,"lodash/lang/isString":125,"lodash/object/merge":131,"lodash/object/pick":132,"path":21,"swagger-schema-official/schema":140,"tv4":141}],5:[function(require,module,exports){
 'use strict';
 
 module.exports = read;
 
 var fs             = require('fs'),
-    path           = require('path'),
+    Path           = require('path'),
     http           = require('http'),
     url            = require('url'),
     yaml           = require('js-yaml'),
@@ -368,19 +366,18 @@ var fs             = require('fs'),
 
 /**
  * Reads a JSON or YAML file from the local filesystem or a remote URL and returns the parsed POJO.
- * @param {string}    pathOrUrl   A full, absolute file path or URL
+ * @param {string}    path        A full, absolute file path or URL
  * @param {State}     state       The state for the current parse operation
  * @param {function}  callback    function(err, parsedObject)
  */
-function read(pathOrUrl, state, callback) {
+function read(path, state, callback) {
     try {
-        // Determine whether its a local file or a URL
-        var parsedUrl = url.parse(pathOrUrl);
-        if (isLocalFile(pathOrUrl)) {
-            state.files.push(pathOrUrl);
-            readFile(pathOrUrl, state, callback);
+        if (isLocalFile(path)) {
+            state.files.push(path);
+            readFile(path, state, callback);
         }
         else {
+            var parsedUrl = url.parse(path);
             state.urls.push(parsedUrl);
             readUrl(parsedUrl, state, callback);
         }
@@ -508,41 +505,42 @@ function readUrl(parsedUrl, state, callback) {
 
 /**
  * Determines whether the given path points to a local file that exists.
- * @param   {Url}       parsedUrl     A parsed Url object
+ * @param   {string}    path   A full, absolute file path or URL
  * @returns {boolean}
  */
-function isLocalFile(parsedUrl) {
+function isLocalFile(path) {
+    /* istanbul ignore if: code-coverage doesn't run in the browser */
     if (util.isBrowser()) {
         // Local files aren't supported in browsers
         return false;
     }
 
     // If the path exists locally, then treat the URL as a local file
-    if (fs.existsSync(parsedUrl.pathname)) {
+    if (fs.existsSync(path)) {
         return true;
     }
 
-    return util.isLocalPath(parsedUrl);
+    return util.isLocalPath(path);
 }
 
 
 /**
  * Parses a JSON or YAML string into a POJO.
- * @param   {string}  pathOrUrl
+ * @param   {string}  path
  * @param   {string}  data
  * @param   {State}   state
  * @returns {object}
  */
-function parseJsonOrYaml(pathOrUrl, data, state) {
+function parseJsonOrYaml(path, data, state) {
     var parsedObject;
 
     try {
         if (state.options.parseYaml) {
-            util.debug('Parsing YAML file "%s"', pathOrUrl);
+            util.debug('Parsing YAML file "%s"', path);
             parsedObject = yaml.safeLoad(data);
         }
         else {
-            util.debug('Parsing JSON file "%s"', pathOrUrl);
+            util.debug('Parsing JSON file "%s"', path);
             parsedObject = JSON.parse(data);
         }
 
@@ -554,7 +552,7 @@ function parseJsonOrYaml(pathOrUrl, data, state) {
         util.debug('    Parsed successfully');
     }
     catch (e) {
-        var ext = path.extname(pathOrUrl).toLowerCase();
+        var ext = Path.extname(path).toLowerCase();
         if (['.json', '.yaml', '.yml'].indexOf(ext) === -1) {
             // It's not a YAML or JSON file, so ignore the parsing error and just treat it as a string
             parsedObject = data;
@@ -1106,16 +1104,63 @@ var util = module.exports = {
 
 
     /**
-     * Determines whether the given path is a local path (as opposed to a remote path or URL).
+     * Determines whether the given path is a local filesystem path (as opposed to a remote path or URL).
      * NOTE: This does NOT verify that the path exists or is valid.
      *
-     * @param   {string}    path    A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
+     * @param   {string|Url}    path    A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
      * @returns {boolean}
      */
     isLocalPath: function(path) {
+        /* istanbul ignore if: code-coverage doesn't run in the browser */
+        if (util.isBrowser()) {
+            // Local paths are not allowed in browsers
+            return false;
+        }
+
         // NOTE: The following are all considered local files: "file://path/to/file", "/path/to/file", "c:\path\to\file"
-        var pathAsUrl = url.parse(path);
-        return pathAsUrl.protocol !== 'http:' && pathAsUrl.protocol !== 'https:';
+        path = url.parse(path);
+        return path.protocol !== 'http:' && path.protocol !== 'https:';
+    },
+
+
+    /**
+     * Normalizes a path or URL across all environments (Linux, Mac, Windows, browsers).
+     *
+     * @param   {string}    path       A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
+     * @param   {boolean}   [isLocal]  Set to true to treat `path` as a local path
+     * @returns {Url}
+     */
+    normalizePath: function(path, isLocal) {
+        isLocal = isLocal === undefined ? util.isLocalPath(path) : isLocal;
+
+        if (isLocal) {
+            path = encodeURI(path);
+            path = url.format({pathname: path});
+            return url.parse(path);
+        }
+        else {
+            return url.parse(path);
+        }
+    },
+
+
+    /**
+     * De-normalizes a path or URL to a string that is properly formatted.
+     *
+     * @param   {string}    path       A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
+     * @param   {boolean}   [isLocal]  Set to true to treat `path` as a local path
+     * @returns {string}
+     */
+    denormalizePath: function(path, isLocal) {
+        isLocal = isLocal === undefined ? util.isLocalPath(path) : isLocal;
+
+        if (isLocal) {
+            path = decodeURIComponent(path);
+            return Path.normalize(path);
+        }
+        else {
+            return path;
+        }
     },
 
 
@@ -1135,21 +1180,16 @@ var util = module.exports = {
     resolvePath: function(basePath, path) {
         util.debug('Resolving path "%s", relative to "%s"', path, basePath);
 
-        if (!util.isBrowser() && util.isLocalPath(basePath)) {
-            // Convert local paths to URLs first, so they play nice with url.resolve().
-            basePath = url.format({pathname: encodeURI(basePath)});
-            path = url.format({pathname: encodeURI(path)});
-        }
+        // Normalize the paths
+        var baseIsLocal = util.isLocalPath(basePath);
+        var pathIsLocal = util.isLocalPath(path);
+        basePath = util.normalizePath(basePath, baseIsLocal);
+        path = util.normalizePath(path, pathIsLocal && baseIsLocal);
 
         // url.resolve() works across all environments (Linux, Mac, Windows, browsers),
         // even if basePath and path are different types (e.g. one is a URL, the other is a local path)
         var resolvedUrl = url.resolve(basePath, path);
-
-        if (!util.isBrowser() && util.isLocalPath(resolvedUrl)) {
-            // Convert the URL string back to a local path
-            resolvedUrl = decodeURIComponent(resolvedUrl);
-            resolvedUrl = Path.normalize(resolvedUrl);
-        }
+        resolvedUrl = util.denormalizePath(resolvedUrl);
 
         util.debug('    Resolved to %s', resolvedUrl);
         return resolvedUrl;
@@ -1157,29 +1197,31 @@ var util = module.exports = {
 
 
     /**
-     * Normalizes the current working directory across environments (Linux, Mac, Windows, browsers).
-     * The returned path will use forward slashes ("/"), even on Windows,
-     * and will always include a trailing slash, even at the root of a website (e.g. "http://google.com/")
+     * Returns the current working directory across environments (Linux, Mac, Windows, browsers).
+     * The returned path always include a trailing slash to ensure that it behaves properly with {@link url#resolve}.
+     *
      * @returns {string}
      */
     cwd: function() {
-        var path = util.isBrowser() ? window.location.href : process.cwd() + '/';
-
-        // Parse the path as a URL, which normalizes it across all platforms
-        var parsedUrl = url.parse(path);
+        /* istanbul ignore next: code-coverage doesn't run in the browser */
+        var cwd = util.isBrowser() ? window.location.href : process.cwd() + '/';
+        cwd = util.normalizePath(cwd);
 
         // Remove the file name (if any) from the pathname
-        var lastSlash = parsedUrl.pathname.lastIndexOf('/') + 1;
-        parsedUrl.pathname = parsedUrl.pathname.substr(0, lastSlash);
+        var lastSlash = cwd.pathname.lastIndexOf('/') + 1;
+        cwd.pathname = cwd.pathname.substr(0, lastSlash);
 
         // Remove everything after the pathname
-        parsedUrl.path = null;
-        parsedUrl.search = null;
-        parsedUrl.query = null;
-        parsedUrl.hash = null;
+        cwd.path = null;
+        cwd.search = null;
+        cwd.query = null;
+        cwd.hash = null;
 
-        // Now re-parse the URL with only the remaining parts
-        return url.format(parsedUrl);
+        // Format and denormalize only the remaining parts of the URL
+        cwd = url.format(cwd);
+        cwd = util.denormalizePath(cwd);
+
+        return cwd;
     }
 };
 
