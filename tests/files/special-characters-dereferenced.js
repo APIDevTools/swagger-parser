@@ -1,4 +1,4 @@
-require('../../test-environment.js');
+require('../test-environment.js');
 
 env.dereferenced.specialCharacters =
 {
