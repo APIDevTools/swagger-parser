@@ -358,7 +358,7 @@ function getMetadata(state) {
 }
 
 
-},{"./defaults":2,"./dereference":3,"./read":5,"./resolve":6,"./state":7,"./util":8,"lodash/lang/cloneDeep":116,"lodash/lang/isEmpty":119,"lodash/lang/isFunction":120,"lodash/lang/isNumber":122,"lodash/lang/isString":125,"lodash/object/merge":131,"lodash/object/pick":132,"path":21,"swagger-schema-official/schema":140,"tv4":141}],5:[function(require,module,exports){
+},{"./defaults":2,"./dereference":3,"./read":5,"./resolve":6,"./state":7,"./util":8,"lodash/lang/cloneDeep":116,"lodash/lang/isEmpty":119,"lodash/lang/isFunction":120,"lodash/lang/isNumber":122,"lodash/lang/isString":125,"lodash/object/merge":131,"lodash/object/pick":132,"path":21,"swagger-schema-official/schema":139,"tv4":140}],5:[function(require,module,exports){
 'use strict';
 
 module.exports = read;
@@ -947,7 +947,6 @@ var fs             = require('fs'),
     url            = require('url'),
     format         = require('util').format,
     _drop          = require('lodash/array/drop'),
-    _noop          = require('lodash/utility/noop'),
     _keys          = require('lodash/object/keys'),
     _isFunction    = require('lodash/lang/isFunction'),
     _isArray       = require('lodash/lang/isArray'),
@@ -999,7 +998,7 @@ var util = module.exports = {
      * @param   {string}        [path]
      * The starting path of the object (e.g. "/definitions/pet")
      *
-     * @param   {function}      [callback]
+     * @param   {function}      callback
      * Called when the entire object tree is done being crawled, or when an error occurs.
      * The signature is `function(err, obj)`.
      *
@@ -1015,10 +1014,6 @@ var util = module.exports = {
             forEach = callback;
             callback = path;
             path = '';
-        }
-        if (!_isFunction(forEach)) {
-            forEach = callback;
-            callback = _noop;
         }
 
         // Do nothing if it's not an object or array
@@ -1279,7 +1274,7 @@ function errorDump(err, message, params) {
 
 }).call(this,require('_process'))
 
-},{"_process":22,"debug":45,"fs":9,"lodash/array/drop":79,"lodash/lang/isArray":118,"lodash/lang/isFunction":120,"lodash/lang/isPlainObject":124,"lodash/object/keys":129,"lodash/utility/noop":139,"path":21,"url":42,"util":44}],9:[function(require,module,exports){
+},{"_process":22,"debug":45,"fs":9,"lodash/array/drop":79,"lodash/lang/isArray":118,"lodash/lang/isFunction":120,"lodash/lang/isPlainObject":124,"lodash/object/keys":129,"path":21,"url":42,"util":44}],9:[function(require,module,exports){
 
 },{}],10:[function(require,module,exports){
 arguments[4][9][0].apply(exports,arguments)
@@ -19005,27 +19000,6 @@ function identity(value) {
 module.exports = identity;
 
 },{}],139:[function(require,module,exports){
-/**
- * A no-operation function which returns `undefined` regardless of the
- * arguments it receives.
- *
- * @static
- * @memberOf _
- * @category Utility
- * @example
- *
- * var object = { 'user': 'fred' };
- *
- * _.noop(object) === undefined;
- * // => true
- */
-function noop() {
-  // No operation performed.
-}
-
-module.exports = noop;
-
-},{}],140:[function(require,module,exports){
 module.exports={
   "title": "A JSON Schema for Swagger 2.0 API.",
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -20508,7 +20482,7 @@ module.exports={
     }
   }
 }
-},{}],141:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 /*
 Author: Geraint Luff and others
 Year: 2013
