@@ -43,7 +43,9 @@ describe('Real-world tests', function() {
         testsCreated++;
         it(testsCreated + ') ' + path.relative(realWorldDir, file),
             function(done) {
-                this.timeout(5000); // Some of these APIs are REALLY big!
+                // Some of these APIs are REALLY big, so increase the timeouts
+                this.timeout(6000); 
+                this.slow(3000);
 
                 env.parser.parse(file, function(err, api, metadata) {
                     if (err) {
