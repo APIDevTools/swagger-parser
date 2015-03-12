@@ -20,6 +20,7 @@ Features
 * Dereferences all __$ref__ pointers, including pointers to __external files and URLs__
 * Asynchronously downloads and __caches__ external files and URLs
 * __Tested__ in Node.js and all major web browsers on Windows, Mac, and Linux
+* Tested on [over  100 __real-world__ APIs](https://github.com/APIs-guru/api-models)
 * Supports nested $ref pointers, even in external files and URLs
 * Supports circular $ref pointers (see [notes](#circular-refs) below)
 * Multiple $ref pointers to the same object are resolved to the [same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124)

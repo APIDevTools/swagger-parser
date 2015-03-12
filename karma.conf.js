@@ -48,7 +48,10 @@ module.exports = function(config) {
 
 
     // list of files to exclude
-    exclude: [],
+    exclude: [
+        // These tests only run in Node
+        'tests/specs/real-world-spec.js'
+    ],
 
 
     // preprocess matching files before serving them to the browser
