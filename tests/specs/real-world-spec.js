@@ -5,12 +5,12 @@ describe('Real-world tests', function() {
     'use strict';
 
     var testsCreated = 0;
-    var currentDir = path.join(__dirname, '..', 'files', 'real-world');
-    createTests(currentDir);
+    var realWorldDir = path.join(__dirname, '..', 'files', 'real-world');
 
-    if (testsCreated < 50) {
-        // Something went wrong
-        throw new Error('Unable to initialize real-world tests.  Perhaps the "/tests/files/real-world" directory is empty?');
+    createTests(realWorldDir);
+
+    if (testsCreated === 0) {
+        throw new Error('Unable to initialize real-world tests. Check the "' + realWorldDir + '" directory.');
     }
 
     /**
@@ -29,7 +29,7 @@ describe('Real-world tests', function() {
                 createTest(fullName);
             }
             else if (stat.isDirectory()) {
-                // Recursively process this sub-directories
+                // Recursively process this sub-directory
                 createTests(fullName);
             }
         });
@@ -41,7 +41,7 @@ describe('Real-world tests', function() {
      */
     function createTest(file) {
         testsCreated++;
-        it(testsCreated + ') ' + file,
+        it(testsCreated + ') ' + path.relative(realWorldDir, file),
             function(done) {
                 this.timeout(5000); // Some of these APIs are REALLY big!
 
@@ -51,7 +51,10 @@ describe('Real-world tests', function() {
                         expect(err.message).to.contain('circular reference(s) detected')
                     }
 
-                    expect(api).to.be.an('object');
+                    expect(api).to.be.an('object').and.not.empty;
+                    expect(api.swagger).to.be.a('string').and.not.empty;
+                    expect(api.info).to.be.an('object').and.not.empty;
+                    expect(api.paths).to.be.an('object');                   // <-- api.paths can be empty
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });

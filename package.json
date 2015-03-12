@@ -42,7 +42,7 @@
   "dependencies": {
     "debug": "^2.1.2",
     "js-yaml": "^3.2.7",
-    "lodash": "^3.3.1",
+    "lodash": "^3.5.0",
     "swagger-schema-official": "2.0.0-a33091a",
     "tv4": "^1.1.9"
   },
@@ -67,12 +67,12 @@
     "karma-phantomjs-launcher": "^0.1.4",
     "karma-safari-launcher": "^0.1.1",
     "karma-sinon": "^1.0.4",
-    "mocha": "^2.1.0",
+    "mocha": "^2.2.1",
     "nock": "^1.1",
     "npm-check-updates": "^1.5.1",
     "sinon": "^1.13.0",
     "version-bump-prompt": "^1.0.1",
     "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.0.0"
+    "vinyl-source-stream": "^1.1.0"
   }
 }
