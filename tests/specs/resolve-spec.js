@@ -14,7 +14,7 @@ describe('Resolution tests', function() {
     describe('Success tests', function() {
         it('should not resolve shorthand pointers if "resolve$Refs" is false',
             function(done) {
-                env.parser.parse(env.getPath('shorthand-refs.yaml'), {resolve$Refs: false}, function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/shorthand-refs.yaml'), {resolve$Refs: false}, function(err, api, metadata) {
                     if (err) return done(err);
 
                     expect(api).to.deep.equal(env.resolved.shorthandRefs);
@@ -30,7 +30,7 @@ describe('Resolution tests', function() {
 
         it('should resolve shorthand "definition" references',
             function(done) {
-                env.parser.parse(env.getPath('shorthand-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     expect(api).to.deep.equal(env.resolved.shorthandRefs);
@@ -49,7 +49,7 @@ describe('Resolution tests', function() {
 
         it('should not resolve external pointers if "resolveExternal$Refs" is false',
             function(done) {
-                env.parser.parse(env.getPath('external-refs.yaml'), {resolveExternal$Refs: false}, function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/external-refs.yaml'), {resolveExternal$Refs: false}, function(err, api, metadata) {
                     if (err) return done(err);
 
                     expect(api).to.deep.equal(env.resolved.externalRefs);
@@ -65,27 +65,27 @@ describe('Resolution tests', function() {
 
         it('should not resolve external pointers',
             function(done) {
-                env.parser.parse(env.getPath('external-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/external-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     expect(api).to.deep.equal(env.resolved.externalRefs);
 
                     var $refs = {};
-                    $refs['pet.yaml'] = $refs['./pet.yaml'] = $refs['../files/pet.yaml'] = $refs[env.getAbsolutePath('pet.yaml')] = env.resolved.pet;
-                    $refs['./pet'] = $refs[env.getAbsolutePath('pet')] = env.resolved.pet;
-                    $refs['error.json'] = $refs[env.getAbsolutePath('error.json')] = env.resolved.errorExternal;
-                    $refs['text.txt'] = $refs[env.getAbsolutePath('text.txt')] = env.resolved.text;
+                    $refs['pet.yaml'] = $refs['./pet.yaml'] = $refs['../../files/good/pet.yaml'] = $refs[env.getAbsolutePath('good/pet.yaml')] = env.resolved.pet;
+                    $refs['./pet'] = $refs[env.getAbsolutePath('good/pet')] = env.resolved.pet;
+                    $refs['error.json'] = $refs[env.getAbsolutePath('good/error.json')] = env.resolved.errorExternal;
+                    $refs['text.txt'] = $refs[env.getAbsolutePath('good/text.txt')] = env.resolved.text;
 
                     if (env.isNode) {
-                        $refs['image.gif'] = $refs[env.getAbsolutePath('image.gif')] = env.resolved.image;
+                        $refs['image.gif'] = $refs[env.getAbsolutePath('good/image.gif')] = env.resolved.image;
                     }
                     else {
                         // Browsers differ in how they convert binary data to strings,
                         // so we can't compare the exact data for the external image file
                         expect(metadata.$refs['image.gif']).to.be.a('string').and.not.empty;
-                        expect(metadata.$refs['image.gif']).to.equal(metadata.$refs[env.getAbsolutePath('image.gif')]);
+                        expect(metadata.$refs['image.gif']).to.equal(metadata.$refs[env.getAbsolutePath('good/image.gif')]);
                         delete metadata.$refs['image.gif'];
-                        delete metadata.$refs[env.getAbsolutePath('image.gif')]
+                        delete metadata.$refs[env.getAbsolutePath('good/image.gif')]
                     }
 
                     expect(metadata).to.satisfy(env.isMetadata);
@@ -98,15 +98,15 @@ describe('Resolution tests', function() {
 
         it('should resolve all types of references',
             function(done) {
-                env.parser.parse(env.getPath('refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     expect(api).to.deep.equal(env.resolved.refs);
 
                     var $refs = {};
                     $refs['pet'] = $refs['#/definitions/pet'] = $refs['#/paths//pets/post/responses/200/schema'] = env.resolved.pet;
-                    $refs['pet.yaml'] = $refs['../files/pet.yaml'] = $refs[env.getAbsolutePath('pet.yaml')] = env.resolved.pet;
-                    $refs['./error.json'] = $refs[env.getAbsolutePath('error.json')] = env.resolved.errorExternal;
+                    $refs['pet.yaml'] = $refs['../../files/good/pet.yaml'] = $refs[env.getAbsolutePath('good/pet.yaml')] = env.resolved.pet;
+                    $refs['./error.json'] = $refs[env.getAbsolutePath('good/error.json')] = env.resolved.errorExternal;
 
                     expect(metadata).to.satisfy(env.isMetadata);
                     expect(metadata.$refs).to.deep.equal($refs);
@@ -118,7 +118,7 @@ describe('Resolution tests', function() {
 
         it('should resolve nested references',
             function(done) {
-                env.parser.parse(env.getPath('nested-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/nested-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     expect(api).to.deep.equal(env.resolved.nestedRefs);
@@ -138,16 +138,16 @@ describe('Resolution tests', function() {
 
         it('should resolve internal references in external files',
             function(done) {
-                env.parser.parse(env.getPath('external-backrefs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/external-backrefs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     expect(api).to.deep.equal(env.resolved.externalBackRefs);
 
                     var $refs = {};
                     $refs['pet'] = $refs['#/definitions/pet'] = env.resolved.pet;
-                    $refs['error'] = $refs['#/definitions/error'] = $refs['error-backref.yml'] = $refs[env.getAbsolutePath('error-backref.yml')] = env.resolved.errorBackref;
+                    $refs['error'] = $refs['#/definitions/error'] = $refs['error-backref.yml'] = $refs[env.getAbsolutePath('good/error-backref.yml')] = env.resolved.errorBackref;
                     $refs['#/definitions/pet/properties/type/enum'] = ['cat', 'dog', 'bird'];
-                    $refs['external-backrefs-path.yml'] = $refs[env.getAbsolutePath('external-backrefs-path.yml')] = env.resolved.externalBackRefsPath;
+                    $refs['external-backrefs-path.yml'] = $refs[env.getAbsolutePath('good/external-backrefs-path.yml')] = env.resolved.externalBackRefsPath;
 
                     expect(metadata).to.satisfy(env.isMetadata);
                     expect(metadata.$refs).to.deep.equal($refs);
@@ -159,7 +159,7 @@ describe('Resolution tests', function() {
 
         it('should resolve non-object references',
             function(done) {
-                env.parser.parse(env.getPath('non-object-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/non-object-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     expect(api).to.deep.equal(env.resolved.nonObjectRefs);
@@ -180,7 +180,7 @@ describe('Resolution tests', function() {
 
         it('should resolve circular references',
             function(done) {
-                env.parser.parse(env.getPath('circular-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/circular-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     expect(api).to.deep.equal(env.resolved.circularRefs);
@@ -200,7 +200,7 @@ describe('Resolution tests', function() {
 
         it('should ignore $refs that aren\'t strings',
             function(done) {
-                env.parser.parse(env.getPath('non-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/non-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     expect(api).to.deep.equal(env.resolved.nonRefs);
@@ -222,7 +222,7 @@ describe('Resolution tests', function() {
 
         it('should resolve matching shorthand references to the same object instance',
             function(done) {
-                env.parser.parse(env.getPath('shorthand-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     // The $refs should all point to the same object instance
@@ -236,7 +236,7 @@ describe('Resolution tests', function() {
 
         it('should resolve different-but-matching references to the same object instance',
             function(done) {
-                env.parser.parse(env.getPath('refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     // The "pet" $refs should all point to the same object instance
@@ -244,12 +244,12 @@ describe('Resolution tests', function() {
                     expect(pet$Ref).to.equal(metadata.$refs['#/definitions/pet']);
                     expect(pet$Ref).to.equal(metadata.$refs['#/paths//pets/post/responses/200/schema']);
                     expect(pet$Ref).to.equal(metadata.$refs['pet.yaml']);
-                    expect(pet$Ref).to.equal(metadata.$refs['../files/pet.yaml']);
-                    expect(pet$Ref).to.equal(metadata.$refs[env.getAbsolutePath('pet.yaml')]);
+                    expect(pet$Ref).to.equal(metadata.$refs['../../files/good/pet.yaml']);
+                    expect(pet$Ref).to.equal(metadata.$refs[env.getAbsolutePath('good/pet.yaml')]);
 
                     // The "error" $refs should all point to the same object instance
                     var error$Ref = metadata.$refs['./error.json'];
-                    expect(error$Ref).to.equal(metadata.$refs[env.getAbsolutePath('error.json')]);
+                    expect(error$Ref).to.equal(metadata.$refs[env.getAbsolutePath('good/error.json')]);
 
                     done();
                 });
@@ -258,18 +258,18 @@ describe('Resolution tests', function() {
 
         it('should resolve matching external references to the same object instance',
             function(done) {
-                env.parser.parse(env.getPath('external-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/external-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     // The "pet" $refs should all point to the same object instance
                     var pet$Ref = metadata.$refs['pet.yaml'];
                     expect(pet$Ref).to.equal(metadata.$refs['./pet.yaml']);
-                    expect(pet$Ref).to.equal(metadata.$refs['../files/pet.yaml']);
-                    expect(pet$Ref).to.equal(metadata.$refs[env.getAbsolutePath('pet.yaml')]);
+                    expect(pet$Ref).to.equal(metadata.$refs['../../files/good/pet.yaml']);
+                    expect(pet$Ref).to.equal(metadata.$refs[env.getAbsolutePath('good/pet.yaml')]);
 
                     // The "error" $refs should all point to the same object instance
                     var error$Ref = metadata.$refs['error.json'];
-                    expect(error$Ref).to.equal(metadata.$refs[env.getAbsolutePath('error.json')]);
+                    expect(error$Ref).to.equal(metadata.$refs[env.getAbsolutePath('good/error.json')]);
 
                     done();
                 });
@@ -278,20 +278,20 @@ describe('Resolution tests', function() {
 
         it('should resolve different external references to different object instances',
             function(done) {
-                env.parser.parse(env.getPath('different-file-ext.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/different-file-ext.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     // The "pet.yaml" $refs should all point to the same object instance
                     var yaml$Ref = metadata.$refs['pet.yaml'];
-                    expect(yaml$Ref).to.equal(metadata.$refs[env.getAbsolutePath('pet.yaml')]);
+                    expect(yaml$Ref).to.equal(metadata.$refs[env.getAbsolutePath('good/pet.yaml')]);
 
                     // The "pet.yml" $refs should all point to the same object instance
                     var yml$Ref = metadata.$refs['pet.yml'];
-                    expect(yml$Ref).to.equal(metadata.$refs[env.getAbsolutePath('pet.yml')]);
+                    expect(yml$Ref).to.equal(metadata.$refs[env.getAbsolutePath('good/pet.yml')]);
 
                     // The "pet.json" $refs should all point to the same object instance
                     var json$Ref = metadata.$refs['pet.json'];
-                    expect(json$Ref).to.equal(metadata.$refs[env.getAbsolutePath('pet.json')]);
+                    expect(json$Ref).to.equal(metadata.$refs[env.getAbsolutePath('good/pet.json')]);
 
                     // The $refs should all reference different object instances
                     expect(yaml$Ref).not.to.equal(yml$Ref);
@@ -310,7 +310,7 @@ describe('Resolution tests', function() {
 
         it('should resolve matching nested references to the same object instance',
             function(done) {
-                env.parser.parse(env.getPath('nested-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/nested-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     // The "pet" $refs should all point to the same object instance
@@ -332,7 +332,7 @@ describe('Resolution tests', function() {
 
         it('should resolve matching back-references to the same object instance',
             function(done) {
-                env.parser.parse(env.getPath('external-backrefs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/external-backrefs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     // The "pet" $refs should all point to the same object instance
@@ -343,11 +343,11 @@ describe('Resolution tests', function() {
                     var error$Ref = metadata.$refs['error'];
                     expect(error$Ref).to.equal(metadata.$refs['#/definitions/error']);
                     expect(error$Ref).to.equal(metadata.$refs['error-backref.yml']);
-                    expect(error$Ref).to.equal(metadata.$refs[env.getAbsolutePath('error-backref.yml')]);
+                    expect(error$Ref).to.equal(metadata.$refs[env.getAbsolutePath('good/error-backref.yml')]);
 
                     // The "paths" $refs should all point to the same object instance
                     var paths$Ref = metadata.$refs['external-backrefs-path.yml'];
-                    expect(paths$Ref).to.equal(metadata.$refs[env.getAbsolutePath('external-backrefs-path.yml')]);
+                    expect(paths$Ref).to.equal(metadata.$refs[env.getAbsolutePath('good/external-backrefs-path.yml')]);
 
                     done();
                 });
@@ -360,7 +360,7 @@ describe('Resolution tests', function() {
 
         it('multiple references to an external $ref should only parse the file once',
             function(done) {
-                env.parser.parse(env.getPath('refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     var paths;
@@ -374,9 +374,9 @@ describe('Resolution tests', function() {
                     }
 
                     expect(paths).to.have.same.members([
-                        env.getAbsolutePath('refs.yaml'),
-                        env.getAbsolutePath('error.json'),
-                        env.getAbsolutePath('pet.yaml')
+                        env.getAbsolutePath('good/refs.yaml'),
+                        env.getAbsolutePath('good/error.json'),
+                        env.getAbsolutePath('good/pet.yaml')
                     ]);
 
                     done();
@@ -386,7 +386,7 @@ describe('Resolution tests', function() {
 
         it('multiple references to an external file should only parse the file once',
             function(done) {
-                env.parser.parse(env.getPath('external-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/external-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     var paths;
@@ -400,12 +400,12 @@ describe('Resolution tests', function() {
                     }
 
                     expect(paths).to.have.same.members([
-                        env.getAbsolutePath('external-refs.yaml'),
-                        env.getAbsolutePath('error.json'),
-                        env.getAbsolutePath('pet.yaml'),
-                        env.getAbsolutePath('pet'),
-                        env.getAbsolutePath('text.txt'),
-                        env.getAbsolutePath('image.gif')
+                        env.getAbsolutePath('good/external-refs.yaml'),
+                        env.getAbsolutePath('good/error.json'),
+                        env.getAbsolutePath('good/pet.yaml'),
+                        env.getAbsolutePath('good/pet'),
+                        env.getAbsolutePath('good/text.txt'),
+                        env.getAbsolutePath('good/image.gif')
                     ]);
 
                     done();
@@ -415,7 +415,7 @@ describe('Resolution tests', function() {
 
         it('multiple references and back-references among external files should only parse each file once',
             function(done) {
-                env.parser.parse(env.getPath('external-backrefs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/external-backrefs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     var paths;
@@ -429,9 +429,9 @@ describe('Resolution tests', function() {
                     }
 
                     expect(paths).to.have.same.members([
-                        env.getAbsolutePath('external-backrefs.yaml'),
-                        env.getAbsolutePath('external-backrefs-path.yml'),
-                        env.getAbsolutePath('error-backref.yml')
+                        env.getAbsolutePath('good/external-backrefs.yaml'),
+                        env.getAbsolutePath('good/external-backrefs-path.yml'),
+                        env.getAbsolutePath('good/error-backref.yml')
                     ]);
 
                     done();

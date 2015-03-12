@@ -6,7 +6,7 @@ describe('Dereferencing tests', function() {
     describe('Success tests', function() {
         it('should not dereference shorthand pointers if "dereference$Refs" is false',
             function(done) {
-                env.parser.parse(env.getPath('shorthand-refs.yaml'), {dereference$Refs: false}, function(err, api) {
+                env.parser.parse(env.getPath('good/shorthand-refs.yaml'), {dereference$Refs: false}, function(err, api) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.resolved.shorthandRefs);
                     done();
@@ -16,7 +16,7 @@ describe('Dereferencing tests', function() {
 
         it('should dereference shorthand "definition" references',
             function(done) {
-                env.parser.parse(env.getPath('shorthand-refs.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.dereferenced.shorthandRefs);
 
@@ -27,7 +27,7 @@ describe('Dereferencing tests', function() {
 
         it('should not dereference external pointers if "resolveExternal$Refs" is false',
             function(done) {
-                env.parser.parse(env.getPath('external-refs.yaml'), {resolveExternal$Refs: false}, function(err, api) {
+                env.parser.parse(env.getPath('good/external-refs.yaml'), {resolveExternal$Refs: false}, function(err, api) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.resolved.externalRefs);
                     done();
@@ -37,7 +37,7 @@ describe('Dereferencing tests', function() {
 
         it('should dereference external pointers',
             function(done) {
-                env.parser.parse(env.getPath('external-refs.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/external-refs.yaml'), function(err, api) {
                     if (err) return done(err);
 
                     if (env.isBrowser) {
@@ -56,7 +56,7 @@ describe('Dereferencing tests', function() {
 
         it('should not dereference anything if "dereference$Refs" is false',
             function(done) {
-                env.parser.parse(env.getPath('refs.yaml'), {dereference$Refs: false}, function(err, api) {
+                env.parser.parse(env.getPath('good/refs.yaml'), {dereference$Refs: false}, function(err, api) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.resolved.refs);
                     done();
@@ -66,7 +66,7 @@ describe('Dereferencing tests', function() {
 
         it('should dereference all types of references',
             function(done) {
-                env.parser.parse(env.getPath('refs.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/refs.yaml'), function(err, api) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.dereferenced.refs);
                     done();
@@ -76,7 +76,7 @@ describe('Dereferencing tests', function() {
 
         it('should dereference nested references',
             function(done) {
-                env.parser.parse(env.getPath('nested-refs.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/nested-refs.yaml'), function(err, api) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.dereferenced.nestedRefs);
                     done();
@@ -86,7 +86,7 @@ describe('Dereferencing tests', function() {
 
         it('should dereference internal references in external files',
             function(done) {
-                env.parser.parse(env.getPath('external-backrefs.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/external-backrefs.yaml'), function(err, api) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.dereferenced.externalBackRefs);
                     done();
@@ -96,7 +96,7 @@ describe('Dereferencing tests', function() {
 
         it('should dereference non-object references',
             function(done) {
-                env.parser.parse(env.getPath('non-object-refs.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/non-object-refs.yaml'), function(err, api) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.dereferenced.nonObjectRefs);
 
@@ -107,7 +107,7 @@ describe('Dereferencing tests', function() {
 
         it('should partially-dereference circular references',
             function(done) {
-                env.parser.parse(env.getPath('circular-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/circular-refs.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(ReferenceError);
                     expect(err.message).to.contain('5 circular reference(s) detected');
                     expect(metadata).to.satisfy(env.isMetadata);
@@ -130,7 +130,7 @@ describe('Dereferencing tests', function() {
 
         it('should ignore $refs that aren\'t strings',
             function(done) {
-                env.parser.parse(env.getPath('non-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/non-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
                     expect(api).to.deep.equal(env.dereferenced.nonRefs);
@@ -174,7 +174,7 @@ describe('Dereferencing tests', function() {
 
         it('should resolve matching shorthand references to the same object instance',
             function(done) {
-                env.parser.parse(env.getPath('shorthand-refs.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api) {
                     // Two $ref pointers to "pet"
                     var $ref1 = api.paths['/pets'].post.parameters[0].schema;
                     var $ref2 = api.paths['/pets'].post.responses['200'].schema;
@@ -193,7 +193,7 @@ describe('Dereferencing tests', function() {
 
         it('should resolve different-but-matching references to the same object instance',
             function(done) {
-                env.parser.parse(env.getPath('refs.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/refs.yaml'), function(err, api) {
                     // $ref pointer to "pet"
                     var $ref1 = api.paths['/pets'].post.responses['200'].schema;
 
@@ -222,7 +222,7 @@ describe('Dereferencing tests', function() {
 
         it('should resolve matching external references to the same object instance',
             function(done) {
-                env.parser.parse(env.getPath('external-refs.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/external-refs.yaml'), function(err, api) {
                     // Three $ref pointers to "pet.yaml"
                     var $ref1 = api.paths['/pets'].post.parameters[0].schema;
                     var $ref2 = api.paths['/pets'].post.responses['200'].schema;
@@ -245,7 +245,7 @@ describe('Dereferencing tests', function() {
 
         it('should resolve different external references to different object instances',
             function(done) {
-                env.parser.parse(env.getPath('different-file-ext.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/different-file-ext.yaml'), function(err, api) {
                     // $ref pointer to "pet.yaml"
                     var $ref1 = api.paths['/pets'].post.parameters[0].schema;
 
@@ -272,7 +272,7 @@ describe('Dereferencing tests', function() {
 
         it('should resolve matching nested references to the same object instance',
             function(done) {
-                env.parser.parse(env.getPath('nested-refs.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/nested-refs.yaml'), function(err, api) {
                     // $ref pointer to "pet"
                     var pet$Ref1 = api.paths['/pets'].post.parameters[0].schema;
 
@@ -320,7 +320,7 @@ describe('Dereferencing tests', function() {
 
         it('should resolve array references to the same array instance',
             function(done) {
-                env.parser.parse(env.getPath('non-object-refs.yaml'), function(err, api) {
+                env.parser.parse(env.getPath('good/non-object-refs.yaml'), function(err, api) {
                     // Two $ref pointers to "#/definitions/pet/properties/type/enum" (an array)
                     var $ref1 = api.paths['/pets'].post.parameters[0].schema.properties.type.enum;
                     var $ref2 = api.paths['/pets'].post.responses.default.schema.properties.message.enum;

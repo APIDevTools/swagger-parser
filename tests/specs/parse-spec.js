@@ -6,7 +6,7 @@ describe('env.parser.parse tests', function() {
     describe('Success tests', function() {
         it('should parse a YAML file',
             function(done) {
-                env.parser.parse(env.getPath('minimal.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/minimal.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.resolved.minimal);
                     expect(metadata).to.satisfy(env.isMetadata);
@@ -17,7 +17,7 @@ describe('env.parser.parse tests', function() {
 
         it('should parse a JSON file',
             function(done) {
-                env.parser.parse(env.getPath('minimal.json'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/minimal.json'), function(err, api, metadata) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.resolved.minimal);
                     expect(metadata).to.satisfy(env.isMetadata);
@@ -45,7 +45,7 @@ describe('env.parser.parse tests', function() {
         it('can be called with a String object',
             function(done) {
                 //noinspection JSPrimitiveTypeWrapperUsage
-                env.parser.parse(new String(env.getPath('minimal.yaml')), function(err, api, metadata) {
+                env.parser.parse(new String(env.getPath('good/minimal.yaml')), function(err, api, metadata) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.resolved.minimal);
                     expect(metadata).to.satisfy(env.isMetadata);
@@ -92,21 +92,21 @@ describe('env.parser.parse tests', function() {
             function(done) {
                 var counter = 0;
 
-                env.parser.parse(env.getPath('shorthand-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.dereferenced.shorthandRefs);
                     expect(metadata).to.satisfy(env.isMetadata);
                     if (++counter === 3) done();
                 });
 
-                env.parser.parse(env.getPath('minimal.json'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/minimal.json'), function(err, api, metadata) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.resolved.minimal);
                     expect(metadata).to.satisfy(env.isMetadata);
                     if (++counter === 3) done();
                 });
 
-                env.parser.parse(env.getPath('nested-refs.yaml'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/nested-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.dereferenced.nestedRefs);
                     expect(metadata).to.satisfy(env.isMetadata);
@@ -176,7 +176,7 @@ describe('env.parser.parse tests', function() {
 
         it('should return an error if an invalid file is given',
             function(done) {
-                env.parser.parse(env.getPath('nonexistent-file.json'), function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/nonexistent-file.json'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(Error);
                     expect(err.message).to.match(/Error opening file|Error downloading file/);
                     expect(api).to.be.null;
@@ -212,7 +212,7 @@ describe('env.parser.parse tests', function() {
 
         it('should return an error if a YAML file is given and YAML is disabled',
             function(done) {
-                env.parser.parse(env.getPath('minimal.yaml'), {parseYaml: false}, function(err, api, metadata) {
+                env.parser.parse(env.getPath('good/minimal.yaml'), {parseYaml: false}, function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('Error parsing file');
                     expect(api).to.be.null;
@@ -359,7 +359,7 @@ describe('env.parser.parse tests', function() {
                 function(done) {
                     mockHttpResponse(200, 'type: object');
 
-                    env.parser.parse(env.getPath('mock-url.yaml'), function(err, api, metadata) {
+                    env.parser.parse(env.getPath('good/mock-url.yaml'), function(err, api, metadata) {
                         if (err) return done(err);
                         expect(api).to.deep.equal(env.dereferenced.mockUrl);
                         expect(metadata).to.satisfy(env.isMetadata);

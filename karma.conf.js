@@ -38,6 +38,7 @@ module.exports = function(config) {
       'tests/test-environment.js',
       'tests/files/text-resolved.js',
       'tests/files/image-resolved.js',
+      'tests/files/real-world/file-list.js',
       'tests/files/**/*-resolved.js',
       'tests/files/**/*-dereferenced.js',
       'tests/specs/**/*-spec.js',
@@ -48,10 +49,7 @@ module.exports = function(config) {
 
 
     // list of files to exclude
-    exclude: [
-        // These tests only run in Node
-        'tests/specs/real-world-spec.js'
-    ],
+    exclude: [],
 
 
     // preprocess matching files before serving them to the browser

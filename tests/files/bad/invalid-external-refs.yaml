@@ -12,7 +12,7 @@ paths:
           required: true
           description: references the "pet.yaml" file
           schema:
-            $ref: ../pet.yaml
+            $ref: ../good/pet.yaml
       responses:
         200:
           description: Invalid reference
@@ -21,4 +21,4 @@ paths:
         default:
           description: references the "pet.yaml" file
           schema:
-            $ref: ../pet.yaml
+            $ref: ../good/pet.yaml

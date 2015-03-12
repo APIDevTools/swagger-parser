@@ -1,53 +1,21 @@
-var fs   = require('fs'),
-    path = require('path');
+require('../test-environment');
+require('../files/real-world/file-list');
 
 describe('Real-world tests', function() {
     'use strict';
 
-    var testsCreated = 0;
-    var realWorldDir = path.join(__dirname, '..', 'files', 'real-world');
-
-    createTests(realWorldDir);
-
-    if (testsCreated === 0) {
-        throw new Error('Unable to initialize real-world tests. Check the "' + realWorldDir + '" directory.');
+    if (!env.realWorldFiles || env.realWorldFiles.length === 0) {
+        throw new Error('Unable to initialize real-world tests. Check the "/tests/files/real-world" directory.');
     }
 
-    /**
-     * Creates unit tests for all Swagger files in the given directory and its sub-directories.
-     * @param {string}  dir
-     */
-    function createTests(dir) {
-        fs.readdirSync(dir).forEach(function(name) {
-            var fullName = path.join(dir, name);
-            var ext = path.extname(name);
-            var stat = fs.statSync(fullName);
-
-            if (stat.isFile() &&
-                ['.json', '.yaml', '.yml'].indexOf(ext) >= 0) {
-                // This is a Swagger file, so create a test
-                createTest(fullName);
-            }
-            else if (stat.isDirectory()) {
-                // Recursively process this sub-directory
-                createTests(fullName);
-            }
-        });
-    }
-
-    /**
-     * Creates a unit test for the given Swagger file.
-     * @param {string} file
-     */
-    function createTest(file) {
-        testsCreated++;
-        it(testsCreated + ') ' + path.relative(realWorldDir, file),
+    env.realWorldFiles.forEach(function(file, index) {
+        it((index + 1) + ') ' + file,
             function(done) {
                 // Some of these APIs are REALLY big, so increase the timeouts
                 this.timeout(6000); 
                 this.slow(3000);
 
-                env.parser.parse(file, function(err, api, metadata) {
+                env.parser.parse(env.getPath('real-world/' + file), function(err, api, metadata) {
                     if (err) {
                         expect(err).to.be.an.instanceOf(ReferenceError);
                         expect(err.message).to.contain('circular reference(s) detected')
@@ -62,5 +30,5 @@ describe('Real-world tests', function() {
                 });
             }
         );
-    }
+    });
 });

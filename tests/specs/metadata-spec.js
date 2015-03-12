@@ -5,32 +5,32 @@ describe('Metadata tests', function() {
 
     it('should return metadata as the third parameter to the callback',
         function(done) {
-            env.parser.parse(env.getPath('external-refs.yaml'), function(err, api, metadata) {
+            env.parser.parse(env.getPath('good/external-refs.yaml'), function(err, api, metadata) {
                 if (err) return done(err);
                 expect(metadata).to.satisfy(env.isMetadata);
 
-                expect(metadata.baseDir).to.equal(env.getAbsolutePath(''));
+                expect(metadata.baseDir).to.equal(env.getAbsolutePath('good/'));
                 expect(metadata.$refs).to.be.an('object');
 
                 if (env.isBrowser) {
                     expect(metadata.files).to.have.lengthOf(0);
                     expect(metadata.urls).to.have.lengthOf(6);
-                    expect(metadata.urls[0].href).to.equal(env.getAbsolutePath('external-refs.yaml'));
-                    expect(metadata.urls[1].href).to.equal(env.getAbsolutePath('error.json'));
-                    expect(metadata.urls[2].href).to.equal(env.getAbsolutePath('pet.yaml'));
-                    expect(metadata.urls[3].href).to.equal(env.getAbsolutePath('image.gif'));
-                    expect(metadata.urls[4].href).to.equal(env.getAbsolutePath('text.txt'));
-                    expect(metadata.urls[5].href).to.equal(env.getAbsolutePath('pet'));
+                    expect(metadata.urls[0].href).to.equal(env.getAbsolutePath('good/external-refs.yaml'));
+                    expect(metadata.urls[1].href).to.equal(env.getAbsolutePath('good/error.json'));
+                    expect(metadata.urls[2].href).to.equal(env.getAbsolutePath('good/pet.yaml'));
+                    expect(metadata.urls[3].href).to.equal(env.getAbsolutePath('good/image.gif'));
+                    expect(metadata.urls[4].href).to.equal(env.getAbsolutePath('good/text.txt'));
+                    expect(metadata.urls[5].href).to.equal(env.getAbsolutePath('good/pet'));
                 }
                 else {
                     expect(metadata.urls).to.have.lengthOf(0);
                     expect(metadata.files).to.have.lengthOf(6);
-                    expect(metadata.files[0]).to.equal(env.getAbsolutePath('external-refs.yaml'));
-                    expect(metadata.files[1]).to.equal(env.getAbsolutePath('error.json'));
-                    expect(metadata.files[2]).to.equal(env.getAbsolutePath('pet.yaml'));
-                    expect(metadata.files[3]).to.equal(env.getAbsolutePath('image.gif'));
-                    expect(metadata.files[4]).to.equal(env.getAbsolutePath('text.txt'));
-                    expect(metadata.files[5]).to.equal(env.getAbsolutePath('pet'));
+                    expect(metadata.files[0]).to.equal(env.getAbsolutePath('good/external-refs.yaml'));
+                    expect(metadata.files[1]).to.equal(env.getAbsolutePath('good/error.json'));
+                    expect(metadata.files[2]).to.equal(env.getAbsolutePath('good/pet.yaml'));
+                    expect(metadata.files[3]).to.equal(env.getAbsolutePath('good/image.gif'));
+                    expect(metadata.files[4]).to.equal(env.getAbsolutePath('good/text.txt'));
+                    expect(metadata.files[5]).to.equal(env.getAbsolutePath('good/pet'));
                 }
 
                 done();
@@ -42,21 +42,21 @@ describe('Metadata tests', function() {
         function(done) {
             var metadatas = [];
 
-            env.parser.parse(env.getPath('shorthand-refs.yaml'), function(err, api, metadata) {
+            env.parser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api, metadata) {
                 if (err) return done(err);
                 expect(metadata).to.satisfy(env.isMetadata);
                 metadatas.push(metadata);
                 compareStates();
             });
 
-            env.parser.parse(env.getPath('minimal.json'), function(err, api, metadata) {
+            env.parser.parse(env.getPath('good/minimal.json'), function(err, api, metadata) {
                 if (err) return done(err);
                 expect(metadata).to.satisfy(env.isMetadata);
                 metadatas.push(metadata);
                 compareStates();
             });
 
-            env.parser.parse(env.getPath('nested-refs.yaml'), function(err, api, metadata) {
+            env.parser.parse(env.getPath('good/nested-refs.yaml'), function(err, api, metadata) {
                 if (err) return done(err);
                 expect(metadata).to.satisfy(env.isMetadata);
                 metadatas.push(metadata);
@@ -76,7 +76,7 @@ describe('Metadata tests', function() {
 
     it('should return resolved external pointers in metadata',
         function(done) {
-            env.parser.parse(env.getPath('external-refs.yaml'), function(err, api, metadata) {
+            env.parser.parse(env.getPath('good/external-refs.yaml'), function(err, api, metadata) {
                 if (err) return done(err);
                 expect(metadata).to.satisfy(env.isMetadata);
 
@@ -84,8 +84,8 @@ describe('Metadata tests', function() {
                 // There should be a pointer for each one, plus one with the absolute path.
                 var $ref1 = metadata.$refs['pet.yaml'];
                 var $ref2 = metadata.$refs['./pet.yaml'];
-                var $ref3 = metadata.$refs['../files/pet.yaml'];
-                var $ref4 = metadata.$refs[env.getAbsolutePath('pet.yaml')];
+                var $ref3 = metadata.$refs['../../files/good/pet.yaml'];
+                var $ref4 = metadata.$refs[env.getAbsolutePath('good/pet.yaml')];
 
                 // All of them should be references to the same object instance
                 expect($ref1).to.equal($ref2);
@@ -97,7 +97,7 @@ describe('Metadata tests', function() {
 
                 // "pet" (no file extension) is only referenced one way, but there should also be a pointer with the absolute path.
                 var $ref5 = metadata.$refs['./pet'];
-                var $ref6 = metadata.$refs[env.getAbsolutePath('pet')];
+                var $ref6 = metadata.$refs[env.getAbsolutePath('good/pet')];
 
                 // All of them should be references to the same object instance
                 expect($ref5).to.equal($ref6);
@@ -107,7 +107,7 @@ describe('Metadata tests', function() {
 
                 // "error.yaml" is only referenced one way, but there should also be a pointer with the absolute path.
                 var $ref7 = metadata.$refs['error.json'];
-                var $ref8 = metadata.$refs[env.getAbsolutePath('error.json')];
+                var $ref8 = metadata.$refs[env.getAbsolutePath('good/error.json')];
 
                 // All of them should be references to the same object instance
                 expect($ref7).to.equal($ref8);
@@ -117,7 +117,7 @@ describe('Metadata tests', function() {
 
                 // "text.txt" is only referenced one way, but there should also be a pointer with the absolute path.
                 var $ref9 = metadata.$refs['text.txt'];
-                var $ref10 = metadata.$refs[env.getAbsolutePath('text.txt')];
+                var $ref10 = metadata.$refs[env.getAbsolutePath('good/text.txt')];
 
                 // They should both be references to the same Buffer
                 if (env.isNode) {
@@ -132,7 +132,7 @@ describe('Metadata tests', function() {
 
                 // "image.gif" is only referenced one way, but there should also be a pointer with the absolute path.
                 var $ref11 = metadata.$refs['image.gif'];
-                var $ref12 = metadata.$refs[env.getAbsolutePath('image.gif')];
+                var $ref12 = metadata.$refs[env.getAbsolutePath('good/image.gif')];
 
                 // They should both be references to the same Buffer
                 if (env.isNode) {
@@ -155,7 +155,7 @@ describe('Metadata tests', function() {
 
     it('should return resolved internal and external pointers in metadata',
         function(done) {
-            env.parser.parse(env.getPath('refs.yaml'), function(err, api, metadata) {
+            env.parser.parse(env.getPath('good/refs.yaml'), function(err, api, metadata) {
                 if (err) return done(err);
                 expect(metadata).to.satisfy(env.isMetadata);
 
@@ -164,9 +164,9 @@ describe('Metadata tests', function() {
                 var $ref1 = metadata.$refs.pet;
                 var $ref2 = metadata.$refs['#/definitions/pet'];
                 var $ref3 = metadata.$refs['pet.yaml'];
-                var $ref4 = metadata.$refs['../files/pet.yaml'];
+                var $ref4 = metadata.$refs['../../files/good/pet.yaml'];
                 var $ref5 = metadata.$refs['#/paths//pets/post/responses/200/schema'];
-                var $ref6 = metadata.$refs[env.getAbsolutePath('pet.yaml')];
+                var $ref6 = metadata.$refs[env.getAbsolutePath('good/pet.yaml')];
 
                 // All of them should be references to the same object instance
                 expect($ref1).to.equal($ref2);
@@ -180,7 +180,7 @@ describe('Metadata tests', function() {
 
                 // "error.yaml" is only referenced one way, but there should also be a pointer with the absolute path.
                 var $ref7 = metadata.$refs['./error.json'];
-                var $ref8 = metadata.$refs[env.getAbsolutePath('error.json')];
+                var $ref8 = metadata.$refs[env.getAbsolutePath('good/error.json')];
 
                 // Both of them should be references to the same object instance
                 expect($ref7).to.equal($ref8);
@@ -198,7 +198,7 @@ describe('Metadata tests', function() {
 
     it('should return resolved but not dereferenced pointers when "dereference$Refs" is false',
         function(done) {
-            env.parser.parse(env.getPath('refs.yaml'), {dereference$Refs: false}, function(err, api, metadata) {
+            env.parser.parse(env.getPath('good/refs.yaml'), {dereference$Refs: false}, function(err, api, metadata) {
                 if (err) return done(err);
                 expect(metadata).to.satisfy(env.isMetadata);
 
@@ -207,9 +207,9 @@ describe('Metadata tests', function() {
                 var $ref1 = metadata.$refs.pet;
                 var $ref2 = metadata.$refs['#/definitions/pet'];
                 var $ref3 = metadata.$refs['pet.yaml'];
-                var $ref4 = metadata.$refs['../files/pet.yaml'];
+                var $ref4 = metadata.$refs['../../files/good/pet.yaml'];
                 var $ref5 = metadata.$refs['#/paths//pets/post/responses/200/schema'];
-                var $ref6 = metadata.$refs[env.getAbsolutePath('pet.yaml')];
+                var $ref6 = metadata.$refs[env.getAbsolutePath('good/pet.yaml')];
 
                 // All of them should be references to the same object instance
                 expect($ref1).to.equal($ref2);
@@ -223,7 +223,7 @@ describe('Metadata tests', function() {
 
                 // "error.yaml" is only referenced one way, but there should also be a pointer with the absolute path.
                 var $ref7 = metadata.$refs['./error.json'];
-                var $ref8 = metadata.$refs[env.getAbsolutePath('error.json')];
+                var $ref8 = metadata.$refs[env.getAbsolutePath('good/error.json')];
 
                 // Both of them should be references to the same object instance
                 expect($ref7).to.equal($ref8);
@@ -242,7 +242,7 @@ describe('Metadata tests', function() {
 
     it('should not return resolved pointers in metadata when "resolve$Refs" is false',
         function(done) {
-            env.parser.parse(env.getPath('refs.yaml'), {resolve$Refs: false}, function(err, api, metadata) {
+            env.parser.parse(env.getPath('good/refs.yaml'), {resolve$Refs: false}, function(err, api, metadata) {
                 if (err) return done(err);
                 expect(metadata).to.satisfy(env.isMetadata);
 
@@ -256,7 +256,7 @@ describe('Metadata tests', function() {
 
     it('should return resolved backref pointers in metadata',
         function(done) {
-            env.parser.parse(env.getPath('external-backrefs.yaml'), function(err, api, metadata) {
+            env.parser.parse(env.getPath('good/external-backrefs.yaml'), function(err, api, metadata) {
                 if (err) return done(err);
                 expect(metadata).to.satisfy(env.isMetadata);
 
@@ -281,8 +281,8 @@ describe('Metadata tests', function() {
                     '#/definitions/pet/properties/type/enum',
                     'error-backref.yml',
                     'external-backrefs-path.yml',
-                    env.getAbsolutePath('error-backref.yml'),
-                    env.getAbsolutePath('external-backrefs-path.yml')
+                    env.getAbsolutePath('good/error-backref.yml'),
+                    env.getAbsolutePath('good/external-backrefs-path.yml')
                 ]);
 
                 done();
@@ -292,7 +292,7 @@ describe('Metadata tests', function() {
 
     it('should return resolved non-external pointers in metadata when "resolveExternal$Refs" is false',
         function(done) {
-            env.parser.parse(env.getPath('refs.yaml'), {resolveExternal$Refs: false}, function(err, api, metadata) {
+            env.parser.parse(env.getPath('good/refs.yaml'), {resolveExternal$Refs: false}, function(err, api, metadata) {
                 if (err) return done(err);
                 expect(metadata).to.satisfy(env.isMetadata);
 

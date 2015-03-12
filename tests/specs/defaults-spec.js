@@ -27,7 +27,7 @@ describe('env.parser.defaults tests', function() {
             env.parser.defaults.parseYaml = false;
 
             // Which means this call should fail
-            env.parser.parse(env.getPath('minimal.yaml'), function(err, api, metadata) {
+            env.parser.parse(env.getPath('good/minimal.yaml'), function(err, api, metadata) {
                 expect(err).to.be.an.instanceOf(SyntaxError);
                 expect(err.message).to.contain('Error parsing file');
                 expect(api).to.be.null;
@@ -47,7 +47,7 @@ describe('env.parser.defaults tests', function() {
             var options = {parseYaml: true};
 
             // This call should succeed, because options override defaults
-            env.parser.parse(env.getPath('minimal.yaml'), options, function(err, api) {
+            env.parser.parse(env.getPath('good/minimal.yaml'), options, function(err, api) {
                 if (err) return done(err);
                 expect(api).to.be.an('object');
 
