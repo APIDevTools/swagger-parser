@@ -11,9 +11,10 @@ describe('Real-world tests', function() {
     env.realWorldFiles.forEach(function(file, index) {
         it((index + 1) + ') ' + file,
             function(done) {
-                // Some of these APIs are REALLY big, so increase the timeouts
-                this.timeout(6000); 
-                this.slow(3000);
+                // Some of these APIs are REALLY big and take a few seconds to process.
+                // VM test machines (i.e. Travis-CI, SauceLabs, etc.) are even slower due to limited resources
+                this.timeout(12000); 
+                this.slow(6000);
 
                 env.parser.parse(env.getPath('real-world/' + file), function(err, api, metadata) {
                     if (err) {
