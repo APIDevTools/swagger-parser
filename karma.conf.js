@@ -1,96 +1,62 @@
-// Karma configuration
-
-// PhantomJS and Firefox are available on all OSes
-var browsers = ['PhantomJS', 'Firefox'];
-
-// Chrome and Safari are available on Windows and Mac, but not on Travis CI
-if (process.env.TRAVIS !== 'true') {
-  browsers.push('Chrome');
-  browsers.push('Safari');
-}
-
-// IE is only available on Windows
-if (/^win/.test(process.platform)) {
-  browsers.push('IE');
-}
-
-
 module.exports = function(config) {
-  'use strict';
+    'use strict';
 
-  config.set({
+    var isMac       = /^darwin/.test(process.platform),
+        isWindows   = /^win/.test(process.platform),
+        isLinux     = !(isMac || isWindows),
+        isTravisCI  = process.env.TRAVIS === 'true';
 
-    // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: '',
+    // Basic Karma configuration
+    var cfg = {
+        port: 9876,
+        browserNoActivityTimeout: 3000,
+        colors: true,
+        logLevel: config.LOG_INFO,
+        frameworks: ['mocha', 'chai', 'sinon'],
+        reporters: ['mocha'],
 
+        files: [
+            // Swagger-Parser
+            'dist/swagger-parser.js',
+            {pattern: 'dist/swagger-parser.js.map', included: false},
 
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha', 'chai', 'sinon'],
+            // Test environment 
+            'tests/test-environment.js',
+            'tests/files/real-world/file-list.js',
+            'tests/files/good/text-resolved.js',
+            'tests/files/good/image-resolved.js',
+            'tests/files/**/*-resolved.js',
+            'tests/files/**/*-dereferenced.js',
+            {pattern: 'tests/files/**', included: false},
+            
+            // Unit tests
+            'tests/specs/**/*-spec.js'
+        ],
 
-    // list of files / patterns to load in the browser
-    files: [
-      // Swagger-Parser
-      'dist/swagger-parser.js',
-      { pattern: 'dist/swagger-parser.js.map', included: false },
+        browsers: (function() {
+            // Test on all browsers that are available for the environment
+            if (isMac) {
+                return ['PhantomJS', 'Firefox', 'Chrome', 'Safari'];
+            }
+            else if (isWindows) {
+                return ['PhantomJS', 'Firefox', 'Chrome', 'Safari', 'IE'];
+            }
+            else if (isTravisCI) {
+                return ['PhantomJS', 'Firefox'];
+            }
+            else if (isLinux) {
+                return ['PhantomJS', 'Firefox', 'Chrome'];
+            }
+        })()
+    };
 
-      // Swagger-Parser Tests
-      'tests/test-environment.js',
-      'tests/files/text-resolved.js',
-      'tests/files/image-resolved.js',
-      'tests/files/real-world/file-list.js',
-      'tests/files/**/*-resolved.js',
-      'tests/files/**/*-dereferenced.js',
-      'tests/specs/**/*-spec.js',
+    if (isTravisCI || isWindows) {
+        cfg.exclude = [
+            // Travis-CI and IE both choke when trying to parse 100+ very large Swagger files,
+            // so skip those files when running on Travis or Windows
+            'tests/files/real-world/file-list.js'
+        ];
+    }
 
-      // Serve Swagger files upon request
-      { pattern: 'tests/files/**', included: false }
-    ],
-
-
-    // list of files to exclude
-    exclude: [],
-
-
-    // preprocess matching files before serving them to the browser
-    // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    preprocessors: {},
-
-
-    // test results reporter to use
-    // possible values: 'dots', 'progress'
-    // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['mocha'],
-
-
-    // web server port
-    port: 9876,
-
-
-    // amount of time (in ms) before a browser is considered "hung"
-    browserNoActivityTimeout: 3000,
-
-
-    // enable / disable colors in the output (reporters and logs)
-    colors: true,
-
-
-    // level of logging
-    // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_INFO,
-
-
-    // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: false,
-
-
-    // start these browsers
-    // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: browsers,
-
-
-    // Continuous Integration mode
-    // if true, Karma captures browsers, runs the tests and exits
-    singleRun: true
-  });
+    config.set(cfg);
 };

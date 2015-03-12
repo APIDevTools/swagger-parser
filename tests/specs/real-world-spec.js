@@ -4,17 +4,12 @@ require('../files/real-world/file-list');
 describe('Real-world tests', function() {
     'use strict';
 
-    if (!env.realWorldFiles || env.realWorldFiles.length === 0) {
-        throw new Error('Unable to initialize real-world tests. Check the "/tests/files/real-world" directory.');
-    }
-
     env.realWorldFiles.forEach(function(file, index) {
         it((index + 1) + ') ' + file,
             function(done) {
                 // Some of these APIs are REALLY big and take a few seconds to process.
-                // VM test machines (i.e. Travis-CI, SauceLabs, etc.) are even slower due to limited resources
-                this.timeout(15000); 
-                this.slow(6000);
+                this.timeout(8000);
+                this.slow(4000);
 
                 env.parser.parse(env.getPath('real-world/' + file), function(err, api, metadata) {
                     if (err) {

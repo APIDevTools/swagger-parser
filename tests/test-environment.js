@@ -57,6 +57,12 @@ var env = {
 
 
     /**
+     * The list of real-world Swagger API files (see /tests/files/real-world)
+     */
+    realWorldFiles: [],
+
+
+    /**
      * Returns the relative path of the given test file, based on the current environment.
      */
     getPath: function(fileName) {

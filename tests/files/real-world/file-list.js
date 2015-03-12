@@ -5,7 +5,6 @@ if (env.isNode) {
         path = require('path');
 
     // Find all Swagger files, and add them to the env.realWorldFiles array
-    env.realWorldFiles = [];
     findSwaggerFiles(__dirname);
 
     function findSwaggerFiles(dir) {
