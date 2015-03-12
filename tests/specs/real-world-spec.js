@@ -8,8 +8,8 @@ describe('Real-world tests', function() {
         it((index + 1) + ') ' + file,
             function(done) {
                 // Some of these APIs are REALLY big and take a few seconds to process.
-                this.timeout(8000);
-                this.slow(4000);
+                this.timeout(15000);
+                this.slow(6000);
 
                 env.parser.parse(env.getPath('real-world/' + file), function(err, api, metadata) {
                     if (err) {
