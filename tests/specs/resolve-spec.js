@@ -17,7 +17,6 @@ describe('Resolution tests', function() {
                 env.parser.parse(env.getPath('shorthand-refs.yaml'), {resolve$Refs: false}, function(err, api, metadata) {
                     if (err) return done(err);
 
-                    // The API should be resolved but NOT dereferenced
                     expect(api).to.deep.equal(env.resolved.shorthandRefs);
 
                     // The metadata should not contain any $refs
@@ -34,10 +33,8 @@ describe('Resolution tests', function() {
                 env.parser.parse(env.getPath('shorthand-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
-                    // The API should be resolved but NOT dereferenced
                     expect(api).to.deep.equal(env.resolved.shorthandRefs);
 
-                    // The $refs should be normalized but NOT dereferenced
                     var $refs = {};
                     $refs.pet = $refs['#/definitions/pet'] = env.resolved.pet;
                     $refs.error = $refs['#/definitions/error'] = env.resolved.error;
@@ -55,7 +52,6 @@ describe('Resolution tests', function() {
                 env.parser.parse(env.getPath('external-refs.yaml'), {resolveExternal$Refs: false}, function(err, api, metadata) {
                     if (err) return done(err);
 
-                    // The API should be resolved but NOT dereferenced
                     expect(api).to.deep.equal(env.resolved.externalRefs);
 
                     // The metadata should not contain any $refs, since they are all external
@@ -72,10 +68,8 @@ describe('Resolution tests', function() {
                 env.parser.parse(env.getPath('external-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
-                    // The API should be resolved but NOT dereferenced
                     expect(api).to.deep.equal(env.resolved.externalRefs);
 
-                    // The $refs should be normalized but NOT dereferenced
                     var $refs = {};
                     $refs['pet.yaml'] = $refs['./pet.yaml'] = $refs['../files/pet.yaml'] = $refs[env.getAbsolutePath('pet.yaml')] = env.resolved.pet;
                     $refs['./pet'] = $refs[env.getAbsolutePath('pet')] = env.resolved.pet;
@@ -107,10 +101,8 @@ describe('Resolution tests', function() {
                 env.parser.parse(env.getPath('refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
-                    // The API should be resolved but NOT dereferenced
                     expect(api).to.deep.equal(env.resolved.refs);
 
-                    // The $refs should be normalized but NOT dereferenced
                     var $refs = {};
                     $refs['pet'] = $refs['#/definitions/pet'] = $refs['#/paths//pets/post/responses/200/schema'] = env.resolved.pet;
                     $refs['pet.yaml'] = $refs['../files/pet.yaml'] = $refs[env.getAbsolutePath('pet.yaml')] = env.resolved.pet;
@@ -129,10 +121,8 @@ describe('Resolution tests', function() {
                 env.parser.parse(env.getPath('nested-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
-                    // The API should be resolved but NOT dereferenced
                     expect(api).to.deep.equal(env.resolved.nestedRefs);
 
-                    // The $refs should be normalized but NOT dereferenced
                     var $refs = {};
                     $refs['pet'] = $refs['#/definitions/pet'] = env.resolved.pet;
                     $refs['error'] = $refs['#/definitions/error'] = env.resolved.error;
@@ -151,10 +141,8 @@ describe('Resolution tests', function() {
                 env.parser.parse(env.getPath('external-backrefs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
-                    // The API should be resolved but NOT dereferenced
                     expect(api).to.deep.equal(env.resolved.externalBackRefs);
 
-                    // The $refs should be normalized but NOT dereferenced
                     var $refs = {};
                     $refs['pet'] = $refs['#/definitions/pet'] = env.resolved.pet;
                     $refs['error'] = $refs['#/definitions/error'] = $refs['error-backref.yml'] = $refs[env.getAbsolutePath('error-backref.yml')] = env.resolved.errorBackref;
@@ -174,10 +162,8 @@ describe('Resolution tests', function() {
                 env.parser.parse(env.getPath('non-object-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
-                    // The API should be resolved but NOT dereferenced
                     expect(api).to.deep.equal(env.resolved.nonObjectRefs);
 
-                    // The $refs should be normalized but NOT dereferenced
                     var $refs = {
                         "#/definitions/error/properties/code/minimum": 400,
                         "#/definitions/pet/properties/name/type": "string",
@@ -197,14 +183,30 @@ describe('Resolution tests', function() {
                 env.parser.parse(env.getPath('circular-refs.yaml'), function(err, api, metadata) {
                     if (err) return done(err);
 
-                    // The API should be resolved but NOT dereferenced
                     expect(api).to.deep.equal(env.resolved.circularRefs);
 
-                    // The $refs should be normalized but NOT dereferenced
                     var $refs = {};
                     $refs['person'] = $refs['#/definitions/person'] = env.resolved.circularRefsPerson;
                     $refs['parent'] = $refs['#/definitions/parent'] = env.resolved.circularRefsParent;
                     $refs['child'] = $refs['#/definitions/child'] = env.resolved.circularRefsChild;
+
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    expect(metadata.$refs).to.deep.equal($refs);
+
+                    done();
+                });
+            }
+        );
+
+        it('should ignore $refs that aren\'t strings',
+            function(done) {
+                env.parser.parse(env.getPath('non-refs.yaml'), function(err, api, metadata) {
+                    if (err) return done(err);
+
+                    expect(api).to.deep.equal(env.resolved.nonRefs);
+
+                    var $refs = {};
+                    $refs['$ref'] = $refs['#/definitions/$ref'] = env.resolved.nonRef;
 
                     expect(metadata).to.satisfy(env.isMetadata);
                     expect(metadata.$refs).to.deep.equal($refs);

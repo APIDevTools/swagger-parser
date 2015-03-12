@@ -128,6 +128,24 @@ describe('Dereferencing tests', function() {
             }
         );
 
+        it('should ignore $refs that aren\'t strings',
+            function(done) {
+                env.parser.parse(env.getPath('non-refs.yaml'), function(err, api, metadata) {
+                    if (err) return done(err);
+
+                    expect(api).to.deep.equal(env.dereferenced.nonRefs);
+
+                    var $refs = {};
+                    $refs['$ref'] = $refs['#/definitions/$ref'] = env.dereferenced.nonRef;
+
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    expect(metadata.$refs).to.deep.equal($refs);
+
+                    done();
+                });
+            }
+        );
+
         it('should dereference an already-parsed object',
             function(done) {
                 env.parser.parse(env.resolved.nestedRefs, function(err, api, metadata) {

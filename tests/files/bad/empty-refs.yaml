@@ -17,7 +17,7 @@ paths:
         200:
           description: invalid reference
           schema:
-            $ref:
+            $ref: ""
         default:
           description: references the "error" definition
           schema:

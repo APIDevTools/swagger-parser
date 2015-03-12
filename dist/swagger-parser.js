@@ -576,7 +576,8 @@ var read      = require('./read'),
     _last     = require('lodash/array/last'),
     _result   = require('lodash/object/result'),
     _has      = require('lodash/object/has'),
-    _isEmpty  = require('lodash/lang/isEmpty');
+    _isEmpty  = require('lodash/lang/isEmpty'),
+    _isString = require('lodash/lang/isString');
 
 
 // RegExp pattern to detect external $ref pointers.
@@ -637,7 +638,7 @@ function resolveObject(obj, objPath, state, callback) {
  * @param   {function}  callback
  */
 function resolveIf$Ref(value, valuePath, state, callback) {
-    if (_has(value, '$ref')) {
+    if (_has(value, '$ref') && _isString(value.$ref)) {
         if (isExternal$Ref(value.$ref) && !state.options.resolveExternal$Refs) {
             // Resolving external pointers is disabled, so return the $ref as-is
             util.doCallback(callback, null, value);
@@ -869,7 +870,7 @@ function cache$Ref($ref, resolved, state) {
     state.$refs[normalized] = resolved;
 }
 
-},{"./read":5,"./util":8,"lodash/array/last":80,"lodash/lang/isEmpty":119,"lodash/object/has":128,"lodash/object/result":133}],7:[function(require,module,exports){
+},{"./read":5,"./util":8,"lodash/array/last":80,"lodash/lang/isEmpty":119,"lodash/lang/isString":125,"lodash/object/has":128,"lodash/object/result":133}],7:[function(require,module,exports){
 'use strict';
 
 module.exports = State;

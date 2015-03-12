@@ -15,8 +15,8 @@ env.dereferenced.specialCharacters =
           'default': {
             'description': 'external reference with special characters',
             'schema': {
-              "type": "object",
-              "description": "Testing file/folder names with spaces and special characters"
+              'type': 'object',
+              'description': 'Testing file/folder names with spaces and special characters'
             }
           }
         }
