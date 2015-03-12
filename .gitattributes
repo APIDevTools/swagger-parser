@@ -28,4 +28,4 @@
 *.jpeg binary
 
 # Omit specific test files from being modified
-/tests/files/text.txt binary
+/tests/files/good/text.txt binary
