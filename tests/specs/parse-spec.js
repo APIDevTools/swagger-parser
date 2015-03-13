@@ -54,7 +54,19 @@ describe('env.parser.parse tests', function() {
             }
         );
 
-        it('can be called with an already-parsed object',
+        it('can be called with an already-parsed object (without references)',
+            function(done) {
+                this.slow(1000);
+                env.parser.parse(env.resolved.noRefs, function(err, api, metadata) {
+                    if (err) return done(err);
+                    expect(api).to.deep.equal(env.resolved.noRefs);
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
+
+        it('can be called with an already-parsed object (with references)',
             function(done) {
                 env.parser.parse(env.resolved.nestedRefs, function(err, api, metadata) {
                     if (err) return done(err);
