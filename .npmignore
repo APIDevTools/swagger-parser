@@ -3,10 +3,10 @@
 **/.DS_Store
 npm-debug.log
 .idea
-node_modules
-bower_components
-tests
-coverage
+/node_modules
+/www
+/tests
+/coverage
 /gulpfile.js
 /karma.conf.js
 /.*

@@ -56,7 +56,7 @@ describe('env.parser.parse tests', function() {
 
         it('can be called with an already-parsed object (without references)',
             function(done) {
-                this.slow(1000);
+                this.timeout(3000);
                 env.parser.parse(env.resolved.noRefs, function(err, api, metadata) {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.resolved.noRefs);

@@ -16,7 +16,8 @@ describe('env.parser.defaults tests', function() {
                 resolve$Refs: true,
                 resolveExternal$Refs: true,
                 dereference$Refs: true,
-                validateSchema: true
+                validateSchema: true,
+                strictValidation: true
             });
         }
     );
