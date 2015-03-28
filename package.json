@@ -1,0 +1,78 @@
+{
+  "name": "swagger-parser",
+  "version": "2.2.9",
+  "description": "Swagger JSON/YAML parser and validator for Node and browsers",
+  "keywords": [
+    "swagger",
+    "json",
+    "yaml",
+    "parse",
+    "parser",
+    "validate",
+    "validator",
+    "validation",
+    "spec",
+    "specification",
+    "schema",
+    "reference",
+    "dereference"
+  ],
+  "author": {
+    "name": "James Messinger",
+    "url": "http://jamesmessinger.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/BigstickCarpet/swagger-parser",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "gulp build",
+    "test": "istanbul cover _mocha -- --recursive tests && karma start --single-run",
+    "mocha": "mocha --recursive tests",
+    "karma": "karma start --single-run",
+    "release": "npm-check-updates -u && npm update && npm run build && npm test && bump --prompt --tag --push --all"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BigstickCarpet/swagger-parser.git"
+  },
+  "engines": {
+    "node": ">=0.10.36",
+    "npm": ">=2.0"
+  },
+  "dependencies": {
+    "debug": "^2.1.2",
+    "js-yaml": "^3.2.7",
+    "lodash": "^3.5.0",
+    "swagger-schema-official": "2.0.0-a33091a",
+    "tv4": "^1.1.9"
+  },
+  "devDependencies": {
+    "browserify": "^9.0.3",
+    "chai": "^2.1.1",
+    "coveralls": "^2.11.2",
+    "gulp": "^3.8.11",
+    "gulp-rename": "^1.2.0",
+    "gulp-sourcemaps": "^1.5.0",
+    "gulp-uglify": "^1.1.0",
+    "istanbul": "^0.3.7",
+    "jquery": "^2.1.3",
+    "karma": "^0.12.31",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^0.1.7",
+    "karma-cli": "0.0.4",
+    "karma-firefox-launcher": "^0.1.4",
+    "karma-ie-launcher": "^0.1.5",
+    "karma-mocha": "^0.1.10",
+    "karma-mocha-reporter": "^1.0.0",
+    "karma-phantomjs-launcher": "^0.1.4",
+    "karma-safari-launcher": "^0.1.1",
+    "karma-sinon": "^1.0.4",
+    "mocha": "^2.2.1",
+    "nock": "^1.1",
+    "npm-check-updates": "^1.5.1",
+    "sinon": "^1.13.0",
+    "version-bump-prompt": "^1.0.1",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
+  }
+}

@@ -1,0 +1,14 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: special characters
+  description: Testing file/folder names with spaces and special characters
+paths:
+  /pets:
+    post:
+      responses:
+        default:
+          description: external reference with special characters
+          schema:
+            # This is a URL (not a local file), so it must be encoded
+            $ref: "__(%7B%5B%20!%20%25%20%26%20%24%20%23%20%40%20%60%20~%20%2C)%7D%5D__/__(%7B%5B%20!%20%25%20%26%20%24%20%23%20%40%20%60%20~%20%2C)%7D%5D__.json"

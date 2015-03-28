@@ -1,0 +1,13 @@
+{
+  "properties": {
+    "message": {
+      "type": "string"
+    },
+    "code": {
+      "type": "integer"
+    },
+    "pet": {
+      "$ref": "../../files/good/pet.yaml"
+    }
+  }
+}

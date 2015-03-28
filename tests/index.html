@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css"/>
+
+    <title>Swagger-Parser Tests</title>
+  </head>
+  <body>
+    <div id="mocha"></div>
+
+    <!-- Test Framework -->
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../node_modules/sinon/pkg/sinon.js"></script>
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script>mocha.setup('bdd')</script>
+
+    <!-- Swagger-Parser -->
+    <script src="../dist/swagger-parser.js"></script>
+
+    <!-- Test Helpers -->
+    <script src="test-environment.js"></script>
+    <script src="files/good/text-resolved.js"></script>
+    <script src="files/good/image-resolved.js"></script>
+    <script src="files/real-world/file-list.js"></script>
+    <script src="files/bad/invalid-resolved.js"></script>
+    <script src="files/good/circular-refs-dereferenced.js"></script>
+    <script src="files/good/circular-refs-resolved.js"></script>
+    <script src="files/good/circular-refs-person-dereferenced.js"></script>
+    <script src="files/good/circular-refs-person-resolved.js"></script>
+    <script src="files/good/circular-refs-parent-dereferenced.js"></script>
+    <script src="files/good/circular-refs-parent-resolved.js"></script>
+    <script src="files/good/circular-refs-child-dereferenced.js"></script>
+    <script src="files/good/circular-refs-child-resolved.js"></script>
+    <script src="files/good/error-dereferenced.js"></script>
+    <script src="files/good/error-resolved.js"></script>
+    <script src="files/good/error-backref-dereferenced.js"></script>
+    <script src="files/good/error-backref-resolved.js"></script>
+    <script src="files/good/error-wrapper-dereferenced.js"></script>
+    <script src="files/good/error-wrapper-resolved.js"></script>
+    <script src="files/good/external-backrefs-dereferenced.js"></script>
+    <script src="files/good/external-backrefs-resolved.js"></script>
+    <script src="files/good/external-backrefs-path-resolved.js"></script>
+    <script src="files/good/external-refs-dereferenced.js"></script>
+    <script src="files/good/external-refs-resolved.js"></script>
+    <script src="files/good/minimal-resolved.js"></script>
+    <script src="files/good/nested-refs-dereferenced.js"></script>
+    <script src="files/good/nested-refs-resolved.js"></script>
+    <script src="files/good/no-refs-resolved.js"></script>
+    <script src="files/good/non-refs-dereferenced.js"></script>
+    <script src="files/good/non-refs-resolved.js"></script>
+    <script src="files/good/non-object-refs-dereferenced.js"></script>
+    <script src="files/good/non-object-refs-resolved.js"></script>
+    <script src="files/good/pet-dereferenced.js"></script>
+    <script src="files/good/pet-resolved.js"></script>
+    <script src="files/good/refs-dereferenced.js"></script>
+    <script src="files/good/refs-resolved.js"></script>
+    <script src="files/good/shorthand-refs-dereferenced.js"></script>
+    <script src="files/good/shorthand-refs-resolved.js"></script>
+    <script src="files/good/special-characters-dereferenced.js"></script>
+
+    <!-- Swagger-Parser Tests -->
+    <script src="specs/exports-spec.js"></script>
+    <script src="specs/defaults-spec.js"></script>
+    <script src="specs/parse-spec.js"></script>
+    <script src="specs/resolve-spec.js"></script>
+    <script src="specs/dereference-spec.js"></script>
+    <script src="specs/metadata-spec.js"></script>
+    <script src="specs/real-world-spec.js"></script>
+
+    <script>
+      mocha.checkLeaks();
+      mocha.globals(['jQuery', 'Cordova', 'CDV_origSymbols', 'hacks']);
+      mocha.run();
+    </script>
+  </body>
+</html>

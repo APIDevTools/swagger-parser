@@ -1,0 +1,45 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: circular refs
+  description: This file contains circular $ref pointers
+
+definitions:
+  person:
+    properties:
+      name:
+        type: string
+      spouse:
+        type:
+          $ref: person  # direct circular reference
+
+  parent:
+    properties:
+      name:
+        type: string
+      children:
+        type: array
+        items:
+          $ref: child   # indirect circular reference
+
+  child:
+    properties:
+      name:
+        type: string
+      parents:
+        type: array
+        items:
+          $ref: parent  # indirect circular reference
+
+paths:
+  /circular:
+    post:
+      responses:
+        200:
+          description: references the "person" definition
+          schema:
+            $ref: person
+        default:
+          description: references the "parent" definition
+          schema:
+            $ref: parent

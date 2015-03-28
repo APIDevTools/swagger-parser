@@ -1,0 +1,7 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: malformed
+  description: An example of an invalid YAML file
+paths:
+Onoes! This is invalid!!!

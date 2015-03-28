@@ -1,0 +1,54 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: non-object refs
+  description: This file has $ref pointers to things other than plain objects
+
+definitions:
+  pet:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+        enum: [cat, dog, bird]
+
+  error:
+    properties:
+      code:
+        type: integer
+        minimum: 400
+      message:
+        type: string
+
+paths:
+  /pets:
+    post:
+      parameters:
+        - name: pet
+          in: body
+          required: true
+          description: references the "pet" definition
+          schema:
+            properties:
+              name:
+                type:
+                  $ref: "#/definitions/pet/properties/name/type"    # pointer to a string
+              type:
+                type: string
+                enum:
+                  $ref: "#/definitions/pet/properties/type/enum"  # pointer to an array
+
+      responses:
+        default:
+          description: references the "error" definition
+          schema:
+            properties:
+              code:
+                type: integer
+                minimum:
+                  $ref: "#/definitions/error/properties/code/minimum"   # pointer to a number
+              message:
+                type: string
+                enum:
+                  $ref: "#/definitions/pet/properties/type/enum"  # pointer to an array

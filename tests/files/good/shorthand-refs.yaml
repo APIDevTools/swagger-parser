@@ -1,0 +1,41 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: shorthand refs
+  description: Swagger allows a shorthand notation for $ref pointers that reference the root "definitions" object
+paths:
+  /pets:
+    post:
+      parameters:
+        - name: pet
+          in: body
+          required: true
+          description: references the "pet" definition
+          schema:
+            $ref: pet
+      responses:
+        200:
+          description: references the "pet" definition
+          schema:
+            $ref: pet
+        default:
+          description: references the "error" definition
+          schema:
+            $ref: error
+definitions:
+  pet:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+        enum: [cat, dog, bird]
+
+  error:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+      pet:
+        $ref: pet
