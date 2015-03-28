@@ -29,7 +29,7 @@ describe('env.parser.defaults tests', function() {
             // Which means this call should fail
             env.parser.parse(env.getPath('good/minimal.yaml'), function(err, api, metadata) {
                 expect(err).to.be.an.instanceOf(SyntaxError);
-                expect(err.message).to.contain('Error parsing file');
+                expect(err.message).to.match(/^Error in Swagger definition \nSyntaxError: Error parsing file/);
                 expect(api).to.be.null;
                 expect(metadata).to.satisfy(env.isMetadata);
 

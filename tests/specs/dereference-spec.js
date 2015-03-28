@@ -109,7 +109,7 @@ describe('Dereferencing tests', function() {
             function(done) {
                 env.parser.parse(env.getPath('good/circular-refs.yaml'), function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(ReferenceError);
-                    expect(err.message).to.contain('5 circular reference(s) detected');
+                    expect(err.message).to.equal('5 circular reference(s) detected');
                     expect(metadata).to.satisfy(env.isMetadata);
 
                     // The API should be partially dereferenced
