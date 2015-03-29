@@ -10,3 +10,4 @@ npm-debug.log
 /gulpfile.js
 /karma.conf.js
 /.*
+/index.html

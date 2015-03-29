@@ -2,285 +2,150 @@
 <html>
   <head>
     <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Swagger Parser Online</title>
+
     <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <link rel="stylesheet" href="www/bower_components/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="www/css/style.css"/>
 
     <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <script src="//oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
     <![endif]-->
-
-    <title>Swagger Parser by BigstickCarpet</title>
   </head>
-
   <body>
-    <header>
-      <div class="inner">
+    <header class="jumbotron">
+      <div class="container">
         <h1>Swagger Parser</h1>
-        <h2>Parses, validates, and dereferences JSON/YAML Swagger specs in Node and browsers</h2>
-        <a href="https://github.com/BigstickCarpet/swagger-parser" class="button"><small>View project on</small> GitHub</a>
+
+        <p>Parses, validates, and dereferences JSON/YAML Swagger specs in Node and browsers</p>
+        <a href="https://github.com/BigstickCarpet/swagger-parser" class="btn btn-info btn-img">
+          <small>View project on</small>
+          GitHub</a>
       </div>
     </header>
 
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <p><a href="https://travis-ci.org/BigstickCarpet/swagger-parser"><img src="https://img.shields.io/travis/BigstickCarpet/swagger-parser.svg" alt="Build Status"></a>
-<a href="https://david-dm.org/bigstickcarpet/swagger-parser"><img src="https://img.shields.io/david/bigstickcarpet/swagger-parser.svg" alt="Dependencies"></a>
-<a href="https://codeclimate.com/github/BigstickCarpet/swagger-parser"><img src="https://img.shields.io/codeclimate/github/BigstickCarpet/swagger-parser.svg" alt="Code Climate Score"></a>
-<a href="https://www.codacy.com/public/jamesmessinger/swagger-parser"><img src="http://img.shields.io/codacy/6d686f916836433b9c013379fbe1052c.svg" alt="Codacy Score"></a>
-<a href="https://coveralls.io/r/BigstickCarpet/swagger-parser"><img src="https://img.shields.io/coveralls/BigstickCarpet/swagger-parser.svg" alt="Coverage Status"></a></p>
+    <main class="container">
+      <div class="row">
+        <div class="col-sm-8 col-md-9 col-lg-10">
+          <h2><a class="anchor"><span class="octicon octicon-link"></span></a>Try it Out</h2>
 
-<p><a href="https://www.npmjs.com/package/swagger-parser"><img src="https://img.shields.io/npm/dm/swagger-parser.svg" alt="Downloads"></a>
-<a href="https://www.npmjs.com/package/swagger-parser"><img src="http://img.shields.io/npm/v/swagger-parser.svg" alt="npm"></a>
-<a href="#bower"><img src="http://img.shields.io/bower/v/swagger-parser.svg" alt="Bower"></a>
-<a href="LICENSE"><img src="https://img.shields.io/npm/l/swagger-parser.svg" alt="License"></a></p>
+          <textarea id="source" class="form-control" rows="15" cols="60" placeholder="Enter a Swagger definition, in YAML or JSON">
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: Swagger Pet Store
+  description: A sample Swagger 2.0 API
 
-<h2>
-<a id="features" class="anchor" href="#features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Features</h2>
+paths:
+  /pets:
+    get:
+      responses:
+        200:
+          description: Returns all pets
+          schema:
+            type: array
+            items:
+              $ref: pet
+    post:
+      parameters:
+        - name: petData
+          in: body
+          schema:
+            $ref: pet
+      responses:
+        201:
+          description: Adds a new pet
 
-<ul>
-<li>Parses Swagger specs in <strong>JSON or YAML</strong> format</li>
-<li>
-<strong>Validates</strong> against the <a href="http://github.com/reverb/swagger-spec/blob/master/versions/2.0.md">official Swagger 2.0 schema</a>
-</li>
-<li>Dereferences all <strong>$ref</strong> pointers, including pointers to <strong>external files and URLs</strong>
-</li>
-<li>Asynchronously downloads and <strong>caches</strong> external files and URLs</li>
-<li>
-<strong>Tested</strong> in Node.js and all major web browsers on Windows, Mac, and Linux</li>
-<li>Tested on <a href="https://github.com/APIs-guru/api-models/tree/master/google">over 100 public Google APIs</a>
-</li>
-<li>Supports nested $ref pointers, even in external files and URLs</li>
-<li>Supports circular $ref pointers (see <a href="#circular-refs">notes</a> below)</li>
-<li>Multiple $ref pointers to the same object are resolved to the <a href="https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124">same object instance</a>
-</li>
-</ul>
+definitions:
+  pet:
+    type: object
+    required:
+      - name
+      - type
+    properties:
+      name:
+        type: string
+        minLength: 4
+        pattern: "^[a-zA-Z0-9- ]+$"
+      age:
+        type: integer
+      type:
+        type: string
+        enum: [cat, dog, bird]
+          </textarea>
 
-<h2>
-<a id="basic-example" class="anchor" href="#basic-example" aria-hidden="true"><span class="octicon octicon-link"></span></a>Basic Example</h2>
-
-<div class="highlight highlight-javascript"><pre>swagger.parser.<span class="pl-c1">parse</span>(<span class="pl-s"><span class="pl-pds">"</span>swagger.yaml<span class="pl-pds">"</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">err</span>, <span class="pl-smi">api</span>, <span class="pl-smi">metadata</span>) {
-  <span class="pl-k">if</span> (<span class="pl-k">!</span>err) {
-    <span class="pl-en">console</span><span class="pl-c1">.log</span>(<span class="pl-s"><span class="pl-pds">"</span>API name: %s, Version: %s<span class="pl-pds">"</span></span>, api<span class="pl-c1">.info</span>.<span class="pl-c1">title</span>, api<span class="pl-c1">.info</span>.<span class="pl-c1">version</span>);
-  }
-});</pre></div>
-
-<p>The <code>api</code> parameter that's passed to the callback function is the parsed, validated, and dereferenced <a href="https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object">Swagger object</a>.</p>
-
-<h2>
-<a id="installation-and-use" class="anchor" href="#installation-and-use" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation and Use</h2>
-
-<h4>
-<a id="node" class="anchor" href="#node" aria-hidden="true"><span class="octicon octicon-link"></span></a>Node</h4>
-
-<div class="highlight highlight-bash"><pre>npm install swagger-parser</pre></div>
-
-<p>Then add this to your Node script:</p>
-
-<div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> parser <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">"</span>swagger-parser<span class="pl-pds">"</span></span>);
-parser.<span class="pl-c1">parse</span>(<span class="pl-s"><span class="pl-pds">'</span>swagger.yaml<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">err</span>, <span class="pl-smi">api</span>, <span class="pl-smi">metadata</span>) { ... });</pre></div>
-
-<h4>
-<a id="bower" class="anchor" href="#bower" aria-hidden="true"><span class="octicon octicon-link"></span></a>Bower</h4>
-
-<div class="highlight highlight-bash"><pre>bower install swagger-parser</pre></div>
-
-<p>Then add this to your HTML page:</p>
-
-<div class="highlight highlight-html"><pre>&lt;<span class="pl-ent">script</span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>bower_components/swagger-parser/dist/swagger-parser.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;
-<span class="pl-s1">&lt;<span class="pl-ent">script</span>&gt;</span>
-<span class="pl-s1">    swagger.parser.<span class="pl-c1">parse</span>(<span class="pl-s"><span class="pl-pds">'</span>http://mysite.com/swagger.yaml<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">err</span>, <span class="pl-smi">api</span>, <span class="pl-smi">metadata</span>) { ... });</span>
-<span class="pl-s1">&lt;/<span class="pl-ent">script</span>&gt;</span></pre></div>
-
-<h4>
-<a id="amd-requirejs" class="anchor" href="#amd-requirejs" aria-hidden="true"><span class="octicon octicon-link"></span></a>AMD (Require.js)</h4>
-
-<p>Just add <code>swagger-parser</code> to your AMD module's dependencies, or <code>require("swagger-parser")</code> explicitly.</p>
-
-<div class="highlight highlight-javascript"><pre>define(<span class="pl-s"><span class="pl-pds">"</span>myModule<span class="pl-pds">"</span></span>, [<span class="pl-s"><span class="pl-pds">"</span>swagger-parser<span class="pl-pds">"</span></span>], <span class="pl-k">function</span>(<span class="pl-smi">parser</span>) {
-    parser.<span class="pl-c1">parse</span>(<span class="pl-s"><span class="pl-pds">'</span>http://mysite.com/swagger.yaml<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">err</span>, <span class="pl-smi">api</span>, <span class="pl-smi">metadata</span>) { ... });
-});</pre></div>
-
-<h2>
-<a id="the-api" class="anchor" href="#the-api" aria-hidden="true"><span class="octicon octicon-link"></span></a>The API</h2>
-
-<h3>
-<a id="parserparseswaggerpath-options-callback" class="anchor" href="#parserparseswaggerpath-options-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a><code>Parser.parse(swaggerPath, [options], callback)</code>
-</h3>
-
-<ul>
-<li><p><strong>swagger</strong> (<em>required</em>) - <code>string</code> or <code>object</code><br>
-The file path or URL of your Swagger file.  Relative paths are allowed.  In Node, the path is relative to <code>process.cwd()</code>.  In the browser, it's relative to the URL of the page.
-<br><br>
-If you pass an object instead of a string, then the parsing step will be skipped, but the object will still be validated, resolved, and dereferenced just like normal.</p></li>
-<li><p><strong>options</strong> (<em>optional</em>) - <code>object</code><br>
-An object containing one or more parsing options. See <a href="#options">options</a> below.</p></li>
-<li><p><strong>callback</strong> (<em>required</em>) - <code>function(err, api, metadata)</code><br>
-Called after the parsing is finished, or when an error occurs.  See <a href="#callback">callback</a> below for details.</p></li>
-</ul>
-
-<h4>
-<a id="options" class="anchor" href="#options" aria-hidden="true"><span class="octicon octicon-link"></span></a>Options</h4>
-
-<table>
-<thead>
-<tr>
-<th align="left">Property</th>
-<th align="left">Type</th>
-<th align="left">Default</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="left"><code>parseYaml</code></td>
-<td align="left">bool</td>
-<td align="left">true</td>
-<td align="left">Determines whether the parser will allow Swagger specs in YAML format.  If set to <code>false</code>, then only JSON will be allowed.</td>
-</tr>
-<tr>
-<td align="left"><code>dereference$Refs</code></td>
-<td align="left">bool</td>
-<td align="left">true</td>
-<td align="left">Determines whether <code>$ref</code> pointers in the Swagger API will be replaced with their resolved values.  Different <code>$ref</code> pointers that resolve to the same object will be replaced with <a href="https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124">the same object instance</a>.  Setting this option to <code>false</code> will leave the <code>$ref</code> pointers in the Swagger API, but you can still access the resolved values using the <a href="#metadata">metadata object</a>.</td>
-</tr>
-<tr>
-<td align="left"><code>resolve$Refs</code></td>
-<td align="left">bool</td>
-<td align="left">true</td>
-<td align="left">Determines whether <code>$ref</code> pointers will be resolved.  Setting this option to <code>false</code> effectively disables <code>dereference$Refs</code> as well. The difference is that the <a href="#metadata">metadata object</a> won't be populated either.</td>
-</tr>
-<tr>
-<td align="left"><code>resolveExternal$Refs</code></td>
-<td align="left">bool</td>
-<td align="left">true</td>
-<td align="left">Determines whether <code>$ref</code> pointers will be resolved if they point to external files or URLs.  Internal <code>$ref</code> pointers will still be resolved and dereferenced.</td>
-</tr>
-<tr>
-<td align="left"><code>validateSchema</code></td>
-<td align="left">bool</td>
-<td align="left">true</td>
-<td align="left">Determines whether your API will be validated against the official Swagger schema.  If set to <code>false</code>, then the resulting <a href="https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object">Swagger object</a> may be missing properties, have properties of the wrong data type, etc.</td>
-</tr>
-</tbody>
-</table>
-
-<h4>
-<a id="callback" class="anchor" href="#callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>Callback</h4>
-
-<table>
-<thead>
-<tr>
-<th align="left">Parameter</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="left"><code>err</code></td>
-<td align="left">Error</td>
-<td align="left">
-<code>null</code> unless an error occurred.</td>
-</tr>
-<tr>
-<td align="left"><code>api</code></td>
-<td align="left"><a href="https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object">Swagger object</a></td>
-<td align="left">The complete Swagger API object. Or <code>null</code> if an error occurred</td>
-</tr>
-<tr>
-<td align="left"><code>metadata</code></td>
-<td align="left">object</td>
-<td align="left">This parameter provides extra information about the parsing operation. It is always provided, even if there's an error.</td>
-</tr>
-</tbody>
-</table>
-
-<h4>
-<a id="metadata" class="anchor" href="#metadata" aria-hidden="true"><span class="octicon octicon-link"></span></a>Metadata</h4>
-
-<p>The <code>metadata</code> parameter is an object with the following properties:</p>
-
-<table>
-<thead>
-<tr>
-<th align="left">Property</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="left"><code>baseDir</code></td>
-<td align="left">string</td>
-<td align="left">The base directory used to resolve any external $ref pointers.  If you passed a file path/URL to the <code>parse</code> method, then the <code>baseDir</code> is the directory of that file.  If you passed an object, then <code>baseDir</code> is set to <code>process.cwd()</code> in Node, or the URL of the current page in browsers.</td>
-</tr>
-<tr>
-<td align="left"><code>files</code></td>
-<td align="left">array of strings</td>
-<td align="left">The full paths of all files that were parsed. This only includes local files, <em>not</em> URLs.  If <code>Parser.parse()</code> was called with a local file path, then it will be the first item in this array.</td>
-</tr>
-<tr>
-<td align="left"><code>urls</code></td>
-<td align="left">array of <a href="http://nodejs.org/api/url.html#url_url">URL objects</a>
-</td>
-<td align="left">The URLs that were parsed.  If <code>Parser.parse()</code> was called with a URL, then it will be the first item in this array.</td>
-</tr>
-<tr>
-<td align="left"><code>$refs</code></td>
-<td align="left">object</td>
-<td align="left">A map of all the $ref pointers that were resolved, and the objects they resolved to.  If an error occurs while resolving a reference, then this object will still contain the $refs that were successfully parsed up to that point.</td>
-</tr>
-</tbody>
-</table>
-
-<h2>
-<a id="circular-refs" class="anchor" href="#circular-refs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Circular $Refs</h2>
-
-<p>Swagger files can contain <a href="https://github.com/BigstickCarpet/swagger-parser/blob/master/tests/files/circular-refs.yaml">circular $ref pointers</a>, and Swagger-Parser will correctly parse them, resolve their values, and validate them against the Swagger schema.  However, Swagger-Parser <strong>does not dereference</strong> circular references because this can easily cause stack overflows when the Swagger object is serialized, as well as other, more subtle bugs.</p>
-
-<p>If your Swagger API includes circular references, then the callback will receive a <code>ReferenceError</code> to alert you that the Swagger object was not fully dereferenced. However, you can choose to ignore this error and use the <code>api</code> parameter anyway. All non-circular <code>$ref</code> pointers in the Swagger object will still be resolved and dereferenced like always.  Circular <code>$ref</code> pointers will not be dereferenced, but they <em>will</em> be resolved, so you can access their resolved values in <a href="#metadata"><code>metadata.$refs</code></a>.</p>
-
-<div class="highlight highlight-yaml"><pre><span class="pl-s"><span class="pl-ent">person:</span></span>
-  <span class="pl-s"><span class="pl-ent">properties:</span></span>
-    <span class="pl-s"><span class="pl-ent">name:</span></span>
-      <span class="pl-s"><span class="pl-ent">type:</span> <span class="pl-s">string</span></span>
-    <span class="pl-s"><span class="pl-ent">spouse:</span></span>
-      <span class="pl-s"><span class="pl-ent">type:</span></span>
-        <span class="pl-s"><span class="pl-ent">$ref:</span> <span class="pl-s">person   </span></span><span class="pl-c"># circular reference</span></pre></div>
-
-<h2>
-<a id="contributing" class="anchor" href="#contributing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contributing</h2>
-
-<p>I welcome any contributions, enhancements, and bug-fixes.  <a href="https://github.com/BigstickCarpet/swagger-parser/issues">File an issue</a> on GitHub and <a href="https://github.com/BigstickCarpet/swagger-parser/pulls">submit a pull request</a>.  Use JSHint to make sure your code passes muster.  (see <a href=".jshintrc">.jshintrc</a>).</p>
-
-<h2>
-<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
-
-<p>Swagger-Parser is 100% free and open-source, under the <a href="LICENSE">MIT license</a>. Use it however you want. </p>
-        </section>
-
-        <aside id="sidebar">
-          <a href="https://github.com/BigstickCarpet/swagger-parser/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/BigstickCarpet/swagger-parser/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
-
-          <p class="repo-owner"><a href="https://github.com/BigstickCarpet/swagger-parser"></a> is maintained by <a href="https://github.com/BigstickCarpet">BigstickCarpet</a>.</p>
-
-          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+          <div id="results" class="fade">
+            <div id="results-success" class="alert alert-success hidden">
+              <i class="glyphicon glyphicon-ok-sign result-icon" aria-hidden="true"></i>
+              The Swagger spec was parsed successfully.
+              <span id="results-refs" class="label label-success">0</span> $ref pointers were resolved,
+              including <span id="results-files" class="label label-success">0</span> external $refs.
+            </div>
+            <div id="results-error" class="alert alert-danger hidden">
+              <i class="glyphicon glyphicon-remove-sign result-icon" aria-hidden="true"></i>
+              <span id="results-error-message"></span>
+            </div>
+            <textarea id="results-output" class="form-control hidden" rows="15" cols="60" readonly></textarea>
+          </div>
+        </div>
+        <aside class="col-sm-4 col-md-3 col-lg-2 sidebar">
+          <div class="row">
+            <div class="col-xs-8 col-xs-offset-2 col-sm-12 col-sm-offset-0">
+              <button id="parse" class="btn btn-success btn-lg btn-block btn-img">
+                Parse It !
+              </button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-xs-12">
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" id="parseYaml" checked> Allow YAML
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" id="resolveRefs" checked> Resolve $ref pointers
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" id="resolveExternalRefs" checked> Resolve <em>external</em> $refs
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" id="dereferenceRefs" checked> Dereference $refs
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" id="validateSchema" checked> Validate JSON schema
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" id="strictValidation" checked> Strict validation
+                </label>
+              </div>
+            </div>
+          </div>
         </aside>
       </div>
-    </div>
+    </main>
 
-  
+    <footer class="container">
+      <p>
+        Swagger Parser is written by <a href="https://github.com/BigstickCarpet">James Messinger</a>.<br/>
+        This page is based on the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+      </p>
+    </footer>
+
+    <script src="dist/swagger-parser.min.js"></script>
+    <script src="www/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="www/js/main.js"></script>
   </body>
 </html>

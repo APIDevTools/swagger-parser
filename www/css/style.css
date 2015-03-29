@@ -1,0 +1,157 @@
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, serif;
+    color: #666;
+    background: #fafafa url(../img/body-bg.jpg) 0 0 repeat;
+}
+footer {
+    margin: 4em 0 2em 0;
+    font-size: smaller;
+}
+h2 {
+    font-size: 22px;
+    font-weight: normal;
+    color: #474747;
+    text-indent: 4px;
+}
+h2:first-of-type {
+    margin-top: 0;
+}
+@media screen and (min-width: 768px) {
+    h2:before {
+        font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+        padding-right: 0.3em;
+        margin-left: -1.5em;
+        content: "//";
+        color: #9ddcff;
+    }
+}
+
+
+/*
+ * Header
+ ****************************************/
+.jumbotron {
+    background: #2e7bcf url(../img/header-bg.jpg) 0 0 repeat-x;
+    border-bottom: solid 1px #275da1;
+    padding-top: 20px;
+    padding-bottom: 40px;
+}
+.jumbotron h1 {
+    font-family: 'Helvetica Neue', Helvetica, Arial, serif;
+    font-weight: normal;
+    letter-spacing: -1px;
+    color: white;
+}
+.jumbotron p {
+    line-height: 1.3;
+    margin: 0;
+    color: #9ddcff;
+}
+.jumbotron .btn-info {
+    background-color: #9ddcff;
+    color: #2879d0;
+    margin-top: 15px;
+}
+@media screen and (min-width: 768px) {
+    .jumbotron h1 {
+        font-size: 72px;
+    }
+    .jumbotron p {
+        font-size: 26px;
+        max-width: 650px;
+    }
+    .jumbotron .container {
+        position: relative;
+    }
+    .jumbotron .btn-img {
+        position: absolute;
+        top: 20px;
+        right: 0;
+        background: transparent url(../img/github-button.png) 0 0 no-repeat;
+        color: #fff;
+        margin-top: 0;
+    }
+}
+
+
+/*
+ * Results
+ ****************************************/
+#results {
+    margin-top: 1em;
+}
+.alert {
+    position: relative;
+}
+.alert-danger span {
+    display: block;
+    width: 100%;
+    overflow: auto;
+}
+.result-icon {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 35px;
+    float: left;
+}
+#results-output {
+    background-color: #fff;
+}
+
+
+/*
+ * Sidebar
+ ****************************************/
+.sidebar .row {
+    padding-top: 1em;
+}
+.sidebar .checkbox {
+    display: inline-block;
+    width: 15em;
+}
+@media screen and (min-width: 768px) {
+    .sidebar {
+        background: transparent url(../img/sidebar-bg.jpg) 0 0 no-repeat;
+        min-height: 510px;
+    }
+    .sidebar .row {
+        padding-top: 0;
+    }
+    .sidebar .btn-img, aside .btn-img:active {
+        background: transparent url(../img/parse-button.png) 0 0 no-repeat;
+    }
+    .sidebar .checkbox {
+        display: block;
+        width: 100%;
+    }
+}
+
+
+/*
+ * Image Buttons
+ ****************************************/
+@media screen and (min-width: 768px) {
+    .btn-img {
+        font-size: 26px;
+        line-height: 1.2;
+        text-align: left;
+        color: #fff;
+        background-color: transparent;
+        border: none;
+        width: 202px;
+        height: 80px;
+        padding: 22px 0 22px 68px;
+        overflow: hidden;
+    }
+    .btn-img:hover, .btn-img:focus, .btn-img:active {
+        background-color: transparent;
+        border-color: transparent;
+        outline: none;
+        color: #fff;
+    }
+    .btn-img small {
+        display: block;
+        font-size: 13px;
+    }
+}
