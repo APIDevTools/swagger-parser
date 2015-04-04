@@ -9,7 +9,7 @@ module.exports = function(config) {
     // Basic Karma configuration
     var cfg = {
         port: 9876,
-        browserNoActivityTimeout: 3000,
+        browserNoActivityTimeout: 8000,
         colors: true,
         logLevel: config.LOG_INFO,
         frameworks: ['mocha', 'chai', 'sinon'],
