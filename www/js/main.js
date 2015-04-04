@@ -17,7 +17,7 @@ $(function() {
                 strictValidation: $('#strictValidation')[0].checked
             };
 
-            var preParser = options.parseYaml ? swagger.parser.__YAML : JSON.parse;
+            var preParser = options.parseYaml ? swagger.parser.__.safeLoad : JSON.parse;
             var obj = preParser($('#source').val());
             swagger.parser.parse(obj, options, function(e, a, m) {
                 err = e;

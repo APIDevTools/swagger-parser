@@ -100,6 +100,7 @@ Called after the parsing is finished, or when an error occurs.  See [callback](#
 |`resolve$Refs`         |bool        |true          |Determines whether `$ref` pointers will be resolved.  Setting this option to `false` effectively disables `dereference$Refs` as well. The difference is that the [metadata object](#metadata) won't be populated either.
 |`resolveExternal$Refs` |bool        |true          |Determines whether `$ref` pointers will be resolved if they point to external files or URLs.  Internal `$ref` pointers will still be resolved and dereferenced.
 |`validateSchema`       |bool        |true          |Determines whether your API will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object) may be missing properties, have properties of the wrong data type, etc.
+|`strictValidation`     |bool        |true          |Determines whether to perform strict validation, which enforces parts of the Swagger Spec that aren't enforced by the JSON schema.  For example, duplicate parameters, invalid parameter types, etc.
 
 #### Callback
 |Parameter  |Type                |Description

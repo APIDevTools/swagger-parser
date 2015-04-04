@@ -125,6 +125,7 @@ if (env.isNode) {
     // Set env properties for Node.js
     env.global = global;
     env.parser = require('../');
+    env.cloneDeep = env.parser.__.cloneDeep;
     env.__filename = __filename;
     env.__dirname = __dirname = __dirname.substr(0, 1).toLowerCase() + __dirname.substr(1); // C:\ => c:\
 
@@ -139,6 +140,7 @@ else {
     // Set env properties for browsers
     env.global = window;
     env.parser = window.swagger.parser;
+    env.cloneDeep = window.swagger.parser.__.cloneDeep;
     env.__filename = document.querySelector('script[src*="test-environment.js"]').src;
     env.__dirname = env.__filename.substr(0, env.__filename.lastIndexOf('/'));
 

@@ -56,10 +56,9 @@ describe('env.parser.parse tests', function() {
 
         it('can be called with an already-parsed object (without references)',
             function(done) {
-                this.timeout(3000);
-                env.parser.parse(env.resolved.noRefs, function(err, api, metadata) {
+                env.parser.parse(env.dereferenced.petStore, function(err, api, metadata) {
                     if (err) return done(err);
-                    expect(api).to.deep.equal(env.resolved.noRefs);
+                    expect(api).to.deep.equal(env.dereferenced.petStore);
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
                 });
@@ -83,18 +82,6 @@ describe('env.parser.parse tests', function() {
                     if (err) return done(err);
                     expect(api).to.deep.equal(env.dereferenced.refs);
                     expect(metadata).to.satisfy(env.isMetadata);
-                    done();
-                });
-            }
-        );
-
-        it('should ignore Swagger schema violations when "validateSchema" is false',
-            function(done) {
-                env.parser.parse(env.getPath('bad/invalid.yaml'), {validateSchema: false}, function(err, api, metadata) {
-                    if (err) return done(err);
-                    expect(metadata).to.satisfy(env.isMetadata);
-                    expect(api).to.deep.equal(env.resolved.invalid);
-                    expect(api.paths['/users'].get.responses).to.have.property('helloworld').that.is.an('object');
                     done();
                 });
             }
@@ -323,18 +310,6 @@ describe('env.parser.parse tests', function() {
                 env.parser.parse(env.getPath('bad/malformed.json'), {parseYaml: false}, function(err, api, metadata) {
                     expect(err).to.be.an.instanceOf(SyntaxError);
                     expect(err.message).to.contain('Error parsing file');
-                    expect(api).to.be.null;
-                    expect(metadata).to.satisfy(env.isMetadata);
-                    done();
-                });
-            }
-        );
-
-        it('should return an error if the file does not comply with the Swagger schema',
-            function(done) {
-                env.parser.parse(env.getPath('bad/invalid.yaml'), function(err, api, metadata) {
-                    expect(err).to.be.an.instanceOf(SyntaxError);
-                    expect(err.message).to.contain('Additional properties not allowed');
                     expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
                     done();
