@@ -1,6 +1,18 @@
 $(function() {
+    ace.config.set("basePath", "www/js");
+    var sourceEditor = ace.edit("source");
+    sourceEditor.setTheme("ace/theme/github");
+    var session = sourceEditor.getSession();
+    session.setTabSize(2);
+    session.setMode("ace/mode/yaml");
+    session.on('change', hideResults);
+
+    var resultsEditor = ace.edit("results-output");
+    resultsEditor.setTheme("ace/theme/github");
+    resultsEditor.setReadOnly(true);
+    resultsEditor.getSession().setMode("ace/mode/json");
+
     $('#parse').click(parse);
-    $('#source').change(hideResults).keypress(hideResults).keydown(hideResults);
 
     var api, metadata, err;
 
@@ -18,7 +30,7 @@ $(function() {
             };
 
             var preParser = options.parseYaml ? swagger.parser.__.safeLoad : JSON.parse;
-            var obj = preParser($('#source').val());
+            var obj = preParser(sourceEditor.getValue());
             swagger.parser.parse(obj, options, function(e, a, m) {
                 err = e;
                 api = a;
@@ -41,7 +53,9 @@ $(function() {
             $('#results-success').removeClass('hidden')[0].scrollIntoView();
             $('#results-refs').text(Object.keys(metadata.$refs).length);
             $('#results-files').text(metadata.urls.length);
-            $('#results-output').removeClass('hidden').val(JSON.stringify(api, null, 2));
+            $('#results-output').removeClass('hidden');
+            resultsEditor.setValue(JSON.stringify(api, null, 2));
+            resultsEditor.selection.clearSelection();
         }
 
         $('#results').addClass('in');

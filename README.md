@@ -13,6 +13,10 @@ Swagger-Parser
 [![Bower](http://img.shields.io/bower/v/swagger-parser.svg)](#bower)
 [![License](https://img.shields.io/npm/l/swagger-parser.svg)](LICENSE)
 
+|[Live Demo!](http://bigstickcarpet.github.io/swagger-parser/)
+|------------------------------------------------------------
+
+
 Features
 --------------------------
 * Parses Swagger specs in __JSON or YAML__ format
@@ -24,7 +28,6 @@ Features
 * Supports nested $ref pointers, even in external files and URLs
 * Supports circular $ref pointers (see [notes](#circular-refs) below)
 * Multiple $ref pointers to the same object are resolved to the [same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124)
-* [Try it out online](http://bigstickcarpet.github.io/swagger-parser/)
 
 
 Basic Example

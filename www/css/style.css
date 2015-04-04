@@ -3,8 +3,10 @@ body {
     color: #666;
     background: #fafafa url(../img/body-bg.jpg) 0 0 repeat;
 }
-textarea.form-control {
-    font-family: monospace;
+.editor {
+    position: relative;
+    width: 100%;
+    min-height: 30em;
 }
 footer {
     margin: 4em 0 2em 0;

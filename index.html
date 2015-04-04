@@ -8,7 +8,7 @@
     <title>Swagger Parser Online</title>
 
     <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="www/bower_components/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="www/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="www/css/style.css"/>
 
     <!--[if lt IE 9]>
@@ -32,7 +32,7 @@
         <div class="col-sm-8 col-md-9 col-lg-10">
           <h2><a class="anchor"><span class="octicon octicon-link"></span></a>Try it Out</h2>
 
-          <textarea id="source" class="form-control" rows="15" cols="60" wrap="off" placeholder="Enter a Swagger definition, in YAML or JSON">
+          <pre id="source" class="editor">
 swagger: "2.0"
 info:
   version: 1.0.0
@@ -75,7 +75,7 @@ definitions:
       type:
         type: string
         enum: [cat, dog, bird]
-          </textarea>
+          </pre>
 
           <div id="results" class="fade">
             <div id="results-success" class="alert alert-success hidden">
@@ -88,7 +88,7 @@ definitions:
               <i class="glyphicon glyphicon-remove-sign result-icon" aria-hidden="true"></i>
               <span id="results-error-message"></span>
             </div>
-            <textarea id="results-output" class="form-control hidden" rows="15" cols="60" wrap="off" readonly></textarea>
+            <pre id="results-output" class="editor hidden"></pre>
           </div>
         </div>
         <aside class="col-sm-4 col-md-3 col-lg-2 sidebar">
@@ -145,7 +145,8 @@ definitions:
     </footer>
 
     <script src="dist/swagger-parser.min.js"></script>
-    <script src="www/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="www/js/jquery.min.js"></script>
+    <script src="www/js/ace.min.js"></script>
     <script src="www/js/main.js"></script>
   </body>
 </html>
