@@ -61,7 +61,7 @@ describe('Validation tests', function() {
         }
     );
 
-    describe('Parameter validation', function() {
+    describe.only('Parameter validation', function() {
         it('should return an error if a path has duplicate parameters',
             function(done) {
                 var param1 = petStore.paths['/pets/{petName}'].parameters[0];
@@ -433,6 +433,47 @@ describe('Validation tests', function() {
                     expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: The "foo" query parameter at /paths/pets/get is an array, so it must include an "items" schema');
                     expect(api).to.be.null;
                     expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
+
+        it('should return an error if an array body parameter does not have "items"',
+            function(done) {
+                petStore.paths['/pets'].get.parameters.push({
+                    name: 'foo',
+                    in: 'body',
+                    schema: {
+                        type: 'array'
+                    }
+                });
+
+                env.parser.parse(petStore, function(err, api, metadata) {
+                    expect(err).to.be.an.instanceOf(SyntaxError);
+                    expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: The "foo" body parameter at /paths/pets/get is an array, so it must include an "items" schema');
+                    expect(api).to.be.null;
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    done();
+                });
+            }
+        );
+
+        it('should not return an error if an array body parameter does have "items"',
+            function(done) {
+                petStore.paths['/pets'].get.parameters.push({
+                    name: 'foo',
+                    in: 'body',
+                    schema: {
+                        type: 'array',
+                        items: {}
+                    }
+                });
+
+                env.parser.parse(petStore, function(err, api, metadata) {
+                    // No error, because the array has an "items" schema
+                    if (err) return done(err);
+                    expect(metadata).to.satisfy(env.isMetadata);
+                    expect(api).to.deep.equal(petStore);
                     done();
                 });
             }
