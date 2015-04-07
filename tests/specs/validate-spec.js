@@ -61,7 +61,7 @@ describe('Validation tests', function() {
         }
     );
 
-    describe.only('Parameter validation', function() {
+    describe('Parameter validation', function() {
         it('should return an error if a path has duplicate parameters',
             function(done) {
                 var param1 = petStore.paths['/pets/{petName}'].parameters[0];

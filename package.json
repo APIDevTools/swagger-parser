@@ -68,7 +68,7 @@
     "karma-safari-launcher": "^0.1.1",
     "karma-sinon": "^1.0.4",
     "mocha": "^2.2.1",
-    "nock": "^1.4",
+    "nock": "^1.5",
     "npm-check-updates": "^1.5.1",
     "sinon": "^1.14.1",
     "version-bump-prompt": "^1.0.1",
