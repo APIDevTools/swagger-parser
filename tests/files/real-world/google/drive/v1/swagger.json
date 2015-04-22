@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/drive/"
-  },
   "paths": {
     "/files/{id}": {
       "get": {
@@ -251,7 +248,6 @@
   },
   "definitions": {
     "File": {
-      "id": "File",
       "type": "object",
       "description": "The metadata for a file.",
       "properties": {
@@ -373,7 +369,6 @@
       }
     },
     "Permission": {
-      "id": "Permission",
       "type": "object",
       "description": "A single permission for a file.",
       "properties": {
@@ -463,5 +458,8 @@
         "https://www.googleapis.com/auth/drive.file": "View and manage Google Drive files that you have opened or created with this app"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/drive/"
   }
 }

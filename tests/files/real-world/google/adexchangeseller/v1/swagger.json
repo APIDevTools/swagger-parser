@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/ad-exchange/seller-rest/"
-  },
   "paths": {
     "/adclients": {
       "get": {
@@ -863,7 +860,6 @@
   },
   "definitions": {
     "AdClient": {
-      "id": "AdClient",
       "type": "object",
       "properties": {
         "arcOptIn": {
@@ -890,7 +886,6 @@
       }
     },
     "AdClients": {
-      "id": "AdClients",
       "type": "object",
       "properties": {
         "etag": {
@@ -916,7 +911,6 @@
       }
     },
     "AdUnit": {
-      "id": "AdUnit",
       "type": "object",
       "properties": {
         "code": {
@@ -943,7 +937,6 @@
       }
     },
     "AdUnits": {
-      "id": "AdUnits",
       "type": "object",
       "properties": {
         "etag": {
@@ -969,7 +962,6 @@
       }
     },
     "CustomChannel": {
-      "id": "CustomChannel",
       "type": "object",
       "properties": {
         "code": {
@@ -1014,7 +1006,6 @@
       }
     },
     "CustomChannels": {
-      "id": "CustomChannels",
       "type": "object",
       "properties": {
         "etag": {
@@ -1040,7 +1031,6 @@
       }
     },
     "Report": {
-      "id": "Report",
       "type": "object",
       "properties": {
         "averages": {
@@ -1108,7 +1098,6 @@
       }
     },
     "SavedReport": {
-      "id": "SavedReport",
       "type": "object",
       "properties": {
         "id": {
@@ -1127,7 +1116,6 @@
       }
     },
     "SavedReports": {
-      "id": "SavedReports",
       "type": "object",
       "properties": {
         "etag": {
@@ -1153,7 +1141,6 @@
       }
     },
     "UrlChannel": {
-      "id": "UrlChannel",
       "type": "object",
       "properties": {
         "id": {
@@ -1172,7 +1159,6 @@
       }
     },
     "UrlChannels": {
-      "id": "UrlChannels",
       "type": "object",
       "properties": {
         "etag": {
@@ -1259,5 +1245,8 @@
         "https://www.googleapis.com/auth/adexchange.seller.readonly": "View your Ad Exchange data"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/ad-exchange/seller-rest/"
   }
 }

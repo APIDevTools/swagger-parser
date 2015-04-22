@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/google-apps/licensing/"
-  },
   "paths": {
     "/{productId}/sku/{skuId}/user/{userId}": {
       "delete": {
@@ -48,6 +45,13 @@
             "description": "email id or unique Id of the user",
             "required": true,
             "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "Oauth2": [
+              "https://www.googleapis.com/auth/apps.licensing"
+            ]
           }
         ],
         "tags": [
@@ -88,6 +92,13 @@
             "type": "string"
           }
         ],
+        "security": [
+          {
+            "Oauth2": [
+              "https://www.googleapis.com/auth/apps.licensing"
+            ]
+          }
+        ],
         "tags": [
           "licenseAssignments"
         ]
@@ -126,6 +137,13 @@
             "type": "string"
           }
         ],
+        "security": [
+          {
+            "Oauth2": [
+              "https://www.googleapis.com/auth/apps.licensing"
+            ]
+          }
+        ],
         "tags": [
           "licenseAssignments"
         ]
@@ -162,6 +180,13 @@
             "description": "email id or unique Id of the user",
             "required": true,
             "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "Oauth2": [
+              "https://www.googleapis.com/auth/apps.licensing"
+            ]
           }
         ],
         "tags": [
@@ -218,6 +243,13 @@
             "description": "Name for sku",
             "required": true,
             "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "Oauth2": [
+              "https://www.googleapis.com/auth/apps.licensing"
+            ]
           }
         ],
         "tags": [
@@ -290,6 +322,13 @@
             "description": "Name for product",
             "required": true,
             "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "Oauth2": [
+              "https://www.googleapis.com/auth/apps.licensing"
+            ]
           }
         ],
         "tags": [
@@ -371,6 +410,13 @@
             "type": "string"
           }
         ],
+        "security": [
+          {
+            "Oauth2": [
+              "https://www.googleapis.com/auth/apps.licensing"
+            ]
+          }
+        ],
         "tags": [
           "licenseAssignments"
         ]
@@ -402,7 +448,6 @@
   },
   "definitions": {
     "LicenseAssignment": {
-      "id": "LicenseAssignment",
       "type": "object",
       "description": "Template for LiscenseAssignment Resource",
       "properties": {
@@ -417,12 +462,7 @@
         },
         "productId": {
           "type": "string",
-          "description": "Name of the product.",
-          "annotations": {
-            "required": [
-              "licensing.licenseAssignments.update"
-            ]
-          }
+          "description": "Name of the product."
         },
         "selfLink": {
           "type": "string",
@@ -430,42 +470,25 @@
         },
         "skuId": {
           "type": "string",
-          "description": "Name of the sku of the product.",
-          "annotations": {
-            "required": [
-              "licensing.licenseAssignments.update"
-            ]
-          }
+          "description": "Name of the sku of the product."
         },
         "userId": {
           "type": "string",
-          "description": "Email id of the user.",
-          "annotations": {
-            "required": [
-              "licensing.licenseAssignments.update"
-            ]
-          }
+          "description": "Email id of the user."
         }
       }
     },
     "LicenseAssignmentInsert": {
-      "id": "LicenseAssignmentInsert",
       "type": "object",
       "description": "Template for LicenseAssignment Insert request",
       "properties": {
         "userId": {
           "type": "string",
-          "description": "Email id of the user",
-          "annotations": {
-            "required": [
-              "licensing.licenseAssignments.insert"
-            ]
-          }
+          "description": "Email id of the user"
         }
       }
     },
     "LicenseAssignmentList": {
-      "id": "LicenseAssignmentList",
       "type": "object",
       "description": "LicesnseAssignment List for a given product/sku for a customer.",
       "properties": {
@@ -540,5 +563,19 @@
       "description": "IP address of the site where the request originates. Use this if you want to enforce per-user limits.",
       "type": "string"
     }
+  },
+  "securityDefinitions": {
+    "Oauth2": {
+      "type": "oauth2",
+      "description": "Oauth 2.0 authentication",
+      "flow": "implicit",
+      "authorizationUrl": "https://accounts.google.com/o/oauth2/auth",
+      "scopes": {
+        "https://www.googleapis.com/auth/apps.licensing": "View and manage Google Apps licenses for your domain"
+      }
+    }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/google-apps/licensing/"
   }
 }

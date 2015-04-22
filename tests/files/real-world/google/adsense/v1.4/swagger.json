@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/adsense/management/"
-  },
   "paths": {
     "/accounts/{accountId}": {
       "get": {
@@ -2767,7 +2764,6 @@
   },
   "definitions": {
     "Account": {
-      "id": "Account",
       "type": "object",
       "properties": {
         "id": {
@@ -2801,7 +2797,6 @@
       }
     },
     "Accounts": {
-      "id": "Accounts",
       "type": "object",
       "properties": {
         "etag": {
@@ -2827,7 +2822,6 @@
       }
     },
     "AdClient": {
-      "id": "AdClient",
       "type": "object",
       "properties": {
         "arcOptIn": {
@@ -2858,7 +2852,6 @@
       }
     },
     "AdClients": {
-      "id": "AdClients",
       "type": "object",
       "properties": {
         "etag": {
@@ -2884,7 +2877,6 @@
       }
     },
     "AdCode": {
-      "id": "AdCode",
       "type": "object",
       "properties": {
         "adCode": {
@@ -2899,7 +2891,6 @@
       }
     },
     "AdStyle": {
-      "id": "AdStyle",
       "type": "object",
       "properties": {
         "colors": {
@@ -2954,7 +2945,6 @@
       }
     },
     "AdUnit": {
-      "id": "AdUnit",
       "type": "object",
       "properties": {
         "code": {
@@ -3067,7 +3057,6 @@
       }
     },
     "AdUnits": {
-      "id": "AdUnits",
       "type": "object",
       "properties": {
         "etag": {
@@ -3093,7 +3082,6 @@
       }
     },
     "AdsenseReportsGenerateResponse": {
-      "id": "AdsenseReportsGenerateResponse",
       "type": "object",
       "properties": {
         "averages": {
@@ -3169,7 +3157,6 @@
       }
     },
     "Alert": {
-      "id": "Alert",
       "type": "object",
       "properties": {
         "id": {
@@ -3200,7 +3187,6 @@
       }
     },
     "Alerts": {
-      "id": "Alerts",
       "type": "object",
       "properties": {
         "items": {
@@ -3218,7 +3204,6 @@
       }
     },
     "CustomChannel": {
-      "id": "CustomChannel",
       "type": "object",
       "properties": {
         "code": {
@@ -3263,7 +3248,6 @@
       }
     },
     "CustomChannels": {
-      "id": "CustomChannels",
       "type": "object",
       "properties": {
         "etag": {
@@ -3289,7 +3273,6 @@
       }
     },
     "Metadata": {
-      "id": "Metadata",
       "type": "object",
       "properties": {
         "items": {
@@ -3306,7 +3289,6 @@
       }
     },
     "Payment": {
-      "id": "Payment",
       "type": "object",
       "properties": {
         "id": {
@@ -3333,7 +3315,6 @@
       }
     },
     "Payments": {
-      "id": "Payments",
       "type": "object",
       "properties": {
         "items": {
@@ -3351,7 +3332,6 @@
       }
     },
     "ReportingMetadataEntry": {
-      "id": "ReportingMetadataEntry",
       "type": "object",
       "properties": {
         "compatibleDimensions": {
@@ -3401,7 +3381,6 @@
       }
     },
     "SavedAdStyle": {
-      "id": "SavedAdStyle",
       "type": "object",
       "properties": {
         "adStyle": {
@@ -3424,7 +3403,6 @@
       }
     },
     "SavedAdStyles": {
-      "id": "SavedAdStyles",
       "type": "object",
       "properties": {
         "etag": {
@@ -3450,7 +3428,6 @@
       }
     },
     "SavedReport": {
-      "id": "SavedReport",
       "type": "object",
       "properties": {
         "id": {
@@ -3469,7 +3446,6 @@
       }
     },
     "SavedReports": {
-      "id": "SavedReports",
       "type": "object",
       "properties": {
         "etag": {
@@ -3495,7 +3471,6 @@
       }
     },
     "UrlChannel": {
-      "id": "UrlChannel",
       "type": "object",
       "properties": {
         "id": {
@@ -3514,7 +3489,6 @@
       }
     },
     "UrlChannels": {
-      "id": "UrlChannels",
       "type": "object",
       "properties": {
         "etag": {
@@ -3601,5 +3575,8 @@
         "https://www.googleapis.com/auth/adsense.readonly": "View your AdSense data"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/adsense/management/"
   }
 }

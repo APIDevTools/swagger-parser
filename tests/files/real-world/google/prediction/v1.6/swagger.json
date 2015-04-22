@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/prediction/docs/developer-guide"
-  },
   "paths": {
     "/{project}/hostedmodels/{hostedModelName}/predict": {
       "post": {
@@ -474,7 +471,6 @@
   },
   "definitions": {
     "Analyze": {
-      "id": "Analyze",
       "type": "object",
       "properties": {
         "dataDescription": {
@@ -655,7 +651,6 @@
       }
     },
     "Input": {
-      "id": "Input",
       "type": "object",
       "properties": {
         "input": {
@@ -672,7 +667,6 @@
       }
     },
     "Insert": {
-      "id": "Insert",
       "type": "object",
       "properties": {
         "id": {
@@ -732,7 +726,6 @@
       }
     },
     "Insert2": {
-      "id": "Insert2",
       "type": "object",
       "properties": {
         "created": {
@@ -813,7 +806,6 @@
       }
     },
     "List": {
-      "id": "List",
       "type": "object",
       "properties": {
         "items": {
@@ -839,7 +831,6 @@
       }
     },
     "Output": {
-      "id": "Output",
       "type": "object",
       "properties": {
         "id": {
@@ -884,7 +875,6 @@
       }
     },
     "Update": {
-      "id": "Update",
       "type": "object",
       "properties": {
         "csvInstance": {
@@ -961,5 +951,8 @@
         "https://www.googleapis.com/auth/prediction": "Manage your data in the Google Prediction API"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/prediction/docs/developer-guide"
   }
 }

@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/doubleclick-advertisers/reporting/"
-  },
   "paths": {
     "/userprofiles/{profileId}/accountActiveAdSummaries/{summaryAccountId}": {
       "get": {
@@ -433,7 +430,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name, ID or email. Wildcards (*) are allowed. For example, \"user profile*2015\" will return objects with names like \"user profile June 2015\", \"user profile April 2015\" or simply \"user profile 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"user profile\" will match objects with name \"my user profile\", \"user profile 2015\" or simply \"user profile\".",
+            "description": "Allows searching for objects by name, ID or email. Wildcards (*) are allowed. For example, \"user profile*2015\" will return objects with names like \"user profile June 2015\", \"user profile April 2015\", or simply \"user profile 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"user profile\" will match objects with name \"my user profile\", \"user profile 2015\", or simply \"user profile\".",
             "type": "string"
           },
           {
@@ -687,7 +684,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"account*2015\" will return objects with names like \"account June 2015\", \"account April 2015\" or simply \"account 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"account\" will match objects with name \"my account\", \"account 2015\" or simply \"account\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"account*2015\" will return objects with names like \"account June 2015\", \"account April 2015\", or simply \"account 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"account\" will match objects with name \"my account\", \"account 2015\", or simply \"account\".",
             "type": "string"
           },
           {
@@ -1098,7 +1095,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"ad*2015\" will return objects with names like \"ad June 2015\", \"ad April 2015\" or simply \"ad 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"ad\" will match objects with name \"my ad\", \"ad 2015\" or simply \"ad\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"ad*2015\" will return objects with names like \"ad June 2015\", \"ad April 2015\", or simply \"ad 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"ad\" will match objects with name \"my ad\", \"ad 2015\", or simply \"ad\".",
             "type": "string"
           },
           {
@@ -1438,7 +1435,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"advertiser*2015\" will return objects with names like \"advertiser group June 2015\", \"advertiser group April 2015\" or simply \"advertiser group 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"advertisergroup\" will match objects with name \"my advertisergroup\", \"advertisergroup 2015\" or simply \"advertisergroup\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"advertiser*2015\" will return objects with names like \"advertiser group June 2015\", \"advertiser group April 2015\", or simply \"advertiser group 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"advertisergroup\" will match objects with name \"my advertisergroup\", \"advertisergroup 2015\", or simply \"advertisergroup\".",
             "type": "string"
           },
           {
@@ -1737,7 +1734,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"advertiser*2015\" will return objects with names like \"advertiser June 2015\", \"advertiser April 2015\" or simply \"advertiser 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"advertiser\" will match objects with name \"my advertiser\", \"advertiser 2015\" or simply \"advertiser\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"advertiser*2015\" will return objects with names like \"advertiser June 2015\", \"advertiser April 2015\", or simply \"advertiser 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"advertiser\" will match objects with name \"my advertiser\", \"advertiser 2015\", or simply \"advertiser\".",
             "type": "string"
           },
           {
@@ -2261,7 +2258,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for campaigns by name or ID. Wildcards (*) are allowed. For example, \"campaign*2015\" will return campaigns with names like \"campaign June 2015\", \"campaign April 2015\" or simply \"campaign 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"campaign\" will match campaigns with name \"my campaign\", \"campaign 2015\" or simply \"campaign\".",
+            "description": "Allows searching for campaigns by name or ID. Wildcards (*) are allowed. For example, \"campaign*2015\" will return campaigns with names like \"campaign June 2015\", \"campaign April 2015\", or simply \"campaign 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"campaign\" will match campaigns with name \"my campaign\", \"campaign 2015\", or simply \"campaign\".",
             "type": "string"
           },
           {
@@ -2964,7 +2961,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"contentcategory*2015\" will return objects with names like \"contentcategory June 2015\", \"contentcategory April 2015\" or simply \"contentcategory 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"contentcategory\" will match objects with name \"my contentcategory\", \"contentcategory 2015\" or simply \"contentcategory\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"contentcategory*2015\" will return objects with names like \"contentcategory June 2015\", \"contentcategory April 2015\", or simply \"contentcategory 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"contentcategory\" will match objects with name \"my contentcategory\", \"contentcategory 2015\", or simply \"contentcategory\".",
             "type": "string"
           },
           {
@@ -3805,7 +3802,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for creative fields by name or ID. Wildcards (*) are allowed. For example, \"creativefield*2015\" will return creative fields with names like \"creativefield June 2015\", \"creativefield April 2015\" or simply \"creativefield 2015\". Most of the searches also add wild-cards implicitly at the start and the end of the search string. For example, a search string of \"creativefield\" will match creative fields with the name \"my creativefield\", \"creativefield 2015\" or simply \"creativefield\".",
+            "description": "Allows searching for creative fields by name or ID. Wildcards (*) are allowed. For example, \"creativefield*2015\" will return creative fields with names like \"creativefield June 2015\", \"creativefield April 2015\", or simply \"creativefield 2015\". Most of the searches also add wild-cards implicitly at the start and the end of the search string. For example, a search string of \"creativefield\" will match creative fields with the name \"my creativefield\", \"creativefield 2015\", or simply \"creativefield\".",
             "type": "string"
           },
           {
@@ -4088,7 +4085,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for creative groups by name or ID. Wildcards (*) are allowed. For example, \"creativegroup*2015\" will return creative groups with names like \"creativegroup June 2015\", \"creativegroup April 2015\" or simply \"creativegroup 2015\". Most of the searches also add wild-cards implicitly at the start and the end of the search string. For example, a search string of \"creativegroup\" will match creative groups with the name \"my creativegroup\", \"creativegroup 2015\" or simply \"creativegroup\".",
+            "description": "Allows searching for creative groups by name or ID. Wildcards (*) are allowed. For example, \"creativegroup*2015\" will return creative groups with names like \"creativegroup June 2015\", \"creativegroup April 2015\", or simply \"creativegroup 2015\". Most of the searches also add wild-cards implicitly at the start and the end of the search string. For example, a search string of \"creativegroup\" will match creative groups with the name \"my creativegroup\", \"creativegroup 2015\", or simply \"creativegroup\".",
             "type": "string"
           },
           {
@@ -4409,7 +4406,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"creative*2015\" will return objects with names like \"creative June 2015\", \"creative April 2015\" or simply \"creative 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"creative\" will match objects with name \"my creative\", \"creative 2015\" or simply \"creative\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"creative*2015\" will return objects with names like \"creative June 2015\", \"creative April 2015\", or simply \"creative 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"creative\" will match objects with name \"my creative\", \"creative 2015\", or simply \"creative\".",
             "type": "string"
           },
           {
@@ -4776,7 +4773,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name, ID or email. Wildcards (*) are allowed. For example, \"directory site contact*2015\" will return objects with names like \"directory site contact June 2015\", \"directory site contact April 2015\" or simply \"directory site contact 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"directory site contact\" will match objects with name \"my directory site contact\", \"directory site contact 2015\" or simply \"directory site contact\".",
+            "description": "Allows searching for objects by name, ID or email. Wildcards (*) are allowed. For example, \"directory site contact*2015\" will return objects with names like \"directory site contact June 2015\", \"directory site contact April 2015\", or simply \"directory site contact 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"directory site contact\" will match objects with name \"my directory site contact\", \"directory site contact 2015\", or simply \"directory site contact\".",
             "type": "string"
           },
           {
@@ -4985,7 +4982,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name, ID or URL. Wildcards (*) are allowed. For example, \"directory site*2015\" will return objects with names like \"directory site June 2015\", \"directory site April 2015\" or simply \"directory site 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"directory site\" will match objects with name \"my directory site\", \"directory site 2015\" or simply \"directory site\".",
+            "description": "Allows searching for objects by name, ID or URL. Wildcards (*) are allowed. For example, \"directory site*2015\" will return objects with names like \"directory site June 2015\", \"directory site April 2015\", or simply \"directory site 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"directory site\" will match objects with name \"my directory site\", \"directory site 2015\" or simply, \"directory site\".",
             "type": "string"
           },
           {
@@ -5251,7 +5248,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"eventtag*2015\" will return objects with names like \"eventtag June 2015\", \"eventtag April 2015\" or simply \"eventtag 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"eventtag\" will match objects with name \"my eventtag\", \"eventtag 2015\" or simply \"eventtag\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"eventtag*2015\" will return objects with names like \"eventtag June 2015\", \"eventtag April 2015\", or simply \"eventtag 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"eventtag\" will match objects with name \"my eventtag\", \"eventtag 2015\", or simply \"eventtag\".",
             "type": "string"
           },
           {
@@ -5826,7 +5823,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"floodlightactivity*2015\" will return objects with names like \"floodlightactivity June 2015\", \"floodlightactivity April 2015\" or simply \"floodlightactivity 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"floodlightactivity\" will match objects with name \"my floodlightactivity activity\", \"floodlightactivity 2015\" or simply \"floodlightactivity\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"floodlightactivity*2015\" will return objects with names like \"floodlightactivity June 2015\", \"floodlightactivity April 2015\", or simply \"floodlightactivity 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"floodlightactivity\" will match objects with name \"my floodlightactivity activity\", \"floodlightactivity 2015\", or simply \"floodlightactivity\".",
             "type": "string"
           },
           {
@@ -6105,19 +6102,19 @@
           {
             "name": "advertiserId",
             "in": "query",
-            "description": "Select only floodlight activity groups with the specified advertiser ID. Must specify either ids, advertiserId, or floodlightConfigurationId for a non-empty result.",
+            "description": "Select only floodlight activity groups with the specified advertiser ID. Must specify either advertiserId or floodlightConfigurationId for a non-empty result.",
             "type": "string"
           },
           {
             "name": "floodlightConfigurationId",
             "in": "query",
-            "description": "Select only floodlight activity groups with the specified floodlight configuration ID. Must specify either ids, advertiserId, or floodlightConfigurationId for a non-empty result.",
+            "description": "Select only floodlight activity groups with the specified floodlight configuration ID. Must specify either advertiserId, or floodlightConfigurationId for a non-empty result.",
             "type": "string"
           },
           {
             "name": "ids",
             "in": "query",
-            "description": "Select only floodlight activity groups with the specified IDs. Must specify either ids, advertiserId, or floodlightConfigurationId for a non-empty result.",
+            "description": "Select only floodlight activity groups with the specified IDs. Must specify either advertiserId or floodlightConfigurationId for a non-empty result.",
             "type": "array",
             "items": {
               "type": "string"
@@ -6146,7 +6143,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"floodlightactivitygroup*2015\" will return objects with names like \"floodlightactivitygroup June 2015\", \"floodlightactivitygroup April 2015\" or simply \"floodlightactivitygroup 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"floodlightactivitygroup\" will match objects with name \"my floodlightactivitygroup activity\", \"floodlightactivitygroup 2015\" or simply \"floodlightactivitygroup\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"floodlightactivitygroup*2015\" will return objects with names like \"floodlightactivitygroup June 2015\", \"floodlightactivitygroup April 2015\", or simply \"floodlightactivitygroup 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"floodlightactivitygroup\" will match objects with name \"my floodlightactivitygroup activity\", \"floodlightactivitygroup 2015\", or simply \"floodlightactivitygroup\".",
             "type": "string"
           },
           {
@@ -7224,7 +7221,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for placement groups by name or ID. Wildcards (*) are allowed. For example, \"placement*2015\" will return placement groups with names like \"placement group June 2015\", \"placement group May 2015\" or simply \"placements 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placementgroup\" will match placement groups with name \"my placementgroup\", \"placementgroup 2015\" or simply \"placementgroup\".",
+            "description": "Allows searching for placement groups by name or ID. Wildcards (*) are allowed. For example, \"placement*2015\" will return placement groups with names like \"placement group June 2015\", \"placement group May 2015\", or simply \"placements 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placementgroup\" will match placement groups with name \"my placementgroup\", \"placementgroup 2015\", or simply \"placementgroup\".",
             "type": "string"
           },
           {
@@ -7536,7 +7533,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"placementstrategy*2015\" will return objects with names like \"placementstrategy June 2015\", \"placementstrategy April 2015\" or simply \"placementstrategy 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placementstrategy\" will match objects with name \"my placementstrategy\", \"placementstrategy 2015\" or simply \"placementstrategy\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"placementstrategy*2015\" will return objects with names like \"placementstrategy June 2015\", \"placementstrategy April 2015\", or simply \"placementstrategy 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placementstrategy\" will match objects with name \"my placementstrategy\", \"placementstrategy 2015\", or simply \"placementstrategy\".",
             "type": "string"
           },
           {
@@ -8010,7 +8007,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for placements by name or ID. Wildcards (*) are allowed. For example, \"placement*2015\" will return placements with names like \"placement June 2015\", \"placement May 2015\" or simply \"placements 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placement\" will match placements with name \"my placement\", \"placement 2015\" or simply \"placement\".",
+            "description": "Allows searching for placements by name or ID. Wildcards (*) are allowed. For example, \"placement*2015\" will return placements with names like \"placement June 2015\", \"placement May 2015\", or simply \"placements 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"placement\" will match placements with name \"my placement\", \"placement 2015\", or simply \"placement\".",
             "type": "string"
           },
           {
@@ -9118,7 +9115,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name, ID or keyName. Wildcards (*) are allowed. For example, \"site*2015\" will return objects with names like \"site June 2015\", \"site April 2015\" or simply \"site 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"site\" will match objects with name \"my site\", \"site 2015\" or simply \"site\".",
+            "description": "Allows searching for objects by name, ID or keyName. Wildcards (*) are allowed. For example, \"site*2015\" will return objects with names like \"site June 2015\", \"site April 2015\", or simply \"site 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"site\" will match objects with name \"my site\", \"site 2015\", or simply \"site\".",
             "type": "string"
           },
           {
@@ -9575,7 +9572,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"subaccount*2015\" will return objects with names like \"subaccount June 2015\", \"subaccount April 2015\" or simply \"subaccount 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"subaccount\" will match objects with name \"my subaccount\", \"subaccount 2015\" or simply \"subaccount\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"subaccount*2015\" will return objects with names like \"subaccount June 2015\", \"subaccount April 2015\", or simply \"subaccount 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"subaccount\" will match objects with name \"my subaccount\", \"subaccount 2015\", or simply \"subaccount\".",
             "type": "string"
           },
           {
@@ -10236,7 +10233,7 @@
           {
             "name": "searchString",
             "in": "query",
-            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"userrole*2015\" will return objects with names like \"userrole June 2015\", \"userrole April 2015\" or simply \"userrole 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"userrole\" will match objects with name \"my userrole\", \"userrole 2015\" or simply \"userrole\".",
+            "description": "Allows searching for objects by name or ID. Wildcards (*) are allowed. For example, \"userrole*2015\" will return objects with names like \"userrole June 2015\", \"userrole April 2015\", or simply \"userrole 2015\". Most of the searches also add wildcards implicitly at the start and the end of the search string. For example, a search string of \"userrole\" will match objects with name \"my userrole\", \"userrole 2015\", or simply \"userrole\".",
             "type": "string"
           },
           {
@@ -10373,7 +10370,6 @@
   },
   "definitions": {
     "Account": {
-      "id": "Account",
       "type": "object",
       "description": "Contains properties of a DCM account.",
       "properties": {
@@ -10391,10 +10387,6 @@
           "enum": [
             "ACCOUNT_PROFILE_BASIC",
             "ACCOUNT_PROFILE_STANDARD"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "active": {
@@ -10410,13 +10402,6 @@
             "ACTIVE_ADS_TIER_300K",
             "ACTIVE_ADS_TIER_40K",
             "ACTIVE_ADS_TIER_75K"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "activeViewOptOut": {
@@ -10493,7 +10478,6 @@
       }
     },
     "AccountActiveAdSummary": {
-      "id": "AccountActiveAdSummary",
       "type": "object",
       "description": "Gets a summary of active ads in an account.",
       "properties": {
@@ -10516,13 +10500,6 @@
             "ACTIVE_ADS_TIER_300K",
             "ACTIVE_ADS_TIER_40K",
             "ACTIVE_ADS_TIER_75K"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "availableAds": {
@@ -10538,7 +10515,6 @@
       }
     },
     "AccountPermission": {
-      "id": "AccountPermission",
       "type": "object",
       "description": "AccountPermissions contains information about a particular account permission. Some features of DCM require an account permission to be present in the account.",
       "properties": {
@@ -10550,10 +10526,6 @@
             "enum": [
               "ACCOUNT_PROFILE_BASIC",
               "ACCOUNT_PROFILE_STANDARD"
-            ],
-            "enumDescriptions": [
-              "",
-              ""
             ]
           }
         },
@@ -10573,10 +10545,6 @@
           "enum": [
             "ADMINISTRATOR",
             "USER"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "name": {
@@ -10591,7 +10559,6 @@
       }
     },
     "AccountPermissionGroup": {
-      "id": "AccountPermissionGroup",
       "type": "object",
       "description": "AccountPermissionGroups contains a mapping of permission group IDs to names. A permission group is a grouping of account permissions.",
       "properties": {
@@ -10612,13 +10579,12 @@
       }
     },
     "AccountPermissionGroupsListResponse": {
-      "id": "AccountPermissionGroupsListResponse",
       "type": "object",
       "description": "Account Permission Group List Response",
       "properties": {
         "accountPermissionGroups": {
           "type": "array",
-          "description": "Account permission group collection",
+          "description": "Account permission group collection.",
           "items": {
             "$ref": "#/definitions/AccountPermissionGroup"
           }
@@ -10631,13 +10597,12 @@
       }
     },
     "AccountPermissionsListResponse": {
-      "id": "AccountPermissionsListResponse",
       "type": "object",
       "description": "Account Permission List Response",
       "properties": {
         "accountPermissions": {
           "type": "array",
-          "description": "Account permission collection",
+          "description": "Account permission collection.",
           "items": {
             "$ref": "#/definitions/AccountPermission"
           }
@@ -10650,7 +10615,6 @@
       }
     },
     "AccountUserProfile": {
-      "id": "AccountUserProfile",
       "type": "object",
       "description": "AccountUserProfiles contains properties of a DCM user profile. This resource is specifically for managing user profiles, whereas UserProfiles is for accessing the API.",
       "properties": {
@@ -10713,11 +10677,6 @@
             "EXTERNAL_TRAFFICKER",
             "INTERNAL_NON_TRAFFICKER",
             "INTERNAL_TRAFFICKER"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "userAccessType": {
@@ -10727,11 +10686,6 @@
             "INTERNAL_ADMINISTRATOR",
             "NORMAL_USER",
             "SUPER_USER"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "userRoleFilter": {
@@ -10746,13 +10700,12 @@
       }
     },
     "AccountUserProfilesListResponse": {
-      "id": "AccountUserProfilesListResponse",
       "type": "object",
       "description": "Account User Profile List Response",
       "properties": {
         "accountUserProfiles": {
           "type": "array",
-          "description": "Account user profile collection",
+          "description": "Account user profile collection.",
           "items": {
             "$ref": "#/definitions/AccountUserProfile"
           }
@@ -10769,13 +10722,12 @@
       }
     },
     "AccountsListResponse": {
-      "id": "AccountsListResponse",
       "type": "object",
       "description": "Account List Response",
       "properties": {
         "accounts": {
           "type": "array",
-          "description": "Account collection",
+          "description": "Account collection.",
           "items": {
             "$ref": "#/definitions/Account"
           }
@@ -10792,7 +10744,6 @@
       }
     },
     "Activities": {
-      "id": "Activities",
       "type": "object",
       "description": "Represents an activity group.",
       "properties": {
@@ -10818,7 +10769,6 @@
       }
     },
     "Ad": {
-      "id": "Ad",
       "type": "object",
       "description": "Contains properties of a DCM ad.",
       "properties": {
@@ -10879,13 +10829,6 @@
             "IN_STREAM_VIDEO",
             "WEB",
             "WEB_INTERSTITIAL"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "createInfo": {
@@ -11006,24 +10949,17 @@
             "AD_SERVING_DEFAULT_AD",
             "AD_SERVING_STANDARD_AD",
             "AD_SERVING_TRACKING"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         }
       }
     },
     "AdsListResponse": {
-      "id": "AdsListResponse",
       "type": "object",
       "description": "Ad List Response",
       "properties": {
         "ads": {
           "type": "array",
-          "description": "Ad collection",
+          "description": "Ad collection.",
           "items": {
             "$ref": "#/definitions/Ad"
           }
@@ -11040,7 +10976,6 @@
       }
     },
     "Advertiser": {
-      "id": "Advertiser",
       "type": "object",
       "description": "Contains properties of a DCM advertiser.",
       "properties": {
@@ -11100,10 +11035,6 @@
           "enum": [
             "APPROVED",
             "ON_HOLD"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "subaccountId": {
@@ -11114,7 +11045,6 @@
       }
     },
     "AdvertiserGroup": {
-      "id": "AdvertiserGroup",
       "type": "object",
       "description": "Groups advertisers together so that reports can be generated for the entire group at once.",
       "properties": {
@@ -11140,13 +11070,12 @@
       }
     },
     "AdvertiserGroupsListResponse": {
-      "id": "AdvertiserGroupsListResponse",
       "type": "object",
       "description": "Advertiser Group List Response",
       "properties": {
         "advertiserGroups": {
           "type": "array",
-          "description": "Advertiser group collection",
+          "description": "Advertiser group collection.",
           "items": {
             "$ref": "#/definitions/AdvertiserGroup"
           }
@@ -11163,13 +11092,12 @@
       }
     },
     "AdvertisersListResponse": {
-      "id": "AdvertisersListResponse",
       "type": "object",
       "description": "Advertiser List Response",
       "properties": {
         "advertisers": {
           "type": "array",
-          "description": "Advertiser collection",
+          "description": "Advertiser collection.",
           "items": {
             "$ref": "#/definitions/Advertiser"
           }
@@ -11186,7 +11114,6 @@
       }
     },
     "AudienceSegment": {
-      "id": "AudienceSegment",
       "type": "object",
       "description": "Audience Segment.",
       "properties": {
@@ -11207,7 +11134,6 @@
       }
     },
     "AudienceSegmentGroup": {
-      "id": "AudienceSegmentGroup",
       "type": "object",
       "description": "Audience Segment Group.",
       "properties": {
@@ -11230,7 +11156,6 @@
       }
     },
     "Browser": {
-      "id": "Browser",
       "type": "object",
       "description": "Contains information about a browser that can be targeted by ads.",
       "properties": {
@@ -11264,13 +11189,12 @@
       }
     },
     "BrowsersListResponse": {
-      "id": "BrowsersListResponse",
       "type": "object",
       "description": "Browser List Response",
       "properties": {
         "browsers": {
           "type": "array",
-          "description": "Browser collection",
+          "description": "Browser collection.",
           "items": {
             "$ref": "#/definitions/Browser"
           }
@@ -11283,7 +11207,6 @@
       }
     },
     "Campaign": {
-      "id": "Campaign",
       "type": "object",
       "description": "Contains properties of a DCM campaign.",
       "properties": {
@@ -11426,7 +11349,6 @@
       }
     },
     "CampaignCreativeAssociation": {
-      "id": "CampaignCreativeAssociation",
       "type": "object",
       "description": "Identifies a creative which has been associated with a given campaign.",
       "properties": {
@@ -11443,7 +11365,6 @@
       }
     },
     "CampaignCreativeAssociationsListResponse": {
-      "id": "CampaignCreativeAssociationsListResponse",
       "type": "object",
       "description": "Campaign Creative Association List Response",
       "properties": {
@@ -11466,13 +11387,12 @@
       }
     },
     "CampaignsListResponse": {
-      "id": "CampaignsListResponse",
       "type": "object",
       "description": "Campaign List Response",
       "properties": {
         "campaigns": {
           "type": "array",
-          "description": "Campaign collection",
+          "description": "Campaign collection.",
           "items": {
             "$ref": "#/definitions/Campaign"
           }
@@ -11489,7 +11409,6 @@
       }
     },
     "ChangeLog": {
-      "id": "ChangeLog",
       "type": "object",
       "description": "Describes a change that a user has made to a resource.",
       "properties": {
@@ -11560,13 +11479,12 @@
       }
     },
     "ChangeLogsListResponse": {
-      "id": "ChangeLogsListResponse",
       "type": "object",
       "description": "Change Log List Response",
       "properties": {
         "changeLogs": {
           "type": "array",
-          "description": "Change log collection",
+          "description": "Change log collection.",
           "items": {
             "$ref": "#/definitions/ChangeLog"
           }
@@ -11583,13 +11501,12 @@
       }
     },
     "CitiesListResponse": {
-      "id": "CitiesListResponse",
       "type": "object",
       "description": "City List Response",
       "properties": {
         "cities": {
           "type": "array",
-          "description": "City collection",
+          "description": "City collection.",
           "items": {
             "$ref": "#/definitions/City"
           }
@@ -11602,7 +11519,6 @@
       }
     },
     "City": {
-      "id": "City",
       "type": "object",
       "description": "Contains information about a city that can be targeted by ads.",
       "properties": {
@@ -11650,7 +11566,6 @@
       }
     },
     "ClickTag": {
-      "id": "ClickTag",
       "type": "object",
       "description": "Creative Click Tag.",
       "properties": {
@@ -11669,7 +11584,6 @@
       }
     },
     "ClickThroughUrl": {
-      "id": "ClickThroughUrl",
       "type": "object",
       "description": "Click-through URL",
       "properties": {
@@ -11689,7 +11603,6 @@
       }
     },
     "ClickThroughUrlSuffixProperties": {
-      "id": "ClickThroughUrlSuffixProperties",
       "type": "object",
       "description": "Click Through URL Suffix settings.",
       "properties": {
@@ -11704,7 +11617,6 @@
       }
     },
     "CompanionClickThroughOverride": {
-      "id": "CompanionClickThroughOverride",
       "type": "object",
       "description": "Companion Click-through override.",
       "properties": {
@@ -11720,7 +11632,6 @@
       }
     },
     "CompatibleFields": {
-      "id": "CompatibleFields",
       "type": "object",
       "description": "Represents a response to the queryCompatibleFields method.",
       "properties": {
@@ -11752,9 +11663,8 @@
       }
     },
     "ConnectionType": {
-      "id": "ConnectionType",
       "type": "object",
-      "description": "Contains information about a connection type that can be targeted by ads.",
+      "description": "Contains information about an internet connection type that can be targeted by ads. Clients can use the connection type to target mobile vs. broadband users.",
       "properties": {
         "id": {
           "type": "string",
@@ -11773,13 +11683,12 @@
       }
     },
     "ConnectionTypesListResponse": {
-      "id": "ConnectionTypesListResponse",
       "type": "object",
       "description": "Connection Type List Response",
       "properties": {
         "connectionTypes": {
           "type": "array",
-          "description": "Connection Type Collection.",
+          "description": "Collection of connection types such as broadband and mobile.",
           "items": {
             "$ref": "#/definitions/ConnectionType"
           }
@@ -11792,13 +11701,12 @@
       }
     },
     "ContentCategoriesListResponse": {
-      "id": "ContentCategoriesListResponse",
       "type": "object",
       "description": "Content Category List Response",
       "properties": {
         "contentCategories": {
           "type": "array",
-          "description": "Content category collection",
+          "description": "Content category collection.",
           "items": {
             "$ref": "#/definitions/ContentCategory"
           }
@@ -11815,13 +11723,12 @@
       }
     },
     "ContentCategory": {
-      "id": "ContentCategory",
       "type": "object",
       "description": "Organizes placements according to the contents of their associated webpages.",
       "properties": {
         "accountId": {
           "type": "string",
-          "description": "Account ID of this content category.This is a read-only field that can be left blank.",
+          "description": "Account ID of this content category. This is a read-only field that can be left blank.",
           "format": "int64"
         },
         "description": {
@@ -11845,13 +11752,12 @@
       }
     },
     "CountriesListResponse": {
-      "id": "CountriesListResponse",
       "type": "object",
       "description": "Country List Response",
       "properties": {
         "countries": {
           "type": "array",
-          "description": "Country collection",
+          "description": "Country collection.",
           "items": {
             "$ref": "#/definitions/Country"
           }
@@ -11864,7 +11770,6 @@
       }
     },
     "Country": {
-      "id": "Country",
       "type": "object",
       "description": "Contains information about a country that can be targeted by ads.",
       "properties": {
@@ -11893,7 +11798,6 @@
       }
     },
     "Creative": {
-      "id": "Creative",
       "type": "object",
       "description": "Contains properties of a Creative.",
       "properties": {
@@ -11937,11 +11841,6 @@
             "ARTWORK_TYPE_FLASH",
             "ARTWORK_TYPE_HTML5",
             "ARTWORK_TYPE_MIXED"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "authoringTool": {
@@ -11950,10 +11849,6 @@
           "enum": [
             "NINJA",
             "SWIFFY"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "auto_advance_images": {
@@ -12040,74 +11935,6 @@
               "WEB_SOCKETS",
               "WEB_SQL_DATABASE",
               "WEB_WORKERS"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
             ]
           }
         },
@@ -12149,13 +11976,6 @@
               "IN_STREAM_VIDEO",
               "WEB",
               "WEB_INTERSTITIAL"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              "",
-              "",
-              ""
             ]
           }
         },
@@ -12204,7 +12024,7 @@
         },
         "htmlCodeLocked": {
           "type": "boolean",
-          "description": "Whether HTML code is DCM generated or manually entered. Set to true to ignore changes to htmlCode. Applicable to the following creative types: FLASH_INPAGE and HTML5_BANNER."
+          "description": "Whether HTML code is DCM-generated or manually entered. Set to true to ignore changes to htmlCode. Applicable to the following creative types: FLASH_INPAGE and HTML5_BANNER."
         },
         "id": {
           "type": "string",
@@ -12345,31 +12165,6 @@
             "TRACKING_TEXT",
             "VPAID_LINEAR",
             "VPAID_NON_LINEAR"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "version": {
@@ -12389,7 +12184,6 @@
       }
     },
     "CreativeAsset": {
-      "id": "CreativeAsset",
       "type": "object",
       "description": "Creative Asset.",
       "properties": {
@@ -12409,12 +12203,6 @@
             "ALIGNMENT_LEFT",
             "ALIGNMENT_RIGHT",
             "ALIGNMENT_TOP"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "artworkType": {
@@ -12424,11 +12212,6 @@
             "ARTWORK_TYPE_FLASH",
             "ARTWORK_TYPE_HTML5",
             "ARTWORK_TYPE_MIXED"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "assetIdentifier": {
@@ -12452,12 +12235,6 @@
             "CHILD_ASSET_TYPE_FLASH",
             "CHILD_ASSET_TYPE_IMAGE",
             "CHILD_ASSET_TYPE_VIDEO"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "collapsedSize": {
@@ -12541,74 +12318,6 @@
               "WEB_SOCKETS",
               "WEB_SQL_DATABASE",
               "WEB_WORKERS"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
             ]
           }
         },
@@ -12625,17 +12334,6 @@
             "ASSET_DISPLAY_TYPE_PEEL_DOWN",
             "ASSET_DISPLAY_TYPE_VPAID_LINEAR",
             "ASSET_DISPLAY_TYPE_VPAID_NON_LINEAR"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "duration": {
@@ -12650,11 +12348,6 @@
             "ASSET_DURATION_TYPE_AUTO",
             "ASSET_DURATION_TYPE_CUSTOM",
             "ASSET_DURATION_TYPE_NONE"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "expandedDimension": {
@@ -12681,7 +12374,7 @@
         },
         "horizontallyLocked": {
           "type": "boolean",
-          "description": "Wheter the asset is horizontally locked. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA."
+          "description": "Whether the asset is horizontally locked. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA."
         },
         "id": {
           "type": "string",
@@ -12711,11 +12404,6 @@
             "OFFSET_UNIT_PERCENT",
             "OFFSET_UNIT_PIXEL",
             "OFFSET_UNIT_PIXEL_FROM_CENTER"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "positionTopUnit": {
@@ -12725,11 +12413,6 @@
             "OFFSET_UNIT_PERCENT",
             "OFFSET_UNIT_PIXEL",
             "OFFSET_UNIT_PIXEL_FROM_CENTER"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "progressiveServingUrl": {
@@ -12757,16 +12440,6 @@
             "PARENT_VIDEO",
             "PRIMARY",
             "TRANSCODED_VIDEO"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "size": {
@@ -12783,10 +12456,6 @@
           "enum": [
             "ASSET_START_TIME_TYPE_CUSTOM",
             "ASSET_START_TIME_TYPE_NONE"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "streamingServingUrl": {
@@ -12813,11 +12482,6 @@
             "OPAQUE",
             "TRANSPARENT",
             "WINDOW"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "zIndex": {
@@ -12836,7 +12500,6 @@
       }
     },
     "CreativeAssetId": {
-      "id": "CreativeAssetId",
       "type": "object",
       "description": "Creative Asset ID.",
       "properties": {
@@ -12853,19 +12516,11 @@
             "HTML_IMAGE",
             "IMAGE",
             "VIDEO"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         }
       }
     },
     "CreativeAssetMetadata": {
-      "id": "CreativeAssetMetadata",
       "type": "object",
       "description": "CreativeAssets contains properties of a creative asset file which will be uploaded or has already been uploaded. Refer to the creative sample code for how to upload assets and insert a creative.",
       "properties": {
@@ -12952,74 +12607,6 @@
               "WEB_SOCKETS",
               "WEB_SQL_DATABASE",
               "WEB_WORKERS"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
             ]
           }
         },
@@ -13055,36 +12642,12 @@
               "ORPHANED_ASSET",
               "PRIMARY_HTML_MISSING",
               "ZIP_INVALID"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
             ]
           }
         }
       }
     },
     "CreativeAssignment": {
-      "id": "CreativeAssignment",
       "type": "object",
       "description": "Creative Assignment.",
       "properties": {
@@ -13157,7 +12720,6 @@
       }
     },
     "CreativeCustomEvent": {
-      "id": "CreativeCustomEvent",
       "type": "object",
       "description": "Creative Custom Event.",
       "properties": {
@@ -13176,11 +12738,6 @@
             "ADVERTISER_EVENT_COUNTER",
             "ADVERTISER_EVENT_EXIT",
             "ADVERTISER_EVENT_TIMER"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "artworkLabel": {
@@ -13194,11 +12751,6 @@
             "ARTWORK_TYPE_FLASH",
             "ARTWORK_TYPE_HTML5",
             "ARTWORK_TYPE_MIXED"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "exitUrl": {
@@ -13212,7 +12764,7 @@
         },
         "popupWindowProperties": {
           "$ref": "#/definitions/PopupWindowProperties",
-          "description": "Properties for rich media pop-up windows. This field is used only for exit events."
+          "description": "Properties for rich media popup windows. This field is used only for exit events."
         },
         "targetType": {
           "type": "string",
@@ -13223,13 +12775,6 @@
             "TARGET_POPUP",
             "TARGET_SELF",
             "TARGET_TOP"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "videoReportingId": {
@@ -13239,7 +12784,6 @@
       }
     },
     "CreativeField": {
-      "id": "CreativeField",
       "type": "object",
       "description": "Contains properties of a creative field.",
       "properties": {
@@ -13279,7 +12823,6 @@
       }
     },
     "CreativeFieldAssignment": {
-      "id": "CreativeFieldAssignment",
       "type": "object",
       "description": "Creative Field Assignment.",
       "properties": {
@@ -13296,7 +12839,6 @@
       }
     },
     "CreativeFieldValue": {
-      "id": "CreativeFieldValue",
       "type": "object",
       "description": "Contains properties of a creative field value.",
       "properties": {
@@ -13317,13 +12859,12 @@
       }
     },
     "CreativeFieldValuesListResponse": {
-      "id": "CreativeFieldValuesListResponse",
       "type": "object",
       "description": "Creative Field Value List Response",
       "properties": {
         "creativeFieldValues": {
           "type": "array",
-          "description": "Creative field value collection",
+          "description": "Creative field value collection.",
           "items": {
             "$ref": "#/definitions/CreativeFieldValue"
           }
@@ -13340,13 +12881,12 @@
       }
     },
     "CreativeFieldsListResponse": {
-      "id": "CreativeFieldsListResponse",
       "type": "object",
       "description": "Creative Field List Response",
       "properties": {
         "creativeFields": {
           "type": "array",
-          "description": "Creative field collection",
+          "description": "Creative field collection.",
           "items": {
             "$ref": "#/definitions/CreativeField"
           }
@@ -13363,7 +12903,6 @@
       }
     },
     "CreativeGroup": {
-      "id": "CreativeGroup",
       "type": "object",
       "description": "Contains properties of a creative group.",
       "properties": {
@@ -13408,7 +12947,6 @@
       }
     },
     "CreativeGroupAssignment": {
-      "id": "CreativeGroupAssignment",
       "type": "object",
       "description": "Creative Group Assignment.",
       "properties": {
@@ -13423,22 +12961,17 @@
           "enum": [
             "CREATIVE_GROUP_ONE",
             "CREATIVE_GROUP_TWO"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         }
       }
     },
     "CreativeGroupsListResponse": {
-      "id": "CreativeGroupsListResponse",
       "type": "object",
       "description": "Creative Group List Response",
       "properties": {
         "creativeGroups": {
           "type": "array",
-          "description": "Creative group collection",
+          "description": "Creative group collection.",
           "items": {
             "$ref": "#/definitions/CreativeGroup"
           }
@@ -13455,7 +12988,6 @@
       }
     },
     "CreativeOptimizationConfiguration": {
-      "id": "CreativeOptimizationConfiguration",
       "type": "object",
       "description": "Creative optimization settings.",
       "properties": {
@@ -13483,18 +13015,11 @@
             "POST_CLICK",
             "POST_CLICK_AND_IMPRESSION",
             "POST_IMPRESSION"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         }
       }
     },
     "CreativeRotation": {
-      "id": "CreativeRotation",
       "type": "object",
       "description": "Creative Rotation.",
       "properties": {
@@ -13516,10 +13041,6 @@
           "enum": [
             "CREATIVE_ROTATION_TYPE_RANDOM",
             "CREATIVE_ROTATION_TYPE_SEQUENTIAL"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "weightCalculationStrategy": {
@@ -13530,18 +13051,11 @@
             "WEIGHT_STRATEGY_EQUAL",
             "WEIGHT_STRATEGY_HIGHEST_CTR",
             "WEIGHT_STRATEGY_OPTIMIZED"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         }
       }
     },
     "CreativeSettings": {
-      "id": "CreativeSettings",
       "type": "object",
       "description": "Creative Settings",
       "properties": {
@@ -13556,13 +13070,12 @@
       }
     },
     "CreativesListResponse": {
-      "id": "CreativesListResponse",
       "type": "object",
       "description": "Creative List Response",
       "properties": {
         "creatives": {
           "type": "array",
-          "description": "Creative collection",
+          "description": "Creative collection.",
           "items": {
             "$ref": "#/definitions/Creative"
           }
@@ -13579,7 +13092,6 @@
       }
     },
     "CrossDimensionReachReportCompatibleFields": {
-      "id": "CrossDimensionReachReportCompatibleFields",
       "type": "object",
       "description": "Represents fields that are compatible to be selected for a report of type \"CROSS_DIMENSION_REACH\".",
       "properties": {
@@ -13619,7 +13131,6 @@
       }
     },
     "CustomRichMediaEvents": {
-      "id": "CustomRichMediaEvents",
       "type": "object",
       "description": "Represents a Custom Rich Media Events group.",
       "properties": {
@@ -13638,7 +13149,6 @@
       }
     },
     "DateRange": {
-      "id": "DateRange",
       "type": "object",
       "description": "Represents a date range.",
       "properties": {
@@ -13671,23 +13181,6 @@
             "WEEK_TO_DATE",
             "YEAR_TO_DATE",
             "YESTERDAY"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "startDate": {
@@ -13698,7 +13191,6 @@
       }
     },
     "DayPartTargeting": {
-      "id": "DayPartTargeting",
       "type": "object",
       "description": "Day Part Targeting.",
       "properties": {
@@ -13715,15 +13207,6 @@
               "THURSDAY",
               "TUESDAY",
               "WEDNESDAY"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
             ]
           }
         },
@@ -13742,7 +13225,6 @@
       }
     },
     "DefaultClickThroughEventTagProperties": {
-      "id": "DefaultClickThroughEventTagProperties",
       "type": "object",
       "description": "Properties of inheriting and overriding the default click-through event tag. A campaign may override the event tag defined at the advertiser level, and an ad may also override the campaign's setting further.",
       "properties": {
@@ -13758,7 +13240,6 @@
       }
     },
     "DeliverySchedule": {
-      "id": "DeliverySchedule",
       "type": "object",
       "description": "Delivery Schedule.",
       "properties": {
@@ -13795,30 +13276,11 @@
             "AD_PRIORITY_14",
             "AD_PRIORITY_15",
             "AD_PRIORITY_16"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         }
       }
     },
     "DfpSettings": {
-      "id": "DfpSettings",
       "type": "object",
       "description": "DFP Settings",
       "properties": {
@@ -13840,12 +13302,11 @@
         },
         "publisherPortalOnly": {
           "type": "boolean",
-          "description": "Whether this directory site is available only via Publisher Portal."
+          "description": "Whether this directory site is available only via DoubleClick Publisher Portal."
         }
       }
     },
     "Dimension": {
-      "id": "Dimension",
       "type": "object",
       "description": "Represents a dimension.",
       "properties": {
@@ -13861,7 +13322,6 @@
       }
     },
     "DimensionFilter": {
-      "id": "DimensionFilter",
       "type": "object",
       "description": "Represents a dimension filter.",
       "properties": {
@@ -13881,7 +13341,6 @@
       }
     },
     "DimensionValue": {
-      "id": "DimensionValue",
       "type": "object",
       "description": "Represents a DimensionValue resource.",
       "properties": {
@@ -13910,12 +13369,6 @@
             "CONTAINS",
             "EXACT",
             "WILDCARD_EXPRESSION"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "value": {
@@ -13925,7 +13378,6 @@
       }
     },
     "DimensionValueList": {
-      "id": "DimensionValueList",
       "type": "object",
       "description": "Represents the list of DimensionValue resources.",
       "properties": {
@@ -13952,28 +13404,17 @@
       }
     },
     "DimensionValueRequest": {
-      "id": "DimensionValueRequest",
       "type": "object",
       "description": "Represents a DimensionValuesRequest.",
       "properties": {
         "dimensionName": {
           "type": "string",
-          "description": "The name of the dimension for which values should be requested.",
-          "annotations": {
-            "required": [
-              "dfareporting.dimensionValues.query"
-            ]
-          }
+          "description": "The name of the dimension for which values should be requested."
         },
         "endDate": {
           "type": "string",
           "description": "The end date of the date range for which to retrieve dimension values. A string of the format \"yyyy-MM-dd\".",
-          "format": "date",
-          "annotations": {
-            "required": [
-              "dfareporting.dimensionValues.query"
-            ]
-          }
+          "format": "date"
         },
         "filters": {
           "type": "array",
@@ -13990,17 +13431,11 @@
         "startDate": {
           "type": "string",
           "description": "The start date of the date range for which to retrieve dimension values. A string of the format \"yyyy-MM-dd\".",
-          "format": "date",
-          "annotations": {
-            "required": [
-              "dfareporting.dimensionValues.query"
-            ]
-          }
+          "format": "date"
         }
       }
     },
     "DirectorySite": {
-      "id": "DirectorySite",
       "type": "object",
       "description": "DirectorySites contains properties of a website from the Site Directory. Sites need to be added to an account via the Sites resource before they can be assigned to a placement.",
       "properties": {
@@ -14048,12 +13483,6 @@
               "INTERNAL_REDIRECT_INPAGE",
               "JAVASCRIPT_INPAGE",
               "STANDARD"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              "",
-              ""
             ]
           }
         },
@@ -14066,11 +13495,6 @@
               "IFRAME_JAVASCRIPT_INTERSTITIAL",
               "INTERNAL_REDIRECT_INTERSTITIAL",
               "JAVASCRIPT_INTERSTITIAL"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              ""
             ]
           }
         },
@@ -14099,7 +13523,6 @@
       }
     },
     "DirectorySiteContact": {
-      "id": "DirectorySiteContact",
       "type": "object",
       "description": "Contains properties of a Site Directory contact.",
       "properties": {
@@ -14132,11 +13555,6 @@
             "ADMIN",
             "EDIT",
             "VIEW"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "type": {
@@ -14147,18 +13565,11 @@
             "OTHER",
             "SALES",
             "TECHNICAL"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         }
       }
     },
     "DirectorySiteContactAssignment": {
-      "id": "DirectorySiteContactAssignment",
       "type": "object",
       "description": "Directory Site Contact Assignment",
       "properties": {
@@ -14173,16 +13584,11 @@
           "enum": [
             "PRIVATE",
             "PUBLIC"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         }
       }
     },
     "DirectorySiteContactsListResponse": {
-      "id": "DirectorySiteContactsListResponse",
       "type": "object",
       "description": "Directory Site Contact List Response",
       "properties": {
@@ -14205,7 +13611,6 @@
       }
     },
     "DirectorySiteSettings": {
-      "id": "DirectorySiteSettings",
       "type": "object",
       "description": "Directory Site Settings",
       "properties": {
@@ -14231,7 +13636,7 @@
         },
         "verificationTagOptOut": {
           "type": "boolean",
-          "description": "Whether this directory site has disabled generation of Verification tags."
+          "description": "Whether this directory site has disabled generation of Verification ins tags."
         },
         "videoActiveViewOptOut": {
           "type": "boolean",
@@ -14240,13 +13645,12 @@
       }
     },
     "DirectorySitesListResponse": {
-      "id": "DirectorySitesListResponse",
       "type": "object",
       "description": "Directory Site List Response",
       "properties": {
         "directorySites": {
           "type": "array",
-          "description": "Directory site collection",
+          "description": "Directory site collection.",
           "items": {
             "$ref": "#/definitions/DirectorySite"
           }
@@ -14263,7 +13667,6 @@
       }
     },
     "EventTag": {
-      "id": "EventTag",
       "type": "object",
       "description": "Contains properties of an event tag.",
       "properties": {
@@ -14314,10 +13717,6 @@
           "enum": [
             "BLACKLIST",
             "WHITELIST"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "siteIds": {
@@ -14338,10 +13737,6 @@
           "enum": [
             "DISABLED",
             "ENABLED"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "subaccountId": {
@@ -14356,11 +13751,6 @@
             "CLICK_THROUGH_EVENT_TAG",
             "IMPRESSION_IMAGE_EVENT_TAG",
             "IMPRESSION_JAVASCRIPT_EVENT_TAG"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "url": {
@@ -14375,7 +13765,6 @@
       }
     },
     "EventTagOverride": {
-      "id": "EventTagOverride",
       "type": "object",
       "description": "Event tag override information.",
       "properties": {
@@ -14391,13 +13780,12 @@
       }
     },
     "EventTagsListResponse": {
-      "id": "EventTagsListResponse",
       "type": "object",
       "description": "Event Tag List Response",
       "properties": {
         "eventTags": {
           "type": "array",
-          "description": "Event tag collection",
+          "description": "Event tag collection.",
           "items": {
             "$ref": "#/definitions/EventTag"
           }
@@ -14410,7 +13798,6 @@
       }
     },
     "File": {
-      "id": "File",
       "type": "object",
       "description": "Represents a File resource. A file contains the metadata for a report run. It shows the status of the run and holds the URLs to the generated report data if the run is finished and the status is \"REPORT_AVAILABLE\".",
       "properties": {
@@ -14432,10 +13819,6 @@
           "enum": [
             "CSV",
             "EXCEL"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "id": {
@@ -14466,12 +13849,6 @@
             "FAILED",
             "PROCESSING",
             "REPORT_AVAILABLE"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "urls": {
@@ -14491,7 +13868,6 @@
       }
     },
     "FileList": {
-      "id": "FileList",
       "type": "object",
       "description": "Represents the list of File resources.",
       "properties": {
@@ -14518,7 +13894,6 @@
       }
     },
     "FloodlightActivitiesGenerateTagResponse": {
-      "id": "FloodlightActivitiesGenerateTagResponse",
       "type": "object",
       "description": "Floodlight Activity GenerateTag Response",
       "properties": {
@@ -14534,13 +13909,12 @@
       }
     },
     "FloodlightActivitiesListResponse": {
-      "id": "FloodlightActivitiesListResponse",
       "type": "object",
       "description": "Floodlight Activity List Response",
       "properties": {
         "floodlightActivities": {
           "type": "array",
-          "description": "Floodlight activity collection",
+          "description": "Floodlight activity collection.",
           "items": {
             "$ref": "#/definitions/FloodlightActivity"
           }
@@ -14557,13 +13931,12 @@
       }
     },
     "FloodlightActivity": {
-      "id": "FloodlightActivity",
       "type": "object",
       "description": "Contains properties of a Floodlight activity.",
       "properties": {
         "accountId": {
           "type": "string",
-          "description": "Account ID of this floodlight activity.This is a read-only field that can be left blank.",
+          "description": "Account ID of this floodlight activity. This is a read-only field that can be left blank.",
           "format": "int64"
         },
         "advertiserId": {
@@ -14584,13 +13957,6 @@
             "JAVASCRIPT",
             "JSP",
             "PHP"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "countingMethod": {
@@ -14602,13 +13968,6 @@
             "STANDARD_COUNTING",
             "TRANSACTIONS_COUNTING",
             "UNIQUE_COUNTING"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "defaultTags": {
@@ -14641,10 +14000,6 @@
           "enum": [
             "COUNTER",
             "SALE"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "floodlightConfigurationId": {
@@ -14667,7 +14022,7 @@
         },
         "idDimensionValue": {
           "$ref": "#/definitions/DimensionValue",
-          "description": "Dimension value for the ID of this floodlight activity.This is a read-only, auto-generated field."
+          "description": "Dimension value for the ID of this floodlight activity. This is a read-only, auto-generated field."
         },
         "imageTagEnabled": {
           "type": "boolean",
@@ -14707,7 +14062,7 @@
         },
         "subaccountId": {
           "type": "string",
-          "description": "Subaccount ID of this floodlight activity.This is a read-only field that can be left blank.",
+          "description": "Subaccount ID of this floodlight activity. This is a read-only field that can be left blank.",
           "format": "int64"
         },
         "tagFormat": {
@@ -14716,10 +14071,6 @@
           "enum": [
             "HTML",
             "XHTML"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "tagString": {
@@ -14734,6 +14085,7 @@
             "enum": [
               "U1",
               "U10",
+              "U100",
               "U11",
               "U12",
               "U13",
@@ -14745,42 +14097,98 @@
               "U19",
               "U2",
               "U20",
+              "U21",
+              "U22",
+              "U23",
+              "U24",
+              "U25",
+              "U26",
+              "U27",
+              "U28",
+              "U29",
               "U3",
+              "U30",
+              "U31",
+              "U32",
+              "U33",
+              "U34",
+              "U35",
+              "U36",
+              "U37",
+              "U38",
+              "U39",
               "U4",
+              "U40",
+              "U41",
+              "U42",
+              "U43",
+              "U44",
+              "U45",
+              "U46",
+              "U47",
+              "U48",
+              "U49",
               "U5",
+              "U50",
+              "U51",
+              "U52",
+              "U53",
+              "U54",
+              "U55",
+              "U56",
+              "U57",
+              "U58",
+              "U59",
               "U6",
+              "U60",
+              "U61",
+              "U62",
+              "U63",
+              "U64",
+              "U65",
+              "U66",
+              "U67",
+              "U68",
+              "U69",
               "U7",
+              "U70",
+              "U71",
+              "U72",
+              "U73",
+              "U74",
+              "U75",
+              "U76",
+              "U77",
+              "U78",
+              "U79",
               "U8",
-              "U9"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
+              "U80",
+              "U81",
+              "U82",
+              "U83",
+              "U84",
+              "U85",
+              "U86",
+              "U87",
+              "U88",
+              "U89",
+              "U9",
+              "U90",
+              "U91",
+              "U92",
+              "U93",
+              "U94",
+              "U95",
+              "U96",
+              "U97",
+              "U98",
+              "U99"
             ]
           }
         }
       }
     },
     "FloodlightActivityDynamicTag": {
-      "id": "FloodlightActivityDynamicTag",
       "type": "object",
       "description": "Dynamic Tag",
       "properties": {
@@ -14800,13 +14208,12 @@
       }
     },
     "FloodlightActivityGroup": {
-      "id": "FloodlightActivityGroup",
       "type": "object",
       "description": "Contains properties of a Floodlight activity group.",
       "properties": {
         "accountId": {
           "type": "string",
-          "description": "Account ID of this floodlight activity group.This is a read-only field that can be left blank.",
+          "description": "Account ID of this floodlight activity group. This is a read-only field that can be left blank.",
           "format": "int64"
         },
         "advertiserId": {
@@ -14856,26 +14263,21 @@
         },
         "type": {
           "type": "string",
-          "description": "The type of floodlight activity group. This is a required field that is read-only after insertion.",
+          "description": "Type of the floodlight activity group. This is a required field that is read-only after insertion.",
           "enum": [
             "COUNTER",
             "SALE"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         }
       }
     },
     "FloodlightActivityGroupsListResponse": {
-      "id": "FloodlightActivityGroupsListResponse",
       "type": "object",
       "description": "Floodlight Activity Group List Response",
       "properties": {
         "floodlightActivityGroups": {
           "type": "array",
-          "description": "Floodlight activity group collection",
+          "description": "Floodlight activity group collection.",
           "items": {
             "$ref": "#/definitions/FloodlightActivityGroup"
           }
@@ -14892,7 +14294,6 @@
       }
     },
     "FloodlightActivityPublisherDynamicTag": {
-      "id": "FloodlightActivityPublisherDynamicTag",
       "type": "object",
       "description": "Publisher Dynamic Tag",
       "properties": {
@@ -14925,7 +14326,6 @@
       }
     },
     "FloodlightConfiguration": {
-      "id": "FloodlightConfiguration",
       "type": "object",
       "description": "Contains properties of a Floodlight configuration.",
       "properties": {
@@ -14949,7 +14349,7 @@
         },
         "exposureToConversionEnabled": {
           "type": "boolean",
-          "description": "Whether the exposure to conversion report is enabled. This report shows detailed pathway information on up to 10 of the most recent ad exposures seen by a user before converting."
+          "description": "Whether the exposure-to-conversion report is enabled. This report shows detailed pathway information on up to 10 of the most recent ad exposures seen by a user before converting."
         },
         "firstDayOfWeek": {
           "type": "string",
@@ -14957,10 +14357,6 @@
           "enum": [
             "MONDAY",
             "SUNDAY"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "id": {
@@ -14988,11 +14384,6 @@
             "EXCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION",
             "INCLUDE_NATURAL_SEARCH_CONVERSION_ATTRIBUTION",
             "INCLUDE_NATURAL_SEARCH_TIERED_CONVERSION_ATTRIBUTION"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "omnitureSettings": {
@@ -15013,12 +14404,6 @@
               "ORD",
               "TRAN",
               "U"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              "",
-              ""
             ]
           }
         },
@@ -15041,13 +14426,12 @@
       }
     },
     "FloodlightConfigurationsListResponse": {
-      "id": "FloodlightConfigurationsListResponse",
       "type": "object",
       "description": "Floodlight Configuration List Response",
       "properties": {
         "floodlightConfigurations": {
           "type": "array",
-          "description": "Floodlight configuration collection",
+          "description": "Floodlight configuration collection.",
           "items": {
             "$ref": "#/definitions/FloodlightConfiguration"
           }
@@ -15060,7 +14444,6 @@
       }
     },
     "FloodlightReportCompatibleFields": {
-      "id": "FloodlightReportCompatibleFields",
       "type": "object",
       "description": "Represents fields that are compatible to be selected for a report of type \"FlOODLIGHT\".",
       "properties": {
@@ -15093,7 +14476,6 @@
       }
     },
     "FrequencyCap": {
-      "id": "FrequencyCap",
       "type": "object",
       "description": "Frequency Cap.",
       "properties": {
@@ -15110,7 +14492,6 @@
       }
     },
     "FsCommand": {
-      "id": "FsCommand",
       "type": "object",
       "description": "FsCommand.",
       "properties": {
@@ -15125,10 +14506,6 @@
           "enum": [
             "CENTERED",
             "DISTANCE_FROM_TOP_LEFT_CORNER"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "top": {
@@ -15149,7 +14526,6 @@
       }
     },
     "GeoTargeting": {
-      "id": "GeoTargeting",
       "type": "object",
       "description": "Geographical Targeting.",
       "properties": {
@@ -15195,7 +14571,6 @@
       }
     },
     "KeyValueTargetingExpression": {
-      "id": "KeyValueTargetingExpression",
       "type": "object",
       "description": "Key Value Targeting Expression.",
       "properties": {
@@ -15206,7 +14581,6 @@
       }
     },
     "LandingPage": {
-      "id": "LandingPage",
       "type": "object",
       "description": "Contains information about where a user's browser is taken after the user clicks an ad.",
       "properties": {
@@ -15226,7 +14600,7 @@
         },
         "name": {
           "type": "string",
-          "description": "Name of this landing page. This is a required field. Must be less than 256 characters long, and must be unique among landing pages of the same campaign."
+          "description": "Name of this landing page. This is a required field. It must be less than 256 characters long, and must be unique among landing pages of the same campaign."
         },
         "url": {
           "type": "string",
@@ -15235,7 +14609,6 @@
       }
     },
     "LandingPagesListResponse": {
-      "id": "LandingPagesListResponse",
       "type": "object",
       "description": "Landing Page List Response",
       "properties": {
@@ -15254,7 +14627,6 @@
       }
     },
     "LastModifiedInfo": {
-      "id": "LastModifiedInfo",
       "type": "object",
       "description": "Modification timestamp.",
       "properties": {
@@ -15266,7 +14638,6 @@
       }
     },
     "ListTargetingExpression": {
-      "id": "ListTargetingExpression",
       "type": "object",
       "description": "Remarketing List Targeting Expression.",
       "properties": {
@@ -15277,7 +14648,6 @@
       }
     },
     "LookbackConfiguration": {
-      "id": "LookbackConfiguration",
       "type": "object",
       "description": "Lookback configuration settings.",
       "properties": {
@@ -15294,7 +14664,6 @@
       }
     },
     "Metric": {
-      "id": "Metric",
       "type": "object",
       "description": "Represents a metric.",
       "properties": {
@@ -15310,7 +14679,6 @@
       }
     },
     "Metro": {
-      "id": "Metro",
       "type": "object",
       "description": "Contains information about a metro region that can be targeted by ads.",
       "properties": {
@@ -15349,7 +14717,6 @@
       }
     },
     "MetrosListResponse": {
-      "id": "MetrosListResponse",
       "type": "object",
       "description": "Metro List Response",
       "properties": {
@@ -15360,7 +14727,7 @@
         },
         "metros": {
           "type": "array",
-          "description": "Metro collection",
+          "description": "Metro collection.",
           "items": {
             "$ref": "#/definitions/Metro"
           }
@@ -15368,7 +14735,6 @@
       }
     },
     "MobileCarrier": {
-      "id": "MobileCarrier",
       "type": "object",
       "description": "Contains information about a mobile carrier that can be targeted by ads.",
       "properties": {
@@ -15398,7 +14764,6 @@
       }
     },
     "MobileCarriersListResponse": {
-      "id": "MobileCarriersListResponse",
       "type": "object",
       "description": "Mobile Carrier List Response",
       "properties": {
@@ -15409,7 +14774,7 @@
         },
         "mobileCarriers": {
           "type": "array",
-          "description": "Mobile carrier collection",
+          "description": "Mobile carrier collection.",
           "items": {
             "$ref": "#/definitions/MobileCarrier"
           }
@@ -15417,7 +14782,6 @@
       }
     },
     "ObjectFilter": {
-      "id": "ObjectFilter",
       "type": "object",
       "description": "Object Filter.",
       "properties": {
@@ -15441,17 +14805,11 @@
             "ALL",
             "ASSIGNED",
             "NONE"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         }
       }
     },
     "OffsetPosition": {
-      "id": "OffsetPosition",
       "type": "object",
       "description": "Offset Position.",
       "properties": {
@@ -15468,7 +14826,6 @@
       }
     },
     "OmnitureSettings": {
-      "id": "OmnitureSettings",
       "type": "object",
       "description": "Omniture Integration Settings.",
       "properties": {
@@ -15483,7 +14840,6 @@
       }
     },
     "OperatingSystem": {
-      "id": "OperatingSystem",
       "type": "object",
       "description": "Contains information about an operating system that can be targeted by ads.",
       "properties": {
@@ -15512,7 +14868,6 @@
       }
     },
     "OperatingSystemVersion": {
-      "id": "OperatingSystemVersion",
       "type": "object",
       "description": "Contains information about a particular version of an operating system that can be targeted by ads.",
       "properties": {
@@ -15532,7 +14887,7 @@
         },
         "minorVersion": {
           "type": "string",
-          "description": "Minor version (number after first dot on the left) of this operating system version."
+          "description": "Minor version (number after the first dot) of this operating system version."
         },
         "name": {
           "type": "string",
@@ -15545,7 +14900,6 @@
       }
     },
     "OperatingSystemVersionsListResponse": {
-      "id": "OperatingSystemVersionsListResponse",
       "type": "object",
       "description": "Operating System Version List Response",
       "properties": {
@@ -15556,7 +14910,7 @@
         },
         "operatingSystemVersions": {
           "type": "array",
-          "description": "Operating system version collection",
+          "description": "Operating system version collection.",
           "items": {
             "$ref": "#/definitions/OperatingSystemVersion"
           }
@@ -15564,7 +14918,6 @@
       }
     },
     "OperatingSystemsListResponse": {
-      "id": "OperatingSystemsListResponse",
       "type": "object",
       "description": "Operating System List Response",
       "properties": {
@@ -15575,7 +14928,7 @@
         },
         "operatingSystems": {
           "type": "array",
-          "description": "Operating system collection",
+          "description": "Operating system collection.",
           "items": {
             "$ref": "#/definitions/OperatingSystem"
           }
@@ -15583,7 +14936,6 @@
       }
     },
     "OptimizationActivity": {
-      "id": "OptimizationActivity",
       "type": "object",
       "description": "Creative optimization activity.",
       "properties": {
@@ -15604,7 +14956,6 @@
       }
     },
     "PathToConversionReportCompatibleFields": {
-      "id": "PathToConversionReportCompatibleFields",
       "type": "object",
       "description": "Represents fields that are compatible to be selected for a report of type \"PATH_TO_CONVERSION\".",
       "properties": {
@@ -15644,7 +14995,6 @@
       }
     },
     "Placement": {
-      "id": "Placement",
       "type": "object",
       "description": "Contains properties of a placement.",
       "properties": {
@@ -15688,13 +15038,6 @@
             "IN_STREAM_VIDEO",
             "WEB",
             "WEB_INTERSTITIAL"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "contentCategoryId": {
@@ -15759,10 +15102,6 @@
           "enum": [
             "PLACEMENT_AGENCY_PAID",
             "PLACEMENT_PUBLISHER_PAID"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "placementGroupId": {
@@ -15818,14 +15157,6 @@
             "PAYMENT_ACCEPTED",
             "PAYMENT_REJECTED",
             "PENDING_REVIEW"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "subaccountId": {
@@ -15852,21 +15183,6 @@
               "PLACEMENT_TAG_TRACKING",
               "PLACEMENT_TAG_TRACKING_IFRAME",
               "PLACEMENT_TAG_TRACKING_JAVASCRIPT"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
             ]
           }
         },
@@ -15877,7 +15193,6 @@
       }
     },
     "PlacementAssignment": {
-      "id": "PlacementAssignment",
       "type": "object",
       "description": "Placement Assignment.",
       "properties": {
@@ -15901,7 +15216,6 @@
       }
     },
     "PlacementGroup": {
-      "id": "PlacementGroup",
       "type": "object",
       "description": "Contains properties of a package or roadblock.",
       "properties": {
@@ -15994,10 +15308,6 @@
           "enum": [
             "PLACEMENT_PACKAGE",
             "PLACEMENT_ROADBLOCK"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "placementStrategyId": {
@@ -16039,7 +15349,6 @@
       }
     },
     "PlacementGroupsListResponse": {
-      "id": "PlacementGroupsListResponse",
       "type": "object",
       "description": "Placement Group List Response",
       "properties": {
@@ -16054,7 +15363,7 @@
         },
         "placementGroups": {
           "type": "array",
-          "description": "Placement group collection",
+          "description": "Placement group collection.",
           "items": {
             "$ref": "#/definitions/PlacementGroup"
           }
@@ -16062,7 +15371,6 @@
       }
     },
     "PlacementStrategiesListResponse": {
-      "id": "PlacementStrategiesListResponse",
       "type": "object",
       "description": "Placement Strategy List Response",
       "properties": {
@@ -16077,7 +15385,7 @@
         },
         "placementStrategies": {
           "type": "array",
-          "description": "Placement strategy collection",
+          "description": "Placement strategy collection.",
           "items": {
             "$ref": "#/definitions/PlacementStrategy"
           }
@@ -16085,7 +15393,6 @@
       }
     },
     "PlacementStrategy": {
-      "id": "PlacementStrategy",
       "type": "object",
       "description": "Contains properties of a placement strategy.",
       "properties": {
@@ -16106,12 +15413,11 @@
         },
         "name": {
           "type": "string",
-          "description": "Name of this placement strategy. This is a required field. Must be less than 256 characters long and unique among placement strategies of the same account."
+          "description": "Name of this placement strategy. This is a required field. It must be less than 256 characters long and unique among placement strategies of the same account."
         }
       }
     },
     "PlacementTag": {
-      "id": "PlacementTag",
       "type": "object",
       "description": "Placement Tag",
       "properties": {
@@ -16130,7 +15436,6 @@
       }
     },
     "PlacementsGenerateTagsResponse": {
-      "id": "PlacementsGenerateTagsResponse",
       "type": "object",
       "description": "Placement GenerateTags Response",
       "properties": {
@@ -16149,7 +15454,6 @@
       }
     },
     "PlacementsListResponse": {
-      "id": "PlacementsListResponse",
       "type": "object",
       "description": "Placement List Response",
       "properties": {
@@ -16164,7 +15468,7 @@
         },
         "placements": {
           "type": "array",
-          "description": "Placement collection",
+          "description": "Placement collection.",
           "items": {
             "$ref": "#/definitions/Placement"
           }
@@ -16172,7 +15476,6 @@
       }
     },
     "PlatformType": {
-      "id": "PlatformType",
       "type": "object",
       "description": "Contains information about a platform type that can be targeted by ads.",
       "properties": {
@@ -16193,7 +15496,6 @@
       }
     },
     "PlatformTypesListResponse": {
-      "id": "PlatformTypesListResponse",
       "type": "object",
       "description": "Platform Type List Response",
       "properties": {
@@ -16204,7 +15506,7 @@
         },
         "platformTypes": {
           "type": "array",
-          "description": "Platform type collection",
+          "description": "Platform type collection.",
           "items": {
             "$ref": "#/definitions/PlatformType"
           }
@@ -16212,7 +15514,6 @@
       }
     },
     "PopupWindowProperties": {
-      "id": "PopupWindowProperties",
       "type": "object",
       "description": "Popup Window Properties.",
       "properties": {
@@ -16230,10 +15531,6 @@
           "enum": [
             "CENTER",
             "COORDINATES"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "showAddressBar": {
@@ -16263,7 +15560,6 @@
       }
     },
     "PostalCode": {
-      "id": "PostalCode",
       "type": "object",
       "description": "Contains information about a postal code that can be targeted by ads.",
       "properties": {
@@ -16288,7 +15584,6 @@
       }
     },
     "PostalCodesListResponse": {
-      "id": "PostalCodesListResponse",
       "type": "object",
       "description": "Postal Code List Response",
       "properties": {
@@ -16299,7 +15594,7 @@
         },
         "postalCodes": {
           "type": "array",
-          "description": "Postal code collection",
+          "description": "Postal code collection.",
           "items": {
             "$ref": "#/definitions/PostalCode"
           }
@@ -16307,7 +15602,6 @@
       }
     },
     "PricingSchedule": {
-      "id": "PricingSchedule",
       "type": "object",
       "description": "Pricing Schedule",
       "properties": {
@@ -16318,11 +15612,6 @@
             "CAP_COST_CUMULATIVE",
             "CAP_COST_MONTHLY",
             "CAP_COST_NONE"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "disregardOverdelivery": {
@@ -16331,7 +15620,7 @@
         },
         "endDate": {
           "type": "string",
-          "description": "Placement end date. This date must be later than or be the same day as the placement start date, but not later than the campaign end date. If, for example, you set 6/25/2015 as both the start and end dates, the effective placement date is just that day only, 6/25/2015. The hours, minutes, and seconds of the end date should not be set, as doing so will result in an error. This field is required on insertion.",
+          "description": "Placement end date. This date must be later than, or the same day as, the placement start date, but not later than the campaign end date. If, for example, you set 6/25/2015 as both the start and end dates, the effective placement date is just that day only, 6/25/2015. The hours, minutes, and seconds of the end date should not be set, as doing so will result in an error. This field is required on insertion.",
           "format": "date"
         },
         "flighted": {
@@ -16359,18 +15648,11 @@
             "PRICING_TYPE_CPM",
             "PRICING_TYPE_FLAT_RATE_CLICKS",
             "PRICING_TYPE_FLAT_RATE_IMPRESSIONS"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "startDate": {
           "type": "string",
-          "description": "Placement start date. This date cannot be earlier than the campaign start date. The hours, minutes, and seconds of the start date should not be set, as doing so will result in an error. This field is required on insertion.",
+          "description": "Placement start date. This date must be later than, or the same day as, the campaign start date. The hours, minutes, and seconds of the start date should not be set, as doing so will result in an error. This field is required on insertion.",
           "format": "date"
         },
         "testingStartDate": {
@@ -16381,13 +15663,12 @@
       }
     },
     "PricingSchedulePricingPeriod": {
-      "id": "PricingSchedulePricingPeriod",
       "type": "object",
       "description": "Pricing Period",
       "properties": {
         "endDate": {
           "type": "string",
-          "description": "Pricing period end date. This date must be later than or be the same day as the pricing period start date, but not later than the placement end date. The period end date can be the same date as the period start date. If, for example, you set 6/25/2015 as both the start and end dates, the effective pricing period date is just that day only, 6/25/2015. The hours, minutes, and seconds of the end date should not be set, as doing so will result in an error.",
+          "description": "Pricing period end date. This date must be later than, or the same day as, the pricing period start date, but not later than the placement end date. The period end date can be the same date as the period start date. If, for example, you set 6/25/2015 as both the start and end dates, the effective pricing period date is just that day only, 6/25/2015. The hours, minutes, and seconds of the end date should not be set, as doing so will result in an error.",
           "format": "date"
         },
         "pricingComment": {
@@ -16401,7 +15682,7 @@
         },
         "startDate": {
           "type": "string",
-          "description": "Pricing period start date. This date cannot be earlier than the placement start date. The hours, minutes, and seconds of the start date should not be set, as doing so will result in an error.",
+          "description": "Pricing period start date. This date must be later than, or the same day as, the placement start date. The hours, minutes, and seconds of the start date should not be set, as doing so will result in an error.",
           "format": "date"
         },
         "units": {
@@ -16412,7 +15693,6 @@
       }
     },
     "ProgrammaticSetting": {
-      "id": "ProgrammaticSetting",
       "type": "object",
       "description": "Programmatic Setting",
       "properties": {
@@ -16451,7 +15731,6 @@
       }
     },
     "ReachReportCompatibleFields": {
-      "id": "ReachReportCompatibleFields",
       "type": "object",
       "description": "Represents fields that are compatible to be selected for a report of type \"REACH\".",
       "properties": {
@@ -16498,7 +15777,6 @@
       }
     },
     "Recipient": {
-      "id": "Recipient",
       "type": "object",
       "description": "Represents a recipient.",
       "properties": {
@@ -16508,27 +15786,11 @@
           "enum": [
             "ATTACHMENT",
             "LINK"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
-          ],
-          "annotations": {
-            "required": [
-              "dfareporting.reports.insert",
-              "dfareporting.reports.update"
-            ]
-          }
+          ]
         },
         "email": {
           "type": "string",
-          "description": "The email address of the recipient.",
-          "annotations": {
-            "required": [
-              "dfareporting.reports.insert",
-              "dfareporting.reports.update"
-            ]
-          }
+          "description": "The email address of the recipient."
         },
         "kind": {
           "type": "string",
@@ -16538,7 +15800,6 @@
       }
     },
     "Region": {
-      "id": "Region",
       "type": "object",
       "description": "Contains information about a region that can be targeted by ads.",
       "properties": {
@@ -16572,7 +15833,6 @@
       }
     },
     "RegionsListResponse": {
-      "id": "RegionsListResponse",
       "type": "object",
       "description": "Region List Response",
       "properties": {
@@ -16583,7 +15843,7 @@
         },
         "regions": {
           "type": "array",
-          "description": "Region Collection.",
+          "description": "Region collection.",
           "items": {
             "$ref": "#/definitions/Region"
           }
@@ -16591,19 +15851,13 @@
       }
     },
     "Report": {
-      "id": "Report",
       "type": "object",
       "description": "Represents a Report resource.",
       "properties": {
         "accountId": {
           "type": "string",
           "description": "The account ID to which this report belongs.",
-          "format": "int64",
-          "annotations": {
-            "required": [
-              "dfareporting.reports.update"
-            ]
-          }
+          "format": "int64"
         },
         "criteria": {
           "type": "object",
@@ -16667,12 +15921,6 @@
                 "CAMPAIGN",
                 "SITE_BY_ADVERTISER",
                 "SITE_BY_CAMPAIGN"
-              ],
-              "enumDescriptions": [
-                "",
-                "",
-                "",
-                ""
               ]
             },
             "dimensionFilters": {
@@ -16716,10 +15964,6 @@
               "enum": [
                 "ATTACHMENT",
                 "LINK"
-              ],
-              "enumDescriptions": [
-                "",
-                ""
               ]
             },
             "message": {
@@ -16809,21 +16053,12 @@
           "enum": [
             "CSV",
             "EXCEL"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "id": {
           "type": "string",
           "description": "The unique ID identifying this report resource.",
-          "format": "int64",
-          "annotations": {
-            "required": [
-              "dfareporting.reports.update"
-            ]
-          }
+          "format": "int64"
         },
         "kind": {
           "type": "string",
@@ -16833,32 +16068,16 @@
         "lastModifiedTime": {
           "type": "string",
           "description": "The timestamp (in milliseconds since epoch) of when this report was last modified.",
-          "format": "uint64",
-          "annotations": {
-            "required": [
-              "dfareporting.reports.update"
-            ]
-          }
+          "format": "uint64"
         },
         "name": {
           "type": "string",
-          "description": "The name of the report.",
-          "annotations": {
-            "required": [
-              "dfareporting.reports.insert",
-              "dfareporting.reports.update"
-            ]
-          }
+          "description": "The name of the report."
         },
         "ownerProfileId": {
           "type": "string",
           "description": "The user profile id of the owner of this report.",
-          "format": "int64",
-          "annotations": {
-            "required": [
-              "dfareporting.reports.update"
-            ]
-          }
+          "format": "int64"
         },
         "pathToConversionCriteria": {
           "type": "object",
@@ -17019,13 +16238,7 @@
           "properties": {
             "active": {
               "type": "boolean",
-              "description": "Whether the schedule is active or not. Must be set to either true or false.",
-              "annotations": {
-                "required": [
-                  "dfareporting.reports.insert",
-                  "dfareporting.reports.update"
-                ]
-              }
+              "description": "Whether the schedule is active or not. Must be set to either true or false."
             },
             "every": {
               "type": "integer",
@@ -17035,23 +16248,11 @@
             "expirationDate": {
               "type": "string",
               "description": "The expiration date when the scheduled report stops running.",
-              "format": "date",
-              "annotations": {
-                "required": [
-                  "dfareporting.reports.insert",
-                  "dfareporting.reports.update"
-                ]
-              }
+              "format": "date"
             },
             "repeats": {
               "type": "string",
-              "description": "The interval for which the report is repeated. Note:  \n- \"DAILY\" also requires field \"every\" to be set. \n- \"WEEKLY\" also requires fields \"every\" and \"repeatsOnWeekDays\" to be set. \n- \"MONTHLY\" also requires fields \"every\" and \"runsOnDayOfMonth\" to be set.",
-              "annotations": {
-                "required": [
-                  "dfareporting.reports.insert",
-                  "dfareporting.reports.update"
-                ]
-              }
+              "description": "The interval for which the report is repeated. Note:  \n- \"DAILY\" also requires field \"every\" to be set. \n- \"WEEKLY\" also requires fields \"every\" and \"repeatsOnWeekDays\" to be set. \n- \"MONTHLY\" also requires fields \"every\" and \"runsOnDayOfMonth\" to be set."
             },
             "repeatsOnWeekDays": {
               "type": "array",
@@ -17066,15 +16267,6 @@
                   "THURSDAY",
                   "TUESDAY",
                   "WEDNESDAY"
-                ],
-                "enumDescriptions": [
-                  "",
-                  "",
-                  "",
-                  "",
-                  "",
-                  "",
-                  ""
                 ]
               }
             },
@@ -17084,22 +16276,12 @@
               "enum": [
                 "DAY_OF_MONTH",
                 "WEEK_OF_MONTH"
-              ],
-              "enumDescriptions": [
-                "",
-                ""
               ]
             },
             "startDate": {
               "type": "string",
               "description": "Start date of date range for which scheduled reports should be run.",
-              "format": "date",
-              "annotations": {
-                "required": [
-                  "dfareporting.reports.insert",
-                  "dfareporting.reports.update"
-                ]
-              }
+              "format": "date"
             }
           }
         },
@@ -17117,25 +16299,11 @@
             "PATH_TO_CONVERSION",
             "REACH",
             "STANDARD"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
-          ],
-          "annotations": {
-            "required": [
-              "dfareporting.reports.insert",
-              "dfareporting.reports.update"
-            ]
-          }
+          ]
         }
       }
     },
     "ReportCompatibleFields": {
-      "id": "ReportCompatibleFields",
       "type": "object",
       "description": "Represents fields that are compatible to be selected for a report of type \"STANDARD\".",
       "properties": {
@@ -17175,7 +16343,6 @@
       }
     },
     "ReportList": {
-      "id": "ReportList",
       "type": "object",
       "description": "Represents the list of reports.",
       "properties": {
@@ -17202,7 +16369,6 @@
       }
     },
     "ReportsConfiguration": {
-      "id": "ReportsConfiguration",
       "type": "object",
       "description": "Reporting Configuration",
       "properties": {
@@ -17222,7 +16388,6 @@
       }
     },
     "RichMediaExitOverride": {
-      "id": "RichMediaExitOverride",
       "type": "object",
       "description": "Rich Media Exit Override.",
       "properties": {
@@ -17242,7 +16407,6 @@
       }
     },
     "Site": {
-      "id": "Site",
       "type": "object",
       "description": "Contains properties of a site.",
       "properties": {
@@ -17305,7 +16469,6 @@
       }
     },
     "SiteContact": {
-      "id": "SiteContact",
       "type": "object",
       "description": "Site Contact",
       "properties": {
@@ -17315,10 +16478,6 @@
           "enum": [
             "SALES_PERSON",
             "TRAFFICKER"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "email": {
@@ -17341,7 +16500,6 @@
       }
     },
     "SiteSettings": {
-      "id": "SiteSettings",
       "type": "object",
       "description": "Site Settings",
       "properties": {
@@ -17372,7 +16530,6 @@
       }
     },
     "SitesListResponse": {
-      "id": "SitesListResponse",
       "type": "object",
       "description": "Site List Response",
       "properties": {
@@ -17395,7 +16552,6 @@
       }
     },
     "Size": {
-      "id": "Size",
       "type": "object",
       "description": "Represents the dimensions of ads, placements, creatives, or creative assets.",
       "properties": {
@@ -17426,7 +16582,6 @@
       }
     },
     "SizesListResponse": {
-      "id": "SizesListResponse",
       "type": "object",
       "description": "Size List Response",
       "properties": {
@@ -17437,7 +16592,7 @@
         },
         "sizes": {
           "type": "array",
-          "description": "Size collection",
+          "description": "Size collection.",
           "items": {
             "$ref": "#/definitions/Size"
           }
@@ -17445,7 +16600,6 @@
       }
     },
     "SortedDimension": {
-      "id": "SortedDimension",
       "type": "object",
       "description": "Represents a sorted dimension.",
       "properties": {
@@ -17464,16 +16618,11 @@
           "enum": [
             "ASCENDING",
             "DESCENDING"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         }
       }
     },
     "Subaccount": {
-      "id": "Subaccount",
       "type": "object",
       "description": "Contains properties of a DCM subaccount.",
       "properties": {
@@ -17507,7 +16656,6 @@
       }
     },
     "SubaccountsListResponse": {
-      "id": "SubaccountsListResponse",
       "type": "object",
       "description": "Subaccount List Response",
       "properties": {
@@ -17522,7 +16670,7 @@
         },
         "subaccounts": {
           "type": "array",
-          "description": "Subaccount collection",
+          "description": "Subaccount collection.",
           "items": {
             "$ref": "#/definitions/Subaccount"
           }
@@ -17530,7 +16678,6 @@
       }
     },
     "TagData": {
-      "id": "TagData",
       "type": "object",
       "description": "Placement Tag Data",
       "properties": {
@@ -17565,21 +16712,6 @@
             "PLACEMENT_TAG_TRACKING",
             "PLACEMENT_TAG_TRACKING_IFRAME",
             "PLACEMENT_TAG_TRACKING_JAVASCRIPT"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "impressionTag": {
@@ -17589,7 +16721,6 @@
       }
     },
     "TagSetting": {
-      "id": "TagSetting",
       "type": "object",
       "description": "Tag Settings",
       "properties": {
@@ -17612,17 +16743,11 @@
             "GENERATE_SEPARATE_TAG_FOR_EACH_KEYWORD",
             "IGNORE",
             "PLACEHOLDER_WITH_LIST_OF_KEYWORDS"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         }
       }
     },
     "TagSettings": {
-      "id": "TagSettings",
       "type": "object",
       "description": "Dynamic and Image Tag Settings.",
       "properties": {
@@ -17637,7 +16762,6 @@
       }
     },
     "TargetWindow": {
-      "id": "TargetWindow",
       "type": "object",
       "description": "Target Window.",
       "properties": {
@@ -17652,17 +16776,11 @@
             "CURRENT_WINDOW",
             "CUSTOM",
             "NEW_WINDOW"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         }
       }
     },
     "TechnologyTargeting": {
-      "id": "TechnologyTargeting",
       "type": "object",
       "description": "Technology Targeting.",
       "properties": {
@@ -17711,7 +16829,6 @@
       }
     },
     "ThirdPartyTrackingUrl": {
-      "id": "ThirdPartyTrackingUrl",
       "type": "object",
       "description": "Third-party Tracking URL.",
       "properties": {
@@ -17736,25 +16853,6 @@
             "VIDEO_START",
             "VIDEO_STOP",
             "VIDEO_THIRD_QUARTILE"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "url": {
@@ -17764,7 +16862,6 @@
       }
     },
     "UserDefinedVariableConfiguration": {
-      "id": "UserDefinedVariableConfiguration",
       "type": "object",
       "description": "User Defined Variable configuration.",
       "properties": {
@@ -17774,15 +16871,11 @@
           "enum": [
             "NUMBER",
             "STRING"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "reportName": {
           "type": "string",
-          "description": "User-friendly name for the variable which will appear in reports. This is a required field, must be less than 65 characters long, and cannot contain the following characters: \"\"\"."
+          "description": "User-friendly name for the variable which will appear in reports. This is a required field, must be less than 64 characters long, and cannot contain the following characters: \"\"<>\"."
         },
         "variableType": {
           "type": "string",
@@ -17790,6 +16883,7 @@
           "enum": [
             "U1",
             "U10",
+            "U100",
             "U11",
             "U12",
             "U13",
@@ -17801,41 +16895,97 @@
             "U19",
             "U2",
             "U20",
+            "U21",
+            "U22",
+            "U23",
+            "U24",
+            "U25",
+            "U26",
+            "U27",
+            "U28",
+            "U29",
             "U3",
+            "U30",
+            "U31",
+            "U32",
+            "U33",
+            "U34",
+            "U35",
+            "U36",
+            "U37",
+            "U38",
+            "U39",
             "U4",
+            "U40",
+            "U41",
+            "U42",
+            "U43",
+            "U44",
+            "U45",
+            "U46",
+            "U47",
+            "U48",
+            "U49",
             "U5",
+            "U50",
+            "U51",
+            "U52",
+            "U53",
+            "U54",
+            "U55",
+            "U56",
+            "U57",
+            "U58",
+            "U59",
             "U6",
+            "U60",
+            "U61",
+            "U62",
+            "U63",
+            "U64",
+            "U65",
+            "U66",
+            "U67",
+            "U68",
+            "U69",
             "U7",
+            "U70",
+            "U71",
+            "U72",
+            "U73",
+            "U74",
+            "U75",
+            "U76",
+            "U77",
+            "U78",
+            "U79",
             "U8",
-            "U9"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
+            "U80",
+            "U81",
+            "U82",
+            "U83",
+            "U84",
+            "U85",
+            "U86",
+            "U87",
+            "U88",
+            "U89",
+            "U9",
+            "U90",
+            "U91",
+            "U92",
+            "U93",
+            "U94",
+            "U95",
+            "U96",
+            "U97",
+            "U98",
+            "U99"
           ]
         }
       }
     },
     "UserProfile": {
-      "id": "UserProfile",
       "type": "object",
       "description": "Represents a UserProfile resource.",
       "properties": {
@@ -17878,7 +17028,6 @@
       }
     },
     "UserProfileList": {
-      "id": "UserProfileList",
       "type": "object",
       "description": "Represents the list of user profiles.",
       "properties": {
@@ -17901,7 +17050,6 @@
       }
     },
     "UserRole": {
-      "id": "UserRole",
       "type": "object",
       "description": "Contains properties of auser role, which is used to manage user access.",
       "properties": {
@@ -17948,7 +17096,6 @@
       }
     },
     "UserRolePermission": {
-      "id": "UserRolePermission",
       "type": "object",
       "description": "Contains properties of a user role permission.",
       "properties": {
@@ -17961,13 +17108,6 @@
             "NOT_AVAILABLE_BY_DEFAULT",
             "SUBACCOUNT_AND_ACCOUNT_ALWAYS",
             "SUBACCOUNT_AND_ACCOUNT_BY_DEFAULT"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "id": {
@@ -17992,7 +17132,6 @@
       }
     },
     "UserRolePermissionGroup": {
-      "id": "UserRolePermissionGroup",
       "type": "object",
       "description": "Represents a grouping of related user role permissions.",
       "properties": {
@@ -18013,7 +17152,6 @@
       }
     },
     "UserRolePermissionGroupsListResponse": {
-      "id": "UserRolePermissionGroupsListResponse",
       "type": "object",
       "description": "User Role Permission Group List Response",
       "properties": {
@@ -18024,7 +17162,7 @@
         },
         "userRolePermissionGroups": {
           "type": "array",
-          "description": "User role permission group collection",
+          "description": "User role permission group collection.",
           "items": {
             "$ref": "#/definitions/UserRolePermissionGroup"
           }
@@ -18032,7 +17170,6 @@
       }
     },
     "UserRolePermissionsListResponse": {
-      "id": "UserRolePermissionsListResponse",
       "type": "object",
       "description": "User Role Permission List Response",
       "properties": {
@@ -18043,7 +17180,7 @@
         },
         "userRolePermissions": {
           "type": "array",
-          "description": "User role permission collection",
+          "description": "User role permission collection.",
           "items": {
             "$ref": "#/definitions/UserRolePermission"
           }
@@ -18051,7 +17188,6 @@
       }
     },
     "UserRolesListResponse": {
-      "id": "UserRolesListResponse",
       "type": "object",
       "description": "User Role List Response",
       "properties": {
@@ -18066,7 +17202,7 @@
         },
         "userRoles": {
           "type": "array",
-          "description": "User role collection",
+          "description": "User role collection.",
           "items": {
             "$ref": "#/definitions/UserRole"
           }
@@ -18134,5 +17270,8 @@
         "https://www.googleapis.com/auth/dfatrafficking": "View and manage your DoubleClick Campaign Manager's (DCM) display ad campaigns"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/doubleclick-advertisers/reporting/"
   }
 }

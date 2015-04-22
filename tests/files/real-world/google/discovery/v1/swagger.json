@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/discovery/"
-  },
   "paths": {
     "/apis/{api}/{version}/rest": {
       "get": {
@@ -132,7 +129,6 @@
   },
   "definitions": {
     "DirectoryList": {
-      "id": "DirectoryList",
       "type": "object",
       "properties": {
         "discoveryVersion": {
@@ -219,7 +215,6 @@
       }
     },
     "JsonSchema": {
-      "id": "JsonSchema",
       "type": "object",
       "properties": {
         "$ref": {
@@ -345,7 +340,6 @@
       }
     },
     "RestDescription": {
-      "id": "RestDescription",
       "type": "object",
       "properties": {
         "auth": {
@@ -522,7 +516,6 @@
       }
     },
     "RestMethod": {
-      "id": "RestMethod",
       "type": "object",
       "properties": {
         "description": {
@@ -655,11 +648,14 @@
         "supportsSubscription": {
           "type": "boolean",
           "description": "Whether this method supports subscriptions."
+        },
+        "useMediaDownloadService": {
+          "type": "boolean",
+          "description": "Indicates that downloads from this method should use the download service URL (i.e. \"/download\"). Only applies if the method supports media download."
         }
       }
     },
     "RestResource": {
-      "id": "RestResource",
       "type": "object",
       "properties": {
         "methods": {
@@ -729,5 +725,8 @@
       "description": "IP address of the site where the request originates. Use this if you want to enforce per-user limits.",
       "type": "string"
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/discovery/"
   }
 }

@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Google Play Android Developer API",
+    "title": "Google Play Developer API",
     "description": "Lets Android application developers access their Google Play accounts.",
     "contact": {
       "name": "Google",
@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/android-publisher"
-  },
   "paths": {
     "/{packageName}/edits/{editId}:commit": {
       "post": {
@@ -642,7 +639,7 @@
     },
     "/{packageName}/edits/{editId}/apks/externallyHosted": {
       "post": {
-        "description": "Creates a new APK without uploading the APK itself to Google Play, instead hosting the APK at a specified URL. This function is only available to enterprises using Google Play for work whose application is configured to restrict distribution to the enterprise domain.",
+        "description": "Creates a new APK without uploading the APK itself to Google Play, instead hosting the APK at a specified URL. This function is only available to enterprises using Google Play for Work whose application is configured to restrict distribution to the enterprise domain.",
         "operationId": "androidpublisher.edits.apks.addexternallyhosted",
         "responses": {
           "200": {
@@ -3028,7 +3025,6 @@
   },
   "definitions": {
     "Apk": {
-      "id": "Apk",
       "type": "object",
       "properties": {
         "binary": {
@@ -3043,7 +3039,6 @@
       }
     },
     "ApkBinary": {
-      "id": "ApkBinary",
       "type": "object",
       "description": "Represents the binary payload of an APK.",
       "properties": {
@@ -3054,7 +3049,6 @@
       }
     },
     "ApkListing": {
-      "id": "ApkListing",
       "type": "object",
       "properties": {
         "language": {
@@ -3068,7 +3062,6 @@
       }
     },
     "ApkListingsListResponse": {
-      "id": "ApkListingsListResponse",
       "type": "object",
       "properties": {
         "kind": {
@@ -3085,7 +3078,6 @@
       }
     },
     "ApksAddExternallyHostedRequest": {
-      "id": "ApksAddExternallyHostedRequest",
       "type": "object",
       "properties": {
         "externallyHostedApk": {
@@ -3095,7 +3087,6 @@
       }
     },
     "ApksAddExternallyHostedResponse": {
-      "id": "ApksAddExternallyHostedResponse",
       "type": "object",
       "properties": {
         "externallyHostedApk": {
@@ -3105,7 +3096,6 @@
       }
     },
     "ApksListResponse": {
-      "id": "ApksListResponse",
       "type": "object",
       "properties": {
         "apks": {
@@ -3122,7 +3112,6 @@
       }
     },
     "AppDetails": {
-      "id": "AppDetails",
       "type": "object",
       "properties": {
         "contactEmail": {
@@ -3144,7 +3133,6 @@
       }
     },
     "AppEdit": {
-      "id": "AppEdit",
       "type": "object",
       "description": "Represents an edit of an app. An edit allows clients to make multiple changes before committing them in one operation.",
       "properties": {
@@ -3159,7 +3147,6 @@
       }
     },
     "ExpansionFile": {
-      "id": "ExpansionFile",
       "type": "object",
       "properties": {
         "fileSize": {
@@ -3175,7 +3162,6 @@
       }
     },
     "ExpansionFilesUploadResponse": {
-      "id": "ExpansionFilesUploadResponse",
       "type": "object",
       "properties": {
         "expansionFile": {
@@ -3184,9 +3170,8 @@
       }
     },
     "ExternallyHostedApk": {
-      "id": "ExternallyHostedApk",
       "type": "object",
-      "description": "Defines an APK available for this application that is hosted externally and not uploaded to Google Play. This function is only available to enterprises who are using Android for Work, and whos application is restricted to the enterprise private channel",
+      "description": "Defines an APK available for this application that is hosted externally and not uploaded to Google Play. This function is only available to enterprises who are using Google Play for Work, and whos application is restricted to the enterprise private channel",
       "properties": {
         "applicationLabel": {
           "type": "string",
@@ -3267,7 +3252,6 @@
       }
     },
     "ExternallyHostedApkUsesPermission": {
-      "id": "ExternallyHostedApkUsesPermission",
       "type": "object",
       "description": "A permission used by this APK.",
       "properties": {
@@ -3283,7 +3267,6 @@
       }
     },
     "Image": {
-      "id": "Image",
       "type": "object",
       "properties": {
         "id": {
@@ -3301,7 +3284,6 @@
       }
     },
     "ImagesDeleteAllResponse": {
-      "id": "ImagesDeleteAllResponse",
       "type": "object",
       "properties": {
         "deleted": {
@@ -3313,7 +3295,6 @@
       }
     },
     "ImagesListResponse": {
-      "id": "ImagesListResponse",
       "type": "object",
       "properties": {
         "images": {
@@ -3325,7 +3306,6 @@
       }
     },
     "ImagesUploadResponse": {
-      "id": "ImagesUploadResponse",
       "type": "object",
       "properties": {
         "image": {
@@ -3334,7 +3314,6 @@
       }
     },
     "InAppProduct": {
-      "id": "InAppProduct",
       "type": "object",
       "properties": {
         "defaultLanguage": {
@@ -3391,7 +3370,6 @@
       }
     },
     "InAppProductListing": {
-      "id": "InAppProductListing",
       "type": "object",
       "properties": {
         "description": {
@@ -3403,7 +3381,6 @@
       }
     },
     "InappproductsBatchRequest": {
-      "id": "InappproductsBatchRequest",
       "type": "object",
       "properties": {
         "entrys": {
@@ -3415,7 +3392,6 @@
       }
     },
     "InappproductsBatchRequestEntry": {
-      "id": "InappproductsBatchRequestEntry",
       "type": "object",
       "properties": {
         "batchId": {
@@ -3434,7 +3410,6 @@
       }
     },
     "InappproductsBatchResponse": {
-      "id": "InappproductsBatchResponse",
       "type": "object",
       "properties": {
         "entrys": {
@@ -3451,7 +3426,6 @@
       }
     },
     "InappproductsBatchResponseEntry": {
-      "id": "InappproductsBatchResponseEntry",
       "type": "object",
       "properties": {
         "batchId": {
@@ -3467,7 +3441,6 @@
       }
     },
     "InappproductsInsertRequest": {
-      "id": "InappproductsInsertRequest",
       "type": "object",
       "properties": {
         "inappproduct": {
@@ -3476,7 +3449,6 @@
       }
     },
     "InappproductsInsertResponse": {
-      "id": "InappproductsInsertResponse",
       "type": "object",
       "properties": {
         "inappproduct": {
@@ -3485,7 +3457,6 @@
       }
     },
     "InappproductsListResponse": {
-      "id": "InappproductsListResponse",
       "type": "object",
       "properties": {
         "inappproduct": {
@@ -3508,7 +3479,6 @@
       }
     },
     "InappproductsUpdateRequest": {
-      "id": "InappproductsUpdateRequest",
       "type": "object",
       "properties": {
         "inappproduct": {
@@ -3517,7 +3487,6 @@
       }
     },
     "InappproductsUpdateResponse": {
-      "id": "InappproductsUpdateResponse",
       "type": "object",
       "properties": {
         "inappproduct": {
@@ -3526,7 +3495,6 @@
       }
     },
     "Listing": {
-      "id": "Listing",
       "type": "object",
       "properties": {
         "fullDescription": {
@@ -3552,7 +3520,6 @@
       }
     },
     "ListingsListResponse": {
-      "id": "ListingsListResponse",
       "type": "object",
       "properties": {
         "kind": {
@@ -3569,7 +3536,6 @@
       }
     },
     "MonthDay": {
-      "id": "MonthDay",
       "type": "object",
       "properties": {
         "day": {
@@ -3585,7 +3551,6 @@
       }
     },
     "PageInfo": {
-      "id": "PageInfo",
       "type": "object",
       "properties": {
         "resultPerPage": {
@@ -3603,7 +3568,6 @@
       }
     },
     "Price": {
-      "id": "Price",
       "type": "object",
       "properties": {
         "currency": {
@@ -3617,7 +3581,6 @@
       }
     },
     "ProductPurchase": {
-      "id": "ProductPurchase",
       "type": "object",
       "description": "A ProductPurchase resource indicates the status of a user's inapp product purchase.",
       "properties": {
@@ -3648,7 +3611,6 @@
       }
     },
     "Season": {
-      "id": "Season",
       "type": "object",
       "properties": {
         "end": {
@@ -3662,7 +3624,6 @@
       }
     },
     "SubscriptionDeferralInfo": {
-      "id": "SubscriptionDeferralInfo",
       "type": "object",
       "description": "A SubscriptionDeferralInfo contains the data needed to defer a subscription purchase to a future expiry time.",
       "properties": {
@@ -3679,7 +3640,6 @@
       }
     },
     "SubscriptionPurchase": {
-      "id": "SubscriptionPurchase",
       "type": "object",
       "description": "A SubscriptionPurchase resource indicates the status of a user's subscription purchase.",
       "properties": {
@@ -3705,7 +3665,6 @@
       }
     },
     "SubscriptionPurchasesDeferRequest": {
-      "id": "SubscriptionPurchasesDeferRequest",
       "type": "object",
       "properties": {
         "deferralInfo": {
@@ -3715,7 +3674,6 @@
       }
     },
     "SubscriptionPurchasesDeferResponse": {
-      "id": "SubscriptionPurchasesDeferResponse",
       "type": "object",
       "properties": {
         "newExpiryTimeMillis": {
@@ -3726,7 +3684,6 @@
       }
     },
     "Testers": {
-      "id": "Testers",
       "type": "object",
       "properties": {
         "googleGroups": {
@@ -3744,7 +3701,6 @@
       }
     },
     "TokenPagination": {
-      "id": "TokenPagination",
       "type": "object",
       "properties": {
         "nextPageToken": {
@@ -3756,7 +3712,6 @@
       }
     },
     "Track": {
-      "id": "Track",
       "type": "object",
       "properties": {
         "track": {
@@ -3776,7 +3731,6 @@
       }
     },
     "TracksListResponse": {
-      "id": "TracksListResponse",
       "type": "object",
       "properties": {
         "kind": {
@@ -3849,8 +3803,11 @@
       "flow": "implicit",
       "authorizationUrl": "https://accounts.google.com/o/oauth2/auth",
       "scopes": {
-        "https://www.googleapis.com/auth/androidpublisher": "View and manage your Google Play Android Developer account"
+        "https://www.googleapis.com/auth/androidpublisher": "View and manage your Google Play Developer account"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/android-publisher"
   }
 }

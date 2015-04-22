@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/google-apps/activity/"
-  },
   "paths": {
     "/activities": {
       "get": {
@@ -122,7 +119,6 @@
   },
   "definitions": {
     "Activity": {
-      "id": "Activity",
       "type": "object",
       "description": "An Activity resource is a combined view of multiple events. An activity has a list of individual events and a combined view of the common fields among all events.",
       "properties": {
@@ -140,7 +136,6 @@
       }
     },
     "Event": {
-      "id": "Event",
       "type": "object",
       "description": "Represents the changes associated with an action taken by a user.",
       "properties": {
@@ -161,19 +156,6 @@
               "unknown",
               "untrash",
               "upload"
-            ],
-            "enumDescriptions": [
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
             ]
           }
         },
@@ -212,19 +194,6 @@
             "unknown",
             "untrash",
             "upload"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "rename": {
@@ -242,7 +211,6 @@
       }
     },
     "ListActivitiesResponse": {
-      "id": "ListActivitiesResponse",
       "type": "object",
       "description": "The response from the list request. Contains a list of activities and a token to retrieve the next page of results.",
       "properties": {
@@ -260,7 +228,6 @@
       }
     },
     "Move": {
-      "id": "Move",
       "type": "object",
       "description": "Contains information about changes in an object's parents as a result of a move type event.",
       "properties": {
@@ -281,7 +248,6 @@
       }
     },
     "Parent": {
-      "id": "Parent",
       "type": "object",
       "description": "Contains information about a parent object. For example, a folder in Drive is a parent for all files within it.",
       "properties": {
@@ -300,7 +266,6 @@
       }
     },
     "Permission": {
-      "id": "Permission",
       "type": "object",
       "description": "Contains information about the permissions and type of access allowed with regards to a Google Drive object. This is a subset of the fields contained in a corresponding Drive Permissions object.",
       "properties": {
@@ -320,12 +285,6 @@
             "owner",
             "reader",
             "writer"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "type": {
@@ -336,12 +295,6 @@
             "domain",
             "group",
             "user"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "user": {
@@ -355,7 +308,6 @@
       }
     },
     "PermissionChange": {
-      "id": "PermissionChange",
       "type": "object",
       "description": "Contains information about a Drive object's permissions that changed as a result of a permissionChange type event.",
       "properties": {
@@ -376,7 +328,6 @@
       }
     },
     "Photo": {
-      "id": "Photo",
       "type": "object",
       "description": "Photo information for a user.",
       "properties": {
@@ -387,7 +338,6 @@
       }
     },
     "Rename": {
-      "id": "Rename",
       "type": "object",
       "description": "Contains information about a renametype event.",
       "properties": {
@@ -402,7 +352,6 @@
       }
     },
     "Target": {
-      "id": "Target",
       "type": "object",
       "description": "Information about the object modified by the event.",
       "properties": {
@@ -421,7 +370,6 @@
       }
     },
     "User": {
-      "id": "User",
       "type": "object",
       "description": "A representation of a user.",
       "properties": {
@@ -493,10 +441,13 @@
       "authorizationUrl": "https://accounts.google.com/o/oauth2/auth",
       "scopes": {
         "https://www.googleapis.com/auth/activity": "View the activity history of your Google Apps",
-        "https://www.googleapis.com/auth/drive": "View and manage the files and documents in your Google Drive",
-        "https://www.googleapis.com/auth/drive.metadata.readonly": "View metadata for files and documents in your Google Drive",
-        "https://www.googleapis.com/auth/drive.readonly": "View the files and documents in your Google Drive"
+        "https://www.googleapis.com/auth/drive": "View and manage the files in your Google Drive",
+        "https://www.googleapis.com/auth/drive.metadata.readonly": "View metadata for files in your Google Drive",
+        "https://www.googleapis.com/auth/drive.readonly": "View the files in your Google Drive"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/google-apps/activity/"
   }
 }

@@ -59,7 +59,7 @@ env.dereferenced.petStore =
             },
             "zipcode": {
               "type": "integer",
-              "mininum": 10000,
+              "minimum": 10000,
               "maximum": 99999
             }
           }
@@ -91,7 +91,7 @@ env.dereferenced.petStore =
                 },
                 "zipcode": {
                   "type": "integer",
-                  "mininum": 10000,
+                  "minimum": 10000,
                   "maximum": 99999
                 }
               }
@@ -135,7 +135,7 @@ env.dereferenced.petStore =
             },
             "zipcode": {
               "type": "integer",
-              "mininum": 10000,
+              "minimum": 10000,
               "maximum": 99999
             }
           }
@@ -160,7 +160,7 @@ env.dereferenced.petStore =
         },
         "zipcode": {
           "type": "integer",
-          "mininum": 10000,
+          "minimum": 10000,
           "maximum": 99999
         }
       }
@@ -319,7 +319,7 @@ env.dereferenced.petStore =
                       },
                       "zipcode": {
                         "type": "integer",
-                        "mininum": 10000,
+                        "minimum": 10000,
                         "maximum": 99999
                       }
                     }
@@ -351,7 +351,7 @@ env.dereferenced.petStore =
                           },
                           "zipcode": {
                             "type": "integer",
-                            "mininum": 10000,
+                            "minimum": 10000,
                             "maximum": 99999
                           }
                         }
@@ -520,7 +520,7 @@ env.dereferenced.petStore =
                       },
                       "zipcode": {
                         "type": "integer",
-                        "mininum": 10000,
+                        "minimum": 10000,
                         "maximum": 99999
                       }
                     }
@@ -552,7 +552,7 @@ env.dereferenced.petStore =
                           },
                           "zipcode": {
                             "type": "integer",
-                            "mininum": 10000,
+                            "minimum": 10000,
                             "maximum": 99999
                           }
                         }
@@ -626,7 +626,7 @@ env.dereferenced.petStore =
                     },
                     "zipcode": {
                       "type": "integer",
-                      "mininum": 10000,
+                      "minimum": 10000,
                       "maximum": 99999
                     }
                   }
@@ -658,7 +658,7 @@ env.dereferenced.petStore =
                         },
                         "zipcode": {
                           "type": "integer",
-                          "mininum": 10000,
+                          "minimum": 10000,
                           "maximum": 99999
                         }
                       }
@@ -724,7 +724,7 @@ env.dereferenced.petStore =
                     },
                     "zipcode": {
                       "type": "integer",
-                      "mininum": 10000,
+                      "minimum": 10000,
                       "maximum": 99999
                     }
                   }
@@ -756,7 +756,7 @@ env.dereferenced.petStore =
                         },
                         "zipcode": {
                           "type": "integer",
-                          "mininum": 10000,
+                          "minimum": 10000,
                           "maximum": 99999
                         }
                       }
@@ -843,7 +843,7 @@ env.dereferenced.petStore =
                     },
                     "zipcode": {
                       "type": "integer",
-                      "mininum": 10000,
+                      "minimum": 10000,
                       "maximum": 99999
                     }
                   }
@@ -875,7 +875,7 @@ env.dereferenced.petStore =
                         },
                         "zipcode": {
                           "type": "integer",
-                          "mininum": 10000,
+                          "minimum": 10000,
                           "maximum": 99999
                         }
                       }
@@ -951,7 +951,7 @@ env.dereferenced.petStore =
                     },
                     "zipcode": {
                       "type": "integer",
-                      "mininum": 10000,
+                      "minimum": 10000,
                       "maximum": 99999
                     }
                   }
@@ -983,7 +983,7 @@ env.dereferenced.petStore =
                         },
                         "zipcode": {
                           "type": "integer",
-                          "mininum": 10000,
+                          "minimum": 10000,
                           "maximum": 99999
                         }
                       }
@@ -1055,7 +1055,7 @@ env.dereferenced.petStore =
                     },
                     "zipcode": {
                       "type": "integer",
-                      "mininum": 10000,
+                      "minimum": 10000,
                       "maximum": 99999
                     }
                   }
@@ -1087,7 +1087,7 @@ env.dereferenced.petStore =
                         },
                         "zipcode": {
                           "type": "integer",
-                          "mininum": 10000,
+                          "minimum": 10000,
                           "maximum": 99999
                         }
                       }
@@ -1153,7 +1153,7 @@ env.dereferenced.petStore =
                     },
                     "zipcode": {
                       "type": "integer",
-                      "mininum": 10000,
+                      "minimum": 10000,
                       "maximum": 99999
                     }
                   }
@@ -1185,7 +1185,7 @@ env.dereferenced.petStore =
                         },
                         "zipcode": {
                           "type": "integer",
-                          "mininum": 10000,
+                          "minimum": 10000,
                           "maximum": 99999
                         }
                       }

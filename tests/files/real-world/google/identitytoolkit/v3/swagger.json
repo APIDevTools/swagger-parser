@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/identity-toolkit/v3/"
-  },
   "paths": {
     "/createAuthUri": {
       "post": {
@@ -258,6 +255,46 @@
         }
       ]
     },
+    "/getRecaptchaParam": {
+      "get": {
+        "description": "Get recaptcha secure param.",
+        "operationId": "identitytoolkit.relyingparty.getRecaptchaParam",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "$ref": "#/definitions/GetRecaptchaParamResponse"
+            }
+          }
+        },
+        "tags": [
+          "relyingparty"
+        ]
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/alt"
+        },
+        {
+          "$ref": "#/parameters/fields"
+        },
+        {
+          "$ref": "#/parameters/key"
+        },
+        {
+          "$ref": "#/parameters/oauth_token"
+        },
+        {
+          "$ref": "#/parameters/prettyPrint"
+        },
+        {
+          "$ref": "#/parameters/quotaUser"
+        },
+        {
+          "$ref": "#/parameters/userIp"
+        }
+      ]
+    },
     "/resetPassword": {
       "post": {
         "description": "Reset password for a user.",
@@ -461,7 +498,6 @@
   },
   "definitions": {
     "CreateAuthUriResponse": {
-      "id": "CreateAuthUriResponse",
       "type": "object",
       "description": "Response of creating the IDP authentication URL.",
       "properties": {
@@ -493,7 +529,6 @@
       }
     },
     "DeleteAccountResponse": {
-      "id": "DeleteAccountResponse",
       "type": "object",
       "description": "Respone of deleting account.",
       "properties": {
@@ -505,7 +540,6 @@
       }
     },
     "DownloadAccountResponse": {
-      "id": "DownloadAccountResponse",
       "type": "object",
       "description": "Respone of downloading accounts in batch.",
       "properties": {
@@ -528,7 +562,6 @@
       }
     },
     "GetAccountInfoResponse": {
-      "id": "GetAccountInfoResponse",
       "type": "object",
       "description": "Response of getting account information.",
       "properties": {
@@ -547,7 +580,6 @@
       }
     },
     "GetOobConfirmationCodeResponse": {
-      "id": "GetOobConfirmationCodeResponse",
       "type": "object",
       "description": "Response of getting a code for user confirmation (reset password, change email etc.).",
       "properties": {
@@ -562,8 +594,26 @@
         }
       }
     },
+    "GetRecaptchaParamResponse": {
+      "type": "object",
+      "description": "Response of getting recaptcha param.",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "The fixed string \"identitytoolkit#GetRecaptchaParamResponse\".",
+          "default": "identitytoolkit#GetRecaptchaParamResponse"
+        },
+        "recaptchaSiteKey": {
+          "type": "string",
+          "description": "Site key registered at recaptcha."
+        },
+        "recaptchaStoken": {
+          "type": "string",
+          "description": "The stoken field for the recaptcha widget, used to request captcha challenge."
+        }
+      }
+    },
     "IdentitytoolkitRelyingpartyCreateAuthUriRequest": {
-      "id": "IdentitytoolkitRelyingpartyCreateAuthUriRequest",
       "type": "object",
       "description": "Request to get the IDP authentication URL.",
       "properties": {
@@ -587,6 +637,14 @@
           "type": "string",
           "description": "The email or federated ID of the user."
         },
+        "oauthConsumerKey": {
+          "type": "string",
+          "description": "The developer's consumer key for OpenId OAuth Extension"
+        },
+        "oauthScope": {
+          "type": "string",
+          "description": "Additional oauth scopes, beyond the basid user profile, that the user would be prompted to grant"
+        },
         "openidRealm": {
           "type": "string",
           "description": "Optional realm for OpenID protocol. The sub string \"scheme://domain:port\" of the param \"continueUri\" is used if this is not set."
@@ -602,7 +660,6 @@
       }
     },
     "IdentitytoolkitRelyingpartyDeleteAccountRequest": {
-      "id": "IdentitytoolkitRelyingpartyDeleteAccountRequest",
       "type": "object",
       "description": "Request to delete account.",
       "properties": {
@@ -613,7 +670,6 @@
       }
     },
     "IdentitytoolkitRelyingpartyDownloadAccountRequest": {
-      "id": "IdentitytoolkitRelyingpartyDownloadAccountRequest",
       "type": "object",
       "description": "Request to download user account in batch.",
       "properties": {
@@ -629,7 +685,6 @@
       }
     },
     "IdentitytoolkitRelyingpartyGetAccountInfoRequest": {
-      "id": "IdentitytoolkitRelyingpartyGetAccountInfoRequest",
       "type": "object",
       "description": "Request to get the account information.",
       "properties": {
@@ -654,7 +709,6 @@
       }
     },
     "IdentitytoolkitRelyingpartyGetPublicKeysResponse": {
-      "id": "IdentitytoolkitRelyingpartyGetPublicKeysResponse",
       "type": "object",
       "description": "Respone of getting public keys.",
       "additionalProperties": {
@@ -662,7 +716,6 @@
       }
     },
     "IdentitytoolkitRelyingpartyResetPasswordRequest": {
-      "id": "IdentitytoolkitRelyingpartyResetPasswordRequest",
       "type": "object",
       "description": "Request to reset the password.",
       "properties": {
@@ -685,7 +738,6 @@
       }
     },
     "IdentitytoolkitRelyingpartySetAccountInfoRequest": {
-      "id": "IdentitytoolkitRelyingpartySetAccountInfoRequest",
       "type": "object",
       "description": "Request to set the account information.",
       "properties": {
@@ -739,7 +791,6 @@
       }
     },
     "IdentitytoolkitRelyingpartyUploadAccountRequest": {
-      "id": "IdentitytoolkitRelyingpartyUploadAccountRequest",
       "type": "object",
       "description": "Request to upload user account in batch.",
       "properties": {
@@ -777,7 +828,6 @@
       }
     },
     "IdentitytoolkitRelyingpartyVerifyAssertionRequest": {
-      "id": "IdentitytoolkitRelyingpartyVerifyAssertionRequest",
       "type": "object",
       "description": "Request to verify the IDP assertion.",
       "properties": {
@@ -792,11 +842,14 @@
         "requestUri": {
           "type": "string",
           "description": "The URI to which the IDP redirects the user back. It may contain federated login result params added by the IDP."
+        },
+        "returnRefreshToken": {
+          "type": "boolean",
+          "description": "Whether to return refresh tokens."
         }
       }
     },
     "IdentitytoolkitRelyingpartyVerifyPasswordRequest": {
-      "id": "IdentitytoolkitRelyingpartyVerifyPasswordRequest",
       "type": "object",
       "description": "Request to verify the password.",
       "properties": {
@@ -823,7 +876,6 @@
       }
     },
     "Relyingparty": {
-      "id": "Relyingparty",
       "type": "object",
       "description": "Request of getting a code for user confirmation (reset password, change email etc.)",
       "properties": {
@@ -863,7 +915,6 @@
       }
     },
     "ResetPasswordResponse": {
-      "id": "ResetPasswordResponse",
       "type": "object",
       "description": "Response of resetting the password.",
       "properties": {
@@ -879,7 +930,6 @@
       }
     },
     "SetAccountInfoResponse": {
-      "id": "SetAccountInfoResponse",
       "type": "object",
       "description": "Respone of setting the account information.",
       "properties": {
@@ -924,7 +974,6 @@
       }
     },
     "UploadAccountResponse": {
-      "id": "UploadAccountResponse",
       "type": "object",
       "description": "Respone of uploading accounts in batch.",
       "properties": {
@@ -954,7 +1003,6 @@
       }
     },
     "UserInfo": {
-      "id": "UserInfo",
       "type": "object",
       "description": "Template for an individual account info.",
       "properties": {
@@ -1026,7 +1074,6 @@
       }
     },
     "VerifyAssertionResponse": {
-      "id": "VerifyAssertionResponse",
       "type": "object",
       "description": "Response of verifying the IDP assertion.",
       "properties": {
@@ -1111,6 +1158,19 @@
           "type": "string",
           "description": "The nick name of the user."
         },
+        "oauthAccessToken": {
+          "type": "string",
+          "description": "The OAuth2 access token."
+        },
+        "oauthAuthorizationCode": {
+          "type": "string",
+          "description": "The OAuth2 authorization code."
+        },
+        "oauthExpireIn": {
+          "type": "integer",
+          "description": "The lifetime in seconds of the OAuth2 access token.",
+          "format": "int32"
+        },
         "oauthRequestToken": {
           "type": "string",
           "description": "The user approved request token for the OpenID OAuth extension."
@@ -1145,7 +1205,6 @@
       }
     },
     "VerifyPasswordResponse": {
-      "id": "VerifyPasswordResponse",
       "type": "object",
       "description": "Request of verifying the password.",
       "properties": {
@@ -1229,5 +1288,8 @@
       "description": "IP address of the site where the request originates. Use this if you want to enforce per-user limits.",
       "type": "string"
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/identity-toolkit/v3/"
   }
 }

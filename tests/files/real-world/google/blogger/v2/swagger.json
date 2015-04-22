@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/blogger/docs/2.0/json/getting_started"
-  },
   "paths": {
     "/blogs/{blogId}": {
       "get": {
@@ -614,7 +611,6 @@
   },
   "definitions": {
     "Blog": {
-      "id": "Blog",
       "type": "object",
       "properties": {
         "description": {
@@ -704,7 +700,6 @@
       }
     },
     "BlogList": {
-      "id": "BlogList",
       "type": "object",
       "properties": {
         "items": {
@@ -722,7 +717,6 @@
       }
     },
     "Comment": {
-      "id": "Comment",
       "type": "object",
       "properties": {
         "author": {
@@ -817,7 +811,6 @@
       }
     },
     "CommentList": {
-      "id": "CommentList",
       "type": "object",
       "properties": {
         "items": {
@@ -843,7 +836,6 @@
       }
     },
     "Page": {
-      "id": "Page",
       "type": "object",
       "properties": {
         "author": {
@@ -924,7 +916,6 @@
       }
     },
     "PageList": {
-      "id": "PageList",
       "type": "object",
       "properties": {
         "items": {
@@ -942,7 +933,6 @@
       }
     },
     "Post": {
-      "id": "Post",
       "type": "object",
       "properties": {
         "author": {
@@ -1045,7 +1035,6 @@
       }
     },
     "PostList": {
-      "id": "PostList",
       "type": "object",
       "properties": {
         "items": {
@@ -1071,7 +1060,6 @@
       }
     },
     "User": {
-      "id": "User",
       "type": "object",
       "properties": {
         "about": {
@@ -1194,5 +1182,8 @@
         "https://www.googleapis.com/auth/blogger": "Manage your Blogger account"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/blogger/docs/2.0/json/getting_started"
   }
 }

@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Google Play Android Developer API",
+    "title": "Google Play Developer API",
     "description": "Lets Android application developers access their Google Play accounts.",
     "contact": {
       "name": "Google",
@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/android-publisher"
-  },
   "paths": {
     "/{packageName}/subscriptions/{subscriptionId}/purchases/{token}/cancel": {
       "post": {
@@ -158,7 +155,6 @@
   },
   "definitions": {
     "SubscriptionPurchase": {
-      "id": "SubscriptionPurchase",
       "type": "object",
       "description": "A SubscriptionPurchase resource indicates the status of a user's subscription purchase.",
       "properties": {
@@ -240,8 +236,11 @@
       "flow": "implicit",
       "authorizationUrl": "https://accounts.google.com/o/oauth2/auth",
       "scopes": {
-        "https://www.googleapis.com/auth/androidpublisher": "View and manage your Google Play Android Developer account"
+        "https://www.googleapis.com/auth/androidpublisher": "View and manage your Google Play Developer account"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/android-publisher"
   }
 }

@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/ad-exchange/seller-rest/"
-  },
   "paths": {
     "/accounts/{accountId}": {
       "get": {
@@ -1028,7 +1025,6 @@
   },
   "definitions": {
     "Account": {
-      "id": "Account",
       "type": "object",
       "properties": {
         "id": {
@@ -1047,7 +1043,6 @@
       }
     },
     "Accounts": {
-      "id": "Accounts",
       "type": "object",
       "properties": {
         "etag": {
@@ -1073,7 +1068,6 @@
       }
     },
     "AdClient": {
-      "id": "AdClient",
       "type": "object",
       "properties": {
         "arcOptIn": {
@@ -1100,7 +1094,6 @@
       }
     },
     "AdClients": {
-      "id": "AdClients",
       "type": "object",
       "properties": {
         "etag": {
@@ -1126,7 +1119,6 @@
       }
     },
     "Alert": {
-      "id": "Alert",
       "type": "object",
       "properties": {
         "id": {
@@ -1153,7 +1145,6 @@
       }
     },
     "Alerts": {
-      "id": "Alerts",
       "type": "object",
       "properties": {
         "items": {
@@ -1171,7 +1162,6 @@
       }
     },
     "CustomChannel": {
-      "id": "CustomChannel",
       "type": "object",
       "properties": {
         "code": {
@@ -1216,7 +1206,6 @@
       }
     },
     "CustomChannels": {
-      "id": "CustomChannels",
       "type": "object",
       "properties": {
         "etag": {
@@ -1242,7 +1231,6 @@
       }
     },
     "Metadata": {
-      "id": "Metadata",
       "type": "object",
       "properties": {
         "items": {
@@ -1259,7 +1247,6 @@
       }
     },
     "PreferredDeal": {
-      "id": "PreferredDeal",
       "type": "object",
       "properties": {
         "advertiserName": {
@@ -1302,7 +1289,6 @@
       }
     },
     "PreferredDeals": {
-      "id": "PreferredDeals",
       "type": "object",
       "properties": {
         "items": {
@@ -1320,7 +1306,6 @@
       }
     },
     "Report": {
-      "id": "Report",
       "type": "object",
       "properties": {
         "averages": {
@@ -1388,7 +1373,6 @@
       }
     },
     "ReportingMetadataEntry": {
-      "id": "ReportingMetadataEntry",
       "type": "object",
       "properties": {
         "compatibleDimensions": {
@@ -1438,7 +1422,6 @@
       }
     },
     "SavedReport": {
-      "id": "SavedReport",
       "type": "object",
       "properties": {
         "id": {
@@ -1457,7 +1440,6 @@
       }
     },
     "SavedReports": {
-      "id": "SavedReports",
       "type": "object",
       "properties": {
         "etag": {
@@ -1483,7 +1465,6 @@
       }
     },
     "UrlChannel": {
-      "id": "UrlChannel",
       "type": "object",
       "properties": {
         "id": {
@@ -1502,7 +1483,6 @@
       }
     },
     "UrlChannels": {
-      "id": "UrlChannels",
       "type": "object",
       "properties": {
         "etag": {
@@ -1589,5 +1569,8 @@
         "https://www.googleapis.com/auth/adexchange.seller.readonly": "View your Ad Exchange data"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/ad-exchange/seller-rest/"
   }
 }

@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/books/docs/v1/getting_started"
-  },
   "paths": {
     "/users/{userId}/bookshelves/{shelf}": {
       "get": {
@@ -1427,7 +1424,7 @@
     },
     "/myconfig/updateUserSettings": {
       "post": {
-        "description": "Sets the settings for the user. Unspecified sub-objects will retain the existing value.",
+        "description": "Sets the settings for the user. If a sub-object is specified, it will overwrite the existing sub-object stored in the server. Unspecified sub-objects will retain the existing value.",
         "operationId": "books.myconfig.updateUserSettings",
         "responses": {
           "200": {
@@ -1486,43 +1483,6 @@
             "name": "annotationId",
             "in": "path",
             "description": "The ID for the annotation to delete.",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "source",
-            "in": "query",
-            "description": "String to identify the originator of this request.",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "Oauth2": [
-              "https://www.googleapis.com/auth/books"
-            ]
-          }
-        ],
-        "tags": [
-          "mylibrary"
-        ]
-      },
-      "get": {
-        "description": "Gets an annotation by its ID.",
-        "operationId": "books.mylibrary.annotations.get",
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "schema": {
-              "$ref": "#/definitions/Annotation"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "annotationId",
-            "in": "path",
-            "description": "The ID for the annotation to retrieve.",
             "required": true,
             "type": "string"
           },
@@ -1689,16 +1649,6 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 40
-          },
-          {
-            "name": "pageIds",
-            "in": "query",
-            "description": "The page ID(s) for the volume that is being queried.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
           },
           {
             "name": "pageToken",
@@ -3589,7 +3539,6 @@
   },
   "definitions": {
     "Annotation": {
-      "id": "Annotation",
       "type": "object",
       "properties": {
         "afterSelectedText": {
@@ -3728,7 +3677,6 @@
       }
     },
     "Annotationdata": {
-      "id": "Annotationdata",
       "type": "object",
       "properties": {
         "annotationType": {
@@ -3770,7 +3718,6 @@
       }
     },
     "Annotations": {
-      "id": "Annotations",
       "type": "object",
       "properties": {
         "items": {
@@ -3797,7 +3744,6 @@
       }
     },
     "AnnotationsSummary": {
-      "id": "AnnotationsSummary",
       "type": "object",
       "properties": {
         "kind": {
@@ -3833,7 +3779,6 @@
       }
     },
     "Annotationsdata": {
-      "id": "Annotationsdata",
       "type": "object",
       "properties": {
         "items": {
@@ -3860,7 +3805,6 @@
       }
     },
     "BooksAnnotationsRange": {
-      "id": "BooksAnnotationsRange",
       "type": "object",
       "properties": {
         "endOffset": {
@@ -3882,7 +3826,6 @@
       }
     },
     "BooksCloudloadingResource": {
-      "id": "BooksCloudloadingResource",
       "type": "object",
       "properties": {
         "author": {
@@ -3900,7 +3843,6 @@
       }
     },
     "BooksVolumesRecommendedRateResponse": {
-      "id": "BooksVolumesRecommendedRateResponse",
       "type": "object",
       "properties": {
         "consistency_token": {
@@ -3909,7 +3851,6 @@
       }
     },
     "Bookshelf": {
-      "id": "Bookshelf",
       "type": "object",
       "properties": {
         "access": {
@@ -3961,7 +3902,6 @@
       }
     },
     "Bookshelves": {
-      "id": "Bookshelves",
       "type": "object",
       "properties": {
         "items": {
@@ -3979,7 +3919,6 @@
       }
     },
     "Category": {
-      "id": "Category",
       "type": "object",
       "properties": {
         "items": {
@@ -4008,7 +3947,6 @@
       }
     },
     "ConcurrentAccessRestriction": {
-      "id": "ConcurrentAccessRestriction",
       "type": "object",
       "properties": {
         "deviceAllowed": {
@@ -4061,7 +3999,6 @@
       }
     },
     "Dictlayerdata": {
-      "id": "Dictlayerdata",
       "type": "object",
       "properties": {
         "common": {
@@ -4261,7 +4198,6 @@
       }
     },
     "DownloadAccessRestriction": {
-      "id": "DownloadAccessRestriction",
       "type": "object",
       "properties": {
         "deviceAllowed": {
@@ -4318,7 +4254,6 @@
       }
     },
     "DownloadAccesses": {
-      "id": "DownloadAccesses",
       "type": "object",
       "properties": {
         "downloadAccessList": {
@@ -4336,7 +4271,6 @@
       }
     },
     "Geolayerdata": {
-      "id": "Geolayerdata",
       "type": "object",
       "properties": {
         "common": {
@@ -4455,7 +4389,6 @@
       }
     },
     "Layersummaries": {
-      "id": "Layersummaries",
       "type": "object",
       "properties": {
         "items": {
@@ -4478,7 +4411,6 @@
       }
     },
     "Layersummary": {
-      "id": "Layersummary",
       "type": "object",
       "properties": {
         "annotationCount": {
@@ -4543,7 +4475,6 @@
       }
     },
     "Metadata": {
-      "id": "Metadata",
       "type": "object",
       "properties": {
         "items": {
@@ -4580,7 +4511,6 @@
       }
     },
     "Offers": {
-      "id": "Offers",
       "type": "object",
       "properties": {
         "items": {
@@ -4635,7 +4565,6 @@
       }
     },
     "ReadingPosition": {
-      "id": "ReadingPosition",
       "type": "object",
       "properties": {
         "epubCfiPosition": {
@@ -4671,7 +4600,6 @@
       }
     },
     "RequestAccess": {
-      "id": "RequestAccess",
       "type": "object",
       "properties": {
         "concurrentAccess": {
@@ -4690,7 +4618,6 @@
       }
     },
     "Review": {
-      "id": "Review",
       "type": "object",
       "properties": {
         "author": {
@@ -4757,7 +4684,6 @@
       }
     },
     "Usersettings": {
-      "id": "Usersettings",
       "type": "object",
       "properties": {
         "kind": {
@@ -4780,7 +4706,6 @@
       }
     },
     "Volume": {
-      "id": "Volume",
       "type": "object",
       "properties": {
         "accessInfo": {
@@ -5237,6 +5162,9 @@
               "type": "string",
               "description": "The main category to which this volume belongs. It will be the category from the categories list returned below that has the highest weight."
             },
+            "maturityRating": {
+              "type": "string"
+            },
             "pageCount": {
               "type": "integer",
               "description": "Total number of pages as per publisher metadata.",
@@ -5289,7 +5217,6 @@
       }
     },
     "Volume2": {
-      "id": "Volume2",
       "type": "object",
       "properties": {
         "items": {
@@ -5310,7 +5237,6 @@
       }
     },
     "Volumeannotation": {
-      "id": "Volumeannotation",
       "type": "object",
       "properties": {
         "annotationDataId": {
@@ -5395,7 +5321,6 @@
       }
     },
     "Volumeannotations": {
-      "id": "Volumeannotations",
       "type": "object",
       "properties": {
         "items": {
@@ -5426,7 +5351,6 @@
       }
     },
     "Volumes": {
-      "id": "Volumes",
       "type": "object",
       "properties": {
         "items": {
@@ -5508,5 +5432,8 @@
         "https://www.googleapis.com/auth/books": "Manage your books"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/books/docs/v1/getting_started"
   }
 }

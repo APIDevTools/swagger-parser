@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/prediction/docs/developer-guide"
-  },
   "paths": {
     "/training/{data}/predict": {
       "post": {
@@ -303,7 +300,6 @@
   },
   "definitions": {
     "Input": {
-      "id": "Input",
       "type": "object",
       "properties": {
         "input": {
@@ -318,7 +314,6 @@
       }
     },
     "Output": {
-      "id": "Output",
       "type": "object",
       "properties": {
         "id": {
@@ -356,7 +351,6 @@
       }
     },
     "Training": {
-      "id": "Training",
       "type": "object",
       "properties": {
         "id": {
@@ -391,7 +385,6 @@
       }
     },
     "Update": {
-      "id": "Update",
       "type": "object",
       "properties": {
         "classLabel": {
@@ -468,5 +461,8 @@
         "https://www.googleapis.com/auth/prediction": "Manage your data in the Google Prediction API"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/prediction/docs/developer-guide"
   }
 }

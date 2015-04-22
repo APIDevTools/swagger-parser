@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/url-shortener/v1/getting_started"
-  },
   "paths": {
     "/url": {
       "get": {
@@ -48,6 +45,13 @@
             "description": "The short URL, including the protocol.",
             "required": true,
             "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "Oauth2": [
+              "https://www.googleapis.com/auth/urlshortener"
+            ]
           }
         ],
         "tags": [
@@ -168,7 +172,6 @@
   },
   "definitions": {
     "AnalyticsSnapshot": {
-      "id": "AnalyticsSnapshot",
       "type": "object",
       "properties": {
         "browsers": {
@@ -212,7 +215,6 @@
       }
     },
     "AnalyticsSummary": {
-      "id": "AnalyticsSummary",
       "type": "object",
       "properties": {
         "allTime": {
@@ -238,7 +240,6 @@
       }
     },
     "StringCount": {
-      "id": "StringCount",
       "type": "object",
       "properties": {
         "count": {
@@ -253,7 +254,6 @@
       }
     },
     "Url": {
-      "id": "Url",
       "type": "object",
       "properties": {
         "analytics": {
@@ -284,7 +284,6 @@
       }
     },
     "UrlHistory": {
-      "id": "UrlHistory",
       "type": "object",
       "properties": {
         "items": {
@@ -375,5 +374,8 @@
         "https://www.googleapis.com/auth/urlshortener": "Manage your goo.gl short URLs"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/url-shortener/v1/getting_started"
   }
 }

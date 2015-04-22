@@ -89,7 +89,7 @@ env.resolved.petStore =
         },
         "zipcode": {
           "type": "integer",
-          "mininum": 10000,
+          "minimum": 10000,
           "maximum": 99999
         }
       }

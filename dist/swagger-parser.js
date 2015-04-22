@@ -574,7 +574,7 @@ var read      = require('./read'),
 // RegExp pattern to detect external $ref pointers.
 // Matches anything that starts with "http://" or contains a period (".")
 // (e.g. "http://localhost/some/path", "company.com/some/path", "file.yaml", "..\..\file.yaml", "./fileWithoutExt")
-var external$RefPattern = /(^https?\:\/\/)|(\.)/i;
+var external$RefPattern = /^https?\:\/\/|^\.|^[^#].*\./i;
 
 
 /**
@@ -648,7 +648,7 @@ function resolveIf$Ref(value, valuePath, state, callback) {
 
 
 /**
- * Recursively a $ref pointer.
+ * Recursively resolves a $ref pointer.
  * NOTE: The $ref pointer is not modified or dereferenced. The resolved $ref values are stored in {@link State.$refs}
  *
  * @param   {string}    $ref        The $ref pointer value to resolve
@@ -1307,6 +1307,7 @@ function validate(api, state, callback) {
 function validateAgainstSchema(api, state) {
     util.debug('Validating "%s" against the Swagger schema', state.swaggerPath);
 
+    tv4.addSchema(swaggerSchema);
     if (tv4.validate(api, swaggerSchema)) {
         util.debug('    Validated successfully');
     }
@@ -22172,6 +22173,7 @@ module.exports={
     }
   }
 }
+
 },{}],175:[function(require,module,exports){
 /*
 Author: Geraint Luff and others

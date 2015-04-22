@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/cloud-sql/docs/admin-api/"
-  },
   "paths": {
     "/projects/{project}/instances/{instance}/backupRuns/{id}": {
       "get": {
@@ -2010,7 +2007,6 @@
   },
   "definitions": {
     "AclEntry": {
-      "id": "AclEntry",
       "type": "object",
       "description": "An entry for an Access Control list.",
       "properties": {
@@ -2035,7 +2031,6 @@
       }
     },
     "BackupConfiguration": {
-      "id": "BackupConfiguration",
       "type": "object",
       "description": "Database instance backup configuration.",
       "properties": {
@@ -2059,7 +2054,6 @@
       }
     },
     "BackupRun": {
-      "id": "BackupRun",
       "type": "object",
       "description": "A database instance backup run resource.",
       "properties": {
@@ -2112,7 +2106,6 @@
       }
     },
     "BackupRunsListResponse": {
-      "id": "BackupRunsListResponse",
       "type": "object",
       "description": "Backup run list results.",
       "properties": {
@@ -2135,7 +2128,6 @@
       }
     },
     "BinLogCoordinates": {
-      "id": "BinLogCoordinates",
       "type": "object",
       "description": "Binary log coordinates.",
       "properties": {
@@ -2156,7 +2148,6 @@
       }
     },
     "CloneContext": {
-      "id": "CloneContext",
       "type": "object",
       "description": "Database instance clone context.",
       "properties": {
@@ -2176,7 +2167,6 @@
       }
     },
     "Database": {
-      "id": "Database",
       "type": "object",
       "description": "A database resource inside a Cloud SQL instance.",
       "properties": {
@@ -2194,14 +2184,7 @@
         },
         "instance": {
           "type": "string",
-          "description": "The name of the Cloud SQL instance. This does not include the project ID.",
-          "annotations": {
-            "required": [
-              "sql.databases.delete",
-              "sql.databases.insert",
-              "sql.databases.update"
-            ]
-          }
+          "description": "The name of the Cloud SQL instance. This does not include the project ID."
         },
         "kind": {
           "type": "string",
@@ -2210,25 +2193,11 @@
         },
         "name": {
           "type": "string",
-          "description": "The name of the database in the Cloud SQL instance. This does not include the project ID or instance name.",
-          "annotations": {
-            "required": [
-              "sql.databases.delete",
-              "sql.databases.insert",
-              "sql.databases.update"
-            ]
-          }
+          "description": "The name of the database in the Cloud SQL instance. This does not include the project ID or instance name."
         },
         "project": {
           "type": "string",
-          "description": "The project ID of the project containing the Cloud SQL database. The Google apps domain is prefixed if applicable.",
-          "annotations": {
-            "required": [
-              "sql.databases.delete",
-              "sql.databases.insert",
-              "sql.databases.update"
-            ]
-          }
+          "description": "The project ID of the project containing the Cloud SQL database. The Google apps domain is prefixed if applicable."
         },
         "selfLink": {
           "type": "string",
@@ -2237,22 +2206,20 @@
       }
     },
     "DatabaseFlags": {
-      "id": "DatabaseFlags",
       "type": "object",
       "description": "MySQL flags for Cloud SQL instances.",
       "properties": {
         "name": {
           "type": "string",
-          "description": "The name of the flag. These flags are passed at instance startup, so include both MySQL server options and MySQL system variables. Flags should be specified with underscores, not hyphens. Refer to the official MySQL documentation on server options and system variables for descriptions of what these flags do. Acceptable values are:  character_set_server utf8 or utf8mb4 event_scheduler on or off (Note: The event scheduler will only work reliably if the instance activationPolicy is set to ALWAYS) general_log on or off group_concat_max_len 4..17179869184 innodb_flush_log_at_trx_commit 0..2 innodb_lock_wait_timeout 1..1073741824 log_bin_trust_function_creators on or off log_output Can be either TABLE or NONE, FILE is not supported log_queries_not_using_indexes on or off long_query_time 0..30000000 lower_case_table_names 0..2 max_allowed_packet 16384..1073741824 read_only on or off skip_show_database on or off slow_query_log on or off. If set to on, you must also set the log_output flag to TABLE to receive logs. wait_timeout 1..31536000"
+          "description": "The name of the flag. These flags are passed at instance startup, so include both MySQL server options and MySQL system variables. Flags should be specified with underscores, not hyphens. For more information, see Configuring MySQL Flags in the Google Cloud SQL documentation, as well as the official MySQL documentation for server options and system variables."
         },
         "value": {
           "type": "string",
-          "description": "The value of the flag. Booleans should be set using 1 for true, and 0 for false. This field must be omitted if the flag doesn't take a value."
+          "description": "The value of the flag. Booleans should be set to on for true and off for false. This field must be omitted if the flag doesn't take a value."
         }
       }
     },
     "DatabaseInstance": {
-      "id": "DatabaseInstance",
       "type": "object",
       "description": "A Cloud SQL instance resource.",
       "properties": {
@@ -2271,7 +2238,7 @@
         },
         "instanceType": {
           "type": "string",
-          "description": "The instance type. This can be one of the following.\nCLOUD_SQL_INSTANCE: A Cloud SQL instance that is not replicating from a master.\nREAD_REPLICA_INSTANCE: A Cloud SQL instance configured as a read-replica."
+          "description": "The instance type. This can be one of the following.\nCLOUD_SQL_INSTANCE: A Cloud SQL instance that is not replicating from a master.\nON_PREMISES_INSTANCE: An instance running on the customer's premises.\nREAD_REPLICA_INSTANCE: A Cloud SQL instance configured as a read-replica."
         },
         "ipAddresses": {
           "type": "array",
@@ -2300,12 +2267,11 @@
         },
         "name": {
           "type": "string",
-          "description": "Name of the Cloud SQL instance. This does not include the project ID.",
-          "annotations": {
-            "required": [
-              "sql.instances.insert"
-            ]
-          }
+          "description": "Name of the Cloud SQL instance. This does not include the project ID."
+        },
+        "onPremisesConfiguration": {
+          "$ref": "#/definitions/OnPremisesConfiguration",
+          "description": "Configuration specific to on-premises instances."
         },
         "project": {
           "type": "string",
@@ -2314,6 +2280,10 @@
         "region": {
           "type": "string",
           "description": "The geographical region. Can be us-central, asia-east1 or europe-west1. Defaults to us-central. The region can not be changed after instance creation."
+        },
+        "replicaConfiguration": {
+          "$ref": "#/definitions/ReplicaConfiguration",
+          "description": "Configuration specific to read-replicas replicating from on-premises masters."
         },
         "replicaNames": {
           "type": "array",
@@ -2336,13 +2306,7 @@
         },
         "settings": {
           "$ref": "#/definitions/Settings",
-          "description": "The user settings.",
-          "annotations": {
-            "required": [
-              "sql.instances.insert",
-              "sql.instances.update"
-            ]
-          }
+          "description": "The user settings."
         },
         "state": {
           "type": "string",
@@ -2351,7 +2315,6 @@
       }
     },
     "DatabasesListResponse": {
-      "id": "DatabasesListResponse",
       "type": "object",
       "description": "Database list response.",
       "properties": {
@@ -2370,7 +2333,6 @@
       }
     },
     "ExportContext": {
-      "id": "ExportContext",
       "type": "object",
       "description": "Database instance export context.",
       "properties": {
@@ -2420,7 +2382,6 @@
       }
     },
     "Flag": {
-      "id": "Flag",
       "type": "object",
       "description": "A Google Cloud SQL service flag resource.",
       "properties": {
@@ -2464,7 +2425,6 @@
       }
     },
     "FlagsListResponse": {
-      "id": "FlagsListResponse",
       "type": "object",
       "description": "Flags list response.",
       "properties": {
@@ -2483,7 +2443,6 @@
       }
     },
     "ImportContext": {
-      "id": "ImportContext",
       "type": "object",
       "description": "Database instance import context.",
       "properties": {
@@ -2524,7 +2483,6 @@
       }
     },
     "InstancesCloneRequest": {
-      "id": "InstancesCloneRequest",
       "type": "object",
       "description": "Database instance clone request.",
       "properties": {
@@ -2535,7 +2493,6 @@
       }
     },
     "InstancesExportRequest": {
-      "id": "InstancesExportRequest",
       "type": "object",
       "description": "Database instance export request.",
       "properties": {
@@ -2546,7 +2503,6 @@
       }
     },
     "InstancesImportRequest": {
-      "id": "InstancesImportRequest",
       "type": "object",
       "description": "Database instance import request.",
       "properties": {
@@ -2557,7 +2513,6 @@
       }
     },
     "InstancesListResponse": {
-      "id": "InstancesListResponse",
       "type": "object",
       "description": "Database instances list response.",
       "properties": {
@@ -2580,7 +2535,6 @@
       }
     },
     "InstancesRestoreBackupRequest": {
-      "id": "InstancesRestoreBackupRequest",
       "type": "object",
       "description": "Database instance restore backup request.",
       "properties": {
@@ -2591,7 +2545,6 @@
       }
     },
     "IpConfiguration": {
-      "id": "IpConfiguration",
       "type": "object",
       "description": "IP Management configuration.",
       "properties": {
@@ -2613,7 +2566,6 @@
       }
     },
     "IpMapping": {
-      "id": "IpMapping",
       "type": "object",
       "description": "Database instance IP Mapping.",
       "properties": {
@@ -2629,7 +2581,6 @@
       }
     },
     "LocationPreference": {
-      "id": "LocationPreference",
       "type": "object",
       "description": "Preferred location. This specifies where a Cloud SQL instance should preferably be located, either in a specific Compute Engine zone, or co-located with an App Engine application. Note that if the preferred location is not available, the instance will be located as close as possible within the region. Only one location may be specified.",
       "properties": {
@@ -2648,8 +2599,75 @@
         }
       }
     },
+    "MySqlReplicaConfiguration": {
+      "type": "object",
+      "description": "Read-replica configuration specific to MySQL databases.",
+      "properties": {
+        "caCertificate": {
+          "type": "string",
+          "description": "PEM representation of the trusted CA's x509 certificate."
+        },
+        "clientCertificate": {
+          "type": "string",
+          "description": "PEM representation of the slave's x509 certificate."
+        },
+        "clientKey": {
+          "type": "string",
+          "description": "PEM representation of the slave's private key. The corresponsing public key is encoded in the client's certificate."
+        },
+        "connectRetryInterval": {
+          "type": "integer",
+          "description": "Seconds to wait between connect retries. MySQL's default is 60 seconds.",
+          "format": "int32"
+        },
+        "dumpFilePath": {
+          "type": "string",
+          "description": "Path to a SQL dump file in Google Cloud Storage from which the slave instance is to be created. The URI is in the form gs://bucketName/fileName. Compressed gzip files (.gz) are also supported. Dumps should have the binlog co-ordinates from which replication should begin. This can be accomplished by setting --master-data to 1 when using mysqldump."
+        },
+        "kind": {
+          "type": "string",
+          "description": "This is always sql#mysqlReplicaConfiguration.",
+          "default": "sql#mysqlReplicaConfiguration"
+        },
+        "masterHeartbeatPeriod": {
+          "type": "string",
+          "description": "Interval in milliseconds between replication heartbeats.",
+          "format": "int64"
+        },
+        "password": {
+          "type": "string",
+          "description": "The password for the replication connection."
+        },
+        "sslCipher": {
+          "type": "string",
+          "description": "A list of permissible ciphers to use for SSL encryption."
+        },
+        "username": {
+          "type": "string",
+          "description": "The username for the replication connection."
+        },
+        "verifyServerCertificate": {
+          "type": "boolean",
+          "description": "Whether or not to check the master's Common Name value in the certificate that it sends during the SSL handshake."
+        }
+      }
+    },
+    "OnPremisesConfiguration": {
+      "type": "object",
+      "description": "On-premises instance configuration.",
+      "properties": {
+        "hostPort": {
+          "type": "string",
+          "description": "The host and port of the on-premises instance in host:port format"
+        },
+        "kind": {
+          "type": "string",
+          "description": "This is always sql#onPremisesConfiguration.",
+          "default": "sql#onPremisesConfiguration"
+        }
+      }
+    },
     "Operation": {
-      "id": "Operation",
       "type": "object",
       "description": "An Operations resource contains information about database instance operations such as create, delete, and restart. Operations resources are created in response to operations that were initiated; you never create them directly.",
       "properties": {
@@ -2659,17 +2677,7 @@
           "format": "date-time"
         },
         "error": {
-          "type": "object",
-          "description": "If errors occurred during processing of this operation, this field will be populated.",
-          "properties": {
-            "errors": {
-              "type": "array",
-              "description": "The list of errors encountered while processing this operation.",
-              "items": {
-                "$ref": "#/definitions/OperationError"
-              }
-            }
-          }
+          "$ref": "#/definitions/OperationErrors"
         },
         "exportContext": {
           "$ref": "#/definitions/ExportContext",
@@ -2686,7 +2694,7 @@
         },
         "kind": {
           "type": "string",
-          "description": "This is always sql#instanceOperation.",
+          "description": "This is always sql#operation.",
           "default": "sql#operation"
         },
         "name": {
@@ -2695,7 +2703,7 @@
         },
         "operationType": {
           "type": "string",
-          "description": "TODO(b/18431310): update this list to reflect current values. The type of the operation. Valid values are CREATE, DELETE, UPDATE, RESTART, IMPORT, EXPORT, BACKUP_VOLUME, RESTORE_VOLUME."
+          "description": "The type of the operation. Valid values are CREATE, DELETE, UPDATE, RESTART, IMPORT, EXPORT, BACKUP_VOLUME, RESTORE_VOLUME, CREATE_USER, DELETE_USER, CREATE_DATABASE, DELETE_DATABASE ."
         },
         "selfLink": {
           "type": "string",
@@ -2729,7 +2737,6 @@
       }
     },
     "OperationError": {
-      "id": "OperationError",
       "type": "object",
       "description": "Database instance operation error.",
       "properties": {
@@ -2748,8 +2755,25 @@
         }
       }
     },
+    "OperationErrors": {
+      "type": "object",
+      "description": "Database instance operation errors list wrapper.",
+      "properties": {
+        "errors": {
+          "type": "array",
+          "description": "The list of errors encountered while processing this operation.",
+          "items": {
+            "$ref": "#/definitions/OperationError"
+          }
+        },
+        "kind": {
+          "type": "string",
+          "description": "This is always sql#operationErrors.",
+          "default": "sql#operationErrors"
+        }
+      }
+    },
     "OperationsListResponse": {
-      "id": "OperationsListResponse",
       "type": "object",
       "description": "Database instance list operations response.",
       "properties": {
@@ -2771,8 +2795,22 @@
         }
       }
     },
+    "ReplicaConfiguration": {
+      "type": "object",
+      "description": "Read-replica configuration for connecting to the master.",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "This is always sql#replicaConfiguration.",
+          "default": "sql#replicaConfiguration"
+        },
+        "mysqlReplicaConfiguration": {
+          "$ref": "#/definitions/MySqlReplicaConfiguration",
+          "description": "MySQL specific configuration when replicating from a MySQL on-premises master. Replication configuration information such as the username, password, certificates, and keys are not stored in the instance metadata. The configuration information is used only to set up the replication connection and is stored by MySQL in a file named master.info in the data directory."
+        }
+      }
+    },
     "RestoreBackupContext": {
-      "id": "RestoreBackupContext",
       "type": "object",
       "description": "Database instance restore from backup context.",
       "properties": {
@@ -2789,7 +2827,6 @@
       }
     },
     "Settings": {
-      "id": "Settings",
       "type": "object",
       "description": "Database instance settings.",
       "properties": {
@@ -2807,6 +2844,10 @@
         "backupConfiguration": {
           "$ref": "#/definitions/BackupConfiguration",
           "description": "The daily backup configuration for the instance."
+        },
+        "crashSafeReplicationEnabled": {
+          "type": "boolean",
+          "description": "Configuration specific to read replica instances. Indicates whether database flags for crash-safe replication are enabled."
         },
         "databaseFlags": {
           "type": "array",
@@ -2843,27 +2884,15 @@
         "settingsVersion": {
           "type": "string",
           "description": "The version of instance settings. This is a required field for update method to make sure concurrent updates are handled properly. During update, use the most recent settingsVersion value for this instance and do not try to update this value.",
-          "format": "int64",
-          "annotations": {
-            "required": [
-              "sql.instances.update"
-            ]
-          }
+          "format": "int64"
         },
         "tier": {
           "type": "string",
-          "description": "The tier of service for this instance, for example D1, D2. For more information, see pricing.",
-          "annotations": {
-            "required": [
-              "sql.instances.insert",
-              "sql.instances.update"
-            ]
-          }
+          "description": "The tier of service for this instance, for example D1, D2. For more information, see pricing."
         }
       }
     },
     "SslCert": {
-      "id": "SslCert",
       "type": "object",
       "description": "SslCerts Resource",
       "properties": {
@@ -2908,7 +2937,6 @@
       }
     },
     "SslCertDetail": {
-      "id": "SslCertDetail",
       "type": "object",
       "description": "SslCertDetail.",
       "properties": {
@@ -2923,7 +2951,6 @@
       }
     },
     "SslCertsInsertRequest": {
-      "id": "SslCertsInsertRequest",
       "type": "object",
       "description": "SslCerts insert request.",
       "properties": {
@@ -2934,7 +2961,6 @@
       }
     },
     "SslCertsInsertResponse": {
-      "id": "SslCertsInsertResponse",
       "type": "object",
       "description": "SslCert insert response.",
       "properties": {
@@ -2954,7 +2980,6 @@
       }
     },
     "SslCertsListResponse": {
-      "id": "SslCertsListResponse",
       "type": "object",
       "description": "SslCerts list response.",
       "properties": {
@@ -2973,7 +2998,6 @@
       }
     },
     "Tier": {
-      "id": "Tier",
       "type": "object",
       "description": "A Google Cloud SQL service tier resource.",
       "properties": {
@@ -3006,7 +3030,6 @@
       }
     },
     "TiersListResponse": {
-      "id": "TiersListResponse",
       "type": "object",
       "description": "Tiers list response.",
       "properties": {
@@ -3025,7 +3048,6 @@
       }
     },
     "User": {
-      "id": "User",
       "type": "object",
       "description": "A Cloud SQL user resource.",
       "properties": {
@@ -3035,7 +3057,7 @@
         },
         "host": {
           "type": "string",
-          "description": "The host name from which the user can connect. For insert operations, host is set to '%'. For update operations, host is specified as part of the request URL. The host name is not mutable with this API."
+          "description": "The host name from which the user can connect. For insert operations, host defaults to an empty string. For update operations, host is specified as part of the request URL. The host name is not mutable with this API."
         },
         "instance": {
           "type": "string",
@@ -3061,7 +3083,6 @@
       }
     },
     "UsersListResponse": {
-      "id": "UsersListResponse",
       "type": "object",
       "description": "User list response.",
       "properties": {
@@ -3144,5 +3165,8 @@
         "https://www.googleapis.com/auth/sqlservice.admin": "Manage your Google SQL Service instances"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/cloud-sql/docs/admin-api/"
   }
 }

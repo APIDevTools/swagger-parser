@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/compute/docs/replica-pool/"
-  },
   "paths": {
     "/{projectName}/zones/{zone}/pools/{poolName}": {
       "post": {
@@ -711,7 +708,6 @@
   },
   "definitions": {
     "AccessConfig": {
-      "id": "AccessConfig",
       "type": "object",
       "description": "A Compute Engine network accessConfig. Identical to the accessConfig on corresponding Compute Engine resource.",
       "properties": {
@@ -730,7 +726,6 @@
       }
     },
     "Action": {
-      "id": "Action",
       "type": "object",
       "description": "An action that gets executed during initialization of the replicas.",
       "properties": {
@@ -756,7 +751,6 @@
       }
     },
     "DiskAttachment": {
-      "id": "DiskAttachment",
       "type": "object",
       "description": "Specifies how to attach a disk to a Replica.",
       "properties": {
@@ -772,7 +766,6 @@
       }
     },
     "EnvVariable": {
-      "id": "EnvVariable",
       "type": "object",
       "description": "An environment variable to set for an action.",
       "properties": {
@@ -791,7 +784,6 @@
       }
     },
     "ExistingDisk": {
-      "id": "ExistingDisk",
       "type": "object",
       "description": "A pre-existing persistent disk that will be attached to every Replica in the Pool in READ_ONLY mode.",
       "properties": {
@@ -806,7 +798,6 @@
       }
     },
     "HealthCheck": {
-      "id": "HealthCheck",
       "type": "object",
       "properties": {
         "checkIntervalSec": {
@@ -853,7 +844,6 @@
       }
     },
     "Label": {
-      "id": "Label",
       "type": "object",
       "description": "A label to apply to this replica pool.",
       "properties": {
@@ -868,7 +858,6 @@
       }
     },
     "Metadata": {
-      "id": "Metadata",
       "type": "object",
       "description": "A Compute Engine metadata entry. Identical to the metadata on the corresponding Compute Engine resource.",
       "properties": {
@@ -886,7 +875,6 @@
       }
     },
     "MetadataItem": {
-      "id": "MetadataItem",
       "type": "object",
       "description": "A Compute Engine metadata item, defined as a key:value pair. Identical to the metadata on the corresponding Compute Engine resource.",
       "properties": {
@@ -901,7 +889,6 @@
       }
     },
     "NetworkInterface": {
-      "id": "NetworkInterface",
       "type": "object",
       "description": "A Compute Engine NetworkInterface resource. Identical to the NetworkInterface on the corresponding Compute Engine resource.",
       "properties": {
@@ -923,7 +910,6 @@
       }
     },
     "NewDisk": {
-      "id": "NewDisk",
       "type": "object",
       "description": "A Persistent Disk resource that will be created and attached to each Replica in the Pool. Each Replica will have a unique persistent disk that is created and attached to that Replica in READ_WRITE mode.",
       "properties": {
@@ -946,7 +932,6 @@
       }
     },
     "NewDiskInitializeParams": {
-      "id": "NewDiskInitializeParams",
       "type": "object",
       "description": "Initialization parameters for creating a new disk.",
       "properties": {
@@ -966,7 +951,6 @@
       }
     },
     "Pool": {
-      "id": "Pool",
       "type": "object",
       "properties": {
         "autoRestart": {
@@ -1047,7 +1031,6 @@
       }
     },
     "PoolsDeleteRequest": {
-      "id": "PoolsDeleteRequest",
       "type": "object",
       "properties": {
         "abandonInstances": {
@@ -1060,7 +1043,6 @@
       }
     },
     "PoolsListResponse": {
-      "id": "PoolsListResponse",
       "type": "object",
       "properties": {
         "nextPageToken": {
@@ -1075,7 +1057,6 @@
       }
     },
     "Replica": {
-      "id": "Replica",
       "type": "object",
       "description": "An individual Replica within a Pool. Replicas are automatically created by the replica pool, using the template provided by the user. You cannot directly create replicas.",
       "properties": {
@@ -1094,7 +1075,6 @@
       }
     },
     "ReplicaStatus": {
-      "id": "ReplicaStatus",
       "type": "object",
       "description": "The current status of a Replica.",
       "properties": {
@@ -1121,7 +1101,6 @@
       }
     },
     "ReplicasDeleteRequest": {
-      "id": "ReplicasDeleteRequest",
       "type": "object",
       "properties": {
         "abandonInstance": {
@@ -1131,7 +1110,6 @@
       }
     },
     "ReplicasListResponse": {
-      "id": "ReplicasListResponse",
       "type": "object",
       "properties": {
         "nextPageToken": {
@@ -1146,7 +1124,6 @@
       }
     },
     "ServiceAccount": {
-      "id": "ServiceAccount",
       "type": "object",
       "description": "A Compute Engine service account, identical to the Compute Engine resource.",
       "properties": {
@@ -1164,7 +1141,6 @@
       }
     },
     "Tag": {
-      "id": "Tag",
       "type": "object",
       "description": "A Compute Engine Instance tag, identical to the tags on the corresponding Compute Engine Instance resource.",
       "properties": {
@@ -1182,7 +1158,6 @@
       }
     },
     "Template": {
-      "id": "Template",
       "type": "object",
       "description": "The template used for creating replicas in the pool.",
       "properties": {
@@ -1208,7 +1183,6 @@
       }
     },
     "VmParams": {
-      "id": "VmParams",
       "type": "object",
       "description": "Parameters for creating a Compute Engine Instance resource. Most fields are identical to the corresponding Compute Engine resource.",
       "properties": {
@@ -1333,5 +1307,8 @@
         "https://www.googleapis.com/auth/replicapool.readonly": "View replica pools"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/compute/docs/replica-pool/"
   }
 }

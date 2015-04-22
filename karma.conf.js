@@ -17,7 +17,7 @@ module.exports = function(config) {
 
         files: [
             // Swagger-Parser
-            'dist/swagger-parser.js',
+            'dist/swagger-parser.min.js',
             {pattern: 'dist/swagger-parser.js.map', included: false},
 
             // Test environment 

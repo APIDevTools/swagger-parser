@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": ""
-  },
   "paths": {
     "/{projectId}/jobs": {
       "post": {
@@ -569,7 +566,6 @@
   },
   "definitions": {
     "ApproximateProgress": {
-      "id": "ApproximateProgress",
       "type": "object",
       "properties": {
         "percentComplete": {
@@ -585,7 +581,6 @@
       }
     },
     "AutoscalingSettings": {
-      "id": "AutoscalingSettings",
       "type": "object",
       "properties": {
         "algorithm": {
@@ -594,11 +589,6 @@
             "AUTOSCALING_ALGORITHM_BASIC",
             "AUTOSCALING_ALGORITHM_NONE",
             "AUTOSCALING_ALGORITHM_UNKNOWN"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "maxNumWorkers": {
@@ -608,7 +598,6 @@
       }
     },
     "ComputationTopology": {
-      "id": "ComputationTopology",
       "type": "object",
       "properties": {
         "computationId": {
@@ -635,7 +624,6 @@
       }
     },
     "DataDiskAssignment": {
-      "id": "DataDiskAssignment",
       "type": "object",
       "properties": {
         "dataDisks": {
@@ -649,8 +637,24 @@
         }
       }
     },
+    "DerivedSource": {
+      "type": "object",
+      "properties": {
+        "derivationMode": {
+          "type": "string",
+          "enum": [
+            "SOURCE_DERIVATION_MODE_CHILD_OF_CURRENT",
+            "SOURCE_DERIVATION_MODE_INDEPENDENT",
+            "SOURCE_DERIVATION_MODE_SIBLING_OF_CURRENT",
+            "SOURCE_DERIVATION_MODE_UNKNOWN"
+          ]
+        },
+        "source": {
+          "$ref": "#/definitions/Source"
+        }
+      }
+    },
     "Disk": {
-      "id": "Disk",
       "type": "object",
       "properties": {
         "diskType": {
@@ -665,8 +669,18 @@
         }
       }
     },
+    "DynamicSourceSplit": {
+      "type": "object",
+      "properties": {
+        "primary": {
+          "$ref": "#/definitions/DerivedSource"
+        },
+        "residual": {
+          "$ref": "#/definitions/DerivedSource"
+        }
+      }
+    },
     "Environment": {
-      "id": "Environment",
       "type": "object",
       "properties": {
         "clusterManagerApiService": {
@@ -705,7 +719,6 @@
       }
     },
     "FlattenInstruction": {
-      "id": "FlattenInstruction",
       "type": "object",
       "properties": {
         "inputs": {
@@ -716,11 +729,8 @@
         }
       }
     },
-    "GoogleprotobufValue": {
-      "id": "GoogleprotobufValue"
-    },
+    "GoogleprotobufValue": {},
     "InstructionInput": {
-      "id": "InstructionInput",
       "type": "object",
       "properties": {
         "outputNum": {
@@ -734,7 +744,6 @@
       }
     },
     "InstructionOutput": {
-      "id": "InstructionOutput",
       "type": "object",
       "properties": {
         "codec": {
@@ -747,7 +756,6 @@
       }
     },
     "Job": {
-      "id": "Job",
       "type": "object",
       "properties": {
         "createTime": {
@@ -762,14 +770,6 @@
             "JOB_STATE_RUNNING",
             "JOB_STATE_STOPPED",
             "JOB_STATE_UNKNOWN"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "currentStateTime": {
@@ -799,14 +799,6 @@
             "JOB_STATE_RUNNING",
             "JOB_STATE_STOPPED",
             "JOB_STATE_UNKNOWN"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "steps": {
@@ -821,17 +813,11 @@
             "JOB_TYPE_BATCH",
             "JOB_TYPE_STREAMING",
             "JOB_TYPE_UNKNOWN"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         }
       }
     },
     "JobExecutionInfo": {
-      "id": "JobExecutionInfo",
       "type": "object",
       "properties": {
         "stages": {
@@ -843,7 +829,6 @@
       }
     },
     "JobExecutionStageInfo": {
-      "id": "JobExecutionStageInfo",
       "type": "object",
       "properties": {
         "stepName": {
@@ -855,7 +840,6 @@
       }
     },
     "JobMessage": {
-      "id": "JobMessage",
       "type": "object",
       "properties": {
         "id": {
@@ -869,13 +853,6 @@
             "JOB_MESSAGE_ERROR",
             "JOB_MESSAGE_IMPORTANCE_UNKNOWN",
             "JOB_MESSAGE_WARNING"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "messageText": {
@@ -887,7 +864,6 @@
       }
     },
     "JobMetrics": {
-      "id": "JobMetrics",
       "type": "object",
       "properties": {
         "metricTime": {
@@ -901,8 +877,21 @@
         }
       }
     },
+    "KeyRangeDataDiskAssignment": {
+      "type": "object",
+      "properties": {
+        "dataDisk": {
+          "type": "string"
+        },
+        "end": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        }
+      }
+    },
     "KeyRangeLocation": {
-      "id": "KeyRangeLocation",
       "type": "object",
       "properties": {
         "dataDisk": {
@@ -923,7 +912,6 @@
       }
     },
     "LeaseWorkItemRequest": {
-      "id": "LeaseWorkItemRequest",
       "type": "object",
       "properties": {
         "currentWorkerTime": {
@@ -950,7 +938,6 @@
       }
     },
     "LeaseWorkItemResponse": {
-      "id": "LeaseWorkItemResponse",
       "type": "object",
       "properties": {
         "workItems": {
@@ -962,7 +949,6 @@
       }
     },
     "ListJobMessagesResponse": {
-      "id": "ListJobMessagesResponse",
       "type": "object",
       "properties": {
         "jobMessages": {
@@ -977,7 +963,6 @@
       }
     },
     "ListJobsResponse": {
-      "id": "ListJobsResponse",
       "type": "object",
       "properties": {
         "jobs": {
@@ -992,7 +977,6 @@
       }
     },
     "MapTask": {
-      "id": "MapTask",
       "type": "object",
       "properties": {
         "instructions": {
@@ -1010,7 +994,6 @@
       }
     },
     "MetricStructuredName": {
-      "id": "MetricStructuredName",
       "type": "object",
       "properties": {
         "context": {
@@ -1028,7 +1011,6 @@
       }
     },
     "MetricUpdate": {
-      "id": "MetricUpdate",
       "type": "object",
       "properties": {
         "cumulative": {
@@ -1060,8 +1042,15 @@
         }
       }
     },
+    "MountedDataDisk": {
+      "type": "object",
+      "properties": {
+        "dataDisk": {
+          "type": "string"
+        }
+      }
+    },
     "MultiOutputInfo": {
-      "id": "MultiOutputInfo",
       "type": "object",
       "properties": {
         "tag": {
@@ -1070,7 +1059,6 @@
       }
     },
     "Package": {
-      "id": "Package",
       "type": "object",
       "properties": {
         "location": {
@@ -1082,7 +1070,6 @@
       }
     },
     "ParDoInstruction": {
-      "id": "ParDoInstruction",
       "type": "object",
       "properties": {
         "input": {
@@ -1111,7 +1098,6 @@
       }
     },
     "ParallelInstruction": {
-      "id": "ParallelInstruction",
       "type": "object",
       "properties": {
         "flatten": {
@@ -1144,7 +1130,6 @@
       }
     },
     "PartialGroupByKeyInstruction": {
-      "id": "PartialGroupByKeyInstruction",
       "type": "object",
       "properties": {
         "input": {
@@ -1153,11 +1138,14 @@
         "inputElementCodec": {
           "type": "object",
           "additionalProperties": {}
+        },
+        "valueCombiningFn": {
+          "type": "object",
+          "additionalProperties": {}
         }
       }
     },
     "Position": {
-      "id": "Position",
       "type": "object",
       "properties": {
         "byteOffset": {
@@ -1180,7 +1168,6 @@
       }
     },
     "PubsubLocation": {
-      "id": "PubsubLocation",
       "type": "object",
       "properties": {
         "dropLateData": {
@@ -1197,11 +1184,13 @@
         },
         "topic": {
           "type": "string"
+        },
+        "trackingSubscription": {
+          "type": "string"
         }
       }
     },
     "ReadInstruction": {
-      "id": "ReadInstruction",
       "type": "object",
       "properties": {
         "source": {
@@ -1210,7 +1199,6 @@
       }
     },
     "ReportWorkItemStatusRequest": {
-      "id": "ReportWorkItemStatusRequest",
       "type": "object",
       "properties": {
         "currentWorkerTime": {
@@ -1228,7 +1216,6 @@
       }
     },
     "ReportWorkItemStatusResponse": {
-      "id": "ReportWorkItemStatusResponse",
       "type": "object",
       "properties": {
         "workItemServiceStates": {
@@ -1240,7 +1227,6 @@
       }
     },
     "SeqMapTask": {
-      "id": "SeqMapTask",
       "type": "object",
       "properties": {
         "inputs": {
@@ -1271,7 +1257,6 @@
       }
     },
     "SeqMapTaskOutputInfo": {
-      "id": "SeqMapTaskOutputInfo",
       "type": "object",
       "properties": {
         "sink": {
@@ -1283,7 +1268,6 @@
       }
     },
     "ShellTask": {
-      "id": "ShellTask",
       "type": "object",
       "properties": {
         "command": {
@@ -1296,7 +1280,6 @@
       }
     },
     "SideInputInfo": {
-      "id": "SideInputInfo",
       "type": "object",
       "properties": {
         "kind": {
@@ -1315,7 +1298,6 @@
       }
     },
     "Sink": {
-      "id": "Sink",
       "type": "object",
       "properties": {
         "codec": {
@@ -1329,7 +1311,6 @@
       }
     },
     "Source": {
-      "id": "Source",
       "type": "object",
       "properties": {
         "baseSpecs": {
@@ -1356,19 +1337,23 @@
       }
     },
     "SourceFork": {
-      "id": "SourceFork",
       "type": "object",
       "properties": {
         "primary": {
           "$ref": "#/definitions/SourceSplitShard"
         },
+        "primarySource": {
+          "$ref": "#/definitions/DerivedSource"
+        },
         "residual": {
           "$ref": "#/definitions/SourceSplitShard"
+        },
+        "residualSource": {
+          "$ref": "#/definitions/DerivedSource"
         }
       }
     },
     "SourceGetMetadataRequest": {
-      "id": "SourceGetMetadataRequest",
       "type": "object",
       "properties": {
         "source": {
@@ -1377,7 +1362,6 @@
       }
     },
     "SourceGetMetadataResponse": {
-      "id": "SourceGetMetadataResponse",
       "type": "object",
       "properties": {
         "metadata": {
@@ -1386,7 +1370,6 @@
       }
     },
     "SourceMetadata": {
-      "id": "SourceMetadata",
       "type": "object",
       "properties": {
         "estimatedSizeBytes": {
@@ -1402,7 +1385,6 @@
       }
     },
     "SourceOperationRequest": {
-      "id": "SourceOperationRequest",
       "type": "object",
       "properties": {
         "getMetadata": {
@@ -1414,7 +1396,6 @@
       }
     },
     "SourceOperationResponse": {
-      "id": "SourceOperationResponse",
       "type": "object",
       "properties": {
         "getMetadata": {
@@ -1426,9 +1407,12 @@
       }
     },
     "SourceSplitOptions": {
-      "id": "SourceSplitOptions",
       "type": "object",
       "properties": {
+        "desiredBundleSizeBytes": {
+          "type": "string",
+          "format": "int64"
+        },
         "desiredShardSizeBytes": {
           "type": "string",
           "format": "int64"
@@ -1436,7 +1420,6 @@
       }
     },
     "SourceSplitRequest": {
-      "id": "SourceSplitRequest",
       "type": "object",
       "properties": {
         "options": {
@@ -1448,20 +1431,20 @@
       }
     },
     "SourceSplitResponse": {
-      "id": "SourceSplitResponse",
       "type": "object",
       "properties": {
+        "bundles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DerivedSource"
+          }
+        },
         "outcome": {
           "type": "string",
           "enum": [
             "SOURCE_SPLIT_OUTCOME_SPLITTING_HAPPENED",
             "SOURCE_SPLIT_OUTCOME_UNKNOWN",
             "SOURCE_SPLIT_OUTCOME_USE_CURRENT"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "shards": {
@@ -1473,7 +1456,6 @@
       }
     },
     "SourceSplitShard": {
-      "id": "SourceSplitShard",
       "type": "object",
       "properties": {
         "derivationMode": {
@@ -1483,12 +1465,6 @@
             "SOURCE_DERIVATION_MODE_INDEPENDENT",
             "SOURCE_DERIVATION_MODE_SIBLING_OF_CURRENT",
             "SOURCE_DERIVATION_MODE_UNKNOWN"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "source": {
@@ -1497,7 +1473,6 @@
       }
     },
     "Status": {
-      "id": "Status",
       "type": "object",
       "properties": {
         "code": {
@@ -1517,7 +1492,6 @@
       }
     },
     "Step": {
-      "id": "Step",
       "type": "object",
       "properties": {
         "kind": {
@@ -1533,19 +1507,59 @@
       }
     },
     "StreamLocation": {
-      "id": "StreamLocation",
       "type": "object",
       "properties": {
         "pubsubLocation": {
           "$ref": "#/definitions/PubsubLocation"
+        },
+        "sideInputLocation": {
+          "$ref": "#/definitions/StreamingSideInputLocation"
         },
         "streamingStageLocation": {
           "$ref": "#/definitions/StreamingStageLocation"
         }
       }
     },
+    "StreamingComputationRanges": {
+      "type": "object",
+      "properties": {
+        "computationId": {
+          "type": "string"
+        },
+        "rangeAssignments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/KeyRangeDataDiskAssignment"
+          }
+        }
+      }
+    },
+    "StreamingComputationTask": {
+      "type": "object",
+      "properties": {
+        "computationRanges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StreamingComputationRanges"
+          }
+        },
+        "dataDisks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MountedDataDisk"
+          }
+        },
+        "taskType": {
+          "type": "string",
+          "enum": [
+            "STREAMING_COMPUTATION_TASK_START",
+            "STREAMING_COMPUTATION_TASK_STOP",
+            "STREAMING_COMPUTATION_TASK_UNKNOWN"
+          ]
+        }
+      }
+    },
     "StreamingSetupTask": {
-      "id": "StreamingSetupTask",
       "type": "object",
       "properties": {
         "receiveWorkPort": {
@@ -1561,8 +1575,15 @@
         }
       }
     },
+    "StreamingSideInputLocation": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string"
+        }
+      }
+    },
     "StreamingStageLocation": {
-      "id": "StreamingStageLocation",
       "type": "object",
       "properties": {
         "streamId": {
@@ -1571,7 +1592,6 @@
       }
     },
     "TaskRunnerSettings": {
-      "id": "TaskRunnerSettings",
       "type": "object",
       "properties": {
         "alsologtostderr": {
@@ -1637,7 +1657,6 @@
       }
     },
     "TopologyConfig": {
-      "id": "TopologyConfig",
       "type": "object",
       "properties": {
         "computations": {
@@ -1655,13 +1674,16 @@
       }
     },
     "WorkItem": {
-      "id": "WorkItem",
       "type": "object",
       "properties": {
         "configuration": {
           "type": "string"
         },
         "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "initialReportIndex": {
           "type": "string",
           "format": "int64"
         },
@@ -1695,13 +1717,15 @@
         "sourceOperationTask": {
           "$ref": "#/definitions/SourceOperationRequest"
         },
+        "streamingComputationTask": {
+          "$ref": "#/definitions/StreamingComputationTask"
+        },
         "streamingSetupTask": {
           "$ref": "#/definitions/StreamingSetupTask"
         }
       }
     },
     "WorkItemServiceState": {
-      "id": "WorkItemServiceState",
       "type": "object",
       "properties": {
         "harnessData": {
@@ -1710,6 +1734,10 @@
         },
         "leaseExpireTime": {
           "type": "string"
+        },
+        "nextReportIndex": {
+          "type": "string",
+          "format": "int64"
         },
         "reportStatusInterval": {
           "type": "string"
@@ -1723,11 +1751,13 @@
       }
     },
     "WorkItemStatus": {
-      "id": "WorkItemStatus",
       "type": "object",
       "properties": {
         "completed": {
           "type": "boolean"
+        },
+        "dynamicSourceSplit": {
+          "$ref": "#/definitions/DynamicSourceSplit"
         },
         "errors": {
           "type": "array",
@@ -1766,7 +1796,6 @@
       }
     },
     "WorkerPool": {
-      "id": "WorkerPool",
       "type": "object",
       "properties": {
         "autoscalingSettings": {
@@ -1785,12 +1814,6 @@
             "DEFAULT_PACKAGE_SET_NONE",
             "DEFAULT_PACKAGE_SET_PYTHON",
             "DEFAULT_PACKAGE_SET_UNKNOWN"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "diskSizeGb": {
@@ -1825,6 +1848,10 @@
             "$ref": "#/definitions/Package"
           }
         },
+        "poolArgs": {
+          "type": "object",
+          "additionalProperties": {}
+        },
         "taskrunnerSettings": {
           "$ref": "#/definitions/TaskRunnerSettings"
         },
@@ -1835,12 +1862,6 @@
             "TEARDOWN_NEVER",
             "TEARDOWN_ON_SUCCESS",
             "TEARDOWN_POLICY_UNKNOWN"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "zone": {
@@ -1849,7 +1870,6 @@
       }
     },
     "WorkerSettings": {
-      "id": "WorkerSettings",
       "type": "object",
       "properties": {
         "baseUrl": {
@@ -1873,7 +1893,6 @@
       }
     },
     "WriteInstruction": {
-      "id": "WriteInstruction",
       "type": "object",
       "properties": {
         "input": {

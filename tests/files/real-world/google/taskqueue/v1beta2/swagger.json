@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/appengine/docs/python/taskqueue/rest"
-  },
   "paths": {
     "/{project}/taskqueues/{taskqueue}": {
       "get": {
@@ -500,7 +497,6 @@
   },
   "definitions": {
     "Task": {
-      "id": "Task",
       "type": "object",
       "properties": {
         "enqueueTimestamp": {
@@ -542,7 +538,6 @@
       }
     },
     "TaskQueue": {
-      "id": "TaskQueue",
       "type": "object",
       "properties": {
         "acl": {
@@ -615,7 +610,6 @@
       }
     },
     "Tasks": {
-      "id": "Tasks",
       "type": "object",
       "properties": {
         "items": {
@@ -633,7 +627,6 @@
       }
     },
     "Tasks2": {
-      "id": "Tasks2",
       "type": "object",
       "properties": {
         "items": {
@@ -711,5 +704,8 @@
         "https://www.googleapis.com/auth/taskqueue.consumer": "Consume Tasks from your Taskqueues"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/appengine/docs/python/taskqueue/rest"
   }
 }

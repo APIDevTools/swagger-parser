@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://cloud.google.com/container-engine/docs/v1beta1/"
-  },
   "paths": {
     "/{projectId}/clusters": {
       "get": {
@@ -478,11 +475,80 @@
           "$ref": "#/parameters/userIp"
         }
       ]
+    },
+    "/{masterProjectId}/zones/{zoneId}/tokens/{projectNumber}/{clusterName}": {
+      "get": {
+        "description": "Gets a compute-rw scoped OAuth2 access token for\n. Authentication is performed to ensure that the caller is a member of  and that the request is coming from the expected master VM for the specified cluster. See go/gke-cross-project-auth for more details.",
+        "operationId": "container.projects.zones.tokens.get",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "$ref": "#/definitions/Token"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "path",
+            "description": "The name of the specified cluster.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "masterProjectId",
+            "in": "path",
+            "description": "The hosted master project from which this request is coming.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "projectNumber",
+            "in": "path",
+            "description": "The project number for which the access token is being requested.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "zoneId",
+            "in": "path",
+            "description": "The zone of the specified cluster.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "projects"
+        ]
+      },
+      "parameters": [
+        {
+          "$ref": "#/parameters/alt"
+        },
+        {
+          "$ref": "#/parameters/fields"
+        },
+        {
+          "$ref": "#/parameters/key"
+        },
+        {
+          "$ref": "#/parameters/oauth_token"
+        },
+        {
+          "$ref": "#/parameters/prettyPrint"
+        },
+        {
+          "$ref": "#/parameters/quotaUser"
+        },
+        {
+          "$ref": "#/parameters/userIp"
+        }
+      ]
     }
   },
   "definitions": {
     "Cluster": {
-      "id": "Cluster",
       "type": "object",
       "properties": {
         "clusterApiVersion": {
@@ -501,13 +567,17 @@
           "type": "string",
           "description": "An optional description of this cluster."
         },
+        "enableCloudLogging": {
+          "type": "boolean",
+          "description": "Whether logs from the cluster should be made available via the Google Cloud Logging service. This includes both logs from your applications running in the cluster as well as logs from the Kubernetes components themselves."
+        },
         "endpoint": {
           "type": "string",
           "description": "[Output only] The IP address of this cluster's Kubernetes master. The endpoint can be accessed from the internet at https://username:password@endpoint/.\n\nSee the masterAuth property of this resource for username and password information."
         },
         "masterAuth": {
           "$ref": "#/definitions/MasterAuth",
-          "description": "The HTTP basic authentication information for accessing the master. Because the master endpoint is open to the internet, you should create a strong password."
+          "description": "The authentication information for accessing the master."
         },
         "name": {
           "type": "string",
@@ -547,12 +617,6 @@
             "provisioning",
             "running",
             "stopping"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            "",
-            ""
           ]
         },
         "statusMessage": {
@@ -566,7 +630,6 @@
       }
     },
     "CreateClusterRequest": {
-      "id": "CreateClusterRequest",
       "type": "object",
       "properties": {
         "cluster": {
@@ -576,7 +639,6 @@
       }
     },
     "ListAggregatedClustersResponse": {
-      "id": "ListAggregatedClustersResponse",
       "type": "object",
       "properties": {
         "clusters": {
@@ -589,7 +651,6 @@
       }
     },
     "ListAggregatedOperationsResponse": {
-      "id": "ListAggregatedOperationsResponse",
       "type": "object",
       "properties": {
         "operations": {
@@ -602,7 +663,6 @@
       }
     },
     "ListClustersResponse": {
-      "id": "ListClustersResponse",
       "type": "object",
       "properties": {
         "clusters": {
@@ -615,7 +675,6 @@
       }
     },
     "ListOperationsResponse": {
-      "id": "ListOperationsResponse",
       "type": "object",
       "properties": {
         "operations": {
@@ -628,21 +687,24 @@
       }
     },
     "MasterAuth": {
-      "id": "MasterAuth",
       "type": "object",
+      "description": "The authentication information for accessing the master. Authentication is either done using HTTP basic authentication or using a bearer token.",
       "properties": {
+        "bearerToken": {
+          "type": "string",
+          "description": "The token used to authenticate API requests to the master. The token is be included in an HTTP Authorization Header included in all requests to the master endpoint. The format of the header is: \"Authorization: Bearer \"."
+        },
         "password": {
           "type": "string",
-          "description": "The password to use when accessing the Kubernetes master endpoint."
+          "description": "The password to use for HTTP basic authentication when accessing the Kubernetes master endpoint. Because the master endpoint is open to the internet, you should create a strong password."
         },
         "user": {
           "type": "string",
-          "description": "The username to use when accessing the Kubernetes master endpoint."
+          "description": "The username to use for HTTP basic authentication when accessing the Kubernetes master endpoint."
         }
       }
     },
     "NodeConfig": {
-      "id": "NodeConfig",
       "type": "object",
       "properties": {
         "machineType": {
@@ -663,7 +725,6 @@
       }
     },
     "Operation": {
-      "id": "Operation",
       "type": "object",
       "description": "Defines the operation resource. All fields are output only.",
       "properties": {
@@ -681,10 +742,6 @@
           "enum": [
             "createCluster",
             "deleteCluster"
-          ],
-          "enumDescriptions": [
-            "",
-            ""
           ]
         },
         "selfLink": {
@@ -698,11 +755,6 @@
             "done",
             "pending",
             "running"
-          ],
-          "enumDescriptions": [
-            "",
-            "",
-            ""
           ]
         },
         "target": {
@@ -720,7 +772,6 @@
       }
     },
     "ServiceAccount": {
-      "id": "ServiceAccount",
       "type": "object",
       "description": "A Compute Engine service account.",
       "properties": {
@@ -734,6 +785,20 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "Token": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string",
+          "description": "The OAuth2 access token"
+        },
+        "expiryTimeSeconds": {
+          "type": "string",
+          "description": "The expiration time of the token in seconds since the unix epoch.",
+          "format": "int64"
         }
       }
     }
@@ -797,5 +862,8 @@
         "https://www.googleapis.com/auth/cloud-platform": "View and manage your data across Google Cloud Platform services"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://cloud.google.com/container-engine/docs/v1beta1/"
   }
 }

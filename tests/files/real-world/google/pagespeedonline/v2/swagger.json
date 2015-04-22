@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/speed/docs/insights/v1/getting_started"
-  },
   "paths": {
     "/runPagespeed": {
       "get": {
@@ -110,7 +107,6 @@
   },
   "definitions": {
     "PagespeedApiFormatStringV2": {
-      "id": "PagespeedApiFormatStringV2",
       "type": "object",
       "properties": {
         "args": {
@@ -199,7 +195,6 @@
       }
     },
     "PagespeedApiImageV2": {
-      "id": "PagespeedApiImageV2",
       "type": "object",
       "properties": {
         "data": {
@@ -254,7 +249,6 @@
       }
     },
     "Result": {
-      "id": "Result",
       "type": "object",
       "properties": {
         "formattedResults": {
@@ -512,5 +506,8 @@
       "description": "IP address of the site where the request originates. Use this if you want to enforce per-user limits.",
       "type": "string"
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/speed/docs/insights/v2/getting-started"
   }
 }

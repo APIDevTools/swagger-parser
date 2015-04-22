@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://cloud.google.com/compute/docs/instance-groups/manager/#applying_rolling_updates_using_the_updater_service"
-  },
   "paths": {
     "/{project}/zones/{zone}/rollingUpdates/{rollingUpdate}/cancel": {
       "post": {
@@ -222,7 +219,7 @@
           {
             "name": "instanceGroupManager",
             "in": "query",
-            "description": "The name of the instance group manager used for filtering.",
+            "description": "The name of the instance group manager. Use this parameter to return only updates to instances that are part of a specific instance group.",
             "type": "string"
           },
           {
@@ -672,7 +669,6 @@
   },
   "definitions": {
     "InstanceUpdate": {
-      "id": "InstanceUpdate",
       "type": "object",
       "description": "Update of a single instance.",
       "properties": {
@@ -692,7 +688,7 @@
                   },
                   "location": {
                     "type": "string",
-                    "description": "[Output Only] Indicates the field in the request which caused the error. This property is optional."
+                    "description": "[Output Only] Indicates the field in the request that caused the error. This property is optional."
                   },
                   "message": {
                     "type": "string",
@@ -714,7 +710,6 @@
       }
     },
     "InstanceUpdateList": {
-      "id": "InstanceUpdateList",
       "type": "object",
       "description": "Response returned by ListInstanceUpdates method.",
       "properties": {
@@ -741,7 +736,6 @@
       }
     },
     "Operation": {
-      "id": "Operation",
       "type": "object",
       "description": "An operation resource, used to manage asynchronous API requests.",
       "properties": {
@@ -750,7 +744,7 @@
         },
         "creationTimestamp": {
           "type": "string",
-          "description": "[Output Only] Creation timestamp in RFC3339 text format (output only)."
+          "description": "[Output Only] Creation timestamp in RFC3339 text format."
         },
         "endTime": {
           "type": "string"
@@ -771,7 +765,7 @@
                   },
                   "location": {
                     "type": "string",
-                    "description": "[Output Only] Indicates the field in the request which caused the error. This property is optional."
+                    "description": "[Output Only] Indicates the field in the request that caused the error. This property is optional."
                   },
                   "message": {
                     "type": "string",
@@ -805,7 +799,7 @@
         },
         "name": {
           "type": "string",
-          "description": "[Output Only] Name of the resource (output only)."
+          "description": "[Output Only] Name of the resource."
         },
         "operationType": {
           "type": "string"
@@ -816,7 +810,7 @@
         },
         "region": {
           "type": "string",
-          "description": "[Output Only] URL of the region where the operation resides (output only)."
+          "description": "[Output Only] URL of the region where the operation resides."
         },
         "selfLink": {
           "type": "string",
@@ -841,7 +835,7 @@
         },
         "targetLink": {
           "type": "string",
-          "description": "[Output Only] URL of the resource the operation is mutating (output only)."
+          "description": "[Output Only] URL of the resource the operation is mutating."
         },
         "user": {
           "type": "string"
@@ -881,12 +875,11 @@
         },
         "zone": {
           "type": "string",
-          "description": "[Output Only] URL of the zone where the operation resides (output only)."
+          "description": "[Output Only] URL of the zone where the operation resides."
         }
       }
     },
     "RollingUpdate": {
-      "id": "RollingUpdate",
       "type": "object",
       "description": "The following represents a resource describing a single update (rollout) of a group of instances to the given template.",
       "properties": {
@@ -904,7 +897,7 @@
         },
         "error": {
           "type": "object",
-          "description": "[Output Only] Errors that occurred during rolling update.",
+          "description": "[Output Only] Errors that occurred during the rolling update.",
           "properties": {
             "errors": {
               "type": "array",
@@ -918,7 +911,7 @@
                   },
                   "location": {
                     "type": "string",
-                    "description": "[Output Only] Indicates the field in the request which caused the error. This property is optional."
+                    "description": "[Output Only] Indicates the field in the request that caused the error. This property is optional."
                   },
                   "message": {
                     "type": "string",
@@ -956,43 +949,27 @@
           "properties": {
             "autoPauseAfterInstances": {
               "type": "integer",
-              "description": "Number of instances updated before the update gets automatically paused.",
+              "description": "Number of instances to update before the updater pauses the rolling update.",
               "format": "int32"
-            },
-            "canary": {
-              "type": "object",
-              "description": "Parameters of a canary phase. If absent, canary will NOT be performed.",
-              "properties": {
-                "numInstances": {
-                  "type": "integer",
-                  "description": "Number of instances updated as a part of canary phase. If absent, the default number of instances will be used.",
-                  "format": "int32"
-                }
-              }
             },
             "instanceStartupTimeoutSec": {
               "type": "integer",
-              "description": "Maximum amount of time we will wait after finishing all steps until we receive HEALTHY state for instance. If this deadline is exceeded instance update is considered as failed.",
+              "description": "The maximum amount of time that the updater waits for a HEALTHY state after all of the update steps are complete. If the HEALTHY state is not received before the deadline, the instance update is considered a failure.",
               "format": "int32"
             },
             "maxNumConcurrentInstances": {
               "type": "integer",
-              "description": "Maximum number of instances that can be updated simultaneously (concurrently). An update of an instance starts when the instance is about to be restarted and finishes after the instance has been restarted and the sleep period (defined by sleepAfterInstanceRestartSec) has passed.",
+              "description": "The maximum number of instances that can be updated simultaneously. An instance update is considered complete only after the instance is restarted and initialized.",
               "format": "int32"
             },
             "maxNumFailedInstances": {
               "type": "integer",
-              "description": "Maximum number of instance updates that can fail without failing the group update. Instance update is considered failed if any of it's update actions (e.g. Stop call on Instance resource in Rolling Reboot) failed with permanent failure, or if after finishing all update actions this instance is in UNHEALTHY state.",
+              "description": "The maximum number of instance updates that can fail before the group update is considered a failure. An instance update is considered failed if any of its update actions (e.g. Stop call on Instance resource in Rolling Reboot) failed with permanent failure, or if the instance is in an UNHEALTHY state after it finishes all of the update actions.",
               "format": "int32"
             },
             "minInstanceUpdateTimeSec": {
               "type": "integer",
-              "description": "Specifies minimum amount of time we will spend on updating single instance, measuring at the start of the first update action (e.g. Recreate call on Instance Group Manager or Stop call on Instance resource). If actual instance update takes less time we will simply sleep before proceeding with next instance.",
-              "format": "int32"
-            },
-            "sleepAfterInstanceRestartSec": {
-              "type": "integer",
-              "description": "Time period after the instance has been restarted but before marking the update of this instance as done. This field is deprecated and ignored by Rolling Updater.",
+              "description": "The minimum amount of time that the updater spends to update each instance. Update time is the time it takes to complete all update actions (e.g. Stop call on Instance resource in Rolling Reboot), reboot, and initialize. If the instance update finishes early, the updater pauses for the remainder of the time before it starts the next instance update.",
               "format": "int32"
             }
           }
@@ -1021,7 +998,6 @@
       }
     },
     "RollingUpdateList": {
-      "id": "RollingUpdateList",
       "type": "object",
       "description": "Response returned by List method.",
       "properties": {
@@ -1109,5 +1085,8 @@
         "https://www.googleapis.com/auth/replicapool.readonly": "View replica pools"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://cloud.google.com/compute/docs/instance-groups/manager/#applying_rolling_updates_using_the_updater_service"
   }
 }

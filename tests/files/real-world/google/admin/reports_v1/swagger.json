@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/admin-sdk/reports/"
-  },
   "paths": {
     "/activity/users/{userKey}/applications/{applicationName}": {
       "get": {
@@ -459,7 +456,6 @@
   },
   "definitions": {
     "Activities": {
-      "id": "Activities",
       "type": "object",
       "description": "JSON template for a collection of activites.",
       "properties": {
@@ -486,7 +482,6 @@
       }
     },
     "Activity": {
-      "id": "Activity",
       "type": "object",
       "description": "JSON template for the activity resource.",
       "properties": {
@@ -614,7 +609,6 @@
       }
     },
     "Channel": {
-      "id": "Channel",
       "type": "object",
       "description": "An notification channel used to watch for resource changes.",
       "properties": {
@@ -667,7 +661,6 @@
       }
     },
     "UsageReport": {
-      "id": "UsageReport",
       "type": "object",
       "description": "JSON template for a usage report.",
       "properties": {
@@ -760,7 +753,6 @@
       }
     },
     "UsageReports": {
-      "id": "UsageReports",
       "type": "object",
       "description": "JSON template for a collection of usage reports.",
       "properties": {
@@ -881,5 +873,8 @@
         "https://www.googleapis.com/auth/admin.reports.usage.readonly": "View usage reports of Google Apps for your domain"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/admin-sdk/reports/"
   }
 }

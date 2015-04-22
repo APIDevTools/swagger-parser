@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/compute/"
-  },
   "paths": {
     "/{projectName}/regions/{region}/resourceViews/{resourceViewName}/addResources": {
       "post": {
@@ -955,7 +952,6 @@
   },
   "definitions": {
     "Label": {
-      "id": "Label",
       "type": "object",
       "description": "The Label to be applied to the resource views.",
       "properties": {
@@ -970,7 +966,6 @@
       }
     },
     "RegionViewsAddResourcesRequest": {
-      "id": "RegionViewsAddResourcesRequest",
       "type": "object",
       "description": "The request to add resources to the resource view.",
       "properties": {
@@ -984,7 +979,6 @@
       }
     },
     "RegionViewsInsertResponse": {
-      "id": "RegionViewsInsertResponse",
       "type": "object",
       "description": "The response to a resource view insert request.",
       "properties": {
@@ -995,7 +989,6 @@
       }
     },
     "RegionViewsListResourcesResponse": {
-      "id": "RegionViewsListResourcesResponse",
       "type": "object",
       "description": "The response to the list resource request.",
       "properties": {
@@ -1013,7 +1006,6 @@
       }
     },
     "RegionViewsListResponse": {
-      "id": "RegionViewsListResponse",
       "type": "object",
       "description": "The response to the list resource view request.",
       "properties": {
@@ -1031,7 +1023,6 @@
       }
     },
     "RegionViewsRemoveResourcesRequest": {
-      "id": "RegionViewsRemoveResourcesRequest",
       "type": "object",
       "description": "The request to remove resources from the resource view.",
       "properties": {
@@ -1045,7 +1036,6 @@
       }
     },
     "ResourceView": {
-      "id": "ResourceView",
       "type": "object",
       "description": "The resource view object.",
       "properties": {
@@ -1100,7 +1090,6 @@
       }
     },
     "ZoneViewsAddResourcesRequest": {
-      "id": "ZoneViewsAddResourcesRequest",
       "type": "object",
       "description": "The request to add resources to the resource view.",
       "properties": {
@@ -1114,7 +1103,6 @@
       }
     },
     "ZoneViewsInsertResponse": {
-      "id": "ZoneViewsInsertResponse",
       "type": "object",
       "description": "The response to an insert request.",
       "properties": {
@@ -1125,7 +1113,6 @@
       }
     },
     "ZoneViewsListResourcesResponse": {
-      "id": "ZoneViewsListResourcesResponse",
       "type": "object",
       "description": "The response to a list resource request.",
       "properties": {
@@ -1143,7 +1130,6 @@
       }
     },
     "ZoneViewsListResponse": {
-      "id": "ZoneViewsListResponse",
       "type": "object",
       "description": "The response to a list request.",
       "properties": {
@@ -1161,7 +1147,6 @@
       }
     },
     "ZoneViewsRemoveResourcesRequest": {
-      "id": "ZoneViewsRemoveResourcesRequest",
       "type": "object",
       "description": "The request to remove resources from the resource view.",
       "properties": {
@@ -1238,5 +1223,8 @@
         "https://www.googleapis.com/auth/ndev.cloudman.readonly": "View your Google Cloud Platform management resources and deployment status information"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/compute/"
   }
 }

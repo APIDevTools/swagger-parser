@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/custom-search/v1/using_rest"
-  },
   "paths": {
     "/v1": {
       "get": {
@@ -344,7 +341,6 @@
   },
   "definitions": {
     "Context": {
-      "id": "Context",
       "type": "object",
       "properties": {
         "facets": {
@@ -373,7 +369,6 @@
       }
     },
     "Promotion": {
-      "id": "Promotion",
       "type": "object",
       "properties": {
         "bodyLines": {
@@ -427,7 +422,6 @@
       }
     },
     "Query": {
-      "id": "Query",
       "type": "object",
       "properties": {
         "count": {
@@ -548,7 +542,6 @@
       }
     },
     "Result": {
-      "id": "Result",
       "type": "object",
       "properties": {
         "cacheId": {
@@ -649,7 +642,6 @@
       }
     },
     "Search": {
-      "id": "Search",
       "type": "object",
       "properties": {
         "context": {
@@ -775,5 +767,8 @@
       "description": "IP address of the site where the request originates. Use this if you want to enforce per-user limits.",
       "type": "string"
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/custom-search/v1/using_rest"
   }
 }

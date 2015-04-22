@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "http://developers.google.com/compute/docs/autoscaler"
-  },
   "paths": {
     "/projects/{project}/zones/{zone}/autoscalers/{autoscaler}": {
       "delete": {
@@ -608,7 +605,6 @@
   },
   "definitions": {
     "Autoscaler": {
-      "id": "Autoscaler",
       "type": "object",
       "description": "Cloud Autoscaler resource.",
       "properties": {
@@ -649,7 +645,6 @@
       }
     },
     "AutoscalerListResponse": {
-      "id": "AutoscalerListResponse",
       "type": "object",
       "properties": {
         "items": {
@@ -671,7 +666,6 @@
       }
     },
     "AutoscalingPolicy": {
-      "id": "AutoscalingPolicy",
       "type": "object",
       "description": "Cloud Autoscaler policy.",
       "properties": {
@@ -708,7 +702,6 @@
       }
     },
     "AutoscalingPolicyCpuUtilization": {
-      "id": "AutoscalingPolicyCpuUtilization",
       "type": "object",
       "description": "CPU utilization policy.",
       "properties": {
@@ -720,7 +713,6 @@
       }
     },
     "AutoscalingPolicyCustomMetricUtilization": {
-      "id": "AutoscalingPolicyCustomMetricUtilization",
       "type": "object",
       "description": "Custom utilization metric policy.",
       "properties": {
@@ -740,7 +732,6 @@
       }
     },
     "AutoscalingPolicyLoadBalancingUtilization": {
-      "id": "AutoscalingPolicyLoadBalancingUtilization",
       "type": "object",
       "description": "Load balancing utilization policy.",
       "properties": {
@@ -752,7 +743,6 @@
       }
     },
     "DeprecationStatus": {
-      "id": "DeprecationStatus",
       "type": "object",
       "properties": {
         "deleted": {
@@ -773,7 +763,6 @@
       }
     },
     "Operation": {
-      "id": "Operation",
       "type": "object",
       "properties": {
         "clientOperationId": {
@@ -895,7 +884,6 @@
       }
     },
     "OperationList": {
-      "id": "OperationList",
       "type": "object",
       "properties": {
         "id": {
@@ -921,7 +909,6 @@
       }
     },
     "Zone": {
-      "id": "Zone",
       "type": "object",
       "properties": {
         "creationTimestamp": {
@@ -978,7 +965,6 @@
       }
     },
     "ZoneList": {
-      "id": "ZoneList",
       "type": "object",
       "properties": {
         "id": {
@@ -1065,5 +1051,8 @@
         "https://www.googleapis.com/auth/compute.readonly": "View your Google Compute Engine resources"
       }
     }
+  },
+  "externalDocs": {
+    "url": "http://developers.google.com/compute/docs/autoscaler"
   }
 }

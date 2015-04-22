@@ -14,9 +14,6 @@
   "schemes": [
     "https"
   ],
-  "externalDocs": {
-    "url": "https://developers.google.com/accounts/docs/OAuth2"
-  },
   "paths": {
     "/oauth2/v2/certs": {
       "get": {
@@ -73,6 +70,11 @@
           },
           {
             "name": "id_token",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "token_handle",
             "in": "query",
             "type": "string"
           }
@@ -203,7 +205,6 @@
   },
   "definitions": {
     "Jwk": {
-      "id": "Jwk",
       "type": "object",
       "properties": {
         "keys": {
@@ -238,7 +239,6 @@
       }
     },
     "Tokeninfo": {
-      "id": "Tokeninfo",
       "type": "object",
       "properties": {
         "access_type": {
@@ -266,9 +266,13 @@
           "type": "string",
           "description": "The space separated list of scopes granted to this token."
         },
+        "token_handle": {
+          "type": "string",
+          "description": "The token handle associated with this token."
+        },
         "user_id": {
           "type": "string",
-          "description": "The Gaia obfuscated user id."
+          "description": "The obfuscated user id."
         },
         "verified_email": {
           "type": "boolean",
@@ -277,7 +281,6 @@
       }
     },
     "Userinfoplus": {
-      "id": "Userinfoplus",
       "type": "object",
       "properties": {
         "email": {
@@ -302,7 +305,7 @@
         },
         "id": {
           "type": "string",
-          "description": "The focus obfuscated gaia id of the user."
+          "description": "The obfuscated ID of the user."
         },
         "link": {
           "type": "string",
@@ -390,5 +393,8 @@
         "https://www.googleapis.com/auth/userinfo.profile": "View your basic profile info"
       }
     }
+  },
+  "externalDocs": {
+    "url": "https://developers.google.com/accounts/docs/OAuth2"
   }
 }
