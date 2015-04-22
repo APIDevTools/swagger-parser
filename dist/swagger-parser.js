@@ -20679,6 +20679,7 @@ module.exports = property;
 },{"../internal/baseProperty":114,"../internal/basePropertyDeep":115,"../internal/isKey":139}],174:[function(require,module,exports){
 module.exports={
   "title": "A JSON Schema for Swagger 2.0 API.",
+  "id": "http://swagger.io/v2/schema.json#",
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "required": [
@@ -20892,7 +20893,6 @@ module.exports={
     },
     "mimeType": {
       "type": "string",
-      "pattern": "^[\\sa-z0-9\\-+;\\.=\\/]+$",
       "description": "The MIME type of the HTTP message."
     },
     "operation": {
@@ -21283,6 +21283,11 @@ module.exports={
           "type": "string",
           "description": "The name of the parameter."
         },
+        "allowEmptyValue": {
+          "type": "boolean",
+          "default": false,
+          "description": "allows sending a parameter by name only or with an empty value."
+        },
         "type": {
           "type": "string",
           "enum": [
@@ -21370,6 +21375,11 @@ module.exports={
         "name": {
           "type": "string",
           "description": "The name of the parameter."
+        },
+        "allowEmptyValue": {
+          "type": "boolean",
+          "default": false,
+          "description": "allows sending a parameter by name only or with an empty value."
         },
         "type": {
           "type": "string",
@@ -21623,6 +21633,9 @@ module.exports={
         "enum": {
           "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
         },
+        "additionalProperties": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/additionalProperties"
+        },
         "type": {
           "$ref": "http://json-schema.org/draft-04/schema#/properties/type"
         },
@@ -21669,7 +21682,8 @@ module.exports={
           "$ref": "#/definitions/externalDocs"
         },
         "example": {}
-      }
+      },
+      "additionalProperties": false
     },
     "primitivesItems": {
       "type": "object",
@@ -22054,7 +22068,6 @@ module.exports={
     "parametersList": {
       "type": "array",
       "description": "The parameters needed to send a valid API call.",
-      "minItems": 1,
       "additionalItems": false,
       "items": {
         "oneOf": [
