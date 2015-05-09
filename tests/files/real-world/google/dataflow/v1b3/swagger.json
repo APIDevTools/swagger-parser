@@ -7,10 +7,10 @@
       "name": "Google",
       "url": "https://google.com"
     },
-    "version": "v1beta3"
+    "version": "v1b3"
   },
-  "host": "www.googleapis.com",
-  "basePath": "/dataflow/v1b3/projects",
+  "host": "dataflow.googleapis.com",
+  "basePath": "/v1b3/projects",
   "schemes": [
     "https"
   ],
@@ -18,7 +18,7 @@
     "/{projectId}/jobs": {
       "post": {
         "description": "Creates a dataflow job.",
-        "operationId": "dataflow.v1b3.projects.jobs.create",
+        "operationId": "dataflow.projects.jobs.create",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -59,12 +59,12 @@
           }
         ],
         "tags": [
-          "v1b3"
+          "projects"
         ]
       },
       "get": {
         "description": "List the jobs of a project",
-        "operationId": "dataflow.v1b3.projects.jobs.list",
+        "operationId": "dataflow.projects.jobs.list",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -110,7 +110,7 @@
           }
         ],
         "tags": [
-          "v1b3"
+          "projects"
         ]
       },
       "parameters": [
@@ -140,7 +140,7 @@
     "/{projectId}/jobs/{jobId}": {
       "get": {
         "description": "Gets the state of the specified dataflow job.",
-        "operationId": "dataflow.v1b3.projects.jobs.get",
+        "operationId": "dataflow.projects.jobs.get",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -182,12 +182,12 @@
           }
         ],
         "tags": [
-          "v1b3"
+          "projects"
         ]
       },
       "patch": {
         "description": "Updates the state of an existing dataflow job. This method supports patch semantics.",
-        "operationId": "dataflow.v1b3.projects.jobs.patch",
+        "operationId": "dataflow.projects.jobs.patch",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -219,12 +219,12 @@
           }
         ],
         "tags": [
-          "v1b3"
+          "projects"
         ]
       },
       "put": {
         "description": "Updates the state of an existing dataflow job.",
-        "operationId": "dataflow.v1b3.projects.jobs.update",
+        "operationId": "dataflow.projects.jobs.update",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -256,7 +256,7 @@
           }
         ],
         "tags": [
-          "v1b3"
+          "projects"
         ]
       },
       "parameters": [
@@ -286,7 +286,7 @@
     "/{projectId}/jobs/{jobId}/metrics": {
       "get": {
         "description": "Request the job status.",
-        "operationId": "dataflow.v1b3.projects.jobs.getMetrics",
+        "operationId": "dataflow.projects.jobs.getMetrics",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -323,7 +323,7 @@
           }
         ],
         "tags": [
-          "v1b3"
+          "projects"
         ]
       },
       "parameters": [
@@ -353,7 +353,7 @@
     "/{projectId}/jobs/{jobId}/messages": {
       "get": {
         "description": "Request the job status.",
-        "operationId": "dataflow.v1b3.projects.jobs.messages.list",
+        "operationId": "dataflow.projects.jobs.messages.list",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -417,7 +417,7 @@
           }
         ],
         "tags": [
-          "v1b3"
+          "projects"
         ]
       },
       "parameters": [
@@ -447,7 +447,7 @@
     "/{projectId}/jobs/{jobId}/workItems:lease": {
       "post": {
         "description": "Leases a dataflow WorkItem to run.",
-        "operationId": "dataflow.v1b3.projects.jobs.workItems.lease",
+        "operationId": "dataflow.projects.jobs.workItems.lease",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -479,7 +479,7 @@
           }
         ],
         "tags": [
-          "v1b3"
+          "projects"
         ]
       },
       "parameters": [
@@ -509,7 +509,7 @@
     "/{projectId}/jobs/{jobId}/workItems:reportStatus": {
       "post": {
         "description": "Reports the status of dataflow WorkItems leased by a worker.",
-        "operationId": "dataflow.v1b3.projects.jobs.workItems.reportStatus",
+        "operationId": "dataflow.projects.jobs.workItems.reportStatus",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -541,7 +541,7 @@
           }
         ],
         "tags": [
-          "v1b3"
+          "projects"
         ]
       },
       "parameters": [
