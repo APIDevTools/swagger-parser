@@ -7,6 +7,7 @@ Swagger-Parser
 [![Code Climate Score](https://img.shields.io/codeclimate/github/BigstickCarpet/swagger-parser.svg)](https://codeclimate.com/github/BigstickCarpet/swagger-parser)
 [![Codacy Score](http://img.shields.io/codacy/6d686f916836433b9c013379fbe1052c.svg)](https://www.codacy.com/public/jamesmessinger/swagger-parser)
 [![Coverage Status](https://img.shields.io/coveralls/BigstickCarpet/swagger-parser.svg)](https://coveralls.io/r/BigstickCarpet/swagger-parser)
+[![Inline docs](http://inch-ci.org/github/bigstickcarpet/swagger-parser.svg?branch=master&style=shields)](http://inch-ci.org/github/bigstickcarpet/swagger-parser)
 
 [![Downloads](https://img.shields.io/npm/dm/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
 [![npm](http://img.shields.io/npm/v/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
