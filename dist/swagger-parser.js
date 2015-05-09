@@ -10,54 +10,54 @@ module.exports.defaults = require('./defaults');
  * @private
  */
 module.exports.__ = {
-    safeLoad: require('js-yaml').safeLoad,
-    cloneDeep: require('lodash/lang/cloneDeep')
+  safeLoad: require('js-yaml').safeLoad,
+  cloneDeep: require('lodash/lang/cloneDeep')
 };
 
-},{"./defaults":2,"./parse":4,"js-yaml":48,"lodash/lang/cloneDeep":150}],2:[function(require,module,exports){
+},{"./defaults":2,"./parse":4,"js-yaml":48,"lodash/lang/cloneDeep":151}],2:[function(require,module,exports){
 /**
  * The default parsing options.
  * @name defaults
  * @type {{parseYaml: boolean, resolve$Refs: boolean, resolveExternal$Refs: boolean, validateSchema: boolean}}
  */
 module.exports = {
-    /**
-     * Determines whether the parser will allow Swagger specs in YAML format.
-     * If set to `false`, then only JSON will be allowed.
-     * @type {boolean}
-     */
-    parseYaml: true,
+  /**
+   * Determines whether the parser will allow Swagger specs in YAML format.
+   * If set to `false`, then only JSON will be allowed.
+   * @type {boolean}
+   */
+  parseYaml: true,
 
-    /**
-     * Determines whether `$ref` pointers will be resolved.
-     * @type {boolean}
-     */
-    resolve$Refs: true,
+  /**
+   * Determines whether `$ref` pointers will be resolved.
+   * @type {boolean}
+   */
+  resolve$Refs: true,
 
-    /**
-     * Determines whether `$ref` pointers will be resolved if they point to external files or URLs.
-     * @type {boolean}
-     */
-    resolveExternal$Refs: true,
+  /**
+   * Determines whether `$ref` pointers will be resolved if they point to external files or URLs.
+   * @type {boolean}
+   */
+  resolveExternal$Refs: true,
 
-    /**
-     * Determines whether `$ref` pointers in the Swagger API object will be replaced with their resolved objects.
-     * @type {boolean}
-     */
-    dereference$Refs: true,
+  /**
+   * Determines whether `$ref` pointers in the Swagger API object will be replaced with their resolved objects.
+   * @type {boolean}
+   */
+  dereference$Refs: true,
 
-    /**
-     * Determines whether the API will be validated against the Swagger schema.
-     * @type {boolean}
-     */
-    validateSchema: true,
+  /**
+   * Determines whether the API will be validated against the Swagger schema.
+   * @type {boolean}
+   */
+  validateSchema: true,
 
-    /**
-     * Determines whether to perform strict validation, which enforces parts of the Swagger Spec
-     * that aren't enforced by the JSON schema.
-     * @type {boolean}
-     */
-    strictValidation: true
+  /**
+   * Determines whether to perform strict validation, which enforces parts of the Swagger Spec
+   * that aren't enforced by the JSON schema.
+   * @type {boolean}
+   */
+  strictValidation: true
 };
 
 },{}],3:[function(require,module,exports){
@@ -69,7 +69,6 @@ var util      = require('./util'),
     _last     = require('lodash/array/last'),
     _contains = require('lodash/collection/contains');
 
-
 /**
  * Dereferences the given Swagger API, replacing "$ref" pointers
  * with their corresponding object references.
@@ -79,62 +78,61 @@ var util      = require('./util'),
  * @param   {function}      callback
  */
 function dereference(api, state, callback) {
-    if (!state.options.dereference$Refs || !state.options.resolve$Refs) {
-        // Dereferencing/Resolving is disabled, so just return the API as-is
-        util.doCallback(callback, null, api);
-        return;
-    }
+  if (!state.options.dereference$Refs || !state.options.resolve$Refs) {
+    // Dereferencing/Resolving is disabled, so just return the API as-is
+    util.doCallback(callback, null, api);
+    return;
+  }
 
-    var circularRefs = 0;
+  var circularRefs = 0;
 
-    // Replace all $ref pointers with their resolved values
-    util.crawlObject(api, finished,
-        function(parents, propName, propPath, continueCrawling) {
-            var parent = _last(parents);
-            var $ref = parent[propName].$ref;
+  // Replace all $ref pointers with their resolved values
+  util.crawlObject(api, finished,
+    function(parents, propName, propPath, continueCrawling) {
+      var parent = _last(parents);
+      var $ref = parent[propName].$ref;
 
-            if ($ref) {
-                // We found a $ref pointer.  Do we have a corresponding resolved value?
-                var resolved = state.$refs[$ref];
+      if ($ref) {
+        // We found a $ref pointer.  Do we have a corresponding resolved value?
+        var resolved = state.$refs[$ref];
 
-                if (resolved) {
-                    // We have a resolved value.  But is it a circular reference?
-                    isCircularReference(resolved, parents, function(isCircular) {
-                        if (isCircular) {
-                            // It's a circular reference, so don't dereference it.
-                            circularRefs++;
-                            util.debug('Circular reference detected at %s', propPath);
-                        }
-                        else {
-                            // Replace the $ref pointer with its resolved value
-                            parent[propName] = resolved;
-                        }
-
-                        // NOTE: This will also crawl the resolved value that we just added
-                        // and replace any nested $ref pointers in it too.
-                        util.doCallback(continueCrawling);
-                    });
-                }
-                else {
-                    util.doCallback(continueCrawling);
-                }
+        if (resolved) {
+          // We have a resolved value.  But is it a circular reference?
+          isCircularReference(resolved, parents, function(isCircular) {
+            if (isCircular) {
+              // It's a circular reference, so don't dereference it.
+              circularRefs++;
+              util.debug('Circular reference detected at %s', propPath);
             }
             else {
-                util.doCallback(continueCrawling);
+              // Replace the $ref pointer with its resolved value
+              parent[propName] = resolved;
             }
-        }
-    );
 
-    // Done!
-    function finished(err) {
-        if (!err && circularRefs) {
-            err = new ReferenceError(circularRefs + ' circular reference(s) detected');
+            // NOTE: This will also crawl the resolved value that we just added
+            // and replace any nested $ref pointers in it too.
+            util.doCallback(continueCrawling);
+          });
         }
-
-        util.doCallback(callback, err, api);
+        else {
+          util.doCallback(continueCrawling);
+        }
+      }
+      else {
+        util.doCallback(continueCrawling);
+      }
     }
-}
+  );
 
+  // Done!
+  function finished(err) {
+    if (!err && circularRefs) {
+      err = new ReferenceError(circularRefs + ' circular reference(s) detected');
+    }
+
+    util.doCallback(callback, err, api);
+  }
+}
 
 /**
  * Determines whether a resolved $ref value is a circular reference.
@@ -144,22 +142,22 @@ function dereference(api, state, callback) {
  * @param   {function}  callback    Called with a boolean parameter
  */
 function isCircularReference(resolved, parents, callback) {
-    var isCircular = false;
+  var isCircular = false;
 
-    // Determine if the resolved value contains any of its parents
-    util.crawlObject(resolved, done,
-        function(props, propName, propPath, continueCrawling) {
-            var prop = _last(props)[propName];
-            isCircular = _contains(parents, prop);
+  // Determine if the resolved value contains any of its parents
+  util.crawlObject(resolved, done,
+    function(props, propName, propPath, continueCrawling) {
+      var prop = _last(props)[propName];
+      isCircular = _contains(parents, prop);
 
-            // Continue crawling the resolved object, unless we found a circular reference
-            continueCrawling(isCircular);
-        }
-    );
-
-    function done() {
-        callback(isCircular);
+      // Continue crawling the resolved object, unless we found a circular reference
+      continueCrawling(isCircular);
     }
+  );
+
+  function done() {
+    callback(isCircular);
+  }
 }
 
 },{"./util":8,"lodash/array/last":80,"lodash/collection/contains":83}],4:[function(require,module,exports){
@@ -184,7 +182,6 @@ var Path                     = require('path'),
     _isFunction              = require('lodash/lang/isFunction'),
     supportedSwaggerVersions = ['2.0'];
 
-
 /**
  * Parses the given Swagger file, validates it, and dereferences "$ref" pointers.
  *
@@ -199,65 +196,64 @@ var Path                     = require('path'),
  * The callback function that will be passed the parsed SwaggerObject
  */
 function parse(swagger, options, callback) {
-    // Shift args if necessary
-    if (_isFunction(options)) {
-        callback = options;
-        options = undefined;
-    }
+  // Shift args if necessary
+  if (_isFunction(options)) {
+    callback = options;
+    options = undefined;
+  }
 
-    if (_isEmpty(swagger)) {
-        throw new Error('Expected a Swagger file or object');
-    }
+  if (_isEmpty(swagger)) {
+    throw new Error('Expected a Swagger file or object');
+  }
 
-    if (!_isFunction(callback)) {
-        throw new Error('A callback function must be provided');
-    }
+  if (!_isFunction(callback)) {
+    throw new Error('A callback function must be provided');
+  }
 
-    // Create a new state object for this parse operation
-    var state = new State();
-    state.options = _merge({}, defaults, options);
+  // Create a new state object for this parse operation
+  var state = new State();
+  state.options = _merge({}, defaults, options);
 
-    var circular$RefError = null;
+  var circular$RefError = null;
 
-    // Parse, dereference, and validate
-    parseSwaggerFile(swagger, state, function(err, api) {
+  // Parse, dereference, and validate
+  parseSwaggerFile(swagger, state, function(err, api) {
+    errBack(err) ||
+    resolve(api, state, function(err, api) {
+      errBack(err) ||
+      dereference(api, state, function(err, api) {
         errBack(err) ||
-        resolve(api, state, function(err, api) {
-            errBack(err) ||
-            dereference(api, state, function(err, api) {
-                errBack(err) ||
-                validate(api, state, function(err, api) {
-                    errBack(err) ||
-                    finished(api, state);
-                });
-            });
+        validate(api, state, function(err, api) {
+          errBack(err) ||
+          finished(api, state);
         });
+      });
     });
+  });
 
-    // Done!
-    function finished(api) {
-        util.doCallback(callback, circular$RefError, api, getMetadata(state));
+  // Done!
+  function finished(api) {
+    util.doCallback(callback, circular$RefError, api, getMetadata(state));
+  }
+
+  // Error!
+  function errBack(err) {
+    if (err) {
+      // Ignore circular-reference errors and keep going
+      if (err instanceof ReferenceError) {
+        circular$RefError = err;
+        return false;
+      }
+
+      // For any other error, abort immediately
+      util.doCallback(callback,
+        util.newSyntaxError(err, 'Error in Swagger definition'),
+        null,
+        getMetadata(state));
     }
-
-    // Error!
-    function errBack(err) {
-        if (err) {
-            // Ignore circular-reference errors and keep going
-            if (err instanceof ReferenceError) {
-                circular$RefError = err;
-                return false;
-            }
-
-            // For any other error, abort immediately
-            util.doCallback(callback,
-                util.newSyntaxError(err, 'Error in Swagger definition'),
-                null,
-                getMetadata(state));
-        }
-        return !!err;
-    }
+    return !!err;
+  }
 }
-
 
 /**
  * Parses the given JSON or YAML file/URL or Swagger object, and verifies that it's a supported Swagger API.
@@ -267,44 +263,45 @@ function parse(swagger, options, callback) {
  * @param   {function}              callback
  */
 function parseSwaggerFile(swagger, state, callback) {
-    if (_isString(swagger)) {
-        // Open/download the file/URL
-        var path = resolveSwaggerPath(swagger, state);
-        read(path, state, verifyParsedAPI);
+  if (_isString(swagger)) {
+    // Open/download the file/URL
+    var path = resolveSwaggerPath(swagger, state);
+    read(path, state, verifyParsedAPI);
+  }
+  else {
+    // It's already a parsed object, but we still need to validate it
+    resolveSwaggerPath('', state);
+    verifyParsedAPI(null, _cloneDeep(swagger));
+  }
+
+  function verifyParsedAPI(err, api) {
+    if (err) {
+      util.doCallback(callback, err);
+    }
+    else if (api.swagger === undefined || api.info === undefined || api.paths === undefined) {
+      util.doCallback(callback, util.newSyntaxError('The object is not a valid Swagger API definition'));
+    }
+    else if (_isNumber(api.swagger)) {
+      // This is a very common mistake, so give a helpful error message
+      util.doCallback(callback,
+        util.newSyntaxError('Swagger version number must be a string (e.g. "2.0") not a number.'));
+    }
+    else if (_isNumber(api.info.version)) {
+      // This is a very common mistake, so give a helpful error message
+      util.doCallback(callback,
+        util.newSyntaxError('API version number must be a string (e.g. "1.0.0") not a number.'));
+    }
+    else if (supportedSwaggerVersions.indexOf(api.swagger) === -1) {
+      util.doCallback(callback, util.newSyntaxError(
+        'Unsupported Swagger version: %d. Swagger-Parser only supports version %s',
+        api.swagger, supportedSwaggerVersions.join(', ')));
     }
     else {
-        // It's already a parsed object, but we still need to validate it
-        resolveSwaggerPath('', state);
-        verifyParsedAPI(null, _cloneDeep(swagger));
+      state.swagger = api;
+      util.doCallback(callback, null, api);
     }
-
-    function verifyParsedAPI(err, api) {
-        if (err) {
-            util.doCallback(callback, err);
-        }
-        else if (api.swagger === undefined || api.info === undefined || api.paths === undefined) {
-            util.doCallback(callback, util.newSyntaxError('The object is not a valid Swagger API definition'));
-        }
-        else if (_isNumber(api.swagger)) {
-            // This is a very common mistake, so give a helpful error message
-            util.doCallback(callback, util.newSyntaxError('Swagger version number must be a string (e.g. "2.0") not a number.'));
-        }
-        else if (_isNumber(api.info.version)) {
-            // This is a very common mistake, so give a helpful error message
-            util.doCallback(callback, util.newSyntaxError('API version number must be a string (e.g. "1.0.0") not a number.'));
-        }
-        else if (supportedSwaggerVersions.indexOf(api.swagger) === -1) {
-            util.doCallback(callback, util.newSyntaxError(
-                'Unsupported Swagger version: %d. Swagger-Parser only supports version %s',
-                api.swagger, supportedSwaggerVersions.join(', ')));
-        }
-        else {
-            state.swagger = api;
-            util.doCallback(callback, null, api);
-        }
-    }
+  }
 }
-
 
 /**
  * Resolves the given file path or URL to determine the Swagger base directory.
@@ -314,19 +311,18 @@ function parseSwaggerFile(swagger, state, callback) {
  * @returns {string}                The resolved absolute file path or URL
  */
 function resolveSwaggerPath(path, state) {
-    // Resolve the file path or url, relative to the CWD
-    var cwd = util.cwd();
-    var resolvedPath = util.resolvePath(cwd, path + '');
-    state.swaggerPath = resolvedPath;
+  // Resolve the file path or url, relative to the CWD
+  var cwd = util.cwd();
+  var resolvedPath = util.resolvePath(cwd, path + '');
+  state.swaggerPath = resolvedPath;
 
-    // Get the directory of the Swagger file.
-    // Always append a trailing slash, to ensure that it behaves properly with {@link url#resolve}.
-    state.baseDir = Path.dirname(resolvedPath) + (util.isBrowser() ? '/' : Path.sep);
-    util.debug('Swagger base directory: %s', state.baseDir);
+  // Get the directory of the Swagger file.
+  // Always append a trailing slash, to ensure that it behaves properly with {@link url#resolve}.
+  state.baseDir = Path.dirname(resolvedPath) + (util.isBrowser() ? '/' : Path.sep);
+  util.debug('Swagger base directory: %s', state.baseDir);
 
-    return resolvedPath;
+  return resolvedPath;
 }
-
 
 /**
  * Returns the metadata for the current parse operation
@@ -335,25 +331,24 @@ function resolveSwaggerPath(path, state) {
  * @returns {State}
  */
 function getMetadata(state) {
-    return _pick(state, 'baseDir', 'files', 'urls', '$refs');
+  return _pick(state, 'baseDir', 'files', 'urls', '$refs');
 }
 
 
-},{"./defaults":2,"./dereference":3,"./read":5,"./resolve":6,"./state":7,"./util":8,"./validate":9,"lodash/lang/cloneDeep":150,"lodash/lang/isEmpty":153,"lodash/lang/isFunction":154,"lodash/lang/isNumber":156,"lodash/lang/isString":159,"lodash/object/merge":165,"lodash/object/pick":166,"path":23}],5:[function(require,module,exports){
+},{"./defaults":2,"./dereference":3,"./read":5,"./resolve":6,"./state":7,"./util":8,"./validate":9,"lodash/lang/cloneDeep":151,"lodash/lang/isEmpty":154,"lodash/lang/isFunction":155,"lodash/lang/isNumber":157,"lodash/lang/isString":160,"lodash/object/merge":166,"lodash/object/pick":167,"path":23}],5:[function(require,module,exports){
 'use strict';
 
 module.exports = read;
 
-var fs             = require('fs'),
-    Path           = require('path'),
-    http           = require('http'),
-    url            = require('url'),
-    yaml           = require('js-yaml'),
-    util           = require('./util'),
-    _once          = require('lodash/function/once'),
-    _isEmpty       = require('lodash/lang/isEmpty'),
-    _isFunction    = require('lodash/lang/isFunction');
-
+var fs          = require('fs'),
+    Path        = require('path'),
+    http        = require('http'),
+    url         = require('url'),
+    yaml        = require('js-yaml'),
+    util        = require('./util'),
+    _once       = require('lodash/function/once'),
+    _isEmpty    = require('lodash/lang/isEmpty'),
+    _isFunction = require('lodash/lang/isFunction');
 
 /**
  * Reads a JSON or YAML file from the local filesystem or a remote URL and returns the parsed POJO.
@@ -362,22 +357,21 @@ var fs             = require('fs'),
  * @param {function}  callback    function(err, parsedObject)
  */
 function read(path, state, callback) {
-    try {
-        if (isLocalFile(path)) {
-            state.files.push(path);
-            readFile(path, state, callback);
-        }
-        else {
-            var parsedUrl = url.parse(path);
-            state.urls.push(parsedUrl);
-            readUrl(parsedUrl, state, callback);
-        }
+  try {
+    if (isLocalFile(path)) {
+      state.files.push(path);
+      readFile(path, state, callback);
     }
-    catch (e) {
-        callback(e);
+    else {
+      var parsedUrl = url.parse(path);
+      state.urls.push(parsedUrl);
+      readUrl(parsedUrl, state, callback);
     }
+  }
+  catch (e) {
+    callback(e);
+  }
 }
-
 
 /**
  * Reads a JSON or YAML file from the local filesystem and returns the parsed POJO.
@@ -386,35 +380,34 @@ function read(path, state, callback) {
  * @param {function}  callback        function(err, parsedObject)
  */
 function readFile(filePath, state, callback) {
-    function errorHandler(err) {
-        callback(util.newError(err, 'Error opening file "%s"', filePath));
-    }
+  function errorHandler(err) {
+    callback(util.newError(err, 'Error opening file "%s"', filePath));
+  }
 
-    function parseError(err) {
-        callback(util.newSyntaxError(err, 'Error parsing file "%s"', filePath));
-    }
+  function parseError(err) {
+    callback(util.newSyntaxError(err, 'Error parsing file "%s"', filePath));
+  }
 
-    try {
-        util.debug('Reading file "%s"', filePath);
+  try {
+    util.debug('Reading file "%s"', filePath);
 
-        fs.readFile(filePath, function(err, data) {
-            if (err) {
-                return errorHandler(err);
-            }
+    fs.readFile(filePath, function(err, data) {
+      if (err) {
+        return errorHandler(err);
+      }
 
-            try {
-                callback(null, parseJsonOrYaml(filePath, data, state));
-            }
-            catch (e) {
-                parseError(e);
-            }
-        });
-    }
-    catch (e) {
-        errorHandler(e);
-    }
+      try {
+        callback(null, parseJsonOrYaml(filePath, data, state));
+      }
+      catch (e) {
+        parseError(e);
+      }
+    });
+  }
+  catch (e) {
+    errorHandler(e);
+  }
 }
-
 
 /**
  * Reads a JSON or YAML file from the a remote URL and returns the parsed POJO.
@@ -423,76 +416,75 @@ function readFile(filePath, state, callback) {
  * @param {function}  callback    function(err, parsedObject)
  */
 function readUrl(parsedUrl, state, callback) {
-    // NOTE: When HTTP errors occur, they can trigger multiple on('error') events,
-    // So we need to make sure we only invoke the callback function ONCE.
-    callback = _once(callback);
+  // NOTE: When HTTP errors occur, they can trigger multiple on('error') events,
+  // So we need to make sure we only invoke the callback function ONCE.
+  callback = _once(callback);
 
-    function downloadError(err) {
-        callback(util.newError(err, 'Error downloading file "%s"', parsedUrl.href));
-    }
+  function downloadError(err) {
+    callback(util.newError(err, 'Error downloading file "%s"', parsedUrl.href));
+  }
 
-    function parseError(err) {
-        callback(util.newSyntaxError(err, 'Error parsing file "%s"', parsedUrl.href));
-    }
+  function parseError(err) {
+    callback(util.newSyntaxError(err, 'Error parsing file "%s"', parsedUrl.href));
+  }
 
-    try {
-        var options = {
-            host: parsedUrl.host,
-            hostname: parsedUrl.hostname,
-            port: parsedUrl.port,
-            path: parsedUrl.path,
-            auth: parsedUrl.auth,
-            headers: {'Content-Type': 'application/json'}
-        };
+  try {
+    var options = {
+      host: parsedUrl.host,
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port,
+      path: parsedUrl.path,
+      auth: parsedUrl.auth,
+      headers: {'Content-Type': 'application/json'}
+    };
 
-        util.debug('Downloading file "%s"', parsedUrl.href);
+    util.debug('Downloading file "%s"', parsedUrl.href);
 
-        var req = http.get(options, function(res) {
-            var body = '';
+    var req = http.get(options, function(res) {
+      var body = '';
 
-            res.on('data', function(data) {
-                // Data can be a string or a buffer
-                body = body.concat(data);
-            });
+      res.on('data', function(data) {
+        // Data can be a string or a buffer
+        body = body.concat(data);
+      });
 
-            res.on('end', function() {
-                if (res.statusCode >= 400) {
-                    return downloadError(util.newError('HTTP ERROR %d: %s', res.statusCode, body));
-                }
-                else if (res.statusCode === 204 || _isEmpty(body)) {
-                    return downloadError(util.newError('HTTP 204: No Content'));
-                }
-
-                try {
-                    callback(null, parseJsonOrYaml(parsedUrl.href, body, state));
-                }
-                catch (e) {
-                    parseError(e);
-                }
-            });
-
-            res.on('error', function(e) {
-                downloadError(e);
-            });
-        });
-
-        if (_isFunction(req.setTimeout)) {
-            req.setTimeout(5000);
+      res.on('end', function() {
+        if (res.statusCode >= 400) {
+          return downloadError(util.newError('HTTP ERROR %d: %s', res.statusCode, body));
+        }
+        else if (res.statusCode === 204 || _isEmpty(body)) {
+          return downloadError(util.newError('HTTP 204: No Content'));
         }
 
-        req.on('timeout', function() {
-            req.abort();
-        });
+        try {
+          callback(null, parseJsonOrYaml(parsedUrl.href, body, state));
+        }
+        catch (e) {
+          parseError(e);
+        }
+      });
 
-        req.on('error', function(e) {
-            downloadError(e);
-        });
-    }
-    catch (e) {
+      res.on('error', function(e) {
         downloadError(e);
-    }
-}
+      });
+    });
 
+    if (_isFunction(req.setTimeout)) {
+      req.setTimeout(5000);
+    }
+
+    req.on('timeout', function() {
+      req.abort();
+    });
+
+    req.on('error', function(e) {
+      downloadError(e);
+    });
+  }
+  catch (e) {
+    downloadError(e);
+  }
+}
 
 /**
  * Determines whether the given path points to a local file that exists.
@@ -500,20 +492,19 @@ function readUrl(parsedUrl, state, callback) {
  * @returns {boolean}
  */
 function isLocalFile(path) {
-    /* istanbul ignore if: code-coverage doesn't run in the browser */
-    if (util.isBrowser()) {
-        // Local files aren't supported in browsers
-        return false;
-    }
+  /* istanbul ignore if: code-coverage doesn't run in the browser */
+  if (util.isBrowser()) {
+    // Local files aren't supported in browsers
+    return false;
+  }
 
-    // If the path exists locally, then treat the URL as a local file
-    if (fs.existsSync(path)) {
-        return true;
-    }
+  // If the path exists locally, then treat the URL as a local file
+  if (fs.existsSync(path)) {
+    return true;
+  }
 
-    return util.isLocalPath(path);
+  return util.isLocalPath(path);
 }
-
 
 /**
  * Parses a JSON or YAML string into a POJO.
@@ -523,41 +514,41 @@ function isLocalFile(path) {
  * @returns {object}
  */
 function parseJsonOrYaml(path, data, state) {
-    var parsedObject;
+  var parsedObject;
 
-    try {
-        if (state.options.parseYaml) {
-            util.debug('Parsing YAML file "%s"', path);
-            parsedObject = yaml.safeLoad(data);
-        }
-        else {
-            util.debug('Parsing JSON file "%s"', path);
-            parsedObject = JSON.parse(data);
-        }
-
-        if (_isEmpty(parsedObject)) {
-            //noinspection ExceptionCaughtLocallyJS
-            throw util.newSyntaxError('Parsed value is empty');
-        }
-
-        util.debug('    Parsed successfully');
+  try {
+    if (state.options.parseYaml) {
+      util.debug('Parsing YAML file "%s"', path);
+      parsedObject = yaml.safeLoad(data);
     }
-    catch (e) {
-        var ext = Path.extname(path).toLowerCase();
-        if (['.json', '.yaml', '.yml'].indexOf(ext) === -1) {
-            // It's not a YAML or JSON file, so ignore the parsing error and just treat it as a string
-            parsedObject = data;
-        }
-        else {
-            throw e;
-        }
+    else {
+      util.debug('Parsing JSON file "%s"', path);
+      parsedObject = JSON.parse(data);
     }
 
-    return parsedObject;
+    if (_isEmpty(parsedObject)) {
+      //noinspection ExceptionCaughtLocallyJS
+      throw util.newSyntaxError('Parsed value is empty');
+    }
+
+    util.debug('    Parsed successfully');
+  }
+  catch (e) {
+    var ext = Path.extname(path).toLowerCase();
+    if (['.json', '.yaml', '.yml'].indexOf(ext) === -1) {
+      // It's not a YAML or JSON file, so ignore the parsing error and just treat it as a string
+      parsedObject = data;
+    }
+    else {
+      throw e;
+    }
+  }
+
+  return parsedObject;
 }
 
 
-},{"./util":8,"fs":10,"http":17,"js-yaml":48,"lodash/function/once":88,"lodash/lang/isEmpty":153,"lodash/lang/isFunction":154,"path":23,"url":42}],6:[function(require,module,exports){
+},{"./util":8,"fs":10,"http":17,"js-yaml":48,"lodash/function/once":88,"lodash/lang/isEmpty":154,"lodash/lang/isFunction":155,"path":23,"url":42}],6:[function(require,module,exports){
 'use strict';
 
 module.exports = resolve;
@@ -570,12 +561,10 @@ var read      = require('./read'),
     _isEmpty  = require('lodash/lang/isEmpty'),
     _isString = require('lodash/lang/isString');
 
-
 // RegExp pattern to detect external $ref pointers.
 // Matches anything that starts with "http://" or contains a period (".")
 // (e.g. "http://localhost/some/path", "company.com/some/path", "file.yaml", "..\..\file.yaml", "./fileWithoutExt")
 var external$RefPattern = /^https?\:\/\/|^\.|^[^#].*\./i;
-
 
 /**
  * Resolves all $ref pointers in the given Swagger API.
@@ -586,16 +575,15 @@ var external$RefPattern = /^https?\:\/\/|^\.|^[^#].*\./i;
  * @param   {function}      callback
  */
 function resolve(api, state, callback) {
-    if (!state.options.resolve$Refs) {
-        // Resolving is disabled, so just return the API as-is
-        util.doCallback(callback, null, api);
-        return;
-    }
+  if (!state.options.resolve$Refs) {
+    // Resolving is disabled, so just return the API as-is
+    util.doCallback(callback, null, api);
+    return;
+  }
 
-    util.debug('Resolving $ref pointers in %s', state.swaggerPath);
-    resolveObject(api, '', state, callback);
+  util.debug('Resolving $ref pointers in %s', state.swaggerPath);
+  resolveObject(api, '', state, callback);
 }
-
 
 /**
  * Recursively resolves all $ref pointers in the given object.
@@ -607,16 +595,15 @@ function resolve(api, state, callback) {
  * @param   {function}  callback
  */
 function resolveObject(obj, objPath, state, callback) {
-    // Recursively crawl the object
-    util.crawlObject(obj, objPath, callback,
-        // Inspect each nested object.
-        function(parents, propName, propPath, continueCrawling) {
-            // If it's a $ref pointer, then resolve it
-            resolveIf$Ref(_last(parents)[propName], propPath, state, continueCrawling);
-        }
-    );
+  // Recursively crawl the object
+  util.crawlObject(obj, objPath, callback,
+    // Inspect each nested object.
+    function(parents, propName, propPath, continueCrawling) {
+      // If it's a $ref pointer, then resolve it
+      resolveIf$Ref(_last(parents)[propName], propPath, state, continueCrawling);
+    }
+  );
 }
-
 
 /**
  * Determines whether the given object is a $ref pointer.
@@ -629,23 +616,22 @@ function resolveObject(obj, objPath, state, callback) {
  * @param   {function}  callback
  */
 function resolveIf$Ref(value, valuePath, state, callback) {
-    if (_has(value, '$ref') && _isString(value.$ref)) {
-        if (isExternal$Ref(value.$ref) && !state.options.resolveExternal$Refs) {
-            // Resolving external pointers is disabled, so return the $ref as-is
-            util.doCallback(callback, null, value);
-        }
-        else {
-            // This is a $ref pointer, so resolve it
-            var $refPath = valuePath + '/$ref';
-            resolve$Ref(value.$ref, $refPath, state, callback);
-        }
+  if (_has(value, '$ref') && _isString(value.$ref)) {
+    if (isExternal$Ref(value.$ref) && !state.options.resolveExternal$Refs) {
+      // Resolving external pointers is disabled, so return the $ref as-is
+      util.doCallback(callback, null, value);
     }
     else {
-        // It's not a $ref pointer, so return it as-is
-        util.doCallback(callback, null, value);
+      // This is a $ref pointer, so resolve it
+      var $refPath = valuePath + '/$ref';
+      resolve$Ref(value.$ref, $refPath, state, callback);
     }
+  }
+  else {
+    // It's not a $ref pointer, so return it as-is
+    util.doCallback(callback, null, value);
+  }
 }
-
 
 /**
  * Recursively resolves a $ref pointer.
@@ -657,76 +643,74 @@ function resolveIf$Ref(value, valuePath, state, callback) {
  * @param   {function}  callback
  */
 function resolve$Ref($ref, $refPath, state, callback) {
-    try {
-        // Check for invalid values
-        if (_isEmpty($ref)) {
-            util.doCallback(callback, util.newSyntaxError('Empty $ref pointer at "%s"', $refPath));
-            return;
-        }
-
-        // See if we've already resolved this $ref pointer
-        var cachedReference = getCached$Ref($ref, state);
-        if (cachedReference) {
-            util.debug('Resolved %s => %s', $refPath, $ref);
-            util.doCallback(callback, null, cachedReference, true);
-            return;
-        }
-
-        // Determine if it's internal or external
-        if (isExternal$Ref($ref)) {
-            resolveExternal$Ref($ref, state, recursiveResolve);
-        }
-        else {
-            resolveInternal$Ref($ref, state, recursiveResolve);
-        }
-    }
-    catch (e) {
-        util.doCallback(callback, e);
+  try {
+    // Check for invalid values
+    if (_isEmpty($ref)) {
+      util.doCallback(callback, util.newSyntaxError('Empty $ref pointer at "%s"', $refPath));
+      return;
     }
 
+    // See if we've already resolved this $ref pointer
+    var cachedReference = getCached$Ref($ref, state);
+    if (cachedReference) {
+      util.debug('Resolved %s => %s', $refPath, $ref);
+      util.doCallback(callback, null, cachedReference, true);
+      return;
+    }
 
-    function recursiveResolve(err, resolved) {
+    // Determine if it's internal or external
+    if (isExternal$Ref($ref)) {
+      resolveExternal$Ref($ref, state, recursiveResolve);
+    }
+    else {
+      resolveInternal$Ref($ref, state, recursiveResolve);
+    }
+  }
+  catch (e) {
+    util.doCallback(callback, e);
+  }
+
+  function recursiveResolve(err, resolved) {
+    if (err) {
+      util.doCallback(callback, err);
+      return;
+    }
+
+    if (resolved === undefined) {
+      util.doCallback(callback,
+        util.newSyntaxError('Unable to resolve %s.  \n"%s" could not be found.', $refPath, $ref));
+      return;
+    }
+
+    util.debug('Resolved %s => %s', $refPath, $ref);
+
+    // The $ref might have resolved to another $ref, so resolve recursively until we get to an object
+    resolveIf$Ref(resolved, $refPath, state,
+      function(err, resolved, cached) {
         if (err) {
-            util.doCallback(callback, err);
-            return;
+          util.doCallback(callback, err);
+          return;
         }
 
-        if (resolved === undefined) {
-            util.doCallback(callback,
-                util.newSyntaxError('Unable to resolve %s.  \n"%s" could not be found.', $refPath, $ref));
-            return;
-        }
+        // We've resolved the $ref to something solid (an object, array, scalar value, etc.),
+        // So cache the resolved value.
+        cache$Ref($ref, resolved, state);
 
-        util.debug('Resolved %s => %s', $refPath, $ref);
-
-        // The $ref might have resolved to another $ref, so resolve recursively until we get to an object
-        resolveIf$Ref(resolved, $refPath, state,
-            function(err, resolved, cached) {
-                if (err) {
-                    util.doCallback(callback, err);
-                    return;
-                }
-
-                // We've resolved the $ref to something solid (an object, array, scalar value, etc.),
-                // So cache the resolved value.
-                cache$Ref($ref, resolved, state);
-
-                // The resolved object could have nested $refs, so we need to crawl it
-                resolveObject(resolved, $refPath, state,
-                    function(err, resolved) {
-                        if (err) {
-                            util.doCallback(callback, err);
-                            return;
-                        }
-
-                        util.doCallback(callback, null, resolved, cached);
-                    }
-                );
+        // The resolved object could have nested $refs, so we need to crawl it
+        resolveObject(resolved, $refPath, state,
+          function(err, resolved) {
+            if (err) {
+              util.doCallback(callback, err);
+              return;
             }
-        );
-    }
-}
 
+            util.doCallback(callback, null, resolved, cached);
+          }
+        );
+      }
+    );
+  }
+}
 
 /**
  * Determines whether the given $ref pointer value references an external file.
@@ -735,9 +719,8 @@ function resolve$Ref($ref, $refPath, state, callback) {
  * @returns {boolean}
  */
 function isExternal$Ref($ref) {
-    return $ref && external$RefPattern.test($ref);
+  return $ref && external$RefPattern.test($ref);
 }
-
 
 /**
  * Resolves a pointer to a property in the Swagger API.
@@ -748,27 +731,26 @@ function isExternal$Ref($ref) {
  * @param   {function}  callback
  */
 function resolveInternal$Ref($ref, state, callback) {
-    // "pet" => "#/definitions/pet"
-    var normalized = normalize$Ref($ref, state);
+  // "pet" => "#/definitions/pet"
+  var normalized = normalize$Ref($ref, state);
 
-    // "#/paths//users/responses/200" => ["/paths", "//users", "/responses", "/200"]
-    var pathArray = normalized.match(/\/(\/?[^\/]+)/g);
+  // "#/paths//users/responses/200" => ["/paths", "//users", "/responses", "/200"]
+  var pathArray = normalized.match(/\/(\/?[^\/]+)/g);
 
-    // Traverse the Swagger API
-    var resolved = state.swagger;
-    for (var i = 0; i < pathArray.length; i++) {
-        var propName = pathArray[i].substr(1);
-        resolved = _result(resolved, propName);
+  // Traverse the Swagger API
+  var resolved = state.swagger;
+  for (var i = 0; i < pathArray.length; i++) {
+    var propName = pathArray[i].substr(1);
+    resolved = _result(resolved, propName);
 
-        // Exit the loop early if we get a falsy value
-        if (!resolved) {
-            break;
-        }
+    // Exit the loop early if we get a falsy value
+    if (!resolved) {
+      break;
     }
+  }
 
-    callback(null, resolved);
+  callback(null, resolved);
 }
-
 
 /**
  * Resolves a pointer to an external file or URL.
@@ -779,16 +761,15 @@ function resolveInternal$Ref($ref, state, callback) {
  * @param   {function}  callback
  */
 function resolveExternal$Ref($ref, state, callback) {
-    // "./swagger.yaml" => "/full/path/to/swagger.yaml"
-    var normalized = normalize$Ref($ref, state);
+  // "./swagger.yaml" => "/full/path/to/swagger.yaml"
+  var normalized = normalize$Ref($ref, state);
 
-    read(normalized, state,
-        function(err, data) {
-            return callback(err, data);
-        }
-    );
+  read(normalized, state,
+    function(err, data) {
+      return callback(err, data);
+    }
+  );
 }
-
 
 /**
  * Normalizes a pointer value.
@@ -799,23 +780,22 @@ function resolveExternal$Ref($ref, state, callback) {
  * @returns {string}
  */
 function normalize$Ref($ref, state) {
-    if (isExternal$Ref($ref)) {
-        // Normalize the pointer value by resolving the path/URL relative to the Swagger file.
-        return util.resolvePath(state.baseDir, $ref);
+  if (isExternal$Ref($ref)) {
+    // Normalize the pointer value by resolving the path/URL relative to the Swagger file.
+    return util.resolvePath(state.baseDir, $ref);
+  }
+  else {
+    if ($ref.indexOf('#/') === 0) {
+      // The pointer is already normalized (e.g. "#/parameters/username")
+      return $ref;
     }
     else {
-        if ($ref.indexOf('#/') === 0) {
-            // The pointer is already normalized (e.g. "#/parameters/username")
-            return $ref;
-        }
-        else {
-            // This is a shorthand pointer to a model definition
-            // "pet" => "#/definitions/pet"
-            return '#/definitions/' + $ref;
-        }
+      // This is a shorthand pointer to a model definition
+      // "pet" => "#/definitions/pet"
+      return '#/definitions/' + $ref;
     }
+  }
 }
-
 
 /**
  * Returns the cached reference for the given pointer, if possible.
@@ -824,22 +804,21 @@ function normalize$Ref($ref, state) {
  * @param   {State}     state        The state for the current parse operation
  */
 function getCached$Ref($ref, state) {
-    // Check for the non-normalized pointer
-    if ($ref in state.$refs) {
-        return state.$refs[$ref];
-    }
+  // Check for the non-normalized pointer
+  if ($ref in state.$refs) {
+    return state.$refs[$ref];
+  }
 
-    // Check for the normalized pointer
-    var normalized = normalize$Ref($ref, state);
-    if (normalized in state.$refs) {
-        // Cache the value under the non-normalized pointer too
-        return state.$refs[$ref] = state.$refs[normalized];
-    }
+  // Check for the normalized pointer
+  var normalized = normalize$Ref($ref, state);
+  if (normalized in state.$refs) {
+    // Cache the value under the non-normalized pointer too
+    return state.$refs[$ref] = state.$refs[normalized];
+  }
 
-    // It's not in the cache
-    return null;
+  // It's not in the cache
+  return null;
 }
-
 
 /**
  * Caches a resolved reference under the given pointer AND the normalized pointer.
@@ -849,19 +828,19 @@ function getCached$Ref($ref, state) {
  * @param   {State}     state        The state for the current parse operation
  */
 function cache$Ref($ref, resolved, state) {
-    var normalized = normalize$Ref($ref, state);
+  var normalized = normalize$Ref($ref, state);
 
-    /* istanbul ignore if: This check is here to help detect subtle bugs and edge-cases */
-    if ($ref in state.$refs || normalized in state.$refs) {
-        throw util.newError('Swagger-Parser encountered an error while resolving a $ref pointer: "%s". ' +
-        'This is most likely a bug in Swagger-Parser, not in your code. Please report this issue on GitHub.', $ref);
-    }
+  /* istanbul ignore if: This check is here to help detect subtle bugs and edge-cases */
+  if ($ref in state.$refs || normalized in state.$refs) {
+    throw util.newError('Swagger-Parser encountered an error while resolving a $ref pointer: "%s". ' +
+      'This is most likely a bug in Swagger-Parser, not in your code. Please report this issue on GitHub.', $ref);
+  }
 
-    state.$refs[$ref] = resolved;
-    state.$refs[normalized] = resolved;
+  state.$refs[$ref] = resolved;
+  state.$refs[normalized] = resolved;
 }
 
-},{"./read":5,"./util":8,"lodash/array/last":80,"lodash/lang/isEmpty":153,"lodash/lang/isString":159,"lodash/object/has":162,"lodash/object/result":167}],7:[function(require,module,exports){
+},{"./read":5,"./util":8,"lodash/array/last":80,"lodash/lang/isEmpty":154,"lodash/lang/isString":160,"lodash/object/has":163,"lodash/object/result":168}],7:[function(require,module,exports){
 'use strict';
 
 module.exports = State;
@@ -871,48 +850,47 @@ module.exports = State;
  * @constructor
  */
 function State() {
-    /**
-     * The path of the main Swagger file that's being parsed
-     * @type {string}
-     */
-    this.swaggerPath = '';
+  /**
+   * The path of the main Swagger file that's being parsed
+   * @type {string}
+   */
+  this.swaggerPath = '';
 
-    /**
-     * The options for the parsing operation
-     * @type {defaults}
-     */
-    this.options = null;
+  /**
+   * The options for the parsing operation
+   * @type {defaults}
+   */
+  this.options = null;
 
-    /**
-     * The Swagger API that is being parsed.
-     * @type {SwaggerObject}
-     */
-    this.swagger = null;
+  /**
+   * The Swagger API that is being parsed.
+   * @type {SwaggerObject}
+   */
+  this.swagger = null;
 
-    /**
-     * The directory of the Swagger file
-     * (used as the base directory for resolving relative file references)
-     */
-    this.baseDir = null;
+  /**
+   * The directory of the Swagger file
+   * (used as the base directory for resolving relative file references)
+   */
+  this.baseDir = null;
 
-    /**
-     * The files that have been read during the parsing operation.
-     * @type {string[]}
-     */
-    this.files = [];
+  /**
+   * The files that have been read during the parsing operation.
+   * @type {string[]}
+   */
+  this.files = [];
 
-    /**
-     * The URLs that have been downloaded during the parsing operation.
-     * @type {url.Url[]}
-     */
-    this.urls = [];
+  /**
+   * The URLs that have been downloaded during the parsing operation.
+   * @type {url.Url[]}
+   */
+  this.urls = [];
 
-    /**
-     * A map of "$ref" pointers and their resolved values
-     */
-    this.$refs = {};
+  /**
+   * A map of "$ref" pointers and their resolved values
+   */
+  this.$refs = {};
 }
-
 
 /**
  * The Swagger object (https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object)
@@ -933,307 +911,293 @@ var fs             = require('fs'),
     _isArray       = require('lodash/lang/isArray'),
     _isPlainObject = require('lodash/lang/isPlainObject');
 
-
 var util = module.exports = {
-    /**
-     * Writes messages to stdout.
-     * Log messages are suppressed by default, but can be enabled by setting the DEBUG variable.
-     * @type {function}
-     */
-    debug: require('debug')('swagger:parser'),
+  /**
+   * Writes messages to stdout.
+   * Log messages are suppressed by default, but can be enabled by setting the DEBUG variable.
+   * @type {function}
+   */
+  debug: require('debug')('swagger:parser'),
 
+  /**
+   * The HTTP methods that Swagger supports
+   * (see https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#pathItemObject)
+   */
+  swaggerMethods: ['get', 'put', 'post', 'delete', 'options', 'head', 'patch'],
 
-    /**
-     * The HTTP methods that Swagger supports
-     * (see https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#pathItemObject)
-     */
-    swaggerMethods: ['get', 'put', 'post', 'delete', 'options', 'head', 'patch'],
+  /**
+   * Regular Expression that matches Swagger path params.
+   */
+  swaggerParamRegExp: /\{([^/}]+)}/g,
 
+  /**
+   * Asynchronously invokes the given callback function with the given parameters.
+   *
+   * NOTE: This unwinds the call stack, which avoids stack overflows that can occur when crawling very complex Swagger APIs
+   *
+   * @param {function} callback
+   * @param {*}     [err]
+   * @param {...*}  [params]
+   */
+  doCallback: function(callback, err, params) {
+    var args = _drop(arguments);
 
-    /**
-     * Regular Expression that matches Swagger path params.
-     */
-    swaggerParamRegExp: /\{([^/}]+)}/g,
-
-
-    /**
-     * Asynchronously invokes the given callback function with the given parameters.
-     *
-     * NOTE: This unwinds the call stack, which avoids stack overflows that can occur when crawling very complex Swagger APIs
-     *
-     * @param {function} callback
-     * @param {*}     [err]
-     * @param {...*}  [params]
-     */
-    doCallback: function(callback, err, params) {
-        var args = _drop(arguments);
-
-        /* istanbul ignore if: code-coverage doesn't run in the browser */
-        if (util.isBrowser()) {
-            process.nextTick(invokeCallback);
-        }
-        else {
-            setImmediate(invokeCallback);
-        }
-
-        function invokeCallback() {
-            callback.apply(null, args);
-        }
-    },
-
-
-    /**
-     * Creates an Error with a formatted string message.
-     *
-     * @param     {Error}     [err]       The original error, if any
-     * @param     {string}    [message]   A user-friendly message about the source of the error
-     * @param     {...*}      [params]    One or more {@link util#format} params
-     * @returns   {Error}
-     */
-    newError: function(err, message, params) {
-        if (err instanceof Error) {
-            return makeError(Error, err, format.apply(null, _drop(arguments, 1)));
-        }
-        else {
-            return makeError(Error, null, format.apply(null, arguments));
-        }
-    },
-
-
-    /**
-     * Creates a SyntaxError with a formatted string message.
-     *
-     * @param     {Error}     [err]       The original error, if any
-     * @param     {string}    [message]   A user-friendly message about the source of the error
-     * @param     {...*}      [params]    One or more {@link util#format} params
-     * @returns   {SyntaxError}
-     */
-    newSyntaxError: function(err, message, params) {
-        if (err && err instanceof Error) {
-            return makeError(SyntaxError, err, format.apply(null, _drop(arguments, 1)));
-        }
-        else {
-            return makeError(SyntaxError, null, format.apply(null, arguments));
-        }
-    },
-
-
-    /**
-     * Determines if we're running in a browser.
-     * @returns {boolean}
-     */
-    isBrowser: function() {
-        return fs.readFile === undefined;
-    },
-
-
-    /**
-     * Determines whether the given path is a local filesystem path (as opposed to a remote path or URL).
-     * NOTE: This does NOT verify that the path exists or is valid.
-     *
-     * @param   {string|Url}    path    A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
-     * @returns {boolean}
-     */
-    isLocalPath: function(path) {
-        /* istanbul ignore if: code-coverage doesn't run in the browser */
-        if (util.isBrowser()) {
-            // Local paths are not allowed in browsers
-            return false;
-        }
-
-        // NOTE: The following are all considered local files: "file://path/to/file", "/path/to/file", "c:\path\to\file"
-        path = url.parse(path);
-        return path.protocol !== 'http:' && path.protocol !== 'https:';
-    },
-
-
-    /**
-     * Normalizes a path or URL across all environments (Linux, Mac, Windows, browsers).
-     *
-     * @param   {string}    path       A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
-     * @param   {boolean}   [isLocal]  Set to true to treat `path` as a local path
-     * @returns {Url}
-     */
-    normalizePath: function(path, isLocal) {
-        isLocal = isLocal === undefined ? util.isLocalPath(path) : isLocal;
-
-        if (isLocal) {
-            path = path.split(Path.sep).join('/');  // Windows
-            path = encodeURI(path);
-            path = url.format({pathname: path});
-            return url.parse(path);
-        }
-        else {
-            return url.parse(path);
-        }
-    },
-
-
-    /**
-     * De-normalizes a path or URL to a string that is properly formatted.
-     *
-     * @param   {string}    path       A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
-     * @param   {boolean}   [isLocal]  Set to true to treat `path` as a local path
-     * @returns {string}
-     */
-    denormalizePath: function(path, isLocal) {
-        isLocal = isLocal === undefined ? util.isLocalPath(path) : isLocal;
-
-        if (isLocal) {
-            path = decodeURIComponent(path);
-            return Path.normalize(path);
-        }
-        else {
-            return path;
-        }
-    },
-
-
-    /**
-     * Resolves the given paths to an absolute path.
-     * NOTE: This does NOT verify that the path exists or is valid.
-     *
-     * @param   {string}    basePath
-     * The base path, which must be absolute (e.g. "/base/path", "c:\base\path", "http://company.com/base/path")
-     *
-     * @param   {string}    path
-     * The path to be resolved, which may be relative or absolute. (e.g. "path/to/file", "path\to\file")
-     *
-     * @returns {string}
-     * The resolved, absolute path. (e.g. "/full/path/to/file", "c:\full\path\to\file", "http://company.com/full/path/to/file")
-     */
-    resolvePath: function(basePath, path) {
-        util.debug('Resolving path "%s", relative to "%s"', path, basePath);
-
-        // Normalize the paths
-        var baseIsLocal = util.isLocalPath(basePath);
-        var pathIsLocal = util.isLocalPath(path);
-        basePath = util.normalizePath(basePath, baseIsLocal);
-        path = util.normalizePath(path, pathIsLocal && baseIsLocal);
-
-        // url.resolve() works across all environments (Linux, Mac, Windows, browsers),
-        // even if basePath and path are different types (e.g. one is a URL, the other is a local path)
-        var resolvedUrl = url.resolve(basePath, path);
-        resolvedUrl = util.denormalizePath(resolvedUrl);
-
-        util.debug('    Resolved to %s', resolvedUrl);
-        return resolvedUrl;
-    },
-
-
-    /**
-     * Returns the current working directory across environments (Linux, Mac, Windows, browsers).
-     * The returned path always include a trailing slash to ensure that it behaves properly with {@link url#resolve}.
-     *
-     * @returns {string}
-     */
-    cwd: function() {
-        /* istanbul ignore next: code-coverage doesn't run in the browser */
-        var cwd = util.isBrowser() ? window.location.href : process.cwd() + '/';
-        cwd = util.normalizePath(cwd);
-
-        // Remove the file name (if any) from the pathname
-        var lastSlash = cwd.pathname.lastIndexOf('/') + 1;
-        cwd.pathname = cwd.pathname.substr(0, lastSlash);
-
-        // Remove everything after the pathname
-        cwd.path = null;
-        cwd.search = null;
-        cwd.query = null;
-        cwd.hash = null;
-
-        // Format and denormalize only the remaining parts of the URL
-        cwd = url.format(cwd);
-        cwd = util.denormalizePath(cwd);
-
-        return cwd;
-    },
-
-
-    /**
-     * Recursively crawls an object, and asynchronously calls the given function for each nested object.
-     *
-     * @param   {object|*[]}    obj
-     * The object (or array) to be crawled
-     *
-     * @param   {string}        [path]
-     * The starting path of the object (e.g. "/definitions/pet")
-     *
-     * @param   {function}      callback
-     * Called when the entire object tree is done being crawled, or when an error occurs.
-     * The signature is `function(err, obj)`.
-     *
-     * @param   {function}      forEach
-     * Called for each nested object in the tree. The signature is `function(parents, propName, propPath, continue)`,
-     * where `parents` is an array of parent objects, `propName` is the name of the nested object property,
-     * `propPath` is a full path of nested object (e.g. "/paths//get/responses/200/schema"),
-     * and `continue` is a function to call to resume crawling the object.
-     */
-    crawlObject: function(obj, path, callback, forEach) {
-        // Shift args if needed
-        if (_isFunction(path)) {
-            forEach = callback;
-            callback = path;
-            path = '';
-        }
-
-        // Do nothing if it's not an object or array
-        if (!_isPlainObject(obj) && !_isArray(obj)) {
-            callback(null, obj);
-            return;
-        }
-
-        // Keep a stack of parent objects
-        var parents = forEach.__parents = forEach.__parents || [];
-        parents.push(obj);
-
-        // Loop through each item in the object/array
-        var properties = _keys(obj);
-        crawlNextProperty();
-
-        function crawlNextProperty(err) {
-            if (err) {
-                // An error occurred, so stop crawling and bubble it up
-                forEach.__parents.pop();
-                callback(err);
-                return;
-            }
-            else if (properties.length === 0) {
-                // We've crawled all of this object's properties, so we're done.
-                forEach.__parents.pop();
-                util.doCallback(callback, null, obj);
-                return;
-            }
-
-            var propName = properties.pop();
-            var propValue = obj[propName];
-            var propPath = path + '/' + propName;
-
-            if (_isPlainObject(propValue)) {
-                // Found an object property, so call the callback
-                forEach(parents, propName, propPath, function(err) {
-                    if (err) {
-                        // An error occurred, so bubble it up
-                        crawlNextProperty(err);
-                    }
-                    else {
-                        // Crawl the nested object (re-fetch it from the parent obj, in case it has changed)
-                        util.crawlObject(obj[propName], propPath, crawlNextProperty, forEach);
-                    }
-                });
-            }
-            else if (_isArray(propValue)) {
-                // This is an array property, so crawl its items
-                util.crawlObject(propValue, propPath, crawlNextProperty, forEach);
-            }
-            else {
-                // This isn't an object property, so skip it
-                util.doCallback(crawlNextProperty);
-            }
-        }
+    /* istanbul ignore if: code-coverage doesn't run in the browser */
+    if (util.isBrowser()) {
+      process.nextTick(invokeCallback);
     }
-};
+    else {
+      setImmediate(invokeCallback);
+    }
 
+    function invokeCallback() {
+      callback.apply(null, args);
+    }
+  },
+
+  /**
+   * Creates an Error with a formatted string message.
+   *
+   * @param     {Error}     [err]       The original error, if any
+   * @param     {string}    [message]   A user-friendly message about the source of the error
+   * @param     {...*}      [params]    One or more {@link util#format} params
+   * @returns   {Error}
+   */
+  newError: function(err, message, params) {
+    if (err instanceof Error) {
+      return makeError(Error, err, format.apply(null, _drop(arguments, 1)));
+    }
+    else {
+      return makeError(Error, null, format.apply(null, arguments));
+    }
+  },
+
+  /**
+   * Creates a SyntaxError with a formatted string message.
+   *
+   * @param     {Error}     [err]       The original error, if any
+   * @param     {string}    [message]   A user-friendly message about the source of the error
+   * @param     {...*}      [params]    One or more {@link util#format} params
+   * @returns   {SyntaxError}
+   */
+  newSyntaxError: function(err, message, params) {
+    if (err && err instanceof Error) {
+      return makeError(SyntaxError, err, format.apply(null, _drop(arguments, 1)));
+    }
+    else {
+      return makeError(SyntaxError, null, format.apply(null, arguments));
+    }
+  },
+
+  /**
+   * Determines if we're running in a browser.
+   * @returns {boolean}
+   */
+  isBrowser: function() {
+    return fs.readFile === undefined;
+  },
+
+  /**
+   * Determines whether the given path is a local filesystem path (as opposed to a remote path or URL).
+   * NOTE: This does NOT verify that the path exists or is valid.
+   *
+   * @param   {string|Url}    path    A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
+   * @returns {boolean}
+   */
+  isLocalPath: function(path) {
+    /* istanbul ignore if: code-coverage doesn't run in the browser */
+    if (util.isBrowser()) {
+      // Local paths are not allowed in browsers
+      return false;
+    }
+
+    // NOTE: The following are all considered local files: "file://path/to/file", "/path/to/file", "c:\path\to\file"
+    path = url.parse(path);
+    return path.protocol !== 'http:' && path.protocol !== 'https:';
+  },
+
+  /**
+   * Normalizes a path or URL across all environments (Linux, Mac, Windows, browsers).
+   *
+   * @param   {string}    path       A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
+   * @param   {boolean}   [isLocal]  Set to true to treat `path` as a local path
+   * @returns {Url}
+   */
+  normalizePath: function(path, isLocal) {
+    isLocal = isLocal === undefined ? util.isLocalPath(path) : isLocal;
+
+    if (isLocal) {
+      path = path.split(Path.sep).join('/');  // Windows
+      path = encodeURI(path);
+      path = url.format({pathname: path});
+      return url.parse(path);
+    }
+    else {
+      return url.parse(path);
+    }
+  },
+
+  /**
+   * De-normalizes a path or URL to a string that is properly formatted.
+   *
+   * @param   {string}    path       A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
+   * @param   {boolean}   [isLocal]  Set to true to treat `path` as a local path
+   * @returns {string}
+   */
+  denormalizePath: function(path, isLocal) {
+    isLocal = isLocal === undefined ? util.isLocalPath(path) : isLocal;
+
+    if (isLocal) {
+      path = decodeURIComponent(path);
+      return Path.normalize(path);
+    }
+    else {
+      return path;
+    }
+  },
+
+  /**
+   * Resolves the given paths to an absolute path.
+   * NOTE: This does NOT verify that the path exists or is valid.
+   *
+   * @param   {string}    basePath
+   * The base path, which must be absolute (e.g. "/base/path", "c:\base\path", "http://company.com/base/path")
+   *
+   * @param   {string}    path
+   * The path to be resolved, which may be relative or absolute. (e.g. "path/to/file", "path\to\file")
+   *
+   * @returns {string}
+   * The resolved, absolute path. (e.g. "/full/path/to/file", "c:\full\path\to\file", "http://company.com/full/path/to/file")
+   */
+  resolvePath: function(basePath, path) {
+    util.debug('Resolving path "%s", relative to "%s"', path, basePath);
+
+    // Normalize the paths
+    var baseIsLocal = util.isLocalPath(basePath);
+    var pathIsLocal = util.isLocalPath(path);
+    basePath = util.normalizePath(basePath, baseIsLocal);
+    path = util.normalizePath(path, pathIsLocal && baseIsLocal);
+
+    // url.resolve() works across all environments (Linux, Mac, Windows, browsers),
+    // even if basePath and path are different types (e.g. one is a URL, the other is a local path)
+    var resolvedUrl = url.resolve(basePath, path);
+    resolvedUrl = util.denormalizePath(resolvedUrl);
+
+    util.debug('    Resolved to %s', resolvedUrl);
+    return resolvedUrl;
+  },
+
+  /**
+   * Returns the current working directory across environments (Linux, Mac, Windows, browsers).
+   * The returned path always include a trailing slash to ensure that it behaves properly with {@link url#resolve}.
+   *
+   * @returns {string}
+   */
+  cwd: function() {
+    /* istanbul ignore next: code-coverage doesn't run in the browser */
+    var cwd = util.isBrowser() ? window.location.href : process.cwd() + '/';
+    cwd = util.normalizePath(cwd);
+
+    // Remove the file name (if any) from the pathname
+    var lastSlash = cwd.pathname.lastIndexOf('/') + 1;
+    cwd.pathname = cwd.pathname.substr(0, lastSlash);
+
+    // Remove everything after the pathname
+    cwd.path = null;
+    cwd.search = null;
+    cwd.query = null;
+    cwd.hash = null;
+
+    // Format and denormalize only the remaining parts of the URL
+    cwd = url.format(cwd);
+    cwd = util.denormalizePath(cwd);
+
+    return cwd;
+  },
+
+  /**
+   * Recursively crawls an object, and asynchronously calls the given function for each nested object.
+   *
+   * @param   {object|*[]}    obj
+   * The object (or array) to be crawled
+   *
+   * @param   {string}        [path]
+   * The starting path of the object (e.g. "/definitions/pet")
+   *
+   * @param   {function}      callback
+   * Called when the entire object tree is done being crawled, or when an error occurs.
+   * The signature is `function(err, obj)`.
+   *
+   * @param   {function}      forEach
+   * Called for each nested object in the tree. The signature is `function(parents, propName, propPath, continue)`,
+   * where `parents` is an array of parent objects, `propName` is the name of the nested object property,
+   * `propPath` is a full path of nested object (e.g. "/paths//get/responses/200/schema"),
+   * and `continue` is a function to call to resume crawling the object.
+   */
+  crawlObject: function(obj, path, callback, forEach) {
+    // Shift args if needed
+    if (_isFunction(path)) {
+      forEach = callback;
+      callback = path;
+      path = '';
+    }
+
+    // Do nothing if it's not an object or array
+    if (!_isPlainObject(obj) && !_isArray(obj)) {
+      callback(null, obj);
+      return;
+    }
+
+    // Keep a stack of parent objects
+    var parents = forEach.__parents = forEach.__parents || [];
+    parents.push(obj);
+
+    // Loop through each item in the object/array
+    var properties = _keys(obj);
+    crawlNextProperty();
+
+    function crawlNextProperty(err) {
+      if (err) {
+        // An error occurred, so stop crawling and bubble it up
+        forEach.__parents.pop();
+        callback(err);
+        return;
+      }
+      else if (properties.length === 0) {
+        // We've crawled all of this object's properties, so we're done.
+        forEach.__parents.pop();
+        util.doCallback(callback, null, obj);
+        return;
+      }
+
+      var propName = properties.pop();
+      var propValue = obj[propName];
+      var propPath = path + '/' + propName;
+
+      if (_isPlainObject(propValue)) {
+        // Found an object property, so call the callback
+        forEach(parents, propName, propPath, function(err) {
+          if (err) {
+            // An error occurred, so bubble it up
+            crawlNextProperty(err);
+          }
+          else {
+            // Crawl the nested object (re-fetch it from the parent obj, in case it has changed)
+            util.crawlObject(obj[propName], propPath, crawlNextProperty, forEach);
+          }
+        });
+      }
+      else if (_isArray(propValue)) {
+        // This is an array property, so crawl its items
+        util.crawlObject(propValue, propPath, crawlNextProperty, forEach);
+      }
+      else {
+        // This isn't an object property, so skip it
+        util.doCallback(crawlNextProperty);
+      }
+    }
+  }
+};
 
 /**
  * Creates a new error that wraps another error.
@@ -1243,25 +1207,25 @@ var util = module.exports = {
  * @param   {string}        message     Optional message about where and why the error occurred.
  */
 function makeError(Klass, err, message) {
-    if (err) {
-        // Append inner error information to the message
-        message += ' \n' + (err.name || 'Error') + ': ' + err.message;
-    }
+  if (err) {
+    // Append inner error information to the message
+    message += ' \n' + (err.name || 'Error') + ': ' + err.message;
+  }
 
-    var newErr = new Klass(message);
+  var newErr = new Klass(message);
 
-    /* istanbul ignore else: Only IE doesn't have an Error.stack property */
-    if (err && err.stack) {
-        // Keep the stack trace of the original error
-        newErr.stack += ' \n\n' + err.stack;
-    }
+  /* istanbul ignore else: Only IE doesn't have an Error.stack property */
+  if (err && err.stack) {
+    // Keep the stack trace of the original error
+    newErr.stack += ' \n\n' + err.stack;
+  }
 
-    return newErr;
+  return newErr;
 }
 
 }).call(this,require('_process'))
 
-},{"_process":24,"debug":45,"fs":10,"lodash/array/drop":79,"lodash/lang/isArray":152,"lodash/lang/isFunction":154,"lodash/lang/isPlainObject":158,"lodash/object/keys":163,"path":23,"url":42,"util":44}],9:[function(require,module,exports){
+},{"_process":24,"debug":45,"fs":10,"lodash/array/drop":79,"lodash/lang/isArray":153,"lodash/lang/isFunction":155,"lodash/lang/isPlainObject":159,"lodash/object/keys":164,"path":23,"url":42,"util":44}],9:[function(require,module,exports){
 'use strict';
 
 module.exports = validate;
@@ -1275,7 +1239,6 @@ var util           = require('./util'),
     primitiveTypes = ['array', 'boolean', 'integer', 'number', 'string'],
     schemaTypes    = ['array', 'boolean', 'integer', 'number', 'null', 'object', 'string', undefined];
 
-
 /**
  * Validates the given Swagger API for adherence to the Swagger spec.
  *
@@ -1284,76 +1247,73 @@ var util           = require('./util'),
  * @param   {function}      callback
  */
 function validate(api, state, callback) {
-    try {
-        if (state.options.validateSchema) {
-            validateAgainstSchema(api, state);
-        }
-
-        if (state.options.strictValidation) {
-            validateOperations(api, state);
-        }
-
-        util.doCallback(callback, null, api);
+  try {
+    if (state.options.validateSchema) {
+      validateAgainstSchema(api, state);
     }
-    catch (e) {
-        util.doCallback(callback, e);
+
+    if (state.options.strictValidation) {
+      validateOperations(api, state);
     }
+
+    util.doCallback(callback, null, api);
+  }
+  catch (e) {
+    util.doCallback(callback, e);
+  }
 }
-
 
 /**
  * Validates the given Swagger API against the Swagger schema.
  */
 function validateAgainstSchema(api, state) {
-    util.debug('Validating "%s" against the Swagger schema', state.swaggerPath);
+  util.debug('Validating "%s" against the Swagger schema', state.swaggerPath);
 
-    tv4.addSchema(swaggerSchema);
-    if (tv4.validate(api, swaggerSchema)) {
-        util.debug('    Validated successfully');
-    }
-    else {
-        throw util.newSyntaxError(
-            '%s \nData path: "%s" \nSchema path: "%s"\n',
-            tv4.error.message, tv4.error.dataPath, tv4.error.schemaPath);
-    }
+  tv4.addSchema(swaggerSchema);
+  if (tv4.validate(api, swaggerSchema)) {
+    util.debug('    Validated successfully');
+  }
+  else {
+    throw util.newSyntaxError(
+      '%s \nData path: "%s" \nSchema path: "%s"\n',
+      tv4.error.message, tv4.error.dataPath, tv4.error.schemaPath);
+  }
 }
-
 
 /**
  * Validates each operation in the Swagger API.
  */
 function validateOperations(api, state) {
-    // NOTE: We use for loops here instead of Array.ForEach
-    // to prevent stack overflows on very deep APIs
-    var paths = _keys(api.paths);
-    for (var i = 0; i < paths.length; i++) {
-        var pathName = paths[i];
-        var path = api.paths[pathName];
+  // NOTE: We use for loops here instead of Array.ForEach
+  // to prevent stack overflows on very deep APIs
+  var paths = _keys(api.paths);
+  for (var i = 0; i < paths.length; i++) {
+    var pathName = paths[i];
+    var path = api.paths[pathName];
 
-        if (path && pathName.indexOf('/') === 0) {
-            pathName = '/paths' + pathName;
+    if (path && pathName.indexOf('/') === 0) {
+      pathName = '/paths' + pathName;
 
-            for (var j = 0; j < util.swaggerMethods.length; j++) {
-                var operationName = util.swaggerMethods[j];
-                var operation = path[operationName];
+      for (var j = 0; j < util.swaggerMethods.length; j++) {
+        var operationName = util.swaggerMethods[j];
+        var operation = path[operationName];
 
-                if (operation) {
-                    operationName = pathName + '/' + operationName;
-                    validateParameters(api, path, pathName, operation, operationName);
+        if (operation) {
+          operationName = pathName + '/' + operationName;
+          validateParameters(api, path, pathName, operation, operationName);
 
-                    var responses = _keys(operation.responses);
-                    for (var k = 0; k < responses.length; k++) {
-                        var responseName = responses[k];
-                        var response = operation.responses[responseName];
-                        responseName = operationName + '/responses/' + responseName;
-                        validateResponse(response, responseName);
-                    }
-                }
-            }
+          var responses = _keys(operation.responses);
+          for (var k = 0; k < responses.length; k++) {
+            var responseName = responses[k];
+            var response = operation.responses[responseName];
+            responseName = operationName + '/responses/' + responseName;
+            validateResponse(response, responseName);
+          }
         }
+      }
     }
+  }
 }
-
 
 /**
  * Validates the parameters for the given operation.
@@ -1365,36 +1325,35 @@ function validateOperations(api, state) {
  * @param   {string}    operationId     A value that uniquely identifies the operation
  */
 function validateParameters(api, path, pathId, operation, operationId) {
-    var pathParams = path.parameters || [];
-    var operationParams = operation.parameters || [];
+  var pathParams = path.parameters || [];
+  var operationParams = operation.parameters || [];
 
-    // Check for duplicate path parameters
-    try {
-        checkForDuplicates(pathParams);
-    }
-    catch (e) {
-        throw util.newSyntaxError(e, '%s has duplicate parameters', pathId);
-    }
+  // Check for duplicate path parameters
+  try {
+    checkForDuplicates(pathParams);
+  }
+  catch (e) {
+    throw util.newSyntaxError(e, '%s has duplicate parameters', pathId);
+  }
 
-    // Check for duplicate operation parameters
-    try {
-        checkForDuplicates(operationParams);
-    }
-    catch (e) {
-        throw util.newSyntaxError(e, '%s has duplicate parameters', operationId);
-    }
+  // Check for duplicate operation parameters
+  try {
+    checkForDuplicates(operationParams);
+  }
+  catch (e) {
+    throw util.newSyntaxError(e, '%s has duplicate parameters', operationId);
+  }
 
-    // Combine the path and operation parameters,
-    // with the operation params taking precedence over the path params
-    var params = _unique(operationParams.concat(pathParams), function(param) {
-        return param.in + param.name;
-    });
+  // Combine the path and operation parameters,
+  // with the operation params taking precedence over the path params
+  var params = _unique(operationParams.concat(pathParams), function(param) {
+    return param.in + param.name;
+  });
 
-    validateBodyParameters(params, operationId);
-    validatePathParameters(params, pathId, operationId);
-    validateParameterTypes(params, api, operation, operationId);
+  validateBodyParameters(params, operationId);
+  validatePathParameters(params, pathId, operationId);
+  validateParameterTypes(params, api, operation, operationId);
 }
-
 
 /**
  * Validates body and formData parameters for the given operation.
@@ -1403,19 +1362,21 @@ function validateParameters(api, path, pathId, operation, operationId) {
  * @param   {string}    operationId     A value that uniquely identifies the operation
  */
 function validateBodyParameters(params, operationId) {
-    var bodyParams = _where(params, {in: 'body'});
-    var formParams = _where(params, {in: 'formData'});
+  var bodyParams = _where(params, {in: 'body'});
+  var formParams = _where(params, {in: 'formData'});
 
-    // There can only be one "body" parameter
-    if (bodyParams.length > 1) {
-        throw util.newSyntaxError('%s has %d body parameters. Only one is allowed.', operationId, bodyParams.length);
-    }
-    else if (bodyParams.length > 0 && formParams.length > 0) {
-        // "body" params and "formData" params are mutually exclusive
-        throw util.newSyntaxError('%s has body parameters and formData parameters. Only one or the other is allowed.', operationId);
-    }
+  // There can only be one "body" parameter
+  if (bodyParams.length > 1) {
+    throw util.newSyntaxError('%s has %d body parameters. Only one is allowed.', operationId, bodyParams.length);
+  }
+  else if (bodyParams.length > 0 && formParams.length > 0) {
+    // "body" params and "formData" params are mutually exclusive
+    throw util.newSyntaxError(
+      '%s has body parameters and formData parameters. Only one or the other is allowed.',
+      operationId
+    );
+  }
 }
-
 
 /**
  * Validates path parameters for the given path.
@@ -1425,34 +1386,42 @@ function validateBodyParameters(params, operationId) {
  * @param   {string}    operationId     A value that uniquely identifies the operation
  */
 function validatePathParameters(params, pathId, operationId) {
-    // Find all {placeholders} in the path string
-    var placeholders = pathId.match(util.swaggerParamRegExp) || [];
+  // Find all {placeholders} in the path string
+  var placeholders = pathId.match(util.swaggerParamRegExp) || [];
 
-    // Check for duplicates
-    for (var i = 0; i < placeholders.length; i++) {
-        for (var j = i + 1; j < placeholders.length; j++) {
-            if (placeholders[i] === placeholders[j]) {
-                throw util.newSyntaxError('%s has multiple path placeholders named %s', operationId, placeholders[i]);
-            }
-        }
+  // Check for duplicates
+  for (var i = 0; i < placeholders.length; i++) {
+    for (var j = i + 1; j < placeholders.length; j++) {
+      if (placeholders[i] === placeholders[j]) {
+        throw util.newSyntaxError('%s has multiple path placeholders named %s', operationId, placeholders[i]);
+      }
     }
+  }
 
-    _where(params, {in: 'path'}).forEach(function(param) {
-        if (param.required !== true) {
-            throw util.newSyntaxError('Path parameters cannot be optional. Set required=true for the "%s" parameter at %s', param.name, operationId);
-        }
-        var match = placeholders.indexOf('{' + param.name + '}');
-        if (match === -1) {
-            throw util.newSyntaxError('%s has a path parameter named "%s", but there is no corresponding {%s} in the path string', operationId, param.name, param.name);
-        }
-        placeholders.splice(match, 1);
-    });
-
-    if (placeholders.length > 0) {
-        throw util.newSyntaxError('%s is missing path parameter(s) for %s', operationId, placeholders);
+  _where(params, {in: 'path'}).forEach(function(param) {
+    if (param.required !== true) {
+      throw util.newSyntaxError(
+        'Path parameters cannot be optional. Set required=true for the "%s" parameter at %s',
+        param.name,
+        operationId
+      );
     }
+    var match = placeholders.indexOf('{' + param.name + '}');
+    if (match === -1) {
+      throw util.newSyntaxError(
+        '%s has a path parameter named "%s", but there is no corresponding {%s} in the path string',
+        operationId,
+        param.name,
+        param.name
+      );
+    }
+    placeholders.splice(match, 1);
+  });
+
+  if (placeholders.length > 0) {
+    throw util.newSyntaxError('%s is missing path parameter(s) for %s', operationId, placeholders);
+  }
 }
-
 
 /**
  * Validates data types of parameters for the given operation.
@@ -1463,40 +1432,47 @@ function validatePathParameters(params, pathId, operationId) {
  * @param   {string}    operationId     A value that uniquely identifies the operation
  */
 function validateParameterTypes(params, api, operation, operationId) {
-    params.forEach(function(param) {
-        var validTypes, schema;
-        switch (param.in) {
-            case 'body':
-                validTypes = schemaTypes;
-                schema = param.schema;
-                break;
-            case 'formData':
-                validTypes = primitiveTypes.concat('file');
-                schema = param;
-                break;
-            default:
-                validTypes = primitiveTypes;
-                schema = param;
-        }
+  params.forEach(function(param) {
+    var validTypes, schema;
+    switch (param.in) {
+      case 'body':
+        validTypes = schemaTypes;
+        schema = param.schema;
+        break;
+      case 'formData':
+        validTypes = primitiveTypes.concat('file');
+        schema = param;
+        break;
+      default:
+        validTypes = primitiveTypes;
+        schema = param;
+    }
 
-        if (validTypes.indexOf(schema.type) === -1) {
-            throw util.newSyntaxError('%s has an invalid %s parameter type (%s)', operationId, param.in, schema.type);
-        }
+    if (validTypes.indexOf(schema.type) === -1) {
+      throw util.newSyntaxError('%s has an invalid %s parameter type (%s)', operationId, param.in, schema.type);
+    }
 
-        if (schema.type === 'file') {
-            // "file" params require specific "consumes" types
-            var consumes = operation.consumes || api.consumes || [];
-            if (consumes.indexOf('multipart/form-data') === -1 &&
-                consumes.indexOf('application/x-www-form-urlencoded') === -1) {
-                throw util.newSyntaxError('%s has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded', operationId);
-            }
-        }
-        else if (schema.type === 'array' && !schema.items) {
-            throw util.newSyntaxError('The "%s" %s parameter at %s is an array, so it must include an "items" schema', param.name, param.in, operationId);
-        }
-    });
+    if (schema.type === 'file') {
+      // "file" params require specific "consumes" types
+      var consumes = operation.consumes || api.consumes || [];
+      if (consumes.indexOf('multipart/form-data') === -1 &&
+        consumes.indexOf('application/x-www-form-urlencoded') === -1) {
+        throw util.newSyntaxError(
+          '%s has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded',
+          operationId
+        );
+      }
+    }
+    else if (schema.type === 'array' && !schema.items) {
+      throw util.newSyntaxError(
+        'The "%s" %s parameter at %s is an array, so it must include an "items" schema',
+        param.name,
+        param.in,
+        operationId
+      );
+    }
+  });
 }
-
 
 /**
  * Checks the given parameter list for duplicates, and throws an error if found.
@@ -1504,17 +1480,16 @@ function validateParameterTypes(params, api, operation, operationId) {
  * @param   {object[]}  params  An array of Parameter objects
  */
 function checkForDuplicates(params) {
-    for (var i = 0; i < params.length - 1; i++) {
-        var outer = params[i];
-        for (var j = i + 1; j < params.length; j++) {
-            var inner = params[j];
-            if (outer.name === inner.name && outer.in === inner.in) {
-                throw util.newSyntaxError('Found multiple %s parameters named "%s"', outer.in, outer.name);
-            }
-        }
+  for (var i = 0; i < params.length - 1; i++) {
+    var outer = params[i];
+    for (var j = i + 1; j < params.length; j++) {
+      var inner = params[j];
+      if (outer.name === inner.name && outer.in === inner.in) {
+        throw util.newSyntaxError('Found multiple %s parameters named "%s"', outer.in, outer.name);
+      }
     }
+  }
 }
-
 
 /**
  * Validates the given response object.
@@ -1523,16 +1498,16 @@ function checkForDuplicates(params) {
  * @param   {string}    responseId     A value that uniquely identifies the response
  */
 function validateResponse(response, responseId) {
-    if (response.schema) {
-        var validTypes = schemaTypes.concat('file');
-        if (validTypes.indexOf(response.schema.type) === -1) {
-            throw util.newSyntaxError('%s has an invalid response schema type (%s)', responseId, response.schema.type);
-        }
+  if (response.schema) {
+    var validTypes = schemaTypes.concat('file');
+    if (validTypes.indexOf(response.schema.type) === -1) {
+      throw util.newSyntaxError('%s has an invalid response schema type (%s)', responseId, response.schema.type);
     }
+  }
 }
 
 
-},{"./util":8,"lodash/array/unique":82,"lodash/collection/where":86,"lodash/object/keys":163,"swagger-schema-official/schema":174,"tv4":175}],10:[function(require,module,exports){
+},{"./util":8,"lodash/array/unique":82,"lodash/collection/where":86,"lodash/object/keys":164,"swagger-schema-official/schema":175,"tv4":176}],10:[function(require,module,exports){
 
 },{}],11:[function(require,module,exports){
 arguments[4][10][0].apply(exports,arguments)
@@ -1644,7 +1619,7 @@ function fromString (that, string, encoding) {
   var length = byteLength(string, encoding) | 0
   that = allocate(that, length)
 
-  that.write(string, encoding) | 0
+  that.write(string, encoding)
   return that
 }
 
@@ -1745,7 +1720,7 @@ function checked (length) {
     throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
                          'size: 0x' + kMaxLength.toString(16) + ' bytes')
   }
-  return length >>> 0
+  return length | 0
 }
 
 function SlowBuffer (subject, encoding) {
@@ -1769,11 +1744,20 @@ Buffer.compare = function compare (a, b) {
 
   var x = a.length
   var y = b.length
-  for (var i = 0, len = Math.min(x, y); i < len && a[i] === b[i]; i++) {}
+
+  var i = 0
+  var len = Math.min(x, y)
+  while (i < len) {
+    if (a[i] !== b[i]) break
+
+    ++i
+  }
+
   if (i !== len) {
     x = a[i]
     y = b[i]
   }
+
   if (x < y) return -1
   if (y < x) return 1
   return 0
@@ -1861,8 +1845,8 @@ Buffer.prototype.parent = undefined
 Buffer.prototype.toString = function toString (encoding, start, end) {
   var loweredCase = false
 
-  start = start >>> 0
-  end = end === undefined || end === Infinity ? this.length : end >>> 0
+  start = start | 0
+  end = end === undefined || end === Infinity ? this.length : end | 0
 
   if (!encoding) encoding = 'utf8'
   if (start < 0) start = 0
@@ -2036,9 +2020,9 @@ Buffer.prototype.write = function write (string, offset, length, encoding) {
     offset = 0
   // Buffer#write(string, offset[, length][, encoding])
   } else if (isFinite(offset)) {
-    offset = offset >>> 0
+    offset = offset | 0
     if (isFinite(length)) {
-      length = length >>> 0
+      length = length | 0
       if (encoding === undefined) encoding = 'utf8'
     } else {
       encoding = length
@@ -2048,7 +2032,7 @@ Buffer.prototype.write = function write (string, offset, length, encoding) {
   } else {
     var swap = encoding
     encoding = offset
-    offset = length >>> 0
+    offset = length | 0
     length = swap
   }
 
@@ -2215,8 +2199,8 @@ function checkOffset (offset, ext, length) {
 }
 
 Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
-  offset = offset >>> 0
-  byteLength = byteLength >>> 0
+  offset = offset | 0
+  byteLength = byteLength | 0
   if (!noAssert) checkOffset(offset, byteLength, this.length)
 
   var val = this[offset]
@@ -2230,8 +2214,8 @@ Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert)
 }
 
 Buffer.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
-  offset = offset >>> 0
-  byteLength = byteLength >>> 0
+  offset = offset | 0
+  byteLength = byteLength | 0
   if (!noAssert) {
     checkOffset(offset, byteLength, this.length)
   }
@@ -2279,8 +2263,8 @@ Buffer.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
 }
 
 Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
-  offset = offset >>> 0
-  byteLength = byteLength >>> 0
+  offset = offset | 0
+  byteLength = byteLength | 0
   if (!noAssert) checkOffset(offset, byteLength, this.length)
 
   var val = this[offset]
@@ -2297,8 +2281,8 @@ Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
 }
 
 Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
-  offset = offset >>> 0
-  byteLength = byteLength >>> 0
+  offset = offset | 0
+  byteLength = byteLength | 0
   if (!noAssert) checkOffset(offset, byteLength, this.length)
 
   var i = byteLength
@@ -2378,15 +2362,15 @@ function checkInt (buf, value, offset, ext, max, min) {
 
 Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
   value = +value
-  offset = offset >>> 0
-  byteLength = byteLength >>> 0
+  offset = offset | 0
+  byteLength = byteLength | 0
   if (!noAssert) checkInt(this, value, offset, byteLength, Math.pow(2, 8 * byteLength), 0)
 
   var mul = 1
   var i = 0
   this[offset] = value & 0xFF
   while (++i < byteLength && (mul *= 0x100)) {
-    this[offset + i] = (value / mul) >>> 0 & 0xFF
+    this[offset + i] = (value / mul) & 0xFF
   }
 
   return offset + byteLength
@@ -2394,15 +2378,15 @@ Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, 
 
 Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
   value = +value
-  offset = offset >>> 0
-  byteLength = byteLength >>> 0
+  offset = offset | 0
+  byteLength = byteLength | 0
   if (!noAssert) checkInt(this, value, offset, byteLength, Math.pow(2, 8 * byteLength), 0)
 
   var i = byteLength - 1
   var mul = 1
   this[offset + i] = value & 0xFF
   while (--i >= 0 && (mul *= 0x100)) {
-    this[offset + i] = (value / mul) >>> 0 & 0xFF
+    this[offset + i] = (value / mul) & 0xFF
   }
 
   return offset + byteLength
@@ -2410,7 +2394,7 @@ Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, 
 
 Buffer.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0)
   if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
   this[offset] = value
@@ -2427,7 +2411,7 @@ function objectWriteUInt16 (buf, value, offset, littleEndian) {
 
 Buffer.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = value
@@ -2440,7 +2424,7 @@ Buffer.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert
 
 Buffer.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 8)
@@ -2460,7 +2444,7 @@ function objectWriteUInt32 (buf, value, offset, littleEndian) {
 
 Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset + 3] = (value >>> 24)
@@ -2475,7 +2459,7 @@ Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert
 
 Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 24)
@@ -2490,13 +2474,11 @@ Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert
 
 Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) {
-    checkInt(
-      this, value, offset, byteLength,
-      Math.pow(2, 8 * byteLength - 1) - 1,
-      -Math.pow(2, 8 * byteLength - 1)
-    )
+    var limit = Math.pow(2, 8 * byteLength - 1)
+
+    checkInt(this, value, offset, byteLength, limit - 1, -limit)
   }
 
   var i = 0
@@ -2512,13 +2494,11 @@ Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, no
 
 Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) {
-    checkInt(
-      this, value, offset, byteLength,
-      Math.pow(2, 8 * byteLength - 1) - 1,
-      -Math.pow(2, 8 * byteLength - 1)
-    )
+    var limit = Math.pow(2, 8 * byteLength - 1)
+
+    checkInt(this, value, offset, byteLength, limit - 1, -limit)
   }
 
   var i = byteLength - 1
@@ -2534,7 +2514,7 @@ Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, no
 
 Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80)
   if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
   if (value < 0) value = 0xff + value + 1
@@ -2544,7 +2524,7 @@ Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
 
 Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = value
@@ -2557,7 +2537,7 @@ Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) 
 
 Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 8)
@@ -2570,7 +2550,7 @@ Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) 
 
 Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = value
@@ -2585,7 +2565,7 @@ Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) 
 
 Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
   value = +value
-  offset = offset >>> 0
+  offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
   if (value < 0) value = 0xffffffff + value + 1
   if (Buffer.TYPED_ARRAY_SUPPORT) {
@@ -2638,11 +2618,11 @@ Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert
 }
 
 // copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
-Buffer.prototype.copy = function copy (target, target_start, start, end) {
+Buffer.prototype.copy = function copy (target, targetStart, start, end) {
   if (!start) start = 0
   if (!end && end !== 0) end = this.length
-  if (target_start >= target.length) target_start = target.length
-  if (!target_start) target_start = 0
+  if (targetStart >= target.length) targetStart = target.length
+  if (!targetStart) targetStart = 0
   if (end > 0 && end < start) end = start
 
   // Copy 0 bytes; we're done
@@ -2650,7 +2630,7 @@ Buffer.prototype.copy = function copy (target, target_start, start, end) {
   if (target.length === 0 || this.length === 0) return 0
 
   // Fatal error conditions
-  if (target_start < 0) {
+  if (targetStart < 0) {
     throw new RangeError('targetStart out of bounds')
   }
   if (start < 0 || start >= this.length) throw new RangeError('sourceStart out of bounds')
@@ -2658,18 +2638,18 @@ Buffer.prototype.copy = function copy (target, target_start, start, end) {
 
   // Are we oob?
   if (end > this.length) end = this.length
-  if (target.length - target_start < end - start) {
-    end = target.length - target_start + start
+  if (target.length - targetStart < end - start) {
+    end = target.length - targetStart + start
   }
 
   var len = end - start
 
   if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
     for (var i = 0; i < len; i++) {
-      target[i + target_start] = this[i + start]
+      target[i + targetStart] = this[i + start]
     }
   } else {
-    target._set(this.subarray(start, start + len), target_start)
+    target._set(this.subarray(start, start + len), targetStart)
   }
 
   return len
@@ -3074,7 +3054,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
 },{}],14:[function(require,module,exports){
-exports.read = function(buffer, offset, isLE, mLen, nBytes) {
+exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
       eMax = (1 << eLen) - 1,
@@ -3082,32 +3062,32 @@ exports.read = function(buffer, offset, isLE, mLen, nBytes) {
       nBits = -7,
       i = isLE ? (nBytes - 1) : 0,
       d = isLE ? -1 : 1,
-      s = buffer[offset + i];
+      s = buffer[offset + i]
 
-  i += d;
+  i += d
 
-  e = s & ((1 << (-nBits)) - 1);
-  s >>= (-nBits);
-  nBits += eLen;
-  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8);
+  e = s & ((1 << (-nBits)) - 1)
+  s >>= (-nBits)
+  nBits += eLen
+  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
 
-  m = e & ((1 << (-nBits)) - 1);
-  e >>= (-nBits);
-  nBits += mLen;
-  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8);
+  m = e & ((1 << (-nBits)) - 1)
+  e >>= (-nBits)
+  nBits += mLen
+  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
 
   if (e === 0) {
-    e = 1 - eBias;
+    e = 1 - eBias
   } else if (e === eMax) {
-    return m ? NaN : ((s ? -1 : 1) * Infinity);
+    return m ? NaN : ((s ? -1 : 1) * Infinity)
   } else {
-    m = m + Math.pow(2, mLen);
-    e = e - eBias;
+    m = m + Math.pow(2, mLen)
+    e = e - eBias
   }
-  return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
-};
+  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
+}
 
-exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
+exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var e, m, c,
       eLen = nBytes * 8 - mLen - 1,
       eMax = (1 << eLen) - 1,
@@ -3115,49 +3095,49 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
       rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0),
       i = isLE ? 0 : (nBytes - 1),
       d = isLE ? 1 : -1,
-      s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0;
+      s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
 
-  value = Math.abs(value);
+  value = Math.abs(value)
 
   if (isNaN(value) || value === Infinity) {
-    m = isNaN(value) ? 1 : 0;
-    e = eMax;
+    m = isNaN(value) ? 1 : 0
+    e = eMax
   } else {
-    e = Math.floor(Math.log(value) / Math.LN2);
+    e = Math.floor(Math.log(value) / Math.LN2)
     if (value * (c = Math.pow(2, -e)) < 1) {
-      e--;
-      c *= 2;
+      e--
+      c *= 2
     }
     if (e + eBias >= 1) {
-      value += rt / c;
+      value += rt / c
     } else {
-      value += rt * Math.pow(2, 1 - eBias);
+      value += rt * Math.pow(2, 1 - eBias)
     }
     if (value * c >= 2) {
-      e++;
-      c /= 2;
+      e++
+      c /= 2
     }
 
     if (e + eBias >= eMax) {
-      m = 0;
-      e = eMax;
+      m = 0
+      e = eMax
     } else if (e + eBias >= 1) {
-      m = (value * c - 1) * Math.pow(2, mLen);
-      e = e + eBias;
+      m = (value * c - 1) * Math.pow(2, mLen)
+      e = e + eBias
     } else {
-      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
-      e = 0;
+      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
+      e = 0
     }
   }
 
-  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8);
+  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
 
-  e = (e << mLen) | m;
-  eLen += mLen;
-  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8);
+  e = (e << mLen) | m
+  eLen += mLen
+  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
 
-  buffer[offset + i - d] |= s * 128;
-};
+  buffer[offset + i - d] |= s * 128
+}
 
 },{}],15:[function(require,module,exports){
 
@@ -4303,32 +4283,64 @@ var substr = 'ab'.substr(-1) === 'b'
 var process = module.exports = {};
 var queue = [];
 var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
 
 function drainQueue() {
     if (draining) {
         return;
     }
+    var timeout = setTimeout(cleanUpNextTick);
     draining = true;
-    var currentQueue;
+
     var len = queue.length;
     while(len) {
         currentQueue = queue;
         queue = [];
-        var i = -1;
-        while (++i < len) {
-            currentQueue[i]();
+        while (++queueIndex < len) {
+            currentQueue[queueIndex].run();
         }
+        queueIndex = -1;
         len = queue.length;
     }
+    currentQueue = null;
     draining = false;
+    clearTimeout(timeout);
 }
+
 process.nextTick = function (fun) {
-    queue.push(fun);
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
     if (!draining) {
         setTimeout(drainQueue, 0);
     }
 };
 
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
 process.title = 'browser';
 process.browser = true;
 process.env = {};
@@ -4359,15 +4371,20 @@ process.umask = function() { return 0; };
 
 },{}],25:[function(require,module,exports){
 (function (global){
-/*! http://mths.be/punycode v1.2.4 by @mathias */
+/*! https://mths.be/punycode v1.3.2 by @mathias */
 ;(function(root) {
 
 	/** Detect free variables */
-	var freeExports = typeof exports == 'object' && exports;
+	var freeExports = typeof exports == 'object' && exports &&
+		!exports.nodeType && exports;
 	var freeModule = typeof module == 'object' && module &&
-		module.exports == freeExports && module;
+		!module.nodeType && module;
 	var freeGlobal = typeof global == 'object' && global;
-	if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
+	if (
+		freeGlobal.global === freeGlobal ||
+		freeGlobal.window === freeGlobal ||
+		freeGlobal.self === freeGlobal
+	) {
 		root = freeGlobal;
 	}
 
@@ -4393,8 +4410,8 @@ process.umask = function() { return 0; };
 
 	/** Regular expressions */
 	regexPunycode = /^xn--/,
-	regexNonASCII = /[^ -~]/, // unprintable ASCII chars + non-ASCII chars
-	regexSeparators = /\x2E|\u3002|\uFF0E|\uFF61/g, // RFC 3490 separators
+	regexNonASCII = /[^\x20-\x7E]/, // unprintable ASCII chars + non-ASCII chars
+	regexSeparators = /[\x2E\u3002\uFF0E\uFF61]/g, // RFC 3490 separators
 
 	/** Error messages */
 	errors = {
@@ -4433,23 +4450,37 @@ process.umask = function() { return 0; };
 	 */
 	function map(array, fn) {
 		var length = array.length;
+		var result = [];
 		while (length--) {
-			array[length] = fn(array[length]);
+			result[length] = fn(array[length]);
 		}
-		return array;
+		return result;
 	}
 
 	/**
-	 * A simple `Array#map`-like wrapper to work with domain name strings.
+	 * A simple `Array#map`-like wrapper to work with domain name strings or email
+	 * addresses.
 	 * @private
-	 * @param {String} domain The domain name.
+	 * @param {String} domain The domain name or email address.
 	 * @param {Function} callback The function that gets called for every
 	 * character.
 	 * @returns {Array} A new string of characters returned by the callback
 	 * function.
 	 */
 	function mapDomain(string, fn) {
-		return map(string.split(regexSeparators), fn).join('.');
+		var parts = string.split('@');
+		var result = '';
+		if (parts.length > 1) {
+			// In email addresses, only the domain name should be punycoded. Leave
+			// the local part (i.e. everything up to `@`) intact.
+			result = parts[0] + '@';
+			string = parts[1];
+		}
+		// Avoid `split(regex)` for IE8 compatibility. See #17.
+		string = string.replace(regexSeparators, '\x2E');
+		var labels = string.split('.');
+		var encoded = map(labels, fn).join('.');
+		return result + encoded;
 	}
 
 	/**
@@ -4459,7 +4490,7 @@ process.umask = function() { return 0; };
 	 * UCS-2 exposes as separate characters) into a single code point,
 	 * matching UTF-16.
 	 * @see `punycode.ucs2.encode`
-	 * @see <http://mathiasbynens.be/notes/javascript-encoding>
+	 * @see <https://mathiasbynens.be/notes/javascript-encoding>
 	 * @memberOf punycode.ucs2
 	 * @name decode
 	 * @param {String} string The Unicode input string (UCS-2).
@@ -4668,8 +4699,8 @@ process.umask = function() { return 0; };
 	}
 
 	/**
-	 * Converts a string of Unicode symbols to a Punycode string of ASCII-only
-	 * symbols.
+	 * Converts a string of Unicode symbols (e.g. a domain name label) to a
+	 * Punycode string of ASCII-only symbols.
 	 * @memberOf punycode
 	 * @param {String} input The string of Unicode symbols.
 	 * @returns {String} The resulting Punycode string of ASCII-only symbols.
@@ -4782,17 +4813,18 @@ process.umask = function() { return 0; };
 	}
 
 	/**
-	 * Converts a Punycode string representing a domain name to Unicode. Only the
-	 * Punycoded parts of the domain name will be converted, i.e. it doesn't
-	 * matter if you call it on a string that has already been converted to
-	 * Unicode.
+	 * Converts a Punycode string representing a domain name or an email address
+	 * to Unicode. Only the Punycoded parts of the input will be converted, i.e.
+	 * it doesn't matter if you call it on a string that has already been
+	 * converted to Unicode.
 	 * @memberOf punycode
-	 * @param {String} domain The Punycode domain name to convert to Unicode.
+	 * @param {String} input The Punycoded domain name or email address to
+	 * convert to Unicode.
 	 * @returns {String} The Unicode representation of the given Punycode
 	 * string.
 	 */
-	function toUnicode(domain) {
-		return mapDomain(domain, function(string) {
+	function toUnicode(input) {
+		return mapDomain(input, function(string) {
 			return regexPunycode.test(string)
 				? decode(string.slice(4).toLowerCase())
 				: string;
@@ -4800,15 +4832,18 @@ process.umask = function() { return 0; };
 	}
 
 	/**
-	 * Converts a Unicode string representing a domain name to Punycode. Only the
-	 * non-ASCII parts of the domain name will be converted, i.e. it doesn't
-	 * matter if you call it with a domain that's already in ASCII.
+	 * Converts a Unicode string representing a domain name or an email address to
+	 * Punycode. Only the non-ASCII parts of the domain name will be converted,
+	 * i.e. it doesn't matter if you call it with a domain that's already in
+	 * ASCII.
 	 * @memberOf punycode
-	 * @param {String} domain The domain name to convert, as a Unicode string.
-	 * @returns {String} The Punycode representation of the given domain name.
+	 * @param {String} input The domain name or email address to convert, as a
+	 * Unicode string.
+	 * @returns {String} The Punycode representation of the given domain name or
+	 * email address.
 	 */
-	function toASCII(domain) {
-		return mapDomain(domain, function(string) {
+	function toASCII(input) {
+		return mapDomain(input, function(string) {
 			return regexNonASCII.test(string)
 				? 'xn--' + encode(string)
 				: string;
@@ -4824,11 +4859,11 @@ process.umask = function() { return 0; };
 		 * @memberOf punycode
 		 * @type String
 		 */
-		'version': '1.2.4',
+		'version': '1.3.2',
 		/**
 		 * An object of methods to convert from JavaScript's internal character
 		 * representation (UCS-2) to Unicode code points, and back.
-		 * @see <http://mathiasbynens.be/notes/javascript-encoding>
+		 * @see <https://mathiasbynens.be/notes/javascript-encoding>
 		 * @memberOf punycode
 		 * @type Object
 		 */
@@ -4853,8 +4888,8 @@ process.umask = function() { return 0; };
 		define('punycode', function() {
 			return punycode;
 		});
-	} else if (freeExports && !freeExports.nodeType) {
-		if (freeModule) { // in Node.js or RingoJS v0.8.0+
+	} else if (freeExports && freeModule) {
+		if (module.exports == freeExports) { // in Node.js or RingoJS v0.8.0+
 			freeModule.exports = punycode;
 		} else { // in Narwhal or RingoJS v0.7.0-
 			for (key in punycode) {
@@ -9186,12 +9221,12 @@ module.exports.addConstructor = deprecated('addConstructor');
 
 
 function isNothing(subject) {
-  return (undefined === subject) || (null === subject);
+  return (typeof subject === 'undefined') || (null === subject);
 }
 
 
 function isObject(subject) {
-  return ('object' === typeof subject) && (null !== subject);
+  return (typeof subject === 'object') && (null !== subject);
 }
 
 
@@ -9200,9 +9235,8 @@ function toArray(sequence) {
     return sequence;
   } else if (isNothing(sequence)) {
     return [];
-  } else {
-    return [ sequence ];
   }
+  return [ sequence ];
 }
 
 
@@ -9248,16 +9282,15 @@ module.exports.extend         = extend;
 },{}],51:[function(require,module,exports){
 'use strict';
 
+/*eslint-disable no-use-before-define*/
 
 var common              = require('./common');
 var YAMLException       = require('./exception');
 var DEFAULT_FULL_SCHEMA = require('./schema/default_full');
 var DEFAULT_SAFE_SCHEMA = require('./schema/default_safe');
 
-
 var _toString       = Object.prototype.toString;
 var _hasOwnProperty = Object.prototype.hasOwnProperty;
-
 
 var CHAR_TAB                  = 0x09; /* Tab */
 var CHAR_LINE_FEED            = 0x0A; /* LF */
@@ -9283,7 +9316,6 @@ var CHAR_LEFT_CURLY_BRACKET   = 0x7B; /* { */
 var CHAR_VERTICAL_LINE        = 0x7C; /* | */
 var CHAR_RIGHT_CURLY_BRACKET  = 0x7D; /* } */
 
-
 var ESCAPE_SEQUENCES = {};
 
 ESCAPE_SEQUENCES[0x00]   = '\\0';
@@ -9302,12 +9334,10 @@ ESCAPE_SEQUENCES[0xA0]   = '\\_';
 ESCAPE_SEQUENCES[0x2028] = '\\L';
 ESCAPE_SEQUENCES[0x2029] = '\\P';
 
-
 var DEPRECATED_BOOLEANS_SYNTAX = [
   'y', 'Y', 'yes', 'Yes', 'YES', 'on', 'On', 'ON',
   'n', 'N', 'no', 'No', 'NO', 'off', 'Off', 'OFF'
 ];
-
 
 function compileStyleMap(schema, map) {
   var result, keys, index, length, tag, style, type;
@@ -9339,7 +9369,6 @@ function compileStyleMap(schema, map) {
   return result;
 }
 
-
 function encodeHex(character) {
   var string, handle, length;
 
@@ -9361,7 +9390,6 @@ function encodeHex(character) {
   return '\\' + handle + common.repeat('0', length - string.length) + string;
 }
 
-
 function State(options) {
   this.schema      = options['schema'] || DEFAULT_FULL_SCHEMA;
   this.indent      = Math.max(1, (options['indent'] || 2));
@@ -9379,6 +9407,31 @@ function State(options) {
   this.usedDuplicates = null;
 }
 
+function indentString(string, spaces) {
+  var ind = common.repeat(' ', spaces),
+      position = 0,
+      next = -1,
+      result = '',
+      line,
+      length = string.length;
+
+  while (position < length) {
+    next = string.indexOf('\n', position);
+    if (next === -1) {
+      line = string.slice(position);
+      position = length;
+    } else {
+      line = string.slice(position, next + 1);
+      position = next + 1;
+    }
+    if (line.length && line !== '\n') {
+      result += ind;
+    }
+    result += line;
+  }
+
+  return result;
+}
 
 function generateNextLine(state, level) {
   return '\n' + common.repeat(' ', state.indent * level);
@@ -9398,81 +9451,339 @@ function testImplicitResolving(state, str) {
   return false;
 }
 
-function writeScalar(state, object) {
-  var isQuoted, checkpoint, position, length, character, first;
+function StringBuilder(source) {
+  this.source = source;
+  this.result = '';
+  this.checkpoint = 0;
+}
 
-  state.dump = '';
-  isQuoted = false;
-  checkpoint = 0;
-  first = object.charCodeAt(0) || 0;
+StringBuilder.prototype.takeUpTo = function (position) {
+  var er;
 
-  if (-1 !== DEPRECATED_BOOLEANS_SYNTAX.indexOf(object)) {
-    // Ensure compatibility with YAML 1.0/1.1 loaders.
-    isQuoted = true;
-  } else if (0 === object.length) {
-    // Quote empty string
-    isQuoted = true;
-  } else if (CHAR_SPACE    === first ||
-             CHAR_SPACE    === object.charCodeAt(object.length - 1)) {
-    isQuoted = true;
-  } else if (CHAR_MINUS    === first ||
-             CHAR_QUESTION === first) {
-    // Don't check second symbol for simplicity
-    isQuoted = true;
+  if (position < this.checkpoint) {
+    er = new Error('position should be > checkpoint');
+    er.position = position;
+    er.checkpoint = this.checkpoint;
+    throw er;
   }
 
-  for (position = 0, length = object.length; position < length; position += 1) {
-    character = object.charCodeAt(position);
+  this.result += this.source.slice(this.checkpoint, position);
+  this.checkpoint = position;
+  return this;
+};
 
-    if (!isQuoted) {
-      if (CHAR_TAB                  === character ||
-          CHAR_LINE_FEED            === character ||
-          CHAR_CARRIAGE_RETURN      === character ||
-          CHAR_COMMA                === character ||
-          CHAR_LEFT_SQUARE_BRACKET  === character ||
-          CHAR_RIGHT_SQUARE_BRACKET === character ||
-          CHAR_LEFT_CURLY_BRACKET   === character ||
-          CHAR_RIGHT_CURLY_BRACKET  === character ||
-          CHAR_SHARP                === character ||
-          CHAR_AMPERSAND            === character ||
-          CHAR_ASTERISK             === character ||
-          CHAR_EXCLAMATION          === character ||
-          CHAR_VERTICAL_LINE        === character ||
-          CHAR_GREATER_THAN         === character ||
-          CHAR_SINGLE_QUOTE         === character ||
-          CHAR_DOUBLE_QUOTE         === character ||
-          CHAR_PERCENT              === character ||
-          CHAR_COMMERCIAL_AT        === character ||
-          CHAR_COLON                === character ||
-          CHAR_GRAVE_ACCENT         === character) {
-        isQuoted = true;
+StringBuilder.prototype.escapeChar = function () {
+  var character, esc;
+
+  character = this.source.charCodeAt(this.checkpoint);
+  esc = ESCAPE_SEQUENCES[character] || encodeHex(character);
+  this.result += esc;
+  this.checkpoint += 1;
+
+  return this;
+};
+
+StringBuilder.prototype.finish = function () {
+  if (this.source.length > this.checkpoint) {
+    this.takeUpTo(this.source.length);
+  }
+};
+
+function writeScalar(state, object, level) {
+  var simple, first, spaceWrap, folded, literal, single, double,
+      sawLineFeed, linePosition, longestLine, indent, max, character,
+      position, escapeSeq, hexEsc, previous, lineLength, modifier,
+      trailingLineBreaks, result;
+
+  if (0 === object.length) {
+    state.dump = "''";
+    return;
+  }
+
+  if (-1 !== DEPRECATED_BOOLEANS_SYNTAX.indexOf(object)) {
+    state.dump = "'" + object + "'";
+    return;
+  }
+
+  simple = true;
+  first = object.length ? object.charCodeAt(0) : 0;
+  spaceWrap = (CHAR_SPACE === first ||
+               CHAR_SPACE === object.charCodeAt(object.length - 1));
+
+  // Simplified check for restricted first characters
+  // http://www.yaml.org/spec/1.2/spec.html#ns-plain-first%28c%29
+  if (CHAR_MINUS         === first ||
+      CHAR_QUESTION      === first ||
+      CHAR_COMMERCIAL_AT === first ||
+      CHAR_GRAVE_ACCENT  === first) {
+    simple = false;
+  }
+
+  // can only use > and | if not wrapped in spaces.
+  if (spaceWrap) {
+    simple = false;
+    folded = false;
+    literal = false;
+  } else {
+    folded = true;
+    literal = true;
+  }
+
+  single = true;
+  double = new StringBuilder(object);
+
+  sawLineFeed = false;
+  linePosition = 0;
+  longestLine = 0;
+
+  indent = state.indent * level;
+  max = 80;
+  if (indent < 40) {
+    max -= indent;
+  } else {
+    max = 40;
+  }
+
+  for (position = 0; position < object.length; position++) {
+    character = object.charCodeAt(position);
+    if (simple) {
+      // Characters that can never appear in the simple scalar
+      if (!simpleChar(character)) {
+        simple = false;
+      } else {
+        // Still simple.  If we make it all the way through like
+        // this, then we can just dump the string as-is.
+        continue;
       }
     }
 
-    if (ESCAPE_SEQUENCES[character] ||
-        !((0x00020 <= character && character <= 0x00007E) ||
-          (0x00085 === character)                         ||
-          (0x000A0 <= character && character <= 0x00D7FF) ||
-          (0x0E000 <= character && character <= 0x00FFFD) ||
-          (0x10000 <= character && character <= 0x10FFFF))) {
-      state.dump += object.slice(checkpoint, position);
-      state.dump += ESCAPE_SEQUENCES[character] || encodeHex(character);
-      checkpoint = position + 1;
-      isQuoted = true;
+    if (single && character === CHAR_SINGLE_QUOTE) {
+      single = false;
+    }
+
+    escapeSeq = ESCAPE_SEQUENCES[character];
+    hexEsc = needsHexEscape(character);
+
+    if (!escapeSeq && !hexEsc) {
+      continue;
+    }
+
+    if (character !== CHAR_LINE_FEED &&
+        character !== CHAR_DOUBLE_QUOTE &&
+        character !== CHAR_SINGLE_QUOTE) {
+      folded = false;
+      literal = false;
+    } else if (character === CHAR_LINE_FEED) {
+      sawLineFeed = true;
+      single = false;
+      if (position > 0) {
+        previous = object.charCodeAt(position - 1);
+        if (previous === CHAR_SPACE) {
+          literal = false;
+          folded = false;
+        }
+      }
+      if (folded) {
+        lineLength = position - linePosition;
+        linePosition = position;
+        if (lineLength > longestLine) {
+          longestLine = lineLength;
+        }
+      }
+    }
+
+    if (character !== CHAR_DOUBLE_QUOTE) {
+      single = false;
+    }
+
+    double.takeUpTo(position);
+    double.escapeChar();
+  }
+
+  if (simple && testImplicitResolving(state, object)) {
+    simple = false;
+  }
+
+  modifier = '';
+  if (folded || literal) {
+    trailingLineBreaks = 0;
+    if (object.charCodeAt(object.length - 1) === CHAR_LINE_FEED) {
+      trailingLineBreaks += 1;
+      if (object.charCodeAt(object.length - 2) === CHAR_LINE_FEED) {
+        trailingLineBreaks += 1;
+      }
+    }
+
+    if (trailingLineBreaks === 0) {
+      modifier = '-';
+    } else if (trailingLineBreaks === 2) {
+      modifier = '+';
     }
   }
 
-  if (checkpoint < position) {
-    state.dump += object.slice(checkpoint, position);
+  if (literal && longestLine < max) {
+    folded = false;
   }
 
-  if (!isQuoted && testImplicitResolving(state, state.dump)) {
-    isQuoted = true;
+  // If it's literally one line, then don't bother with the literal.
+  // We may still want to do a fold, though, if it's a super long line.
+  if (!sawLineFeed) {
+    literal = false;
   }
 
-  if (isQuoted) {
-    state.dump = '"' + state.dump + '"';
+  if (simple) {
+    state.dump = object;
+  } else if (single) {
+    state.dump = '\'' + object + '\'';
+  } else if (folded) {
+    result = fold(object, max);
+    state.dump = '>' + modifier + '\n' + indentString(result, indent);
+  } else if (literal) {
+    if (!modifier) {
+      object = object.replace(/\n$/, '');
+    }
+    state.dump = '|' + modifier + '\n' + indentString(object, indent);
+  } else if (double) {
+    double.finish();
+    state.dump = '"' + double.result + '"';
+  } else {
+    throw new Error('Failed to dump scalar value');
   }
+
+  return;
+}
+
+// The `trailing` var is a regexp match of any trailing `\n` characters.
+//
+// There are three cases we care about:
+//
+// 1. One trailing `\n` on the string.  Just use `|` or `>`.
+//    This is the assumed default. (trailing = null)
+// 2. No trailing `\n` on the string.  Use `|-` or `>-` to "chomp" the end.
+// 3. More than one trailing `\n` on the string.  Use `|+` or `>+`.
+//
+// In the case of `>+`, these line breaks are *not* doubled (like the line
+// breaks within the string), so it's important to only end with the exact
+// same number as we started.
+function fold(object, max) {
+  var result = '',
+      position = 0,
+      length = object.length,
+      trailing = /\n+$/.exec(object),
+      newLine;
+
+  if (trailing) {
+    length = trailing.index + 1;
+  }
+
+  while (position < length) {
+    newLine = object.indexOf('\n', position);
+    if (newLine > length || newLine === -1) {
+      if (result) {
+        result += '\n\n';
+      }
+      result += foldLine(object.slice(position, length), max);
+      position = length;
+    } else {
+      if (result) {
+        result += '\n\n';
+      }
+      result += foldLine(object.slice(position, newLine), max);
+      position = newLine + 1;
+    }
+  }
+  if (trailing && trailing[0] !== '\n') {
+    result += trailing[0];
+  }
+
+  return result;
+}
+
+function foldLine(line, max) {
+  if (line === '') {
+    return line;
+  }
+
+  var foldRe = /[^\s] [^\s]/g,
+      result = '',
+      prevMatch = 0,
+      foldStart = 0,
+      match = foldRe.exec(line),
+      index,
+      foldEnd,
+      folded;
+
+  while (match) {
+    index = match.index;
+
+    // when we cross the max len, if the previous match would've
+    // been ok, use that one, and carry on.  If there was no previous
+    // match on this fold section, then just have a long line.
+    if (index - foldStart > max) {
+      if (prevMatch !== foldStart) {
+        foldEnd = prevMatch;
+      } else {
+        foldEnd = index;
+      }
+
+      if (result) {
+        result += '\n';
+      }
+      folded = line.slice(foldStart, foldEnd);
+      result += folded;
+      foldStart = foldEnd + 1;
+    }
+    prevMatch = index + 1;
+    match = foldRe.exec(line);
+  }
+
+  if (result) {
+    result += '\n';
+  }
+
+  // if we end up with one last word at the end, then the last bit might
+  // be slightly bigger than we wanted, because we exited out of the loop.
+  if (foldStart !== prevMatch && line.length - foldStart > max) {
+    result += line.slice(foldStart, prevMatch) + '\n' +
+              line.slice(prevMatch + 1);
+  } else {
+    result += line.slice(foldStart);
+  }
+
+  return result;
+}
+
+// Returns true if character can be found in a simple scalar
+function simpleChar(character) {
+  return CHAR_TAB                  !== character &&
+         CHAR_LINE_FEED            !== character &&
+         CHAR_CARRIAGE_RETURN      !== character &&
+         CHAR_COMMA                !== character &&
+         CHAR_LEFT_SQUARE_BRACKET  !== character &&
+         CHAR_RIGHT_SQUARE_BRACKET !== character &&
+         CHAR_LEFT_CURLY_BRACKET   !== character &&
+         CHAR_RIGHT_CURLY_BRACKET  !== character &&
+         CHAR_SHARP                !== character &&
+         CHAR_AMPERSAND            !== character &&
+         CHAR_ASTERISK             !== character &&
+         CHAR_EXCLAMATION          !== character &&
+         CHAR_VERTICAL_LINE        !== character &&
+         CHAR_GREATER_THAN         !== character &&
+         CHAR_SINGLE_QUOTE         !== character &&
+         CHAR_DOUBLE_QUOTE         !== character &&
+         CHAR_PERCENT              !== character &&
+         CHAR_COLON                !== character &&
+         !ESCAPE_SEQUENCES[character]            &&
+         !needsHexEscape(character);
+}
+
+// Returns true if the character code needs to be escaped.
+function needsHexEscape(character) {
+  return !((0x00020 <= character && character <= 0x00007E) ||
+           (0x00085 === character)                         ||
+           (0x000A0 <= character && character <= 0x00D7FF) ||
+           (0x0E000 <= character && character <= 0x00FFFD) ||
+           (0x10000 <= character && character <= 0x10FFFF));
 }
 
 function writeFlowSequence(state, level, object) {
@@ -9718,11 +10029,12 @@ function writeNode(state, level, object, block, compact) {
       }
     } else if ('[object String]' === type) {
       if ('?' !== state.tag) {
-        writeScalar(state, state.dump);
+        writeScalar(state, state.dump, level);
       }
-    } else if (state.skipInvalid) {
-      return false;
     } else {
+      if (state.skipInvalid) {
+        return false;
+      }
       throw new YAMLException('unacceptable kind of an object to dump ' + type);
     }
 
@@ -9762,8 +10074,8 @@ function inspectNode(object, objects, duplicatesIndexes) {
       }
     } else {
       objects.push(object);
-    
-      if(Array.isArray(object)) {
+
+      if (Array.isArray(object)) {
         for (index = 0, length = object.length; index < length; index += 1) {
           inspectNode(object[index], objects, duplicatesIndexes);
         }
@@ -9787,16 +10099,13 @@ function dump(input, options) {
 
   if (writeNode(state, 0, input, true, true)) {
     return state.dump + '\n';
-  } else {
-    return '';
   }
+  return '';
 }
-
 
 function safeDump(input, options) {
   return dump(input, common.extend({ schema: DEFAULT_SAFE_SCHEMA }, options));
 }
-
 
 module.exports.dump     = dump;
 module.exports.safeDump = safeDump;
@@ -9831,6 +10140,7 @@ module.exports = YAMLException;
 },{}],53:[function(require,module,exports){
 'use strict';
 
+/*eslint-disable max-len,no-use-before-define*/
 
 var common              = require('./common');
 var YAMLException       = require('./exception');
@@ -9890,7 +10200,9 @@ function fromHexCode(c) {
     return c - 0x30;
   }
 
+  /*eslint-disable no-bitwise*/
   lc = c | 0x20;
+
   if ((0x61/* a */ <= lc) && (lc <= 0x66/* f */)) {
     return lc - 0x61 + 10;
   }
@@ -9914,7 +10226,7 @@ function fromDecimalCode(c) {
 }
 
 function simpleEscapeSequence(c) {
- return (c === 0x30/* 0 */) ? '\x00' :
+  return (c === 0x30/* 0 */) ? '\x00' :
         (c === 0x61/* a */) ? '\x07' :
         (c === 0x62/* b */) ? '\x08' :
         (c === 0x74/* t */) ? '\x09' :
@@ -9937,12 +10249,11 @@ function simpleEscapeSequence(c) {
 function charFromCodepoint(c) {
   if (c <= 0xFFFF) {
     return String.fromCharCode(c);
-  } else {
-    // Encode UTF-16 surrogate pair
-    // https://en.wikipedia.org/wiki/UTF-16#Code_points_U.2B010000_to_U.2B10FFFF
-    return String.fromCharCode(((c - 0x010000) >> 10) + 0xD800,
-                               ((c - 0x010000) & 0x03FF) + 0xDC00);
   }
+  // Encode UTF-16 surrogate pair
+  // https://en.wikipedia.org/wiki/UTF-16#Code_points_U.2B010000_to_U.2B10FFFF
+  return String.fromCharCode(((c - 0x010000) >> 10) + 0xD800,
+                             ((c - 0x010000) & 0x03FF) + 0xDC00);
 }
 
 var simpleEscapeCheck = new Array(256); // integer, for fast access
@@ -10008,7 +10319,7 @@ function throwWarning(state, message) {
 
 var directiveHandlers = {
 
-  'YAML': function handleYamlDirective(state, name, args) {
+  YAML: function handleYamlDirective(state, name, args) {
 
       var match, major, minor;
 
@@ -10041,7 +10352,7 @@ var directiveHandlers = {
       }
     },
 
-  'TAG': function handleTagDirective(state, name, args) {
+  TAG: function handleTagDirective(state, name, args) {
 
       var handle, prefix;
 
@@ -10201,7 +10512,7 @@ function testDocumentSeparator(state) {
   // in parent on each call, for efficiency. No needs to test here again.
   if ((0x2D/* - */ === ch || 0x2E/* . */ === ch) &&
       state.input.charCodeAt(_position + 1) === ch &&
-      state.input.charCodeAt(_position+ 2) === ch) {
+      state.input.charCodeAt(_position + 2) === ch) {
 
     _position += 3;
 
@@ -10271,7 +10582,7 @@ function readPlainScalar(state, nodeIndent, withinFlowCollection) {
 
   while (0 !== ch) {
     if (0x3A/* : */ === ch) {
-      following = state.input.charCodeAt(state.position+1);
+      following = state.input.charCodeAt(state.position + 1);
 
       if (is_WS_OR_EOL(following) ||
           withinFlowCollection && is_FLOW_INDICATOR(following)) {
@@ -10326,11 +10637,11 @@ function readPlainScalar(state, nodeIndent, withinFlowCollection) {
 
   if (state.result) {
     return true;
-  } else {
-    state.kind = _kind;
-    state.result = _result;
-    return false;
   }
+
+  state.kind = _kind;
+  state.result = _result;
+  return false;
 }
 
 function readSingleQuotedScalar(state, nodeIndent) {
@@ -10409,7 +10720,7 @@ function readDoubleQuotedScalar(state, nodeIndent) {
       if (is_EOL(ch)) {
         skipSeparationSpace(state, false, nodeIndent);
 
-        //TODO: rework to inline fn with no type cast?
+        // TODO: rework to inline fn with no type cast?
       } else if (ch < 256 && simpleEscapeCheck[ch]) {
         state.result += simpleEscapeMap[ch];
         state.position++;
@@ -10475,11 +10786,11 @@ function readFlowCollection(state, nodeIndent) {
   ch = state.input.charCodeAt(state.position);
 
   if (ch === 0x5B/* [ */) {
-    terminator = 0x5D/* ] */;
+    terminator = 0x5D;/* ] */
     isMapping = false;
     _result = [];
   } else if (ch === 0x7B/* { */) {
-    terminator = 0x7D/* } */;
+    terminator = 0x7D;/* } */
     isMapping = true;
     _result = {};
   } else {
@@ -10681,24 +10992,20 @@ function readBlockScalar(state, nodeIndent) {
       }
 
     // Literal style: just add exact number of line breaks between content lines.
-    } else {
-
+    } else if (detectedIndent) {
       // If current line isn't the first one - count line break from the last content line.
-      if (detectedIndent) {
-        state.result += common.repeat('\n', emptyLines + 1);
-
+      state.result += common.repeat('\n', emptyLines + 1);
+    } else {
       // In case of the first content line - count only empty lines.
-      } else {
-        state.result += common.repeat('\n', emptyLines);
-      }
     }
 
     detectedIndent = true;
     emptyLines = 0;
     captureStart = state.position;
 
-    while (!is_EOL(ch) && (0 !== ch))
-    { ch = state.input.charCodeAt(++state.position); }
+    while (!is_EOL(ch) && (0 !== ch)) {
+      ch = state.input.charCodeAt(++state.position);
+    }
 
     captureSegment(state, captureStart, state.position, false);
   }
@@ -10764,9 +11071,8 @@ function readBlockSequence(state, nodeIndent) {
     state.kind = 'sequence';
     state.result = _result;
     return true;
-  } else {
-    return false;
   }
+  return false;
 }
 
 function readBlockMapping(state, nodeIndent, flowIndent) {
@@ -11346,10 +11652,18 @@ function loadDocuments(input, options) {
   input = String(input);
   options = options || {};
 
-  if (0 !== input.length &&
-      0x0A/* LF */ !== input.charCodeAt(input.length - 1) &&
-      0x0D/* CR */ !== input.charCodeAt(input.length - 1)) {
-    input += '\n';
+  if (input.length !== 0) {
+
+    // Add tailing `\n` if not exists
+    if (0x0A/* LF */ !== input.charCodeAt(input.length - 1) &&
+        0x0D/* CR */ !== input.charCodeAt(input.length - 1)) {
+      input += '\n';
+    }
+
+    // Strip BOM
+    if (input.charCodeAt(0) === 0xFEFF) {
+      input = input.slice(1);
+    }
   }
 
   var state = new State(input, options);
@@ -11387,12 +11701,12 @@ function load(input, options) {
   var documents = loadDocuments(input, options), index, length;
 
   if (0 === documents.length) {
+    /*eslint-disable no-undefined*/
     return undefined;
   } else if (1 === documents.length) {
     return documents[0];
-  } else {
-    throw new YAMLException('expected a single document in the stream, but found more');
   }
+  throw new YAMLException('expected a single document in the stream, but found more');
 }
 
 
@@ -11494,6 +11808,7 @@ module.exports = Mark;
 },{"./common":50}],55:[function(require,module,exports){
 'use strict';
 
+/*eslint-disable max-len*/
 
 var common        = require('./common');
 var YAMLException = require('./exception');
@@ -11785,6 +12100,7 @@ module.exports = Type;
 },{"./exception":52}],62:[function(require,module,exports){
 'use strict';
 
+/*eslint-disable no-bitwise*/
 
 // A trick for browserified version.
 // Since we make browserifier to ignore `buffer` module, NodeBuffer will be undefined
@@ -11804,7 +12120,7 @@ function resolveYamlBinary(data) {
   var code, idx, bitlen = 0, len = 0, max = data.length, map = BASE64_MAP;
 
   // Convert one by one.
-  for (idx = 0; idx < max; idx ++) {
+  for (idx = 0; idx < max; idx++) {
     code = map.indexOf(data.charAt(idx));
 
     // Skip CR/LF
@@ -11842,7 +12158,7 @@ function constructYamlBinary(data) {
 
   // Dump tail
 
-  tailbits = (max % 4)*6;
+  tailbits = (max % 4) * 6;
 
   if (tailbits === 0) {
     result.push((bits >> 16) & 0xFF);
@@ -12014,9 +12330,8 @@ function constructYamlFloat(data) {
 
     return sign * value;
 
-  } else {
-    return sign * parseFloat(value, 10);
   }
+  return sign * parseFloat(value, 10);
 }
 
 function representYamlFloat(object, style) {
@@ -12049,9 +12364,8 @@ function representYamlFloat(object, style) {
     }
   } else if (common.isNegativeZero(object)) {
     return '-0.0';
-  } else {
-    return object.toString(10);
   }
+  return object.toString(10);
 }
 
 function isFloat(object) {
@@ -12109,7 +12423,7 @@ function resolveYamlInteger(data) {
 
   if (ch === '0') {
     // 0
-    if (index+1 === max) { return true; }
+    if (index + 1 === max) { return true; }
     ch = data[++index];
 
     // base 2, base 8, base 16
@@ -12321,7 +12635,8 @@ function constructJavascriptFunction(data) {
 
   // Esprima's ranges include the first '{' and the last '}' characters on
   // function expressions. So cut them out.
-  return new Function(params, source.slice(body[0]+1, body[1]-1));
+  /*eslint-disable no-new-func*/
+  return new Function(params, source.slice(body[0] + 1, body[1] - 1));
 }
 
 function representJavascriptFunction(object /*, style*/) {
@@ -12436,6 +12751,7 @@ function resolveJavascriptUndefined() {
 }
 
 function constructJavascriptUndefined() {
+  /*eslint-disable no-undefined*/
   return undefined;
 }
 
@@ -12849,18 +13165,29 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         FnExprTokens,
         Syntax,
         PlaceHolders,
-        PropertyKind,
         Messages,
         Regex,
         source,
         strict,
+        sourceType,
         index,
         lineNumber,
         lineStart,
+        hasLineTerminator,
+        lastIndex,
+        lastLineNumber,
+        lastLineStart,
+        startIndex,
+        startLineNumber,
+        startLineStart,
+        scanning,
         length,
         lookahead,
         state,
-        extra;
+        extra,
+        isBindingElement,
+        isAssignmentTarget,
+        firstCoverInitializedNameError;
 
     Token = {
         BooleanLiteral: 1,
@@ -12871,7 +13198,8 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         NumericLiteral: 6,
         Punctuator: 7,
         StringLiteral: 8,
-        RegularExpression: 9
+        RegularExpression: 9,
+        Template: 10
     };
 
     TokenName = {};
@@ -12884,6 +13212,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     TokenName[Token.Punctuator] = 'Punctuator';
     TokenName[Token.StringLiteral] = 'String';
     TokenName[Token.RegularExpression] = 'RegularExpression';
+    TokenName[Token.Template] = 'Template';
 
     // A function following one of those tokens is an expression.
     FnExprTokens = ['(', '{', '[', 'in', 'typeof', 'instanceof', 'new',
@@ -12898,18 +13227,27 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
     Syntax = {
         AssignmentExpression: 'AssignmentExpression',
+        AssignmentPattern: 'AssignmentPattern',
         ArrayExpression: 'ArrayExpression',
+        ArrayPattern: 'ArrayPattern',
         ArrowFunctionExpression: 'ArrowFunctionExpression',
         BlockStatement: 'BlockStatement',
         BinaryExpression: 'BinaryExpression',
         BreakStatement: 'BreakStatement',
         CallExpression: 'CallExpression',
         CatchClause: 'CatchClause',
+        ClassBody: 'ClassBody',
+        ClassDeclaration: 'ClassDeclaration',
+        ClassExpression: 'ClassExpression',
         ConditionalExpression: 'ConditionalExpression',
         ContinueStatement: 'ContinueStatement',
         DoWhileStatement: 'DoWhileStatement',
         DebuggerStatement: 'DebuggerStatement',
         EmptyStatement: 'EmptyStatement',
+        ExportAllDeclaration: 'ExportAllDeclaration',
+        ExportDefaultDeclaration: 'ExportDefaultDeclaration',
+        ExportNamedDeclaration: 'ExportNamedDeclaration',
+        ExportSpecifier: 'ExportSpecifier',
         ExpressionStatement: 'ExpressionStatement',
         ForStatement: 'ForStatement',
         ForInStatement: 'ForInStatement',
@@ -12917,18 +13255,30 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         FunctionExpression: 'FunctionExpression',
         Identifier: 'Identifier',
         IfStatement: 'IfStatement',
+        ImportDeclaration: 'ImportDeclaration',
+        ImportDefaultSpecifier: 'ImportDefaultSpecifier',
+        ImportNamespaceSpecifier: 'ImportNamespaceSpecifier',
+        ImportSpecifier: 'ImportSpecifier',
         Literal: 'Literal',
         LabeledStatement: 'LabeledStatement',
         LogicalExpression: 'LogicalExpression',
         MemberExpression: 'MemberExpression',
+        MethodDefinition: 'MethodDefinition',
         NewExpression: 'NewExpression',
         ObjectExpression: 'ObjectExpression',
+        ObjectPattern: 'ObjectPattern',
         Program: 'Program',
         Property: 'Property',
+        RestElement: 'RestElement',
         ReturnStatement: 'ReturnStatement',
         SequenceExpression: 'SequenceExpression',
-        SwitchStatement: 'SwitchStatement',
+        SpreadElement: 'SpreadElement',
+        Super: 'Super',
         SwitchCase: 'SwitchCase',
+        SwitchStatement: 'SwitchStatement',
+        TaggedTemplateExpression: 'TaggedTemplateExpression',
+        TemplateElement: 'TemplateElement',
+        TemplateLiteral: 'TemplateLiteral',
         ThisExpression: 'ThisExpression',
         ThrowStatement: 'ThrowStatement',
         TryStatement: 'TryStatement',
@@ -12941,15 +13291,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     };
 
     PlaceHolders = {
-        ArrowParameterPlaceHolder: {
-            type: 'ArrowParameterPlaceHolder'
-        }
-    };
-
-    PropertyKind = {
-        Data: 1,
-        Get: 2,
-        Set: 4
+        ArrowParameterPlaceHolder: 'ArrowParameterPlaceHolder'
     };
 
     // Error messages should be identical to V8.
@@ -12959,6 +13301,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         UnexpectedString: 'Unexpected string',
         UnexpectedIdentifier: 'Unexpected identifier',
         UnexpectedReserved: 'Unexpected reserved word',
+        UnexpectedTemplate: 'Unexpected quasi %0',
         UnexpectedEOS: 'Unexpected end of input',
         NewlineAfterThrow: 'Illegal newline after throw',
         InvalidRegExp: 'Invalid regular expression',
@@ -12980,13 +13323,23 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         StrictFunctionName: 'Function name may not be eval or arguments in strict mode',
         StrictOctalLiteral: 'Octal literals are not allowed in strict mode.',
         StrictDelete: 'Delete of an unqualified identifier in strict mode.',
-        StrictDuplicateProperty: 'Duplicate data property in object literal not allowed in strict mode',
-        AccessorDataProperty: 'Object literal may not have data and accessor property with the same name',
-        AccessorGetSet: 'Object literal may not have multiple get/set accessors with the same name',
         StrictLHSAssignment: 'Assignment to eval or arguments is not allowed in strict mode',
         StrictLHSPostfix: 'Postfix increment/decrement may not have eval or arguments operand in strict mode',
         StrictLHSPrefix: 'Prefix increment/decrement may not have eval or arguments operand in strict mode',
-        StrictReservedWord: 'Use of future reserved word in strict mode'
+        StrictReservedWord: 'Use of future reserved word in strict mode',
+        TemplateOctalLiteral: 'Octal literals are not allowed in template strings.',
+        ParameterAfterRestParameter: 'Rest parameter must be last formal parameter',
+        DefaultRestParameter: 'Unexpected token =',
+        ObjectPatternAsRestParameter: 'Unexpected token {',
+        DuplicateProtoProperty: 'Duplicate __proto__ fields are not allowed in object literals',
+        ConstructorSpecialMethod: 'Class constructor may not be an accessor',
+        DuplicateConstructor: 'A class may only have one constructor',
+        StaticPrototype: 'Classes may not have static property named prototype',
+        MissingFromClause: 'Unexpected token',
+        NoAsAfterImportNamespace: 'Unexpected token',
+        InvalidModuleSpecifier: 'Unexpected token',
+        IllegalImportDeclaration: 'Unexpected token',
+        IllegalExportDeclaration: 'Unexpected token'
     };
 
     // See also tools/generate-unicode-regex.py.
@@ -13019,6 +13372,28 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         return '01234567'.indexOf(ch) >= 0;
     }
 
+    function octalToDecimal(ch) {
+        // \0 is not octal escape sequence
+        var octal = (ch !== '0'), code = '01234567'.indexOf(ch);
+
+        if (index < length && isOctalDigit(source[index])) {
+            octal = true;
+            code = code * 8 + '01234567'.indexOf(source[index++]);
+
+            // 3 digits are only allowed when string starts
+            // with 0, 1, 2, 3
+            if ('0123'.indexOf(ch) >= 0 &&
+                    index < length &&
+                    isOctalDigit(source[index])) {
+                code = code * 8 + '01234567'.indexOf(source[index++]);
+            }
+        }
+
+        return {
+            code: code,
+            octal: octal
+        };
+    }
 
     // 7.2 White Space
 
@@ -13056,10 +13431,8 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
     function isFutureReservedWord(id) {
         switch (id) {
-        case 'class':
         case 'enum':
         case 'export':
-        case 'extends':
         case 'import':
         case 'super':
             return true;
@@ -13067,6 +13440,8 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             return false;
         }
     }
+
+    // 11.6.2.2 Future Reserved Words
 
     function isStrictModeReservedWord(id) {
         switch (id) {
@@ -13092,9 +13467,6 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     // 7.6.1.1 Keywords
 
     function isKeyword(id) {
-        if (strict && isStrictModeReservedWord(id)) {
-            return true;
-        }
 
         // 'const' is specialized as Keyword in V8.
         // 'yield' and 'let' are for compatibility with SpiderMonkey and ES.next.
@@ -13134,13 +13506,6 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
         assert(typeof start === 'number', 'Comment must have valid position');
 
-        // Because the way the actual token is scanned, often the comments
-        // (if any) are skipped twice during the lexical analysis.
-        // Thus, we need to skip adding a comment if the comment array already
-        // handled it.
-        if (state.lastCommentStart >= start) {
-            return;
-        }
         state.lastCommentStart = start;
 
         comment = {
@@ -13175,6 +13540,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             ch = source.charCodeAt(index);
             ++index;
             if (isLineTerminator(ch)) {
+                hasLineTerminator = true;
                 if (extra.comments) {
                     comment = source.slice(start + offset, index - 1);
                     loc.end = {
@@ -13221,12 +13587,10 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
                 if (ch === 0x0D && source.charCodeAt(index + 1) === 0x0A) {
                     ++index;
                 }
+                hasLineTerminator = true;
                 ++lineNumber;
                 ++index;
                 lineStart = index;
-                if (index >= length) {
-                    throwUnexpectedToken();
-                }
             } else if (ch === 0x2A) {
                 // Block comment ends with '*/'.
                 if (source.charCodeAt(index + 1) === 0x2F) {
@@ -13248,11 +13612,21 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             }
         }
 
-        throwUnexpectedToken();
+        // Ran off the end of the file - the whole thing is a comment
+        if (extra.comments) {
+            loc.end = {
+                line: lineNumber,
+                column: index - lineStart
+            };
+            comment = source.slice(start + 2, index);
+            addComment('Block', comment, start, index, loc);
+        }
+        tolerateUnexpectedToken();
     }
 
     function skipComment() {
         var ch, start;
+        hasLineTerminator = false;
 
         start = (index === 0);
         while (index < length) {
@@ -13261,6 +13635,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             if (isWhiteSpace(ch)) {
                 ++index;
             } else if (isLineTerminator(ch)) {
+                hasLineTerminator = true;
                 ++index;
                 if (ch === 0x0D && source.charCodeAt(index) === 0x0A) {
                     ++index;
@@ -13456,154 +13831,101 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     // 7.7 Punctuators
 
     function scanPunctuator() {
-        var start = index,
-            code = source.charCodeAt(index),
-            code2,
-            ch1 = source[index],
-            ch2,
-            ch3,
-            ch4;
+        var token, str;
 
-        switch (code) {
+        token = {
+            type: Token.Punctuator,
+            value: '',
+            lineNumber: lineNumber,
+            lineStart: lineStart,
+            start: index,
+            end: index
+        };
 
         // Check for most common single-character punctuators.
-        case 0x2E:  // . dot
-        case 0x28:  // ( open bracket
-        case 0x29:  // ) close bracket
-        case 0x3B:  // ; semicolon
-        case 0x2C:  // , comma
-        case 0x7B:  // { open curly brace
-        case 0x7D:  // } close curly brace
-        case 0x5B:  // [
-        case 0x5D:  // ]
-        case 0x3A:  // :
-        case 0x3F:  // ?
-        case 0x7E:  // ~
-            ++index;
+        str = source[index];
+        switch (str) {
+
+        case '(':
             if (extra.tokenize) {
-                if (code === 0x28) {
-                    extra.openParenToken = extra.tokens.length;
-                } else if (code === 0x7B) {
-                    extra.openCurlyToken = extra.tokens.length;
-                }
+                extra.openParenToken = extra.tokens.length;
             }
-            return {
-                type: Token.Punctuator,
-                value: String.fromCharCode(code),
-                lineNumber: lineNumber,
-                lineStart: lineStart,
-                start: start,
-                end: index
-            };
+            ++index;
+            break;
+
+        case '{':
+            if (extra.tokenize) {
+                extra.openCurlyToken = extra.tokens.length;
+            }
+            state.curlyStack.push('{');
+            ++index;
+            break;
+
+        case '.':
+            ++index;
+            if (source[index] === '.' && source[index + 1] === '.') {
+                // Spread operator: ...
+                index += 2;
+                str = '...';
+            }
+            break;
+
+        case '}':
+            ++index;
+            state.curlyStack.pop();
+            break;
+        case ')':
+        case ';':
+        case ',':
+        case '[':
+        case ']':
+        case ':':
+        case '?':
+        case '~':
+            ++index;
+            break;
 
         default:
-            code2 = source.charCodeAt(index + 1);
+            // 4-character punctuator.
+            str = source.substr(index, 4);
+            if (str === '>>>=') {
+                index += 4;
+            } else {
 
-            // '=' (U+003D) marks an assignment or comparison operator.
-            if (code2 === 0x3D) {
-                switch (code) {
-                case 0x2B:  // +
-                case 0x2D:  // -
-                case 0x2F:  // /
-                case 0x3C:  // <
-                case 0x3E:  // >
-                case 0x5E:  // ^
-                case 0x7C:  // |
-                case 0x25:  // %
-                case 0x26:  // &
-                case 0x2A:  // *
-                    index += 2;
-                    return {
-                        type: Token.Punctuator,
-                        value: String.fromCharCode(code) + String.fromCharCode(code2),
-                        lineNumber: lineNumber,
-                        lineStart: lineStart,
-                        start: start,
-                        end: index
-                    };
+                // 3-character punctuators.
+                str = str.substr(0, 3);
+                if (str === '===' || str === '!==' || str === '>>>' ||
+                    str === '<<=' || str === '>>=') {
+                    index += 3;
+                } else {
 
-                case 0x21: // !
-                case 0x3D: // =
-                    index += 2;
+                    // 2-character punctuators.
+                    str = str.substr(0, 2);
+                    if (str === '&&' || str === '||' || str === '==' || str === '!=' ||
+                        str === '+=' || str === '-=' || str === '*=' || str === '/=' ||
+                        str === '++' || str === '--' || str === '<<' || str === '>>' ||
+                        str === '&=' || str === '|=' || str === '^=' || str === '%=' ||
+                        str === '<=' || str === '>=' || str === '=>') {
+                        index += 2;
+                    } else {
 
-                    // !== and ===
-                    if (source.charCodeAt(index) === 0x3D) {
-                        ++index;
+                        // 1-character punctuators.
+                        str = source[index];
+                        if ('<>=!+-*%&|^/'.indexOf(str) >= 0) {
+                            ++index;
+                        }
                     }
-                    return {
-                        type: Token.Punctuator,
-                        value: source.slice(start, index),
-                        lineNumber: lineNumber,
-                        lineStart: lineStart,
-                        start: start,
-                        end: index
-                    };
                 }
             }
         }
 
-        // 4-character punctuator: >>>=
-
-        ch4 = source.substr(index, 4);
-
-        if (ch4 === '>>>=') {
-            index += 4;
-            return {
-                type: Token.Punctuator,
-                value: ch4,
-                lineNumber: lineNumber,
-                lineStart: lineStart,
-                start: start,
-                end: index
-            };
+        if (index === token.start) {
+            throwUnexpectedToken();
         }
 
-        // 3-character punctuators: === !== >>> <<= >>=
-
-        ch3 = ch4.substr(0, 3);
-
-        if (ch3 === '>>>' || ch3 === '<<=' || ch3 === '>>=') {
-            index += 3;
-            return {
-                type: Token.Punctuator,
-                value: ch3,
-                lineNumber: lineNumber,
-                lineStart: lineStart,
-                start: start,
-                end: index
-            };
-        }
-
-        // Other 2-character punctuators: ++ -- << >> && ||
-        ch2 = ch3.substr(0, 2);
-
-        if ((ch1 === ch2[1] && ('+-<>&|'.indexOf(ch1) >= 0)) || ch2 === '=>') {
-            index += 2;
-            return {
-                type: Token.Punctuator,
-                value: ch2,
-                lineNumber: lineNumber,
-                lineStart: lineStart,
-                start: start,
-                end: index
-            };
-        }
-
-        // 1-character punctuators: < > = ! + - * % & | ^ /
-
-        if ('<>=!+-*%&|^/'.indexOf(ch1) >= 0) {
-            ++index;
-            return {
-                type: Token.Punctuator,
-                value: ch1,
-                lineNumber: lineNumber,
-                lineStart: lineStart,
-                start: start,
-                end: index
-            };
-        }
-
-        throwUnexpectedToken();
+        token.end = index;
+        token.value = str;
+        return token;
     }
 
     // 7.8.3 Numeric Literals
@@ -13813,9 +14135,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     // 7.8.4 String Literals
 
     function scanStringLiteral() {
-        var str = '', quote, start, ch, code, unescaped, restore, octal = false, startLineNumber, startLineStart;
-        startLineNumber = lineNumber;
-        startLineStart = lineStart;
+        var str = '', quote, start, ch, unescaped, octToDec, octal = false;
 
         quote = source[index];
         assert((quote === '\'' || quote === '"'),
@@ -13840,14 +14160,11 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
                             ++index;
                             str += scanUnicodeCodePointEscape();
                         } else {
-                            restore = index;
                             unescaped = scanHexEscape(ch);
-                            if (unescaped) {
-                                str += unescaped;
-                            } else {
-                                index = restore;
-                                str += ch;
+                            if (!unescaped) {
+                                throw throwUnexpectedToken();
                             }
+                            str += unescaped;
                         }
                         break;
                     case 'n':
@@ -13868,29 +14185,16 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
                     case 'v':
                         str += '\x0B';
                         break;
+                    case '8':
+                    case '9':
+                        throw throwUnexpectedToken();
 
                     default:
                         if (isOctalDigit(ch)) {
-                            code = '01234567'.indexOf(ch);
+                            octToDec = octalToDecimal(ch);
 
-                            // \0 is not octal escape sequence
-                            if (code !== 0) {
-                                octal = true;
-                            }
-
-                            if (index < length && isOctalDigit(source[index])) {
-                                octal = true;
-                                code = code * 8 + '01234567'.indexOf(source[index++]);
-
-                                // 3 digits are only allowed when string starts
-                                // with 0, 1, 2, 3
-                                if ('0123'.indexOf(ch) >= 0 &&
-                                        index < length &&
-                                        isOctalDigit(source[index])) {
-                                    code = code * 8 + '01234567'.indexOf(source[index++]);
-                                }
-                            }
-                            str += String.fromCharCode(code);
+                            octal = octToDec.octal || octal;
+                            str += String.fromCharCode(octToDec.code);
                         } else {
                             str += ch;
                         }
@@ -13918,8 +14222,128 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             type: Token.StringLiteral,
             value: str,
             octal: octal,
-            startLineNumber: startLineNumber,
-            startLineStart: startLineStart,
+            lineNumber: startLineNumber,
+            lineStart: startLineStart,
+            start: start,
+            end: index
+        };
+    }
+
+    function scanTemplate() {
+        var cooked = '', ch, start, rawOffset, terminated, head, tail, restore, unescaped;
+
+        terminated = false;
+        tail = false;
+        start = index;
+        head = (source[index] === '`');
+        rawOffset = 2;
+
+        ++index;
+
+        while (index < length) {
+            ch = source[index++];
+            if (ch === '`') {
+                rawOffset = 1;
+                tail = true;
+                terminated = true;
+                break;
+            } else if (ch === '$') {
+                if (source[index] === '{') {
+                    state.curlyStack.push('${');
+                    ++index;
+                    terminated = true;
+                    break;
+                }
+                cooked += ch;
+            } else if (ch === '\\') {
+                ch = source[index++];
+                if (!isLineTerminator(ch.charCodeAt(0))) {
+                    switch (ch) {
+                    case 'n':
+                        cooked += '\n';
+                        break;
+                    case 'r':
+                        cooked += '\r';
+                        break;
+                    case 't':
+                        cooked += '\t';
+                        break;
+                    case 'u':
+                    case 'x':
+                        if (source[index] === '{') {
+                            ++index;
+                            cooked += scanUnicodeCodePointEscape();
+                        } else {
+                            restore = index;
+                            unescaped = scanHexEscape(ch);
+                            if (unescaped) {
+                                cooked += unescaped;
+                            } else {
+                                index = restore;
+                                cooked += ch;
+                            }
+                        }
+                        break;
+                    case 'b':
+                        cooked += '\b';
+                        break;
+                    case 'f':
+                        cooked += '\f';
+                        break;
+                    case 'v':
+                        cooked += '\v';
+                        break;
+
+                    default:
+                        if (ch === '0') {
+                            if (isDecimalDigit(source.charCodeAt(index))) {
+                                // Illegal: \01 \02 and so on
+                                throwError(Messages.TemplateOctalLiteral);
+                            }
+                            cooked += '\0';
+                        } else if (isOctalDigit(ch)) {
+                            // Illegal: \1 \2
+                            throwError(Messages.TemplateOctalLiteral);
+                        } else {
+                            cooked += ch;
+                        }
+                        break;
+                    }
+                } else {
+                    ++lineNumber;
+                    if (ch === '\r' && source[index] === '\n') {
+                        ++index;
+                    }
+                    lineStart = index;
+                }
+            } else if (isLineTerminator(ch.charCodeAt(0))) {
+                ++lineNumber;
+                if (ch === '\r' && source[index] === '\n') {
+                    ++index;
+                }
+                lineStart = index;
+                cooked += '\n';
+            } else {
+                cooked += ch;
+            }
+        }
+
+        if (!terminated) {
+            throwUnexpectedToken();
+        }
+
+        if (!head) {
+            state.curlyStack.pop();
+        }
+
+        return {
+            type: Token.Template,
+            value: {
+                cooked: cooked,
+                raw: source.slice(start + 1, index - rawOffset)
+            },
+            head: head,
+            tail: tail,
             lineNumber: lineNumber,
             lineStart: lineStart,
             start: start,
@@ -13928,14 +14352,14 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     }
 
     function testRegExp(pattern, flags) {
-        var tmp = pattern,
-            value;
+        var tmp = pattern;
 
         if (flags.indexOf('u') >= 0) {
-            // Replace each astral symbol and every Unicode code point
-            // escape sequence with a single ASCII symbol to avoid throwing on
-            // regular expressions that are only valid in combination with the
-            // `/u` flag.
+            // Replace each astral symbol and every Unicode escape sequence
+            // that possibly represents an astral symbol or a paired surrogate
+            // with a single ASCII symbol to avoid throwing on regular
+            // expressions that are only valid in combination with the `/u`
+            // flag.
             // Note: replacing with the ASCII symbol `x` might cause false
             // negatives in unlikely scenarios. For example, `[\u{61}-b]` is a
             // perfectly valid pattern that is equivalent to `[a-b]`, but it
@@ -13945,16 +14369,19 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
                     if (parseInt($1, 16) <= 0x10FFFF) {
                         return 'x';
                     }
-                    throwError(Messages.InvalidRegExp);
+                    throwUnexpectedToken(null, Messages.InvalidRegExp);
                 })
-                .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, 'x');
+                .replace(
+                    /\\u([a-fA-F0-9]{4})|[\uD800-\uDBFF][\uDC00-\uDFFF]/g,
+                    'x'
+                );
         }
 
         // First, detect invalid regular expressions.
         try {
-            value = new RegExp(tmp);
+            RegExp(tmp);
         } catch (e) {
-            throwError(Messages.InvalidRegExp);
+            throwUnexpectedToken(null, Messages.InvalidRegExp);
         }
 
         // Return a regular expression object for this pattern-flag pair, or
@@ -13983,11 +14410,11 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
                 ch = source[index++];
                 // ECMA-262 7.8.5
                 if (isLineTerminator(ch.charCodeAt(0))) {
-                    throwError(Messages.UnterminatedRegExp);
+                    throwUnexpectedToken(null, Messages.UnterminatedRegExp);
                 }
                 str += ch;
             } else if (isLineTerminator(ch.charCodeAt(0))) {
-                throwError(Messages.UnterminatedRegExp);
+                throwUnexpectedToken(null, Messages.UnterminatedRegExp);
             } else if (classMarker) {
                 if (ch === ']') {
                     classMarker = false;
@@ -14003,7 +14430,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         }
 
         if (!terminated) {
-            throwError(Messages.UnterminatedRegExp);
+            throwUnexpectedToken(null, Messages.UnterminatedRegExp);
         }
 
         // Exclude leading and trailing slash.
@@ -14060,6 +14487,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     }
 
     function scanRegExp() {
+        scanning = true;
         var start, body, flags, value;
 
         lookahead = null;
@@ -14069,7 +14497,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         body = scanRegExpBody();
         flags = scanRegExpFlags();
         value = testRegExp(body.value, flags.value);
-
+        scanning = false;
         if (extra.tokenize) {
             return {
                 type: Token.RegularExpression,
@@ -14212,9 +14640,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     }
 
     function advance() {
-        var ch;
-
-        skipComment();
+        var ch, token;
 
         if (index >= length) {
             return {
@@ -14229,7 +14655,11 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         ch = source.charCodeAt(index);
 
         if (isIdentifierStart(ch)) {
-            return scanIdentifier();
+            token = scanIdentifier();
+            if (strict && isStrictModeReservedWord(token.value)) {
+                token.type = Token.Keyword;
+            }
+            return token;
         }
 
         // Very common: ( and ) and ;
@@ -14241,7 +14671,6 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         if (ch === 0x27 || ch === 0x22) {
             return scanStringLiteral();
         }
-
 
         // Dot (.) U+002E can also start a floating-point number, hence the need
         // to check the next character.
@@ -14261,13 +14690,18 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             return advanceSlash();
         }
 
+        // Template literals start with ` (U+0060) for template head
+        // or } (U+007D) for template middle or template tail.
+        if (ch === 0x60 || (ch === 0x7D && state.curlyStack[state.curlyStack.length - 1] === '${')) {
+            return scanTemplate();
+        }
+
         return scanPunctuator();
     }
 
     function collectToken() {
         var loc, token, value, entry;
 
-        skipComment();
         loc = {
             start: {
                 line: lineNumber,
@@ -14303,36 +14737,45 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
     function lex() {
         var token;
+        scanning = true;
+
+        lastIndex = index;
+        lastLineNumber = lineNumber;
+        lastLineStart = lineStart;
+
+        skipComment();
 
         token = lookahead;
-        index = token.end;
-        lineNumber = token.lineNumber;
-        lineStart = token.lineStart;
+
+        startIndex = index;
+        startLineNumber = lineNumber;
+        startLineStart = lineStart;
 
         lookahead = (typeof extra.tokens !== 'undefined') ? collectToken() : advance();
-
-        index = token.end;
-        lineNumber = token.lineNumber;
-        lineStart = token.lineStart;
-
+        scanning = false;
         return token;
     }
 
     function peek() {
-        var pos, line, start;
+        scanning = true;
 
-        pos = index;
-        line = lineNumber;
-        start = lineStart;
+        skipComment();
+
+        lastIndex = index;
+        lastLineNumber = lineNumber;
+        lastLineStart = lineStart;
+
+        startIndex = index;
+        startLineNumber = lineNumber;
+        startLineStart = lineStart;
+
         lookahead = (typeof extra.tokens !== 'undefined') ? collectToken() : advance();
-        index = pos;
-        lineNumber = line;
-        lineStart = start;
+        scanning = false;
     }
 
     function Position() {
-        this.line = lineNumber;
-        this.column = index - lineStart;
+        this.line = startLineNumber;
+        this.column = startIndex - startLineStart;
     }
 
     function SourceLocation() {
@@ -14341,32 +14784,16 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     }
 
     function WrappingSourceLocation(startToken) {
-        if (startToken.type === Token.StringLiteral) {
-            this.start = {
-                line: startToken.startLineNumber,
-                column: startToken.start - startToken.startLineStart
-            };
-        } else {
-            this.start = {
-                line: startToken.lineNumber,
-                column: startToken.start - startToken.lineStart
-            };
-        }
+        this.start = {
+            line: startToken.lineNumber,
+            column: startToken.start - startToken.lineStart
+        };
         this.end = null;
     }
 
     function Node() {
-        // Skip comment.
-        index = lookahead.start;
-        if (lookahead.type === Token.StringLiteral) {
-            lineNumber = lookahead.startLineNumber;
-            lineStart = lookahead.startLineStart;
-        } else {
-            lineNumber = lookahead.lineNumber;
-            lineStart = lookahead.lineStart;
-        }
         if (extra.range) {
-            this.range = [index, 0];
+            this.range = [startIndex, 0];
         }
         if (extra.loc) {
             this.loc = new SourceLocation();
@@ -14453,10 +14880,13 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
         finish: function () {
             if (extra.range) {
-                this.range[1] = index;
+                this.range[1] = lastIndex;
             }
             if (extra.loc) {
-                this.loc.end = new Position();
+                this.loc.end = {
+                    line: lastLineNumber,
+                    column: lastIndex - lastLineStart
+                };
                 if (extra.source) {
                     this.loc.source = extra.source;
                 }
@@ -14474,13 +14904,19 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             return this;
         },
 
+        finishArrayPattern: function (elements) {
+            this.type = Syntax.ArrayPattern;
+            this.elements = elements;
+            this.finish();
+            return this;
+        },
+
         finishArrowFunctionExpression: function (params, defaults, body, expression) {
             this.type = Syntax.ArrowFunctionExpression;
             this.id = null;
             this.params = params;
             this.defaults = defaults;
             this.body = body;
-            this.rest = null;
             this.generator = false;
             this.expression = expression;
             this.finish();
@@ -14490,6 +14926,14 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         finishAssignmentExpression: function (operator, left, right) {
             this.type = Syntax.AssignmentExpression;
             this.operator = operator;
+            this.left = left;
+            this.right = right;
+            this.finish();
+            return this;
+        },
+
+        finishAssignmentPattern: function (left, right) {
+            this.type = Syntax.AssignmentPattern;
             this.left = left;
             this.right = right;
             this.finish();
@@ -14530,6 +14974,31 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         finishCatchClause: function (param, body) {
             this.type = Syntax.CatchClause;
             this.param = param;
+            this.body = body;
+            this.finish();
+            return this;
+        },
+
+        finishClassBody: function (body) {
+            this.type = Syntax.ClassBody;
+            this.body = body;
+            this.finish();
+            return this;
+        },
+
+        finishClassDeclaration: function (id, superClass, body) {
+            this.type = Syntax.ClassDeclaration;
+            this.id = id;
+            this.superClass = superClass;
+            this.body = body;
+            this.finish();
+            return this;
+        },
+
+        finishClassExpression: function (id, superClass, body) {
+            this.type = Syntax.ClassExpression;
+            this.id = id;
+            this.superClass = superClass;
             this.body = body;
             this.finish();
             return this;
@@ -14604,7 +15073,6 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             this.params = params;
             this.defaults = defaults;
             this.body = body;
-            this.rest = null;
             this.generator = false;
             this.expression = false;
             this.finish();
@@ -14617,7 +15085,6 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             this.params = params;
             this.defaults = defaults;
             this.body = body;
-            this.rest = null;
             this.generator = false;
             this.expression = false;
             this.finish();
@@ -14683,6 +15150,13 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             return this;
         },
 
+        finishObjectPattern: function (properties) {
+            this.type = Syntax.ObjectPattern;
+            this.properties = properties;
+            this.finish();
+            return this;
+        },
+
         finishPostfixExpression: function (operator, argument) {
             this.type = Syntax.UpdateExpression;
             this.operator = operator;
@@ -14695,17 +15169,29 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         finishProgram: function (body) {
             this.type = Syntax.Program;
             this.body = body;
+            if (sourceType === 'module') {
+                // very restrictive for now
+                this.sourceType = sourceType;
+            }
             this.finish();
             return this;
         },
 
-        finishProperty: function (kind, key, value, method, shorthand) {
+        finishProperty: function (kind, key, computed, value, method, shorthand) {
             this.type = Syntax.Property;
             this.key = key;
+            this.computed = computed;
             this.value = value;
             this.kind = kind;
             this.method = method;
             this.shorthand = shorthand;
+            this.finish();
+            return this;
+        },
+
+        finishRestElement: function (argument) {
+            this.type = Syntax.RestElement;
+            this.argument = argument;
             this.finish();
             return this;
         },
@@ -14724,6 +15210,13 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             return this;
         },
 
+        finishSpreadElement: function (argument) {
+            this.type = Syntax.SpreadElement;
+            this.argument = argument;
+            this.finish();
+            return this;
+        },
+
         finishSwitchCase: function (test, consequent) {
             this.type = Syntax.SwitchCase;
             this.test = test;
@@ -14732,10 +15225,40 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             return this;
         },
 
+        finishSuper: function () {
+            this.type = Syntax.Super;
+            this.finish();
+            return this;
+        },
+
         finishSwitchStatement: function (discriminant, cases) {
             this.type = Syntax.SwitchStatement;
             this.discriminant = discriminant;
             this.cases = cases;
+            this.finish();
+            return this;
+        },
+
+        finishTaggedTemplateExpression: function (tag, quasi) {
+            this.type = Syntax.TaggedTemplateExpression;
+            this.tag = tag;
+            this.quasi = quasi;
+            this.finish();
+            return this;
+        },
+
+        finishTemplateElement: function (value, tail) {
+            this.type = Syntax.TemplateElement;
+            this.value = value;
+            this.tail = tail;
+            this.finish();
+            return this;
+        },
+
+        finishTemplateLiteral: function (quasis, expressions) {
+            this.type = Syntax.TemplateLiteral;
+            this.quasis = quasis;
+            this.expressions = expressions;
             this.finish();
             return this;
         },
@@ -14753,11 +15276,12 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             return this;
         },
 
-        finishTryStatement: function (block, guardedHandlers, handlers, finalizer) {
+        finishTryStatement: function (block, handler, finalizer) {
             this.type = Syntax.TryStatement;
             this.block = block;
-            this.guardedHandlers = guardedHandlers;
-            this.handlers = handlers;
+            this.guardedHandlers = [];
+            this.handlers = handler ? [ handler ] : [];
+            this.handler = handler;
             this.finalizer = finalizer;
             this.finish();
             return this;
@@ -14772,7 +15296,15 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             return this;
         },
 
-        finishVariableDeclaration: function (declarations, kind) {
+        finishVariableDeclaration: function (declarations) {
+            this.type = Syntax.VariableDeclaration;
+            this.declarations = declarations;
+            this.kind = 'var';
+            this.finish();
+            return this;
+        },
+
+        finishLexicalDeclaration: function (declarations, kind) {
             this.type = Syntax.VariableDeclaration;
             this.declarations = declarations;
             this.kind = kind;
@@ -14802,31 +15334,91 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             this.body = body;
             this.finish();
             return this;
+        },
+
+        finishExportSpecifier: function (local, exported) {
+            this.type = Syntax.ExportSpecifier;
+            this.exported = exported || local;
+            this.local = local;
+            this.finish();
+            return this;
+        },
+
+        finishImportDefaultSpecifier: function (local) {
+            this.type = Syntax.ImportDefaultSpecifier;
+            this.local = local;
+            this.finish();
+            return this;
+        },
+
+        finishImportNamespaceSpecifier: function (local) {
+            this.type = Syntax.ImportNamespaceSpecifier;
+            this.local = local;
+            this.finish();
+            return this;
+        },
+
+        finishExportNamedDeclaration: function (declaration, specifiers, src) {
+            this.type = Syntax.ExportNamedDeclaration;
+            this.declaration = declaration;
+            this.specifiers = specifiers;
+            this.source = src;
+            this.finish();
+            return this;
+        },
+
+        finishExportDefaultDeclaration: function (declaration) {
+            this.type = Syntax.ExportDefaultDeclaration;
+            this.declaration = declaration;
+            this.finish();
+            return this;
+        },
+
+        finishExportAllDeclaration: function (src) {
+            this.type = Syntax.ExportAllDeclaration;
+            this.source = src;
+            this.finish();
+            return this;
+        },
+
+        finishImportSpecifier: function (local, imported) {
+            this.type = Syntax.ImportSpecifier;
+            this.local = local || imported;
+            this.imported = imported;
+            this.finish();
+            return this;
+        },
+
+        finishImportDeclaration: function (specifiers, src) {
+            this.type = Syntax.ImportDeclaration;
+            this.specifiers = specifiers;
+            this.source = src;
+            this.finish();
+            return this;
         }
     };
 
-    // Return true if there is a line terminator before the next token.
 
-    function peekLineTerminator() {
-        var pos, line, start, found;
+    function recordError(error) {
+        var e, existing;
 
-        pos = index;
-        line = lineNumber;
-        start = lineStart;
-        skipComment();
-        found = lineNumber !== line;
-        index = pos;
-        lineNumber = line;
-        lineStart = start;
+        for (e = 0; e < extra.errors.length; e++) {
+            existing = extra.errors[e];
+            // Prevent duplicated error.
+            /* istanbul ignore next */
+            if (existing.index === error.index && existing.message === error.message) {
+                return;
+            }
+        }
 
-        return found;
+        extra.errors.push(error);
     }
 
     function createError(line, pos, description) {
         var error = new Error('Line ' + line + ': ' + description);
         error.index = pos;
         error.lineNumber = line;
-        error.column = pos - lineStart + 1;
+        error.column = pos - (scanning ? lineStart : lastLineStart) + 1;
         error.description = description;
         return error;
     }
@@ -14844,7 +15436,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             }
         );
 
-        throw createError(lineNumber, index, msg);
+        throw createError(lastLineNumber, lastIndex, msg);
     }
 
     function tolerateError(messageFormat) {
@@ -14859,9 +15451,9 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             }
         );
 
-        error = createError(lineNumber, index, msg);
+        error = createError(lineNumber, lastIndex, msg);
         if (extra.errors) {
-            extra.errors.push(error);
+            recordError(error);
         } else {
             throw error;
         }
@@ -14870,30 +15462,36 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     // Throw an exception because of the token.
 
     function unexpectedTokenError(token, message) {
-        var msg = Messages.UnexpectedToken;
+        var value, msg = message || Messages.UnexpectedToken;
 
         if (token) {
-            msg = message ? message :
-                (token.type === Token.EOF) ? Messages.UnexpectedEOS :
-                (token.type === Token.Identifier) ? Messages.UnexpectedIdentifier :
-                (token.type === Token.NumericLiteral) ? Messages.UnexpectedNumber :
-                (token.type === Token.StringLiteral) ? Messages.UnexpectedString :
-                Messages.UnexpectedToken;
+            if (!message) {
+                msg = (token.type === Token.EOF) ? Messages.UnexpectedEOS :
+                    (token.type === Token.Identifier) ? Messages.UnexpectedIdentifier :
+                    (token.type === Token.NumericLiteral) ? Messages.UnexpectedNumber :
+                    (token.type === Token.StringLiteral) ? Messages.UnexpectedString :
+                    (token.type === Token.Template) ? Messages.UnexpectedTemplate :
+                    Messages.UnexpectedToken;
 
-            if (token.type === Token.Keyword) {
-                if (isFutureReservedWord(token.value)) {
-                    msg = Messages.UnexpectedReserved;
-                } else if (strict && isStrictModeReservedWord(token.value)) {
-                    msg = Messages.StrictReservedWord;
+                if (token.type === Token.Keyword) {
+                    if (isFutureReservedWord(token.value)) {
+                        msg = Messages.UnexpectedReserved;
+                    } else if (strict && isStrictModeReservedWord(token.value)) {
+                        msg = Messages.StrictReservedWord;
+                    }
                 }
             }
+
+            value = (token.type === Token.Template) ? token.value.raw : token.value;
+        } else {
+            value = 'ILLEGAL';
         }
 
-        msg = msg.replace('%0', token ? token.value : 'ILLEGAL');
+        msg = msg.replace('%0', value);
 
         return (token && typeof token.lineNumber === 'number') ?
             createError(token.lineNumber, token.start, msg) :
-            createError(lineNumber, index, msg);
+            createError(scanning ? lineNumber : lastLineNumber, scanning ? index : lastIndex, msg);
     }
 
     function throwUnexpectedToken(token, message) {
@@ -14903,7 +15501,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     function tolerateUnexpectedToken(token, message) {
         var error = unexpectedTokenError(token, message);
         if (extra.errors) {
-            extra.errors.push(error);
+            recordError(error);
         } else {
             throw error;
         }
@@ -14965,6 +15563,13 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         return lookahead.type === Token.Keyword && lookahead.value === keyword;
     }
 
+    // Return true if the next token matches the specified contextual keyword
+    // (where an identifier is sometimes a keyword depending on the context)
+
+    function matchContextualKeyword(keyword) {
+        return lookahead.type === Token.Identifier && lookahead.value === keyword;
+    }
+
     // Return true if the next token is an assignment operator
 
     function matchAssign() {
@@ -14989,41 +15594,92 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     }
 
     function consumeSemicolon() {
-        var line, oldIndex = index, oldLineNumber = lineNumber,
-            oldLineStart = lineStart, oldLookahead = lookahead;
-
         // Catch the very common case first: immediately a semicolon (U+003B).
-        if (source.charCodeAt(index) === 0x3B || match(';')) {
+        if (source.charCodeAt(startIndex) === 0x3B || match(';')) {
             lex();
             return;
         }
 
-        line = lineNumber;
-        skipComment();
-        if (lineNumber !== line) {
-            index = oldIndex;
-            lineNumber = oldLineNumber;
-            lineStart = oldLineStart;
-            lookahead = oldLookahead;
+        if (hasLineTerminator) {
             return;
         }
+
+        // FIXME(ikarienator): this is seemingly an issue in the previous location info convention.
+        lastIndex = startIndex;
+        lastLineNumber = startLineNumber;
+        lastLineStart = startLineStart;
 
         if (lookahead.type !== Token.EOF && !match('}')) {
             throwUnexpectedToken(lookahead);
         }
     }
 
-    // Return true if provided expression is LeftHandSideExpression
-
-    function isLeftHandSide(expr) {
-        return expr.type === Syntax.Identifier || expr.type === Syntax.MemberExpression;
+    // Cover grammar support.
+    //
+    // When an assignment expression position starts with an left parenthesis, the determination of the type
+    // of the syntax is to be deferred arbitrarily long until the end of the parentheses pair (plus a lookahead)
+    // or the first comma. This situation also defers the determination of all the expressions nested in the pair.
+    //
+    // There are three productions that can be parsed in a parentheses pair that needs to be determined
+    // after the outermost pair is closed. They are:
+    //
+    //   1. AssignmentExpression
+    //   2. BindingElements
+    //   3. AssignmentTargets
+    //
+    // In order to avoid exponential backtracking, we use two flags to denote if the production can be
+    // binding element or assignment target.
+    //
+    // The three productions have the relationship:
+    //
+    //   BindingElements ⊆ AssignmentTargets ⊆ AssignmentExpression
+    //
+    // with a single exception that CoverInitializedName when used directly in an Expression, generates
+    // an early error. Therefore, we need the third state, firstCoverInitializedNameError, to track the
+    // first usage of CoverInitializedName and report it when we reached the end of the parentheses pair.
+    //
+    // isolateCoverGrammar function runs the given parser function with a new cover grammar context, and it does not
+    // effect the current flags. This means the production the parser parses is only used as an expression. Therefore
+    // the CoverInitializedName check is conducted.
+    //
+    // inheritCoverGrammar function runs the given parse function with a new cover grammar context, and it propagates
+    // the flags outside of the parser. This means the production the parser parses is used as a part of a potential
+    // pattern. The CoverInitializedName check is deferred.
+    function isolateCoverGrammar(parser) {
+        var oldIsBindingElement = isBindingElement,
+            oldIsAssignmentTarget = isAssignmentTarget,
+            oldFirstCoverInitializedNameError = firstCoverInitializedNameError,
+            result;
+        isBindingElement = true;
+        isAssignmentTarget = true;
+        firstCoverInitializedNameError = null;
+        result = parser();
+        if (firstCoverInitializedNameError !== null) {
+            throwUnexpectedToken(firstCoverInitializedNameError);
+        }
+        isBindingElement = oldIsBindingElement;
+        isAssignmentTarget = oldIsAssignmentTarget;
+        firstCoverInitializedNameError = oldFirstCoverInitializedNameError;
+        return result;
     }
 
-    // 11.1.4 Array Initialiser
+    function inheritCoverGrammar(parser) {
+        var oldIsBindingElement = isBindingElement,
+            oldIsAssignmentTarget = isAssignmentTarget,
+            oldFirstCoverInitializedNameError = firstCoverInitializedNameError,
+            result;
+        isBindingElement = true;
+        isAssignmentTarget = true;
+        firstCoverInitializedNameError = null;
+        result = parser();
+        isBindingElement = isBindingElement && oldIsBindingElement;
+        isAssignmentTarget = isAssignmentTarget && oldIsAssignmentTarget;
+        firstCoverInitializedNameError = oldFirstCoverInitializedNameError || firstCoverInitializedNameError;
+        return result;
+    }
 
-    function parseArrayInitialiser() {
-        var elements = [], node = new Node();
-
+    function parseArrayPattern() {
+        var node = new Node(), elements = [], rest, restNode;
         expect('[');
 
         while (!match(']')) {
@@ -15031,7 +15687,110 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
                 lex();
                 elements.push(null);
             } else {
-                elements.push(parseAssignmentExpression());
+                if (match('...')) {
+                    restNode = new Node();
+                    lex();
+                    rest = parseVariableIdentifier();
+                    elements.push(restNode.finishRestElement(rest));
+                    break;
+                } else {
+                    elements.push(parsePatternWithDefault());
+                }
+                if (!match(']')) {
+                    expect(',');
+                }
+            }
+
+        }
+
+        expect(']');
+
+        return node.finishArrayPattern(elements);
+    }
+
+    function parsePropertyPattern() {
+        var node = new Node(), key, computed = match('['), init;
+        if (lookahead.type === Token.Identifier) {
+            key = parseVariableIdentifier();
+            if (match('=')) {
+                lex();
+                init = parseAssignmentExpression();
+                return node.finishProperty(
+                    'init', key, false,
+                    new WrappingNode(key).finishAssignmentPattern(key, init), false, false);
+            } else if (!match(':')) {
+                return node.finishProperty('init', key, false, key, false, true);
+            }
+        } else {
+            key = parseObjectPropertyKey();
+        }
+        expect(':');
+        init = parsePatternWithDefault();
+        return node.finishProperty('init', key, computed, init, false, false);
+    }
+
+    function parseObjectPattern() {
+        var node = new Node(), properties = [];
+
+        expect('{');
+
+        while (!match('}')) {
+            properties.push(parsePropertyPattern());
+            if (!match('}')) {
+                expect(',');
+            }
+        }
+
+        lex();
+
+        return node.finishObjectPattern(properties);
+    }
+
+    function parsePattern() {
+        if (lookahead.type === Token.Identifier) {
+            return parseVariableIdentifier();
+        } else if (match('[')) {
+            return parseArrayPattern();
+        } else if (match('{')) {
+            return parseObjectPattern();
+        }
+        throwUnexpectedToken(lookahead);
+    }
+
+    function parsePatternWithDefault() {
+        var startToken = lookahead, pattern, right;
+        pattern = parsePattern();
+        if (match('=')) {
+            lex();
+            right = isolateCoverGrammar(parseAssignmentExpression);
+            pattern = new WrappingNode(startToken).finishAssignmentPattern(pattern, right);
+        }
+        return pattern;
+    }
+
+    // 11.1.4 Array Initialiser
+
+    function parseArrayInitialiser() {
+        var elements = [], node = new Node(), restSpread;
+
+        expect('[');
+
+        while (!match(']')) {
+            if (match(',')) {
+                lex();
+                elements.push(null);
+            } else if (match('...')) {
+                restSpread = new Node();
+                lex();
+                restSpread.finishSpreadElement(inheritCoverGrammar(parseAssignmentExpression));
+
+                if (!match(']')) {
+                    isAssignmentTarget = isBindingElement = false;
+                    expect(',');
+                }
+                elements.push(restSpread);
+            } else {
+                elements.push(inheritCoverGrammar(parseAssignmentExpression));
 
                 if (!match(']')) {
                     expect(',');
@@ -15046,147 +15805,197 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
     // 11.1.5 Object Initialiser
 
-    function parsePropertyFunction(param, first) {
-        var previousStrict, body, node = new Node();
+    function parsePropertyFunction(node, paramInfo) {
+        var previousStrict, body;
+
+        isAssignmentTarget = isBindingElement = false;
 
         previousStrict = strict;
-        body = parseFunctionSourceElements();
-        if (first && strict && isRestrictedWord(param[0].name)) {
-            tolerateUnexpectedToken(first, Messages.StrictParamName);
+        body = isolateCoverGrammar(parseFunctionSourceElements);
+
+        if (strict && paramInfo.firstRestricted) {
+            tolerateUnexpectedToken(paramInfo.firstRestricted, paramInfo.message);
         }
+        if (strict && paramInfo.stricted) {
+            tolerateUnexpectedToken(paramInfo.stricted, paramInfo.message);
+        }
+
         strict = previousStrict;
-        return node.finishFunctionExpression(null, param, [], body);
+        return node.finishFunctionExpression(null, paramInfo.params, paramInfo.defaults, body);
     }
 
     function parsePropertyMethodFunction() {
-        var previousStrict, param, method;
+        var params, method, node = new Node();
 
-        previousStrict = strict;
-        strict = true;
-        param = parseParams();
-        method = parsePropertyFunction(param.params);
-        strict = previousStrict;
+        params = parseParams();
+        method = parsePropertyFunction(node, params);
 
         return method;
     }
 
     function parseObjectPropertyKey() {
-        var token, node = new Node();
+        var token, node = new Node(), expr;
 
         token = lex();
 
         // Note: This function is called only from parseObjectProperty(), where
         // EOF and Punctuator tokens are already filtered out.
 
-        if (token.type === Token.StringLiteral || token.type === Token.NumericLiteral) {
+        switch (token.type) {
+        case Token.StringLiteral:
+        case Token.NumericLiteral:
             if (strict && token.octal) {
                 tolerateUnexpectedToken(token, Messages.StrictOctalLiteral);
             }
             return node.finishLiteral(token);
+        case Token.Identifier:
+        case Token.BooleanLiteral:
+        case Token.NullLiteral:
+        case Token.Keyword:
+            return node.finishIdentifier(token.value);
+        case Token.Punctuator:
+            if (token.value === '[') {
+                expr = isolateCoverGrammar(parseAssignmentExpression);
+                expect(']');
+                return expr;
+            }
+            break;
         }
-
-        return node.finishIdentifier(token.value);
+        throwUnexpectedToken(token);
     }
 
-    function parseObjectProperty() {
-        var token, key, id, value, param, node = new Node();
+    function lookaheadPropertyName() {
+        switch (lookahead.type) {
+        case Token.Identifier:
+        case Token.StringLiteral:
+        case Token.BooleanLiteral:
+        case Token.NullLiteral:
+        case Token.NumericLiteral:
+        case Token.Keyword:
+            return true;
+        case Token.Punctuator:
+            return lookahead.value === '[';
+        }
+        return false;
+    }
 
-        token = lookahead;
+    // This function is to try to parse a MethodDefinition as defined in 14.3. But in the case of object literals,
+    // it might be called at a position where there is in fact a short hand identifier pattern or a data property.
+    // This can only be determined after we consumed up to the left parentheses.
+    //
+    // In order to avoid back tracking, it returns `null` if the position is not a MethodDefinition and the caller
+    // is responsible to visit other options.
+    function tryParseMethodDefinition(token, key, computed, node) {
+        var value, options, methodNode;
 
         if (token.type === Token.Identifier) {
+            // check for `get` and `set`;
 
-            id = parseObjectPropertyKey();
-
-            // Property Assignment: Getter and Setter.
-
-            if (token.value === 'get' && !(match(':') || match('('))) {
+            if (token.value === 'get' && lookaheadPropertyName()) {
+                computed = match('[');
                 key = parseObjectPropertyKey();
+                methodNode = new Node();
                 expect('(');
                 expect(')');
-                value = parsePropertyFunction([]);
-                return node.finishProperty('get', key, value, false, false);
-            }
-            if (token.value === 'set' && !(match(':') || match('('))) {
+                value = parsePropertyFunction(methodNode, {
+                    params: [],
+                    defaults: [],
+                    stricted: null,
+                    firstRestricted: null,
+                    message: null
+                });
+                return node.finishProperty('get', key, computed, value, false, false);
+            } else if (token.value === 'set' && lookaheadPropertyName()) {
+                computed = match('[');
                 key = parseObjectPropertyKey();
+                methodNode = new Node();
                 expect('(');
-                token = lookahead;
-                if (token.type !== Token.Identifier) {
-                    expect(')');
-                    tolerateUnexpectedToken(token);
-                    value = parsePropertyFunction([]);
-                } else {
-                    param = [ parseVariableIdentifier() ];
-                    expect(')');
-                    value = parsePropertyFunction(param, token);
-                }
-                return node.finishProperty('set', key, value, false, false);
-            }
-            if (match(':')) {
-                lex();
-                value = parseAssignmentExpression();
-                return node.finishProperty('init', id, value, false, false);
-            }
-            if (match('(')) {
-                value = parsePropertyMethodFunction();
-                return node.finishProperty('init', id, value, true, false);
-            }
 
-            value = id;
-            return node.finishProperty('init', id, value, false, true);
+                options = {
+                    params: [],
+                    defaultCount: 0,
+                    defaults: [],
+                    firstRestricted: null,
+                    paramSet: {}
+                };
+                if (match(')')) {
+                    tolerateUnexpectedToken(lookahead);
+                } else {
+                    parseParam(options);
+                    if (options.defaultCount === 0) {
+                        options.defaults = [];
+                    }
+                }
+                expect(')');
+
+                value = parsePropertyFunction(methodNode, options);
+                return node.finishProperty('set', key, computed, value, false, false);
+            }
         }
-        if (token.type === Token.EOF || token.type === Token.Punctuator) {
-            throwUnexpectedToken(token);
-        } else {
-            key = parseObjectPropertyKey();
-            if (match(':')) {
+
+        if (match('(')) {
+            value = parsePropertyMethodFunction();
+            return node.finishProperty('init', key, computed, value, true, false);
+        }
+
+        // Not a MethodDefinition.
+        return null;
+    }
+
+    function checkProto(key, computed, hasProto) {
+        if (computed === false && (key.type === Syntax.Identifier && key.name === '__proto__' ||
+            key.type === Syntax.Literal && key.value === '__proto__')) {
+            if (hasProto.value) {
+                tolerateError(Messages.DuplicateProtoProperty);
+            } else {
+                hasProto.value = true;
+            }
+        }
+    }
+
+    function parseObjectProperty(hasProto) {
+        var token = lookahead, node = new Node(), computed, key, maybeMethod, value;
+
+        computed = match('[');
+        key = parseObjectPropertyKey();
+        maybeMethod = tryParseMethodDefinition(token, key, computed, node);
+
+        if (maybeMethod) {
+            checkProto(maybeMethod.key, maybeMethod.computed, hasProto);
+            // finished
+            return maybeMethod;
+        }
+
+        // init property or short hand property.
+        checkProto(key, computed, hasProto);
+
+        if (match(':')) {
+            lex();
+            value = inheritCoverGrammar(parseAssignmentExpression);
+            return node.finishProperty('init', key, computed, value, false, false);
+        }
+
+        if (token.type === Token.Identifier) {
+            if (match('=')) {
+                firstCoverInitializedNameError = lookahead;
                 lex();
-                value = parseAssignmentExpression();
-                return node.finishProperty('init', key, value, false, false);
+                value = isolateCoverGrammar(parseAssignmentExpression);
+                return node.finishProperty('init', key, computed,
+                    new WrappingNode(token).finishAssignmentPattern(key, value), false, true);
             }
-            if (match('(')) {
-                value = parsePropertyMethodFunction();
-                return node.finishProperty('init', key, value, true, false);
-            }
-            throwUnexpectedToken(lex());
+            return node.finishProperty('init', key, computed, key, false, true);
         }
+
+        throwUnexpectedToken(lookahead);
     }
 
     function parseObjectInitialiser() {
-        var properties = [], property, name, key, kind, map = {}, toString = String, node = new Node();
+        var properties = [], hasProto = {value: false}, node = new Node();
 
         expect('{');
 
         while (!match('}')) {
-            property = parseObjectProperty();
-
-            if (property.key.type === Syntax.Identifier) {
-                name = property.key.name;
-            } else {
-                name = toString(property.key.value);
-            }
-            kind = (property.kind === 'init') ? PropertyKind.Data : (property.kind === 'get') ? PropertyKind.Get : PropertyKind.Set;
-
-            key = '$' + name;
-            if (Object.prototype.hasOwnProperty.call(map, key)) {
-                if (map[key] === PropertyKind.Data) {
-                    if (strict && kind === PropertyKind.Data) {
-                        tolerateError(Messages.StrictDuplicateProperty);
-                    } else if (kind !== PropertyKind.Data) {
-                        tolerateError(Messages.AccessorDataProperty);
-                    }
-                } else {
-                    if (kind === PropertyKind.Data) {
-                        tolerateError(Messages.AccessorDataProperty);
-                    } else if (map[key] & kind) {
-                        tolerateError(Messages.AccessorGetSet);
-                    }
-                }
-                map[key] |= kind;
-            } else {
-                map[key] = kind;
-            }
-
-            properties.push(property);
+            properties.push(parseObjectProperty(hasProto));
 
             if (!match('}')) {
                 expectCommaSeparator();
@@ -15198,24 +16007,162 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         return node.finishObjectExpression(properties);
     }
 
+    function reinterpretExpressionAsPattern(expr) {
+        var i;
+        switch (expr.type) {
+        case Syntax.Identifier:
+        case Syntax.MemberExpression:
+        case Syntax.RestElement:
+        case Syntax.AssignmentPattern:
+            break;
+        case Syntax.SpreadElement:
+            expr.type = Syntax.RestElement;
+            reinterpretExpressionAsPattern(expr.argument);
+            break;
+        case Syntax.ArrayExpression:
+            expr.type = Syntax.ArrayPattern;
+            for (i = 0; i < expr.elements.length; i++) {
+                if (expr.elements[i] !== null) {
+                    reinterpretExpressionAsPattern(expr.elements[i]);
+                }
+            }
+            break;
+        case Syntax.ObjectExpression:
+            expr.type = Syntax.ObjectPattern;
+            for (i = 0; i < expr.properties.length; i++) {
+                reinterpretExpressionAsPattern(expr.properties[i].value);
+            }
+            break;
+        case Syntax.AssignmentExpression:
+            expr.type = Syntax.AssignmentPattern;
+            reinterpretExpressionAsPattern(expr.left);
+            break;
+        default:
+            // Allow other node type for tolerant parsing.
+            break;
+        }
+    }
+
+    function parseTemplateElement(option) {
+        var node, token;
+
+        if (lookahead.type !== Token.Template || (option.head && !lookahead.head)) {
+            throwUnexpectedToken();
+        }
+
+        node = new Node();
+        token = lex();
+
+        return node.finishTemplateElement({ raw: token.value.raw, cooked: token.value.cooked }, token.tail);
+    }
+
+    function parseTemplateLiteral() {
+        var quasi, quasis, expressions, node = new Node();
+
+        quasi = parseTemplateElement({ head: true });
+        quasis = [ quasi ];
+        expressions = [];
+
+        while (!quasi.tail) {
+            expressions.push(parseExpression());
+            quasi = parseTemplateElement({ head: false });
+            quasis.push(quasi);
+        }
+
+        return node.finishTemplateLiteral(quasis, expressions);
+    }
+
     // 11.1.6 The Grouping Operator
 
     function parseGroupExpression() {
-        var expr;
+        var expr, expressions, startToken, i;
 
         expect('(');
 
         if (match(')')) {
             lex();
-            return PlaceHolders.ArrowParameterPlaceHolder;
+            if (!match('=>')) {
+                expect('=>');
+            }
+            return {
+                type: PlaceHolders.ArrowParameterPlaceHolder,
+                params: []
+            };
         }
 
-        ++state.parenthesisCount;
+        startToken = lookahead;
+        if (match('...')) {
+            expr = parseRestElement();
+            expect(')');
+            if (!match('=>')) {
+                expect('=>');
+            }
+            return {
+                type: PlaceHolders.ArrowParameterPlaceHolder,
+                params: [expr]
+            };
+        }
 
-        expr = parseExpression();
+        isBindingElement = true;
+        expr = inheritCoverGrammar(parseAssignmentExpression);
+
+        if (match(',')) {
+            isAssignmentTarget = false;
+            expressions = [expr];
+
+            while (startIndex < length) {
+                if (!match(',')) {
+                    break;
+                }
+                lex();
+
+                if (match('...')) {
+                    if (!isBindingElement) {
+                        throwUnexpectedToken(lookahead);
+                    }
+                    expressions.push(parseRestElement());
+                    expect(')');
+                    if (!match('=>')) {
+                        expect('=>');
+                    }
+                    isBindingElement = false;
+                    for (i = 0; i < expressions.length; i++) {
+                        reinterpretExpressionAsPattern(expressions[i]);
+                    }
+                    return {
+                        type: PlaceHolders.ArrowParameterPlaceHolder,
+                        params: expressions
+                    };
+                }
+
+                expressions.push(inheritCoverGrammar(parseAssignmentExpression));
+            }
+
+            expr = new WrappingNode(startToken).finishSequenceExpression(expressions);
+        }
+
 
         expect(')');
 
+        if (match('=>')) {
+            if (!isBindingElement) {
+                throwUnexpectedToken(lookahead);
+            }
+
+            if (expr.type === Syntax.SequenceExpression) {
+                for (i = 0; i < expr.expressions.length; i++) {
+                    reinterpretExpressionAsPattern(expr.expressions[i]);
+                }
+            } else {
+                reinterpretExpressionAsPattern(expr);
+            }
+
+            expr = {
+                type: PlaceHolders.ArrowParameterPlaceHolder,
+                params: expr.type === Syntax.SequenceExpression ? expr.expressions : [expr]
+            };
+        }
+        isBindingElement = false;
         return expr;
     }
 
@@ -15226,15 +16173,16 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         var type, token, expr, node;
 
         if (match('(')) {
-            return parseGroupExpression();
+            isBindingElement = false;
+            return inheritCoverGrammar(parseGroupExpression);
         }
 
         if (match('[')) {
-            return parseArrayInitialiser();
+            return inheritCoverGrammar(parseArrayInitialiser);
         }
 
         if (match('{')) {
-            return parseObjectInitialiser();
+            return inheritCoverGrammar(parseObjectInitialiser);
         }
 
         type = lookahead.type;
@@ -15243,35 +16191,47 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         if (type === Token.Identifier) {
             expr = node.finishIdentifier(lex().value);
         } else if (type === Token.StringLiteral || type === Token.NumericLiteral) {
+            isAssignmentTarget = isBindingElement = false;
             if (strict && lookahead.octal) {
                 tolerateUnexpectedToken(lookahead, Messages.StrictOctalLiteral);
             }
             expr = node.finishLiteral(lex());
         } else if (type === Token.Keyword) {
+            isAssignmentTarget = isBindingElement = false;
             if (matchKeyword('function')) {
                 return parseFunctionExpression();
             }
             if (matchKeyword('this')) {
                 lex();
-                expr = node.finishThisExpression();
-            } else {
-                throwUnexpectedToken(lex());
+                return node.finishThisExpression();
             }
+            if (matchKeyword('class')) {
+                return parseClassExpression();
+            }
+            throwUnexpectedToken(lex());
         } else if (type === Token.BooleanLiteral) {
+            isAssignmentTarget = isBindingElement = false;
             token = lex();
             token.value = (token.value === 'true');
             expr = node.finishLiteral(token);
         } else if (type === Token.NullLiteral) {
+            isAssignmentTarget = isBindingElement = false;
             token = lex();
             token.value = null;
             expr = node.finishLiteral(token);
         } else if (match('/') || match('/=')) {
+            isAssignmentTarget = isBindingElement = false;
+            index = startIndex;
+
             if (typeof extra.tokens !== 'undefined') {
-                expr = node.finishLiteral(collectRegex());
+                token = collectRegex();
             } else {
-                expr = node.finishLiteral(scanRegExp());
+                token = scanRegExp();
             }
-            peek();
+            lex();
+            expr = node.finishLiteral(token);
+        } else if (type === Token.Template) {
+            expr = parseTemplateLiteral();
         } else {
             throwUnexpectedToken(lex());
         }
@@ -15287,8 +16247,8 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         expect('(');
 
         if (!match(')')) {
-            while (index < length) {
-                args.push(parseAssignmentExpression());
+            while (startIndex < length) {
+                args.push(isolateCoverGrammar(parseAssignmentExpression));
                 if (match(')')) {
                     break;
                 }
@@ -15324,7 +16284,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
         expect('[');
 
-        expr = parseExpression();
+        expr = isolateCoverGrammar(parseExpression);
 
         expect(']');
 
@@ -15335,29 +16295,50 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         var callee, args, node = new Node();
 
         expectKeyword('new');
-        callee = parseLeftHandSideExpression();
+        callee = isolateCoverGrammar(parseLeftHandSideExpression);
         args = match('(') ? parseArguments() : [];
+
+        isAssignmentTarget = isBindingElement = false;
 
         return node.finishNewExpression(callee, args);
     }
 
     function parseLeftHandSideExpressionAllowCall() {
-        var expr, args, property, startToken, previousAllowIn = state.allowIn;
+        var quasi, expr, args, property, startToken, previousAllowIn = state.allowIn;
 
         startToken = lookahead;
         state.allowIn = true;
-        expr = matchKeyword('new') ? parseNewExpression() : parsePrimaryExpression();
+
+        if (matchKeyword('super') && state.inFunctionBody) {
+            expr = new Node();
+            lex();
+            expr = expr.finishSuper();
+            if (!match('(') && !match('.') && !match('[')) {
+                throwUnexpectedToken(lookahead);
+            }
+        } else {
+            expr = inheritCoverGrammar(matchKeyword('new') ? parseNewExpression : parsePrimaryExpression);
+        }
 
         for (;;) {
             if (match('.')) {
+                isBindingElement = false;
+                isAssignmentTarget = true;
                 property = parseNonComputedMember();
                 expr = new WrappingNode(startToken).finishMemberExpression('.', expr, property);
             } else if (match('(')) {
+                isBindingElement = false;
+                isAssignmentTarget = false;
                 args = parseArguments();
                 expr = new WrappingNode(startToken).finishCallExpression(expr, args);
             } else if (match('[')) {
+                isBindingElement = false;
+                isAssignmentTarget = true;
                 property = parseComputedMember();
                 expr = new WrappingNode(startToken).finishMemberExpression('[', expr, property);
+            } else if (lookahead.type === Token.Template && lookahead.head) {
+                quasi = parseTemplateLiteral();
+                expr = new WrappingNode(startToken).finishTaggedTemplateExpression(expr, quasi);
             } else {
                 break;
             }
@@ -15368,20 +16349,36 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     }
 
     function parseLeftHandSideExpression() {
-        var expr, property, startToken;
+        var quasi, expr, property, startToken;
         assert(state.allowIn, 'callee of new expression always allow in keyword.');
 
         startToken = lookahead;
 
-        expr = matchKeyword('new') ? parseNewExpression() : parsePrimaryExpression();
+        if (matchKeyword('super') && state.inFunctionBody) {
+            expr = new Node();
+            lex();
+            expr = expr.finishSuper();
+            if (!match('[') && !match('.')) {
+                throwUnexpectedToken(lookahead);
+            }
+        } else {
+            expr = inheritCoverGrammar(matchKeyword('new') ? parseNewExpression : parsePrimaryExpression);
+        }
 
         for (;;) {
             if (match('[')) {
+                isBindingElement = false;
+                isAssignmentTarget = true;
                 property = parseComputedMember();
                 expr = new WrappingNode(startToken).finishMemberExpression('[', expr, property);
             } else if (match('.')) {
+                isBindingElement = false;
+                isAssignmentTarget = true;
                 property = parseNonComputedMember();
                 expr = new WrappingNode(startToken).finishMemberExpression('.', expr, property);
+            } else if (lookahead.type === Token.Template && lookahead.head) {
+                quasi = parseTemplateLiteral();
+                expr = new WrappingNode(startToken).finishTaggedTemplateExpression(expr, quasi);
             } else {
                 break;
             }
@@ -15394,18 +16391,20 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     function parsePostfixExpression() {
         var expr, token, startToken = lookahead;
 
-        expr = parseLeftHandSideExpressionAllowCall();
+        expr = inheritCoverGrammar(parseLeftHandSideExpressionAllowCall);
 
-        if (lookahead.type === Token.Punctuator) {
-            if ((match('++') || match('--')) && !peekLineTerminator()) {
+        if (!hasLineTerminator && lookahead.type === Token.Punctuator) {
+            if (match('++') || match('--')) {
                 // 11.3.1, 11.3.2
                 if (strict && expr.type === Syntax.Identifier && isRestrictedWord(expr.name)) {
                     tolerateError(Messages.StrictLHSPostfix);
                 }
 
-                if (!isLeftHandSide(expr)) {
+                if (!isAssignmentTarget) {
                     tolerateError(Messages.InvalidLHSInAssignment);
                 }
+
+                isAssignmentTarget = isBindingElement = false;
 
                 token = lex();
                 expr = new WrappingNode(startToken).finishPostfixExpression(token.value, expr);
@@ -15425,30 +16424,32 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         } else if (match('++') || match('--')) {
             startToken = lookahead;
             token = lex();
-            expr = parseUnaryExpression();
+            expr = inheritCoverGrammar(parseUnaryExpression);
             // 11.4.4, 11.4.5
             if (strict && expr.type === Syntax.Identifier && isRestrictedWord(expr.name)) {
                 tolerateError(Messages.StrictLHSPrefix);
             }
 
-            if (!isLeftHandSide(expr)) {
+            if (!isAssignmentTarget) {
                 tolerateError(Messages.InvalidLHSInAssignment);
             }
-
             expr = new WrappingNode(startToken).finishUnaryExpression(token.value, expr);
+            isAssignmentTarget = isBindingElement = false;
         } else if (match('+') || match('-') || match('~') || match('!')) {
             startToken = lookahead;
             token = lex();
-            expr = parseUnaryExpression();
+            expr = inheritCoverGrammar(parseUnaryExpression);
             expr = new WrappingNode(startToken).finishUnaryExpression(token.value, expr);
+            isAssignmentTarget = isBindingElement = false;
         } else if (matchKeyword('delete') || matchKeyword('void') || matchKeyword('typeof')) {
             startToken = lookahead;
             token = lex();
-            expr = parseUnaryExpression();
+            expr = inheritCoverGrammar(parseUnaryExpression);
             expr = new WrappingNode(startToken).finishUnaryExpression(token.value, expr);
             if (strict && expr.operator === 'delete' && expr.argument.type === Syntax.Identifier) {
                 tolerateError(Messages.StrictDelete);
             }
+            isAssignmentTarget = isBindingElement = false;
         } else {
             expr = parsePostfixExpression();
         }
@@ -15539,21 +16540,19 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         var marker, markers, expr, token, prec, stack, right, operator, left, i;
 
         marker = lookahead;
-        left = parseUnaryExpression();
-        if (left === PlaceHolders.ArrowParameterPlaceHolder) {
-            return left;
-        }
+        left = inheritCoverGrammar(parseUnaryExpression);
 
         token = lookahead;
         prec = binaryPrecedence(token, state.allowIn);
         if (prec === 0) {
             return left;
         }
+        isAssignmentTarget = isBindingElement = false;
         token.prec = prec;
         lex();
 
         markers = [marker, lookahead];
-        right = parseUnaryExpression();
+        right = isolateCoverGrammar(parseUnaryExpression);
 
         stack = [left, token, right];
 
@@ -15574,7 +16573,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             token.prec = prec;
             stack.push(token);
             markers.push(lookahead);
-            expr = parseUnaryExpression();
+            expr = isolateCoverGrammar(parseUnaryExpression);
             stack.push(expr);
         }
 
@@ -15598,20 +16597,18 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
         startToken = lookahead;
 
-        expr = parseBinaryExpression();
-        if (expr === PlaceHolders.ArrowParameterPlaceHolder) {
-            return expr;
-        }
+        expr = inheritCoverGrammar(parseBinaryExpression);
         if (match('?')) {
             lex();
             previousAllowIn = state.allowIn;
             state.allowIn = true;
-            consequent = parseAssignmentExpression();
+            consequent = isolateCoverGrammar(parseAssignmentExpression);
             state.allowIn = previousAllowIn;
             expect(':');
-            alternate = parseAssignmentExpression();
+            alternate = isolateCoverGrammar(parseAssignmentExpression);
 
             expr = new WrappingNode(startToken).finishConditionalExpression(expr, consequent, alternate);
+            isAssignmentTarget = isBindingElement = false;
         }
 
         return expr;
@@ -15623,33 +16620,71 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         if (match('{')) {
             return parseFunctionSourceElements();
         }
-        return parseAssignmentExpression();
+        return isolateCoverGrammar(parseAssignmentExpression);
     }
 
-    function reinterpretAsCoverFormalsList(expressions) {
-        var i, len, param, params, defaults, defaultCount, options, rest, token;
+    function checkPatternParam(options, param) {
+        var i;
+        switch (param.type) {
+        case Syntax.Identifier:
+            validateParam(options, param, param.name);
+            break;
+        case Syntax.RestElement:
+            checkPatternParam(options, param.argument);
+            break;
+        case Syntax.AssignmentPattern:
+            checkPatternParam(options, param.left);
+            break;
+        case Syntax.ArrayPattern:
+            for (i = 0; i < param.elements.length; i++) {
+                if (param.elements[i] !== null) {
+                    checkPatternParam(options, param.elements[i]);
+                }
+            }
+            break;
+        default:
+            assert(param.type === Syntax.ObjectPattern, 'Invalid type');
+            for (i = 0; i < param.properties.length; i++) {
+                checkPatternParam(options, param.properties[i].value);
+            }
+            break;
+        }
+    }
+    function reinterpretAsCoverFormalsList(expr) {
+        var i, len, param, params, defaults, defaultCount, options, token;
 
-        params = [];
         defaults = [];
         defaultCount = 0;
-        rest = null;
+        params = [expr];
+
+        switch (expr.type) {
+        case Syntax.Identifier:
+            break;
+        case PlaceHolders.ArrowParameterPlaceHolder:
+            params = expr.params;
+            break;
+        default:
+            return null;
+        }
+
         options = {
             paramSet: {}
         };
 
-        for (i = 0, len = expressions.length; i < len; i += 1) {
-            param = expressions[i];
-            if (param.type === Syntax.Identifier) {
-                params.push(param);
-                defaults.push(null);
-                validateParam(options, param, param.name);
-            } else if (param.type === Syntax.AssignmentExpression) {
-                params.push(param.left);
+        for (i = 0, len = params.length; i < len; i += 1) {
+            param = params[i];
+            switch (param.type) {
+            case Syntax.AssignmentPattern:
+                params[i] = param.left;
                 defaults.push(param.right);
                 ++defaultCount;
-                validateParam(options, param.left, param.left.name);
-            } else {
-                return null;
+                checkPatternParam(options, param.left);
+                break;
+            default:
+                checkPatternParam(options, param);
+                params[i] = param;
+                defaults.push(null);
+                break;
             }
         }
 
@@ -15665,7 +16700,6 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         return {
             params: params,
             defaults: defaults,
-            rest: rest,
             stricted: options.stricted,
             firstRestricted: options.firstRestricted,
             message: options.message
@@ -15675,6 +16709,9 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     function parseArrowFunctionExpression(options, node) {
         var previousStrict, body;
 
+        if (hasLineTerminator) {
+            tolerateUnexpectedToken(lookahead);
+        }
         expect('=>');
         previousStrict = strict;
 
@@ -15695,36 +16732,27 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     // 11.13 Assignment Operators
 
     function parseAssignmentExpression() {
-        var oldParenthesisCount, token, expr, right, list, startToken;
-
-        oldParenthesisCount = state.parenthesisCount;
+        var token, expr, right, list, startToken;
 
         startToken = lookahead;
         token = lookahead;
 
         expr = parseConditionalExpression();
 
-        if (expr === PlaceHolders.ArrowParameterPlaceHolder || match('=>')) {
-            if (state.parenthesisCount === oldParenthesisCount ||
-                    state.parenthesisCount === (oldParenthesisCount + 1)) {
-                if (expr.type === Syntax.Identifier) {
-                    list = reinterpretAsCoverFormalsList([ expr ]);
-                } else if (expr.type === Syntax.AssignmentExpression) {
-                    list = reinterpretAsCoverFormalsList([ expr ]);
-                } else if (expr.type === Syntax.SequenceExpression) {
-                    list = reinterpretAsCoverFormalsList(expr.expressions);
-                } else if (expr === PlaceHolders.ArrowParameterPlaceHolder) {
-                    list = reinterpretAsCoverFormalsList([]);
-                }
-                if (list) {
-                    return parseArrowFunctionExpression(list, new WrappingNode(startToken));
-                }
+        if (expr.type === PlaceHolders.ArrowParameterPlaceHolder || match('=>')) {
+            isAssignmentTarget = isBindingElement = false;
+            list = reinterpretAsCoverFormalsList(expr);
+
+            if (list) {
+                firstCoverInitializedNameError = null;
+                return parseArrowFunctionExpression(list, new WrappingNode(startToken));
             }
+
+            return expr;
         }
 
         if (matchAssign()) {
-            // LeftHandSideExpression
-            if (!isLeftHandSide(expr)) {
+            if (!isAssignmentTarget) {
                 tolerateError(Messages.InvalidLHSInAssignment);
             }
 
@@ -15733,9 +16761,16 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
                 tolerateUnexpectedToken(token, Messages.StrictLHSAssignment);
             }
 
+            if (!match('=')) {
+                isAssignmentTarget = isBindingElement = false;
+            } else {
+                reinterpretExpressionAsPattern(expr);
+            }
+
             token = lex();
-            right = parseAssignmentExpression();
+            right = isolateCoverGrammar(parseAssignmentExpression);
             expr = new WrappingNode(startToken).finishAssignmentExpression(token.value, expr, right);
+            firstCoverInitializedNameError = null;
         }
 
         return expr;
@@ -15746,17 +16781,17 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     function parseExpression() {
         var expr, startToken = lookahead, expressions;
 
-        expr = parseAssignmentExpression();
+        expr = isolateCoverGrammar(parseAssignmentExpression);
 
         if (match(',')) {
             expressions = [expr];
 
-            while (index < length) {
+            while (startIndex < length) {
                 if (!match(',')) {
                     break;
                 }
                 lex();
-                expressions.push(parseAssignmentExpression());
+                expressions.push(isolateCoverGrammar(parseAssignmentExpression));
             }
 
             expr = new WrappingNode(startToken).finishSequenceExpression(expressions);
@@ -15767,19 +16802,39 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
     // 12.1 Block
 
-    function parseStatementList() {
-        var list = [],
-            statement;
+    function parseStatementListItem() {
+        if (lookahead.type === Token.Keyword) {
+            switch (lookahead.value) {
+            case 'export':
+                if (sourceType !== 'module') {
+                    tolerateUnexpectedToken(lookahead, Messages.IllegalExportDeclaration);
+                }
+                return parseExportDeclaration();
+            case 'import':
+                if (sourceType !== 'module') {
+                    tolerateUnexpectedToken(lookahead, Messages.IllegalImportDeclaration);
+                }
+                return parseImportDeclaration();
+            case 'const':
+            case 'let':
+                return parseLexicalDeclaration({inFor: false});
+            case 'function':
+                return parseFunctionDeclaration(new Node());
+            case 'class':
+                return parseClassDeclaration();
+            }
+        }
 
-        while (index < length) {
+        return parseStatement();
+    }
+
+    function parseStatementList() {
+        var list = [];
+        while (startIndex < length) {
             if (match('}')) {
                 break;
             }
-            statement = parseSourceElement();
-            if (typeof statement === 'undefined') {
-                break;
-            }
-            list.push(statement);
+            list.push(parseStatementListItem());
         }
 
         return list;
@@ -15815,37 +16870,36 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         return node.finishIdentifier(token.value);
     }
 
-    function parseVariableDeclaration(kind) {
+    function parseVariableDeclaration() {
         var init = null, id, node = new Node();
 
-        id = parseVariableIdentifier();
+        id = parsePattern();
 
         // 12.2.1
         if (strict && isRestrictedWord(id.name)) {
             tolerateError(Messages.StrictVarName);
         }
 
-        if (kind === 'const') {
-            expect('=');
-            init = parseAssignmentExpression();
-        } else if (match('=')) {
+        if (match('=')) {
             lex();
-            init = parseAssignmentExpression();
+            init = isolateCoverGrammar(parseAssignmentExpression);
+        } else if (id.type !== Syntax.Identifier) {
+            expect('=');
         }
 
         return node.finishVariableDeclarator(id, init);
     }
 
-    function parseVariableDeclarationList(kind) {
+    function parseVariableDeclarationList() {
         var list = [];
 
         do {
-            list.push(parseVariableDeclaration(kind));
+            list.push(parseVariableDeclaration());
             if (!match(',')) {
                 break;
             }
             lex();
-        } while (index < length);
+        } while (startIndex < length);
 
         return list;
     }
@@ -15859,29 +16913,84 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
         consumeSemicolon();
 
-        return node.finishVariableDeclaration(declarations, 'var');
+        return node.finishVariableDeclaration(declarations);
     }
 
-    // kind may be `const` or `let`
-    // Both are experimental and not in the specification yet.
-    // see http://wiki.ecmascript.org/doku.php?id=harmony:const
-    // and http://wiki.ecmascript.org/doku.php?id=harmony:let
-    function parseConstLetDeclaration(kind) {
-        var declarations, node = new Node();
+    function parseLexicalBinding(kind, options) {
+        var init = null, id, node = new Node();
 
-        expectKeyword(kind);
+        id = parsePattern();
 
-        declarations = parseVariableDeclarationList(kind);
+        // 12.2.1
+        if (strict && id.type === Syntax.Identifier && isRestrictedWord(id.name)) {
+            tolerateError(Messages.StrictVarName);
+        }
+
+        if (kind === 'const') {
+            if (!matchKeyword('in')) {
+                expect('=');
+                init = isolateCoverGrammar(parseAssignmentExpression);
+            }
+        } else if ((!options.inFor && id.type !== Syntax.Identifier) || match('=')) {
+            expect('=');
+            init = isolateCoverGrammar(parseAssignmentExpression);
+        }
+
+        return node.finishVariableDeclarator(id, init);
+    }
+
+    function parseBindingList(kind, options) {
+        var list = [];
+
+        do {
+            list.push(parseLexicalBinding(kind, options));
+            if (!match(',')) {
+                break;
+            }
+            lex();
+        } while (startIndex < length);
+
+        return list;
+    }
+
+    function parseLexicalDeclaration(options) {
+        var kind, declarations, node = new Node();
+
+        kind = lex().value;
+        assert(kind === 'let' || kind === 'const', 'Lexical declaration must be either let or const');
+
+        declarations = parseBindingList(kind, options);
 
         consumeSemicolon();
 
-        return node.finishVariableDeclaration(declarations, kind);
+        return node.finishLexicalDeclaration(declarations, kind);
+    }
+
+    function parseRestElement() {
+        var param, node = new Node();
+
+        lex();
+
+        if (match('{')) {
+            throwError(Messages.ObjectPatternAsRestParameter);
+        }
+
+        param = parseVariableIdentifier();
+
+        if (match('=')) {
+            throwError(Messages.DefaultRestParameter);
+        }
+
+        if (!match(')')) {
+            throwError(Messages.ParameterAfterRestParameter);
+        }
+
+        return node.finishRestElement(param);
     }
 
     // 12.3 Empty Statement
 
-    function parseEmptyStatement() {
-        var node = new Node();
+    function parseEmptyStatement(node) {
         expect(';');
         return node.finishEmptyStatement();
     }
@@ -15969,17 +17078,9 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         return node.finishWhileStatement(test, body);
     }
 
-    function parseForVariableDeclaration() {
-        var token, declarations, node = new Node();
-
-        token = lex();
-        declarations = parseVariableDeclarationList();
-
-        return node.finishVariableDeclaration(declarations, token.value);
-    }
-
     function parseForStatement(node) {
-        var init, test, update, left, right, body, oldInIteration, previousAllowIn = state.allowIn;
+        var init, initSeq, initStartToken, test, update, left, right, kind, declarations,
+            body, oldInIteration, previousAllowIn = state.allowIn;
 
         init = test = update = null;
 
@@ -15990,9 +17091,12 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         if (match(';')) {
             lex();
         } else {
-            if (matchKeyword('var') || matchKeyword('let')) {
+            if (matchKeyword('var')) {
+                init = new Node();
+                lex();
+
                 state.allowIn = false;
-                init = parseForVariableDeclaration();
+                init = init.finishVariableDeclaration(parseVariableDeclarationList());
                 state.allowIn = previousAllowIn;
 
                 if (init.declarations.length === 1 && matchKeyword('in')) {
@@ -16000,27 +17104,54 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
                     left = init;
                     right = parseExpression();
                     init = null;
+                } else {
+                    expect(';');
                 }
-            } else {
+            } else if (matchKeyword('const') || matchKeyword('let')) {
+                init = new Node();
+                kind = lex().value;
+
                 state.allowIn = false;
-                init = parseExpression();
+                declarations = parseBindingList(kind, {inFor: true});
                 state.allowIn = previousAllowIn;
 
-                if (matchKeyword('in')) {
-                    // LeftHandSideExpression
-                    if (!isLeftHandSide(init)) {
-                        tolerateError(Messages.InvalidLHSInForIn);
-                    }
-
+                if (declarations.length === 1 && declarations[0].init === null && matchKeyword('in')) {
+                    init = init.finishLexicalDeclaration(declarations, kind);
                     lex();
                     left = init;
                     right = parseExpression();
                     init = null;
+                } else {
+                    consumeSemicolon();
+                    init = init.finishLexicalDeclaration(declarations, kind);
                 }
-            }
+            } else {
+                initStartToken = lookahead;
+                state.allowIn = false;
+                init = inheritCoverGrammar(parseAssignmentExpression);
+                state.allowIn = previousAllowIn;
 
-            if (typeof left === 'undefined') {
-                expect(';');
+                if (matchKeyword('in')) {
+                    if (!isAssignmentTarget) {
+                        tolerateError(Messages.InvalidLHSInForIn);
+                    }
+
+                    lex();
+                    reinterpretExpressionAsPattern(init);
+                    left = init;
+                    right = parseExpression();
+                    init = null;
+                } else {
+                    if (match(',')) {
+                        initSeq = [init];
+                        while (match(',')) {
+                            lex();
+                            initSeq.push(isolateCoverGrammar(parseAssignmentExpression));
+                        }
+                        init = new WrappingNode(initStartToken).finishSequenceExpression(initSeq);
+                    }
+                    expect(';');
+                }
             }
         }
 
@@ -16041,7 +17172,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         oldInIteration = state.inIteration;
         state.inIteration = true;
 
-        body = parseStatement();
+        body = isolateCoverGrammar(parseStatement);
 
         state.inIteration = oldInIteration;
 
@@ -16058,7 +17189,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         expectKeyword('continue');
 
         // Optimize the most common form: 'continue;'.
-        if (source.charCodeAt(index) === 0x3B) {
+        if (source.charCodeAt(startIndex) === 0x3B) {
             lex();
 
             if (!state.inIteration) {
@@ -16068,7 +17199,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             return node.finishContinueStatement(null);
         }
 
-        if (peekLineTerminator()) {
+        if (hasLineTerminator) {
             if (!state.inIteration) {
                 throwError(Messages.IllegalContinue);
             }
@@ -16102,7 +17233,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         expectKeyword('break');
 
         // Catch the very common case first: immediately a semicolon (U+003B).
-        if (source.charCodeAt(index) === 0x3B) {
+        if (source.charCodeAt(lastIndex) === 0x3B) {
             lex();
 
             if (!(state.inIteration || state.inSwitch)) {
@@ -16112,7 +17243,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             return node.finishBreakStatement(null);
         }
 
-        if (peekLineTerminator()) {
+        if (hasLineTerminator) {
             if (!(state.inIteration || state.inSwitch)) {
                 throwError(Messages.IllegalBreak);
             }
@@ -16150,15 +17281,16 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         }
 
         // 'return' followed by a space and an identifier is very common.
-        if (source.charCodeAt(index) === 0x20) {
-            if (isIdentifierStart(source.charCodeAt(index + 1))) {
+        if (source.charCodeAt(lastIndex) === 0x20) {
+            if (isIdentifierStart(source.charCodeAt(lastIndex + 1))) {
                 argument = parseExpression();
                 consumeSemicolon();
                 return node.finishReturnStatement(argument);
             }
         }
 
-        if (peekLineTerminator()) {
+        if (hasLineTerminator) {
+            // HACK
             return node.finishReturnStatement(null);
         }
 
@@ -16179,8 +17311,6 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         var object, body;
 
         if (strict) {
-            // TODO(ikarienator): Should we update the test cases instead?
-            skipComment();
             tolerateError(Messages.StrictModeWith);
         }
 
@@ -16211,11 +17341,11 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         }
         expect(':');
 
-        while (index < length) {
+        while (startIndex < length) {
             if (match('}') || matchKeyword('default') || matchKeyword('case')) {
                 break;
             }
-            statement = parseStatement();
+            statement = parseStatementListItem();
             consequent.push(statement);
         }
 
@@ -16246,7 +17376,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         state.inSwitch = true;
         defaultFound = false;
 
-        while (index < length) {
+        while (startIndex < length) {
             if (match('}')) {
                 break;
             }
@@ -16274,7 +17404,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
         expectKeyword('throw');
 
-        if (peekLineTerminator()) {
+        if (hasLineTerminator) {
             throwError(Messages.NewlineAfterThrow);
         }
 
@@ -16297,7 +17427,8 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             throwUnexpectedToken(lookahead);
         }
 
-        param = parseVariableIdentifier();
+        param = parsePattern();
+
         // 12.14.1
         if (strict && isRestrictedWord(param.name)) {
             tolerateError(Messages.StrictCatchVariable);
@@ -16309,14 +17440,14 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     }
 
     function parseTryStatement(node) {
-        var block, handlers = [], finalizer = null;
+        var block, handler = null, finalizer = null;
 
         expectKeyword('try');
 
         block = parseBlock();
 
         if (matchKeyword('catch')) {
-            handlers.push(parseCatchClause());
+            handler = parseCatchClause();
         }
 
         if (matchKeyword('finally')) {
@@ -16324,11 +17455,11 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             finalizer = parseBlock();
         }
 
-        if (handlers.length === 0 && !finalizer) {
+        if (!handler && !finalizer) {
             throwError(Messages.NoCatchOrFinally);
         }
 
-        return node.finishTryStatement(block, [], handlers, finalizer);
+        return node.finishTryStatement(block, handler, finalizer);
     }
 
     // 12.15 The debugger statement
@@ -16357,7 +17488,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         if (type === Token.Punctuator && lookahead.value === '{') {
             return parseBlock();
         }
-
+        isAssignmentTarget = isBindingElement = true;
         node = new Node();
 
         if (type === Token.Punctuator) {
@@ -16429,21 +17560,21 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     // 13 Function Definition
 
     function parseFunctionSourceElements() {
-        var sourceElement, sourceElements = [], token, directive, firstRestricted,
+        var statement, body = [], token, directive, firstRestricted,
             oldLabelSet, oldInIteration, oldInSwitch, oldInFunctionBody, oldParenthesisCount,
             node = new Node();
 
         expect('{');
 
-        while (index < length) {
+        while (startIndex < length) {
             if (lookahead.type !== Token.StringLiteral) {
                 break;
             }
             token = lookahead;
 
-            sourceElement = parseSourceElement();
-            sourceElements.push(sourceElement);
-            if (sourceElement.expression.type !== Syntax.Literal) {
+            statement = parseStatementListItem();
+            body.push(statement);
+            if (statement.expression.type !== Syntax.Literal) {
                 // this is not directive
                 break;
             }
@@ -16472,15 +17603,11 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         state.inFunctionBody = true;
         state.parenthesizedCount = 0;
 
-        while (index < length) {
+        while (startIndex < length) {
             if (match('}')) {
                 break;
             }
-            sourceElement = parseSourceElement();
-            if (typeof sourceElement === 'undefined') {
-                break;
-            }
-            sourceElements.push(sourceElement);
+            body.push(parseStatementListItem());
         }
 
         expect('}');
@@ -16491,7 +17618,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         state.inFunctionBody = oldInFunctionBody;
         state.parenthesizedCount = oldParenthesisCount;
 
-        return node.finishBlockStatement(sourceElements);
+        return node.finishBlockStatement(body);
     }
 
     function validateParam(options, param, name) {
@@ -16524,11 +17651,20 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         var token, param, def;
 
         token = lookahead;
-        param = parseVariableIdentifier();
+        if (token.value === '...') {
+            param = parseRestElement();
+            validateParam(options, param.argument, param.argument.name);
+            options.params.push(param);
+            options.defaults.push(null);
+            return false;
+        }
+
+        param = parsePatternWithDefault();
         validateParam(options, token, token.value);
-        if (match('=')) {
-            lex();
-            def = parseAssignmentExpression();
+
+        if (param.type === Syntax.AssignmentPattern) {
+            def = param.right;
+            param = param.left;
             ++options.defaultCount;
         }
 
@@ -16552,7 +17688,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
         if (!match(')')) {
             options.paramSet = {};
-            while (index < length) {
+            while (startIndex < length) {
                 if (!parseParam(options)) {
                     break;
                 }
@@ -16575,23 +17711,25 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         };
     }
 
-    function parseFunctionDeclaration() {
-        var id, params = [], defaults = [], body, token, stricted, tmp, firstRestricted, message, previousStrict, node = new Node();
+    function parseFunctionDeclaration(node, identifierIsOptional) {
+        var id = null, params = [], defaults = [], body, token, stricted, tmp, firstRestricted, message, previousStrict;
 
         expectKeyword('function');
-        token = lookahead;
-        id = parseVariableIdentifier();
-        if (strict) {
-            if (isRestrictedWord(token.value)) {
-                tolerateUnexpectedToken(token, Messages.StrictFunctionName);
-            }
-        } else {
-            if (isRestrictedWord(token.value)) {
-                firstRestricted = token;
-                message = Messages.StrictFunctionName;
-            } else if (isStrictModeReservedWord(token.value)) {
-                firstRestricted = token;
-                message = Messages.StrictReservedWord;
+        if (!identifierIsOptional || !match('(')) {
+            token = lookahead;
+            id = parseVariableIdentifier();
+            if (strict) {
+                if (isRestrictedWord(token.value)) {
+                    tolerateUnexpectedToken(token, Messages.StrictFunctionName);
+                }
+            } else {
+                if (isRestrictedWord(token.value)) {
+                    firstRestricted = token;
+                    message = Messages.StrictFunctionName;
+                } else if (isStrictModeReservedWord(token.value)) {
+                    firstRestricted = token;
+                    message = Messages.StrictReservedWord;
+                }
             }
         }
 
@@ -16663,38 +17801,369 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         return node.finishFunctionExpression(id, params, defaults, body);
     }
 
-    // 14 Program
 
-    function parseSourceElement() {
+    function parseClassBody() {
+        var classBody, token, isStatic, hasConstructor = false, body, method, computed, key;
+
+        classBody = new Node();
+
+        expect('{');
+        body = [];
+        while (!match('}')) {
+            if (match(';')) {
+                lex();
+            } else {
+                method = new Node();
+                token = lookahead;
+                isStatic = false;
+                computed = match('[');
+                key = parseObjectPropertyKey();
+                if (key.name === 'static' && lookaheadPropertyName()) {
+                    token = lookahead;
+                    isStatic = true;
+                    computed = match('[');
+                    key = parseObjectPropertyKey();
+                }
+                method = tryParseMethodDefinition(token, key, computed, method);
+                if (method) {
+                    method['static'] = isStatic;
+                    if (method.kind === 'init') {
+                        method.kind = 'method';
+                    }
+                    if (!isStatic) {
+                        if (!method.computed && (method.key.name || method.key.value.toString()) === 'constructor') {
+                            if (method.kind !== 'method' || !method.method || method.value.generator) {
+                                throwUnexpectedToken(token, Messages.ConstructorSpecialMethod);
+                            }
+                            if (hasConstructor) {
+                                throwUnexpectedToken(token, Messages.DuplicateConstructor);
+                            } else {
+                                hasConstructor = true;
+                            }
+                            method.kind = 'constructor';
+                        }
+                    } else {
+                        if (!method.computed && (method.key.name || method.key.value.toString()) === 'prototype') {
+                            throwUnexpectedToken(token, Messages.StaticPrototype);
+                        }
+                    }
+                    method.type = Syntax.MethodDefinition;
+                    delete method.method;
+                    delete method.shorthand;
+                    body.push(method);
+                } else {
+                    throwUnexpectedToken(lookahead);
+                }
+            }
+        }
+        lex();
+        return classBody.finishClassBody(body);
+    }
+
+    function parseClassDeclaration(identifierIsOptional) {
+        var id = null, superClass = null, classNode = new Node(), classBody, previousStrict = strict;
+        strict = true;
+
+        expectKeyword('class');
+
+        if (!identifierIsOptional || lookahead.type === Token.Identifier) {
+            id = parseVariableIdentifier();
+        }
+
+        if (matchKeyword('extends')) {
+            lex();
+            superClass = isolateCoverGrammar(parseLeftHandSideExpressionAllowCall);
+        }
+        classBody = parseClassBody();
+        strict = previousStrict;
+
+        return classNode.finishClassDeclaration(id, superClass, classBody);
+    }
+
+    function parseClassExpression() {
+        var id = null, superClass = null, classNode = new Node(), classBody, previousStrict = strict;
+        strict = true;
+
+        expectKeyword('class');
+
+        if (lookahead.type === Token.Identifier) {
+            id = parseVariableIdentifier();
+        }
+
+        if (matchKeyword('extends')) {
+            lex();
+            superClass = isolateCoverGrammar(parseLeftHandSideExpressionAllowCall);
+        }
+        classBody = parseClassBody();
+        strict = previousStrict;
+
+        return classNode.finishClassExpression(id, superClass, classBody);
+    }
+
+    // Modules grammar from:
+    // people.mozilla.org/~jorendorff/es6-draft.html
+
+    function parseModuleSpecifier() {
+        var node = new Node();
+
+        if (lookahead.type !== Token.StringLiteral) {
+            throwError(Messages.InvalidModuleSpecifier);
+        }
+        return node.finishLiteral(lex());
+    }
+
+    function parseExportSpecifier() {
+        var exported, local, node = new Node(), def;
+        if (matchKeyword('default')) {
+            // export {default} from 'something';
+            def = new Node();
+            lex();
+            local = def.finishIdentifier('default');
+        } else {
+            local = parseVariableIdentifier();
+        }
+        if (matchContextualKeyword('as')) {
+            lex();
+            exported = parseNonComputedProperty();
+        }
+        return node.finishExportSpecifier(local, exported);
+    }
+
+    function parseExportNamedDeclaration(node) {
+        var declaration = null,
+            isExportFromIdentifier,
+            src = null, specifiers = [];
+
+        // non-default export
         if (lookahead.type === Token.Keyword) {
+            // covers:
+            // export var f = 1;
             switch (lookahead.value) {
-            case 'const':
-            case 'let':
-                return parseConstLetDeclaration(lookahead.value);
-            case 'function':
-                return parseFunctionDeclaration();
-            default:
-                return parseStatement();
+                case 'let':
+                case 'const':
+                case 'var':
+                case 'class':
+                case 'function':
+                    declaration = parseStatementListItem();
+                    return node.finishExportNamedDeclaration(declaration, specifiers, null);
             }
         }
 
-        if (lookahead.type !== Token.EOF) {
-            return parseStatement();
+        expect('{');
+        if (!match('}')) {
+            do {
+                isExportFromIdentifier = isExportFromIdentifier || matchKeyword('default');
+                specifiers.push(parseExportSpecifier());
+            } while (match(',') && lex());
         }
+        expect('}');
+
+        if (matchContextualKeyword('from')) {
+            // covering:
+            // export {default} from 'foo';
+            // export {foo} from 'foo';
+            lex();
+            src = parseModuleSpecifier();
+            consumeSemicolon();
+        } else if (isExportFromIdentifier) {
+            // covering:
+            // export {default}; // missing fromClause
+            throwError(lookahead.value ?
+                    Messages.UnexpectedToken : Messages.MissingFromClause, lookahead.value);
+        } else {
+            // cover
+            // export {foo};
+            consumeSemicolon();
+        }
+        return node.finishExportNamedDeclaration(declaration, specifiers, src);
     }
 
-    function parseSourceElements() {
-        var sourceElement, sourceElements = [], token, directive, firstRestricted;
+    function parseExportDefaultDeclaration(node) {
+        var declaration = null,
+            expression = null;
 
-        while (index < length) {
+        // covers:
+        // export default ...
+        expectKeyword('default');
+
+        if (matchKeyword('function')) {
+            // covers:
+            // export default function foo () {}
+            // export default function () {}
+            declaration = parseFunctionDeclaration(new Node(), true);
+            return node.finishExportDefaultDeclaration(declaration);
+        }
+        if (matchKeyword('class')) {
+            declaration = parseClassDeclaration(true);
+            return node.finishExportDefaultDeclaration(declaration);
+        }
+
+        if (matchContextualKeyword('from')) {
+            throwError(Messages.UnexpectedToken, lookahead.value);
+        }
+
+        // covers:
+        // export default {};
+        // export default [];
+        // export default (1 + 2);
+        if (match('{')) {
+            expression = parseObjectInitialiser();
+        } else if (match('[')) {
+            expression = parseArrayInitialiser();
+        } else {
+            expression = parseAssignmentExpression();
+        }
+        consumeSemicolon();
+        return node.finishExportDefaultDeclaration(expression);
+    }
+
+    function parseExportAllDeclaration(node) {
+        var src;
+
+        // covers:
+        // export * from 'foo';
+        expect('*');
+        if (!matchContextualKeyword('from')) {
+            throwError(lookahead.value ?
+                    Messages.UnexpectedToken : Messages.MissingFromClause, lookahead.value);
+        }
+        lex();
+        src = parseModuleSpecifier();
+        consumeSemicolon();
+
+        return node.finishExportAllDeclaration(src);
+    }
+
+    function parseExportDeclaration() {
+        var node = new Node();
+        if (state.inFunctionBody) {
+            throwError(Messages.IllegalExportDeclaration);
+        }
+
+        expectKeyword('export');
+
+        if (matchKeyword('default')) {
+            return parseExportDefaultDeclaration(node);
+        }
+        if (match('*')) {
+            return parseExportAllDeclaration(node);
+        }
+        return parseExportNamedDeclaration(node);
+    }
+
+    function parseImportSpecifier() {
+        // import {<foo as bar>} ...;
+        var local, imported, node = new Node();
+
+        imported = parseNonComputedProperty();
+        if (matchContextualKeyword('as')) {
+            lex();
+            local = parseVariableIdentifier();
+        }
+
+        return node.finishImportSpecifier(local, imported);
+    }
+
+    function parseNamedImports() {
+        var specifiers = [];
+        // {foo, bar as bas}
+        expect('{');
+        if (!match('}')) {
+            do {
+                specifiers.push(parseImportSpecifier());
+            } while (match(',') && lex());
+        }
+        expect('}');
+        return specifiers;
+    }
+
+    function parseImportDefaultSpecifier() {
+        // import <foo> ...;
+        var local, node = new Node();
+
+        local = parseNonComputedProperty();
+
+        return node.finishImportDefaultSpecifier(local);
+    }
+
+    function parseImportNamespaceSpecifier() {
+        // import <* as foo> ...;
+        var local, node = new Node();
+
+        expect('*');
+        if (!matchContextualKeyword('as')) {
+            throwError(Messages.NoAsAfterImportNamespace);
+        }
+        lex();
+        local = parseNonComputedProperty();
+
+        return node.finishImportNamespaceSpecifier(local);
+    }
+
+    function parseImportDeclaration() {
+        var specifiers, src, node = new Node();
+
+        if (state.inFunctionBody) {
+            throwError(Messages.IllegalImportDeclaration);
+        }
+
+        expectKeyword('import');
+        specifiers = [];
+
+        if (lookahead.type === Token.StringLiteral) {
+            // covers:
+            // import 'foo';
+            src = parseModuleSpecifier();
+            consumeSemicolon();
+            return node.finishImportDeclaration(specifiers, src);
+        }
+
+        if (!matchKeyword('default') && isIdentifierName(lookahead)) {
+            // covers:
+            // import foo
+            // import foo, ...
+            specifiers.push(parseImportDefaultSpecifier());
+            if (match(',')) {
+                lex();
+            }
+        }
+        if (match('*')) {
+            // covers:
+            // import foo, * as foo
+            // import * as foo
+            specifiers.push(parseImportNamespaceSpecifier());
+        } else if (match('{')) {
+            // covers:
+            // import foo, {bar}
+            // import {bar}
+            specifiers = specifiers.concat(parseNamedImports());
+        }
+
+        if (!matchContextualKeyword('from')) {
+            throwError(lookahead.value ?
+                    Messages.UnexpectedToken : Messages.MissingFromClause, lookahead.value);
+        }
+        lex();
+        src = parseModuleSpecifier();
+        consumeSemicolon();
+
+        return node.finishImportDeclaration(specifiers, src);
+    }
+
+    // 14 Program
+
+    function parseScriptBody() {
+        var statement, body = [], token, directive, firstRestricted;
+
+        while (startIndex < length) {
             token = lookahead;
             if (token.type !== Token.StringLiteral) {
                 break;
             }
 
-            sourceElement = parseSourceElement();
-            sourceElements.push(sourceElement);
-            if (sourceElement.expression.type !== Syntax.Literal) {
+            statement = parseStatementListItem();
+            body.push(statement);
+            if (statement.expression.type !== Syntax.Literal) {
                 // this is not directive
                 break;
             }
@@ -16711,26 +18180,24 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             }
         }
 
-        while (index < length) {
-            sourceElement = parseSourceElement();
+        while (startIndex < length) {
+            statement = parseStatementListItem();
             /* istanbul ignore if */
-            if (typeof sourceElement === 'undefined') {
+            if (typeof statement === 'undefined') {
                 break;
             }
-            sourceElements.push(sourceElement);
+            body.push(statement);
         }
-        return sourceElements;
+        return body;
     }
 
     function parseProgram() {
         var body, node;
 
-        skipComment();
         peek();
         node = new Node();
-        strict = false;
 
-        body = parseSourceElements();
+        body = parseScriptBody();
         return node.finishProgram(body);
     }
 
@@ -16774,6 +18241,9 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         index = 0;
         lineNumber = (source.length > 0) ? 1 : 0;
         lineStart = 0;
+        startIndex = index;
+        startLineNumber = lineNumber;
+        startLineStart = lineStart;
         length = source.length;
         lookahead = null;
         state = {
@@ -16782,7 +18252,8 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
             inFunctionBody: false,
             inIteration: false,
             inSwitch: false,
-            lastCommentStart: -1
+            lastCommentStart: -1,
+            curlyStack: []
         };
 
         extra = {};
@@ -16820,7 +18291,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
                     lex();
                 } catch (lexError) {
                     if (extra.errors) {
-                        extra.errors.push(lexError);
+                        recordError(lexError);
                         // We have to break on the first error
                         // to avoid infinite loops.
                         break;
@@ -16858,17 +18329,22 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
         index = 0;
         lineNumber = (source.length > 0) ? 1 : 0;
         lineStart = 0;
+        startIndex = index;
+        startLineNumber = lineNumber;
+        startLineStart = lineStart;
         length = source.length;
         lookahead = null;
         state = {
             allowIn: true,
             labelSet: {},
-            parenthesisCount: 0,
             inFunctionBody: false,
             inIteration: false,
             inSwitch: false,
-            lastCommentStart: -1
+            lastCommentStart: -1,
+            curlyStack: []
         };
+        sourceType = 'script';
+        strict = false;
 
         extra = {};
         if (typeof options !== 'undefined') {
@@ -16896,6 +18372,11 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
                 extra.trailingComments = [];
                 extra.leadingComments = [];
             }
+            if (options.sourceType === 'module') {
+                // very restrictive condition for now
+                sourceType = options.sourceType;
+                strict = true;
+            }
         }
 
         try {
@@ -16920,14 +18401,14 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
     }
 
     // Sync with *.json manifests.
-    exports.version = '2.0.0';
+    exports.version = '2.2.0';
 
     exports.tokenize = tokenize;
 
     exports.parse = parse;
 
     // Deep copy.
-   /* istanbul ignore next */
+    /* istanbul ignore next */
     exports.Syntax = (function () {
         var name, types = {};
 
@@ -16992,7 +18473,7 @@ function drop(array, n, guard) {
 
 module.exports = drop;
 
-},{"../internal/baseSlice":116,"../internal/isIterateeCall":138}],80:[function(require,module,exports){
+},{"../internal/baseSlice":116,"../internal/isIterateeCall":139}],80:[function(require,module,exports){
 /**
  * Gets the last element of `array`.
  *
@@ -17020,8 +18501,9 @@ var baseCallback = require('../internal/baseCallback'),
     sortedUniq = require('../internal/sortedUniq');
 
 /**
- * Creates a duplicate-free version of an array, using `SameValueZero` for
- * equality comparisons, in which only the first occurence of each element
+ * Creates a duplicate-free version of an array, using
+ * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+ * for equality comparisons, in which only the first occurence of each element
  * is kept. Providing `true` for `isSorted` performs a faster search algorithm
  * for sorted arrays. If an iteratee function is provided it is invoked for
  * each element in the array to generate the criterion by which uniqueness
@@ -17038,10 +18520,6 @@ var baseCallback = require('../internal/baseCallback'),
  * If an object is provided for `iteratee` the created `_.matches` style
  * callback returns `true` for elements that have the properties of the given
  * object, else `false`.
- *
- * **Note:** [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
- * comparisons are like strict equality comparisons, e.g. `===`, except that
- * `NaN` matches `NaN`.
  *
  * @static
  * @memberOf _
@@ -17089,7 +18567,7 @@ function uniq(array, isSorted, iteratee, thisArg) {
 
 module.exports = uniq;
 
-},{"../internal/baseCallback":95,"../internal/baseUniq":118,"../internal/isIterateeCall":138,"../internal/sortedUniq":147}],82:[function(require,module,exports){
+},{"../internal/baseCallback":95,"../internal/baseUniq":118,"../internal/isIterateeCall":139,"../internal/sortedUniq":148}],82:[function(require,module,exports){
 module.exports = require('./uniq');
 
 },{"./uniq":81}],83:[function(require,module,exports){
@@ -17158,7 +18636,7 @@ function filter(collection, predicate, thisArg) {
 
 module.exports = filter;
 
-},{"../internal/arrayFilter":93,"../internal/baseCallback":95,"../internal/baseFilter":99,"../lang/isArray":152}],85:[function(require,module,exports){
+},{"../internal/arrayFilter":93,"../internal/baseCallback":95,"../internal/baseFilter":99,"../lang/isArray":153}],85:[function(require,module,exports){
 var baseIndexOf = require('../internal/baseIndexOf'),
     getLength = require('../internal/getLength'),
     isArray = require('../lang/isArray'),
@@ -17171,13 +18649,10 @@ var baseIndexOf = require('../internal/baseIndexOf'),
 var nativeMax = Math.max;
 
 /**
- * Checks if `value` is in `collection` using `SameValueZero` for equality
- * comparisons. If `fromIndex` is negative, it is used as the offset from
- * the end of `collection`.
- *
- * **Note:** [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
- * comparisons are like strict equality comparisons, e.g. `===`, except that
- * `NaN` matches `NaN`.
+ * Checks if `value` is in `collection` using
+ * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
+ * for equality comparisons. If `fromIndex` is negative, it is used as the offset
+ * from the end of `collection`.
  *
  * @static
  * @memberOf _
@@ -17223,7 +18698,7 @@ function includes(collection, target, fromIndex, guard) {
 
 module.exports = includes;
 
-},{"../internal/baseIndexOf":105,"../internal/getLength":131,"../internal/isIterateeCall":138,"../internal/isLength":140,"../lang/isArray":152,"../lang/isString":159,"../object/values":168}],86:[function(require,module,exports){
+},{"../internal/baseIndexOf":105,"../internal/getLength":131,"../internal/isIterateeCall":139,"../internal/isLength":141,"../lang/isArray":153,"../lang/isString":160,"../object/values":169}],86:[function(require,module,exports){
 var baseMatches = require('../internal/baseMatches'),
     filter = require('./filter');
 
@@ -17426,7 +18901,7 @@ module.exports = SetCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../lang/isNative":155,"./cachePush":123}],91:[function(require,module,exports){
+},{"../lang/isNative":156,"./cachePush":123}],91:[function(require,module,exports){
 /**
  * Copies the values of `source` to `array`.
  *
@@ -17506,7 +18981,7 @@ var baseCopy = require('./baseCopy'),
     keys = require('../object/keys');
 
 /** Native method references. */
-var preventExtensions = isNative(Object.preventExtensions = Object.preventExtensions) && preventExtensions;
+var preventExtensions = isNative(preventExtensions = Object.preventExtensions) && preventExtensions;
 
 /** Used as `baseAssign`. */
 var nativeAssign = (function() {
@@ -17516,12 +18991,19 @@ var nativeAssign = (function() {
   //
   // Use `Object.preventExtensions` on a plain object instead of simply using
   // `Object('x')` because Chrome and IE fail to throw an error when attempting
-  // to assign values to readonly indexes of strings in strict mode.
-  var object = { '1': 0 },
-      func = preventExtensions && isNative(func = Object.assign) && func;
-
-  try { func(preventExtensions(object), 'xo'); } catch(e) {}
-  return !object[1] && func;
+  // to assign values to readonly indexes of strings.
+  var func = preventExtensions && isNative(func = Object.assign) && func;
+  try {
+    if (func) {
+      var object = preventExtensions({ '1': 0 });
+      object[0] = 1;
+    }
+  } catch(e) {
+    // Only attempt in strict mode.
+    try { func(object, 'xo'); } catch(e) {}
+    return !object[1] && func;
+  }
+  return false;
 }());
 
 /**
@@ -17541,7 +19023,7 @@ var baseAssign = nativeAssign || function(object, source) {
 
 module.exports = baseAssign;
 
-},{"../lang/isNative":155,"../object/keys":163,"./baseCopy":97,"./getSymbols":132}],95:[function(require,module,exports){
+},{"../lang/isNative":156,"../object/keys":164,"./baseCopy":97,"./getSymbols":132}],95:[function(require,module,exports){
 var baseMatches = require('./baseMatches'),
     baseMatchesProperty = require('./baseMatchesProperty'),
     bindCallback = require('./bindCallback'),
@@ -17578,7 +19060,7 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"../utility/identity":172,"../utility/property":173,"./baseMatches":110,"./baseMatchesProperty":111,"./bindCallback":120}],96:[function(require,module,exports){
+},{"../utility/identity":173,"../utility/property":174,"./baseMatches":110,"./baseMatchesProperty":111,"./bindCallback":120}],96:[function(require,module,exports){
 var arrayCopy = require('./arrayCopy'),
     arrayEach = require('./arrayEach'),
     baseAssign = require('./baseAssign'),
@@ -17708,7 +19190,7 @@ function baseClone(value, isDeep, customizer, key, object, stackA, stackB) {
 
 module.exports = baseClone;
 
-},{"../lang/isArray":152,"../lang/isObject":157,"./arrayCopy":91,"./arrayEach":92,"./baseAssign":94,"./baseForOwn":103,"./initCloneArray":134,"./initCloneByTag":135,"./initCloneObject":136}],97:[function(require,module,exports){
+},{"../lang/isArray":153,"../lang/isObject":158,"./arrayCopy":91,"./arrayEach":92,"./baseAssign":94,"./baseForOwn":103,"./initCloneArray":134,"./initCloneByTag":135,"./initCloneObject":136}],97:[function(require,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -17777,7 +19259,7 @@ module.exports = baseFilter;
 },{"./baseEach":98}],100:[function(require,module,exports){
 var isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
-    isLength = require('./isLength'),
+    isArrayLike = require('./isArrayLike'),
     isObjectLike = require('./isObjectLike');
 
 /**
@@ -17786,8 +19268,8 @@ var isArguments = require('../lang/isArguments'),
  *
  * @private
  * @param {Array} array The array to flatten.
- * @param {boolean} isDeep Specify a deep flatten.
- * @param {boolean} isStrict Restrict flattening to arrays and `arguments` objects.
+ * @param {boolean} [isDeep] Specify a deep flatten.
+ * @param {boolean} [isStrict] Restrict flattening to arrays-like objects.
  * @returns {Array} Returns the new flattened array.
  */
 function baseFlatten(array, isDeep, isStrict) {
@@ -17798,8 +19280,8 @@ function baseFlatten(array, isDeep, isStrict) {
 
   while (++index < length) {
     var value = array[index];
-
-    if (isObjectLike(value) && isLength(value.length) && (isArray(value) || isArguments(value))) {
+    if (isObjectLike(value) && isArrayLike(value) &&
+        (isStrict || isArray(value) || isArguments(value))) {
       if (isDeep) {
         // Recursively flatten arrays (susceptible to call stack limits).
         value = baseFlatten(value, isDeep, isStrict);
@@ -17807,7 +19289,6 @@ function baseFlatten(array, isDeep, isStrict) {
       var valIndex = -1,
           valLength = value.length;
 
-      result.length += valLength;
       while (++valIndex < valLength) {
         result[++resIndex] = value[valIndex];
       }
@@ -17820,7 +19301,7 @@ function baseFlatten(array, isDeep, isStrict) {
 
 module.exports = baseFlatten;
 
-},{"../lang/isArguments":151,"../lang/isArray":152,"./isLength":140,"./isObjectLike":141}],101:[function(require,module,exports){
+},{"../lang/isArguments":152,"../lang/isArray":153,"./isArrayLike":137,"./isObjectLike":142}],101:[function(require,module,exports){
 var createBaseFor = require('./createBaseFor');
 
 /**
@@ -17858,7 +19339,7 @@ function baseForIn(object, iteratee) {
 
 module.exports = baseForIn;
 
-},{"../object/keysIn":164,"./baseFor":101}],103:[function(require,module,exports){
+},{"../object/keysIn":165,"./baseFor":101}],103:[function(require,module,exports){
 var baseFor = require('./baseFor'),
     keys = require('../object/keys');
 
@@ -17877,7 +19358,7 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"../object/keys":163,"./baseFor":101}],104:[function(require,module,exports){
+},{"../object/keys":164,"./baseFor":101}],104:[function(require,module,exports){
 var toObject = require('./toObject');
 
 /**
@@ -17901,14 +19382,14 @@ function baseGet(object, path, pathKey) {
       length = path.length;
 
   while (object != null && ++index < length) {
-    var result = object = object[path[index]];
+    object = object[path[index]];
   }
-  return result;
+  return (index && index == length) ? object : undefined;
 }
 
 module.exports = baseGet;
 
-},{"./toObject":148}],105:[function(require,module,exports){
+},{"./toObject":149}],105:[function(require,module,exports){
 var indexOfNaN = require('./indexOfNaN');
 
 /**
@@ -17956,8 +19437,7 @@ var baseIsEqualDeep = require('./baseIsEqualDeep');
 function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
   // Exit early for identical values.
   if (value === other) {
-    // Treat `+0` vs. `-0` as not equal.
-    return value !== 0 || (1 / value == 1 / other);
+    return true;
   }
   var valType = typeof value,
       othType = typeof other;
@@ -18077,7 +19557,7 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"../lang/isArray":152,"../lang/isTypedArray":160,"./equalArrays":128,"./equalByTag":129,"./equalObjects":130}],108:[function(require,module,exports){
+},{"../lang/isArray":153,"../lang/isTypedArray":161,"./equalArrays":128,"./equalByTag":129,"./equalObjects":130}],108:[function(require,module,exports){
 /**
  * The base implementation of `_.isFunction` without support for environments
  * with incorrect `typeof` results.
@@ -18194,7 +19674,7 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"../object/keys":163,"../utility/constant":171,"./baseIsMatch":109,"./isStrictComparable":142,"./toObject":148}],111:[function(require,module,exports){
+},{"../object/keys":164,"../utility/constant":172,"./baseIsMatch":109,"./isStrictComparable":143,"./toObject":149}],111:[function(require,module,exports){
 var baseGet = require('./baseGet'),
     baseIsEqual = require('./baseIsEqual'),
     baseSlice = require('./baseSlice'),
@@ -18242,12 +19722,12 @@ function baseMatchesProperty(path, value) {
 
 module.exports = baseMatchesProperty;
 
-},{"../array/last":80,"../lang/isArray":152,"./baseGet":104,"./baseIsEqual":106,"./baseSlice":116,"./isKey":139,"./isStrictComparable":142,"./toObject":148,"./toPath":149}],112:[function(require,module,exports){
+},{"../array/last":80,"../lang/isArray":153,"./baseGet":104,"./baseIsEqual":106,"./baseSlice":116,"./isKey":140,"./isStrictComparable":143,"./toObject":149,"./toPath":150}],112:[function(require,module,exports){
 var arrayEach = require('./arrayEach'),
     baseMergeDeep = require('./baseMergeDeep'),
     getSymbols = require('./getSymbols'),
     isArray = require('../lang/isArray'),
-    isLength = require('./isLength'),
+    isArrayLike = require('./isArrayLike'),
     isObject = require('../lang/isObject'),
     isObjectLike = require('./isObjectLike'),
     isTypedArray = require('../lang/isTypedArray'),
@@ -18275,7 +19755,7 @@ function baseMerge(object, source, customizer, stackA, stackB) {
   if (!isObject(object)) {
     return object;
   }
-  var isSrcArr = isLength(source.length) && (isArray(source) || isTypedArray(source));
+  var isSrcArr = isArrayLike(source) && (isArray(source) || isTypedArray(source));
   if (!isSrcArr) {
     var props = keys(source);
     push.apply(props, getSymbols(source));
@@ -18309,12 +19789,11 @@ function baseMerge(object, source, customizer, stackA, stackB) {
 
 module.exports = baseMerge;
 
-},{"../lang/isArray":152,"../lang/isObject":157,"../lang/isTypedArray":160,"../object/keys":163,"./arrayEach":92,"./baseMergeDeep":113,"./getSymbols":132,"./isLength":140,"./isObjectLike":141}],113:[function(require,module,exports){
+},{"../lang/isArray":153,"../lang/isObject":158,"../lang/isTypedArray":161,"../object/keys":164,"./arrayEach":92,"./baseMergeDeep":113,"./getSymbols":132,"./isArrayLike":137,"./isObjectLike":142}],113:[function(require,module,exports){
 var arrayCopy = require('./arrayCopy'),
-    getLength = require('./getLength'),
     isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
-    isLength = require('./isLength'),
+    isArrayLike = require('./isArrayLike'),
     isPlainObject = require('../lang/isPlainObject'),
     isTypedArray = require('../lang/isTypedArray'),
     toPlainObject = require('../lang/toPlainObject');
@@ -18350,10 +19829,10 @@ function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stack
 
   if (isCommon) {
     result = srcValue;
-    if (isLength(srcValue.length) && (isArray(srcValue) || isTypedArray(srcValue))) {
+    if (isArrayLike(srcValue) && (isArray(srcValue) || isTypedArray(srcValue))) {
       result = isArray(value)
         ? value
-        : (getLength(value) ? arrayCopy(value) : []);
+        : (isArrayLike(value) ? arrayCopy(value) : []);
     }
     else if (isPlainObject(srcValue) || isArguments(srcValue)) {
       result = isArguments(value)
@@ -18379,7 +19858,7 @@ function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stack
 
 module.exports = baseMergeDeep;
 
-},{"../lang/isArguments":151,"../lang/isArray":152,"../lang/isPlainObject":158,"../lang/isTypedArray":160,"../lang/toPlainObject":161,"./arrayCopy":91,"./getLength":131,"./isLength":140}],114:[function(require,module,exports){
+},{"../lang/isArguments":152,"../lang/isArray":153,"../lang/isPlainObject":159,"../lang/isTypedArray":161,"../lang/toPlainObject":162,"./arrayCopy":91,"./isArrayLike":137}],114:[function(require,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -18416,7 +19895,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"./baseGet":104,"./toPath":149}],116:[function(require,module,exports){
+},{"./baseGet":104,"./toPath":150}],116:[function(require,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -18592,7 +20071,7 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"../utility/identity":172}],121:[function(require,module,exports){
+},{"../utility/identity":173}],121:[function(require,module,exports){
 (function (global){
 var constant = require('../utility/constant'),
     isNative = require('../lang/isNative');
@@ -18652,7 +20131,7 @@ module.exports = bufferClone;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../lang/isNative":155,"../utility/constant":171}],122:[function(require,module,exports){
+},{"../lang/isNative":156,"../utility/constant":172}],122:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -18673,7 +20152,7 @@ function cacheIndexOf(cache, value) {
 
 module.exports = cacheIndexOf;
 
-},{"../lang/isObject":157}],123:[function(require,module,exports){
+},{"../lang/isObject":158}],123:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -18695,7 +20174,7 @@ function cachePush(value) {
 
 module.exports = cachePush;
 
-},{"../lang/isObject":157}],124:[function(require,module,exports){
+},{"../lang/isObject":158}],124:[function(require,module,exports){
 var bindCallback = require('./bindCallback'),
     isIterateeCall = require('./isIterateeCall'),
     restParam = require('../function/restParam');
@@ -18741,7 +20220,7 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"../function/restParam":89,"./bindCallback":120,"./isIterateeCall":138}],125:[function(require,module,exports){
+},{"../function/restParam":89,"./bindCallback":120,"./isIterateeCall":139}],125:[function(require,module,exports){
 var getLength = require('./getLength'),
     isLength = require('./isLength'),
     toObject = require('./toObject');
@@ -18774,7 +20253,7 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"./getLength":131,"./isLength":140,"./toObject":148}],126:[function(require,module,exports){
+},{"./getLength":131,"./isLength":141,"./toObject":149}],126:[function(require,module,exports){
 var toObject = require('./toObject');
 
 /**
@@ -18803,7 +20282,7 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{"./toObject":148}],127:[function(require,module,exports){
+},{"./toObject":149}],127:[function(require,module,exports){
 (function (global){
 var SetCache = require('./SetCache'),
     constant = require('../utility/constant'),
@@ -18830,7 +20309,7 @@ module.exports = createCache;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../lang/isNative":155,"../utility/constant":171,"./SetCache":90}],128:[function(require,module,exports){
+},{"../lang/isNative":156,"../utility/constant":172,"./SetCache":90}],128:[function(require,module,exports){
 /**
  * A specialized version of `baseIsEqualDeep` for arrays with support for
  * partial deep comparisons.
@@ -18923,8 +20402,7 @@ function equalByTag(object, other, tag) {
       // Treat `NaN` vs. `NaN` as equal.
       return (object != +object)
         ? other != +other
-        // But, treat `-0` vs. `+0` as not equal.
-        : (object == 0 ? ((1 / object) == (1 / other)) : object == +other);
+        : object == +other;
 
     case regexpTag:
     case stringTag:
@@ -19013,14 +20491,14 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"../object/keys":163}],131:[function(require,module,exports){
+},{"../object/keys":164}],131:[function(require,module,exports){
 var baseProperty = require('./baseProperty');
 
 /**
  * Gets the "length" property value of `object`.
  *
  * **Note:** This function is used to avoid a [JIT bug](https://bugs.webkit.org/show_bug.cgi?id=142792)
- * in Safari on iOS 8.1 ARM64.
+ * that affects Safari on at least iOS 8.1-8.3 ARM64.
  *
  * @private
  * @param {Object} object The object to query.
@@ -19051,7 +20529,7 @@ var getSymbols = !getOwnPropertySymbols ? constant([]) : function(object) {
 
 module.exports = getSymbols;
 
-},{"../lang/isNative":155,"../utility/constant":171,"./toObject":148}],133:[function(require,module,exports){
+},{"../lang/isNative":156,"../utility/constant":172,"./toObject":149}],133:[function(require,module,exports){
 /**
  * Gets the index at which the first occurrence of `NaN` is found in `array`.
  *
@@ -19188,6 +20666,23 @@ function initCloneObject(object) {
 module.exports = initCloneObject;
 
 },{}],137:[function(require,module,exports){
+var getLength = require('./getLength'),
+    isLength = require('./isLength');
+
+/**
+ * Checks if `value` is array-like.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is array-like, else `false`.
+ */
+function isArrayLike(value) {
+  return value != null && isLength(getLength(value));
+}
+
+module.exports = isArrayLike;
+
+},{"./getLength":131,"./isLength":141}],138:[function(require,module,exports){
 /**
  * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
  * of an array-like value.
@@ -19210,10 +20705,9 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],138:[function(require,module,exports){
-var getLength = require('./getLength'),
+},{}],139:[function(require,module,exports){
+var isArrayLike = require('./isArrayLike'),
     isIndex = require('./isIndex'),
-    isLength = require('./isLength'),
     isObject = require('../lang/isObject');
 
 /**
@@ -19230,13 +20724,9 @@ function isIterateeCall(value, index, object) {
     return false;
   }
   var type = typeof index;
-  if (type == 'number') {
-    var length = getLength(object),
-        prereq = isLength(length) && isIndex(index, length);
-  } else {
-    prereq = type == 'string' && index in object;
-  }
-  if (prereq) {
+  if (type == 'number'
+      ? (isArrayLike(object) && isIndex(index, object.length))
+      : (type == 'string' && index in object)) {
     var other = object[index];
     return value === value ? (value === other) : (other !== other);
   }
@@ -19245,12 +20735,12 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"../lang/isObject":157,"./getLength":131,"./isIndex":137,"./isLength":140}],139:[function(require,module,exports){
+},{"../lang/isObject":158,"./isArrayLike":137,"./isIndex":138}],140:[function(require,module,exports){
 var isArray = require('../lang/isArray'),
     toObject = require('./toObject');
 
 /** Used to match property names within property paths. */
-var reIsDeepProp = /\.|\[(?:[^[\]]+|(["'])(?:(?!\1)[^\n\\]|\\.)*?)\1\]/,
+var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\n\\]|\\.)*?\1)\]/,
     reIsPlainProp = /^\w*$/;
 
 /**
@@ -19275,7 +20765,7 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"../lang/isArray":152,"./toObject":148}],140:[function(require,module,exports){
+},{"../lang/isArray":153,"./toObject":149}],141:[function(require,module,exports){
 /**
  * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
  * of an array-like value.
@@ -19297,7 +20787,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],141:[function(require,module,exports){
+},{}],142:[function(require,module,exports){
 /**
  * Checks if `value` is object-like.
  *
@@ -19311,7 +20801,7 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],142:[function(require,module,exports){
+},{}],143:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -19323,16 +20813,16 @@ var isObject = require('../lang/isObject');
  *  equality comparisons, else `false`.
  */
 function isStrictComparable(value) {
-  return value === value && (value === 0 ? ((1 / value) > 0) : !isObject(value));
+  return value === value && !isObject(value);
 }
 
 module.exports = isStrictComparable;
 
-},{"../lang/isObject":157}],143:[function(require,module,exports){
+},{"../lang/isObject":158}],144:[function(require,module,exports){
 var toObject = require('./toObject');
 
 /**
- * A specialized version of `_.pick` that picks `object` properties specified
+ * A specialized version of `_.pick` which picks `object` properties specified
  * by `props`.
  *
  * @private
@@ -19358,11 +20848,11 @@ function pickByArray(object, props) {
 
 module.exports = pickByArray;
 
-},{"./toObject":148}],144:[function(require,module,exports){
+},{"./toObject":149}],145:[function(require,module,exports){
 var baseForIn = require('./baseForIn');
 
 /**
- * A specialized version of `_.pick` that picks `object` properties `predicate`
+ * A specialized version of `_.pick` which picks `object` properties `predicate`
  * returns truthy for.
  *
  * @private
@@ -19382,7 +20872,7 @@ function pickByCallback(object, predicate) {
 
 module.exports = pickByCallback;
 
-},{"./baseForIn":102}],145:[function(require,module,exports){
+},{"./baseForIn":102}],146:[function(require,module,exports){
 var baseForIn = require('./baseForIn'),
     isObjectLike = require('./isObjectLike');
 
@@ -19434,7 +20924,7 @@ function shimIsPlainObject(value) {
 
 module.exports = shimIsPlainObject;
 
-},{"./baseForIn":102,"./isObjectLike":141}],146:[function(require,module,exports){
+},{"./baseForIn":102,"./isObjectLike":142}],147:[function(require,module,exports){
 var isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
     isIndex = require('./isIndex'),
@@ -19478,7 +20968,7 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"../lang/isArguments":151,"../lang/isArray":152,"../object/keysIn":164,"../support":170,"./isIndex":137,"./isLength":140}],147:[function(require,module,exports){
+},{"../lang/isArguments":152,"../lang/isArray":153,"../object/keysIn":165,"../support":171,"./isIndex":138,"./isLength":141}],148:[function(require,module,exports){
 /**
  * An implementation of `_.uniq` optimized for sorted arrays without support
  * for callback shorthands and `this` binding.
@@ -19509,7 +20999,7 @@ function sortedUniq(array, iteratee) {
 
 module.exports = sortedUniq;
 
-},{}],148:[function(require,module,exports){
+},{}],149:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -19525,7 +21015,7 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"../lang/isObject":157}],149:[function(require,module,exports){
+},{"../lang/isObject":158}],150:[function(require,module,exports){
 var baseToString = require('./baseToString'),
     isArray = require('../lang/isArray');
 
@@ -19555,7 +21045,7 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"../lang/isArray":152,"./baseToString":117}],150:[function(require,module,exports){
+},{"../lang/isArray":153,"./baseToString":117}],151:[function(require,module,exports){
 var baseClone = require('../internal/baseClone'),
     bindCallback = require('../internal/bindCallback');
 
@@ -19611,8 +21101,8 @@ function cloneDeep(value, customizer, thisArg) {
 
 module.exports = cloneDeep;
 
-},{"../internal/baseClone":96,"../internal/bindCallback":120}],151:[function(require,module,exports){
-var isLength = require('../internal/isLength'),
+},{"../internal/baseClone":96,"../internal/bindCallback":120}],152:[function(require,module,exports){
+var isArrayLike = require('../internal/isArrayLike'),
     isObjectLike = require('../internal/isObjectLike');
 
 /** `Object#toString` result references. */
@@ -19644,13 +21134,12 @@ var objToString = objectProto.toString;
  * // => false
  */
 function isArguments(value) {
-  var length = isObjectLike(value) ? value.length : undefined;
-  return isLength(length) && objToString.call(value) == argsTag;
+  return isObjectLike(value) && isArrayLike(value) && objToString.call(value) == argsTag;
 }
 
 module.exports = isArguments;
 
-},{"../internal/isLength":140,"../internal/isObjectLike":141}],152:[function(require,module,exports){
+},{"../internal/isArrayLike":137,"../internal/isObjectLike":142}],153:[function(require,module,exports){
 var isLength = require('../internal/isLength'),
     isNative = require('./isNative'),
     isObjectLike = require('../internal/isObjectLike');
@@ -19692,12 +21181,11 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"../internal/isLength":140,"../internal/isObjectLike":141,"./isNative":155}],153:[function(require,module,exports){
-var getLength = require('../internal/getLength'),
-    isArguments = require('./isArguments'),
+},{"../internal/isLength":141,"../internal/isObjectLike":142,"./isNative":156}],154:[function(require,module,exports){
+var isArguments = require('./isArguments'),
     isArray = require('./isArray'),
+    isArrayLike = require('../internal/isArrayLike'),
     isFunction = require('./isFunction'),
-    isLength = require('../internal/isLength'),
     isObjectLike = require('../internal/isObjectLike'),
     isString = require('./isString'),
     keys = require('../object/keys');
@@ -19733,17 +21221,16 @@ function isEmpty(value) {
   if (value == null) {
     return true;
   }
-  var length = getLength(value);
-  if (isLength(length) && (isArray(value) || isString(value) || isArguments(value) ||
+  if (isArrayLike(value) && (isArray(value) || isString(value) || isArguments(value) ||
       (isObjectLike(value) && isFunction(value.splice)))) {
-    return !length;
+    return !value.length;
   }
   return !keys(value).length;
 }
 
 module.exports = isEmpty;
 
-},{"../internal/getLength":131,"../internal/isLength":140,"../internal/isObjectLike":141,"../object/keys":163,"./isArguments":151,"./isArray":152,"./isFunction":154,"./isString":159}],154:[function(require,module,exports){
+},{"../internal/isArrayLike":137,"../internal/isObjectLike":142,"../object/keys":164,"./isArguments":152,"./isArray":153,"./isFunction":155,"./isString":160}],155:[function(require,module,exports){
 (function (global){
 var baseIsFunction = require('../internal/baseIsFunction'),
     isNative = require('./isNative');
@@ -19790,7 +21277,7 @@ module.exports = isFunction;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../internal/baseIsFunction":108,"./isNative":155}],155:[function(require,module,exports){
+},{"../internal/baseIsFunction":108,"./isNative":156}],156:[function(require,module,exports){
 var escapeRegExp = require('../string/escapeRegExp'),
     isObjectLike = require('../internal/isObjectLike');
 
@@ -19846,7 +21333,7 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"../internal/isObjectLike":141,"../string/escapeRegExp":169}],156:[function(require,module,exports){
+},{"../internal/isObjectLike":142,"../string/escapeRegExp":170}],157:[function(require,module,exports){
 var isObjectLike = require('../internal/isObjectLike');
 
 /** `Object#toString` result references. */
@@ -19889,7 +21376,7 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"../internal/isObjectLike":141}],157:[function(require,module,exports){
+},{"../internal/isObjectLike":142}],158:[function(require,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -19919,7 +21406,7 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],158:[function(require,module,exports){
+},{}],159:[function(require,module,exports){
 var isNative = require('./isNative'),
     shimIsPlainObject = require('../internal/shimIsPlainObject');
 
@@ -19982,7 +21469,7 @@ var isPlainObject = !getPrototypeOf ? shimIsPlainObject : function(value) {
 
 module.exports = isPlainObject;
 
-},{"../internal/shimIsPlainObject":145,"./isNative":155}],159:[function(require,module,exports){
+},{"../internal/shimIsPlainObject":146,"./isNative":156}],160:[function(require,module,exports){
 var isObjectLike = require('../internal/isObjectLike');
 
 /** `Object#toString` result references. */
@@ -20019,7 +21506,7 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"../internal/isObjectLike":141}],160:[function(require,module,exports){
+},{"../internal/isObjectLike":142}],161:[function(require,module,exports){
 var isLength = require('../internal/isLength'),
     isObjectLike = require('../internal/isObjectLike');
 
@@ -20095,7 +21582,7 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"../internal/isLength":140,"../internal/isObjectLike":141}],161:[function(require,module,exports){
+},{"../internal/isLength":141,"../internal/isObjectLike":142}],162:[function(require,module,exports){
 var baseCopy = require('../internal/baseCopy'),
     keysIn = require('../object/keysIn');
 
@@ -20128,7 +21615,7 @@ function toPlainObject(value) {
 
 module.exports = toPlainObject;
 
-},{"../internal/baseCopy":97,"../object/keysIn":164}],162:[function(require,module,exports){
+},{"../internal/baseCopy":97,"../object/keysIn":165}],163:[function(require,module,exports){
 var baseGet = require('../internal/baseGet'),
     baseSlice = require('../internal/baseSlice'),
     isKey = require('../internal/isKey'),
@@ -20179,8 +21666,8 @@ function has(object, path) {
 
 module.exports = has;
 
-},{"../array/last":80,"../internal/baseGet":104,"../internal/baseSlice":116,"../internal/isKey":139,"../internal/toPath":149}],163:[function(require,module,exports){
-var isLength = require('../internal/isLength'),
+},{"../array/last":80,"../internal/baseGet":104,"../internal/baseSlice":116,"../internal/isKey":140,"../internal/toPath":150}],164:[function(require,module,exports){
+var isArrayLike = require('../internal/isArrayLike'),
     isNative = require('../lang/isNative'),
     isObject = require('../lang/isObject'),
     shimKeys = require('../internal/shimKeys');
@@ -20216,12 +21703,9 @@ var nativeKeys = isNative(nativeKeys = Object.keys) && nativeKeys;
  * // => ['0', '1']
  */
 var keys = !nativeKeys ? shimKeys : function(object) {
-  if (object) {
-    var Ctor = object.constructor,
-        length = object.length;
-  }
+  var Ctor = object != null && object.constructor;
   if ((typeof Ctor == 'function' && Ctor.prototype === object) ||
-      (typeof object != 'function' && isLength(length))) {
+      (typeof object != 'function' && isArrayLike(object))) {
     return shimKeys(object);
   }
   return isObject(object) ? nativeKeys(object) : [];
@@ -20229,7 +21713,7 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"../internal/isLength":140,"../internal/shimKeys":146,"../lang/isNative":155,"../lang/isObject":157}],164:[function(require,module,exports){
+},{"../internal/isArrayLike":137,"../internal/shimKeys":147,"../lang/isNative":156,"../lang/isObject":158}],165:[function(require,module,exports){
 var isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
     isIndex = require('../internal/isIndex'),
@@ -20296,7 +21780,7 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"../internal/isIndex":137,"../internal/isLength":140,"../lang/isArguments":151,"../lang/isArray":152,"../lang/isObject":157,"../support":170}],165:[function(require,module,exports){
+},{"../internal/isIndex":138,"../internal/isLength":141,"../lang/isArguments":152,"../lang/isArray":153,"../lang/isObject":158,"../support":171}],166:[function(require,module,exports){
 var baseMerge = require('../internal/baseMerge'),
     createAssigner = require('../internal/createAssigner');
 
@@ -20352,7 +21836,7 @@ var merge = createAssigner(baseMerge);
 
 module.exports = merge;
 
-},{"../internal/baseMerge":112,"../internal/createAssigner":124}],166:[function(require,module,exports){
+},{"../internal/baseMerge":112,"../internal/createAssigner":124}],167:[function(require,module,exports){
 var baseFlatten = require('../internal/baseFlatten'),
     bindCallback = require('../internal/bindCallback'),
     pickByArray = require('../internal/pickByArray'),
@@ -20396,7 +21880,7 @@ var pick = restParam(function(object, props) {
 
 module.exports = pick;
 
-},{"../function/restParam":89,"../internal/baseFlatten":100,"../internal/bindCallback":120,"../internal/pickByArray":143,"../internal/pickByCallback":144}],167:[function(require,module,exports){
+},{"../function/restParam":89,"../internal/baseFlatten":100,"../internal/bindCallback":120,"../internal/pickByArray":144,"../internal/pickByCallback":145}],168:[function(require,module,exports){
 var baseGet = require('../internal/baseGet'),
     baseSlice = require('../internal/baseSlice'),
     isFunction = require('../lang/isFunction'),
@@ -20447,7 +21931,7 @@ function result(object, path, defaultValue) {
 
 module.exports = result;
 
-},{"../array/last":80,"../internal/baseGet":104,"../internal/baseSlice":116,"../internal/isKey":139,"../internal/toPath":149,"../lang/isFunction":154}],168:[function(require,module,exports){
+},{"../array/last":80,"../internal/baseGet":104,"../internal/baseSlice":116,"../internal/isKey":140,"../internal/toPath":150,"../lang/isFunction":155}],169:[function(require,module,exports){
 var baseValues = require('../internal/baseValues'),
     keys = require('./keys');
 
@@ -20482,7 +21966,7 @@ function values(object) {
 
 module.exports = values;
 
-},{"../internal/baseValues":119,"./keys":163}],169:[function(require,module,exports){
+},{"../internal/baseValues":119,"./keys":164}],170:[function(require,module,exports){
 var baseToString = require('../internal/baseToString');
 
 /**
@@ -20516,7 +22000,7 @@ function escapeRegExp(string) {
 
 module.exports = escapeRegExp;
 
-},{"../internal/baseToString":117}],170:[function(require,module,exports){
+},{"../internal/baseToString":117}],171:[function(require,module,exports){
 (function (global){
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -20538,6 +22022,7 @@ var support = {};
 
 (function(x) {
   var Ctor = function() { this.x = x; },
+      args = arguments,
       object = { '0': x, 'length': x },
       props = [];
 
@@ -20587,7 +22072,7 @@ var support = {};
    * @type boolean
    */
   try {
-    support.nonEnumArgs = !propertyIsEnumerable.call(arguments, 1);
+    support.nonEnumArgs = !propertyIsEnumerable.call(args, 1);
   } catch(e) {
     support.nonEnumArgs = true;
   }
@@ -20597,7 +22082,7 @@ module.exports = support;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],171:[function(require,module,exports){
+},{}],172:[function(require,module,exports){
 /**
  * Creates a function that returns `value`.
  *
@@ -20622,7 +22107,7 @@ function constant(value) {
 
 module.exports = constant;
 
-},{}],172:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -20644,7 +22129,7 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],173:[function(require,module,exports){
+},{}],174:[function(require,module,exports){
 var baseProperty = require('../internal/baseProperty'),
     basePropertyDeep = require('../internal/basePropertyDeep'),
     isKey = require('../internal/isKey');
@@ -20677,7 +22162,7 @@ function property(path) {
 
 module.exports = property;
 
-},{"../internal/baseProperty":114,"../internal/basePropertyDeep":115,"../internal/isKey":139}],174:[function(require,module,exports){
+},{"../internal/baseProperty":114,"../internal/basePropertyDeep":115,"../internal/isKey":140}],175:[function(require,module,exports){
 module.exports={
   "title": "A JSON Schema for Swagger 2.0 API.",
   "id": "http://swagger.io/v2/schema.json#",
@@ -22174,7 +23659,7 @@ module.exports={
   }
 }
 
-},{}],175:[function(require,module,exports){
+},{}],176:[function(require,module,exports){
 /*
 Author: Geraint Luff and others
 Year: 2013
