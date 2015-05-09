@@ -29,7 +29,8 @@
     "test": "istanbul cover _mocha -- --recursive tests && karma start --single-run",
     "mocha": "mocha --recursive tests",
     "karma": "karma start --single-run",
-    "release": "npm-check-updates -u && npm update && npm run build && npm test && bump --prompt --tag --push --all && npm publish"
+    "update-deps": "npm-check-updates -u && npm update",
+    "release": "npm run update-deps && npm run build && npm test && bump --prompt --tag --push --all && npm publish"
   },
   "repository": {
     "type": "git",
