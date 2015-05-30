@@ -31,54 +31,57 @@ Features
 * Multiple $ref pointers to the same object are resolved to the [same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124)
 
 
-Basic Example
+Installation and Use
 --------------------------
-````javascript
-swagger.parser.parse("swagger.yaml", function(err, api, metadata) {
+The syntax varies slightly depending on whether you're running it in Node.js or in a web browser.  In all cases, you'll call the [`parse`](https://github.com/BigstickCarpet/swagger-parser#parserparseswaggerpath-options-callback) method, passing it the path/url of your Swagger spec and a callback function. The [`api`](https://github.com/BigstickCarpet/swagger-parser#callback) parameter that's passed to the callback function is the parsed, validated, and dereferenced [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object).
+
+
+#### Node
+```bash
+npm install swagger-parser
+```
+
+Then add this to your Node script:
+
+```javascript
+var parser = require("swagger-parser");
+parser.parse('swagger.yaml', function(err, api, metadata) {
   if (!err) {
     console.log("API name: %s, Version: %s", api.info.title, api.info.version);
   }
 });
-````
-The `api` parameter that's passed to the callback function is the parsed, validated, and dereferenced [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object).
-
-
-Installation and Use
---------------------------
-#### Node
-````bash
-npm install swagger-parser
-````
-
-Then add this to your Node script:
-
-````javascript
-var parser = require("swagger-parser");
-parser.parse('swagger.yaml', function(err, api, metadata) { ... });
-````
+```
 
 #### Bower
-````bash
+```bash
 bower install swagger-parser
-````
+```
 
 Then add this to your HTML page:
 
-````html
+```html
 <script src="bower_components/swagger-parser/dist/swagger-parser.js"></script>
 <script>
-    swagger.parser.parse('http://mysite.com/swagger.yaml', function(err, api, metadata) { ... });
+  swagger.parser.parse('http://mysite.com/swagger.yaml', function(err, api, metadata) {
+    if (!err) {
+      console.log("API name: " + api.info.title + ", Version: " + api.info.version);
+    }
+  });
 </script>
-````
+```
 
 #### AMD (Require.js)
 Just add `swagger-parser` to your AMD module's dependencies, or `require("swagger-parser")` explicitly.
 
-````javascript
+```javascript
 define("myModule", ["swagger-parser"], function(parser) {
-    parser.parse('http://mysite.com/swagger.yaml', function(err, api, metadata) { ... });
+  parser.parse('http://mysite.com/swagger.yaml', function(err, api, metadata) {
+    if (!err) {
+      console.log("API name: " + api.info.title + ", Version: " + api.info.version);
+    }
+  });
 });
-````
+```
 
 
 The API
