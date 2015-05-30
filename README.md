@@ -36,7 +36,7 @@ Installation and Use
 The syntax varies slightly depending on whether you're running it in Node.js or in a web browser.  In all cases, you'll call the [`parse`](https://github.com/BigstickCarpet/swagger-parser#parserparseswaggerpath-options-callback) method, passing it the path/url of your Swagger spec and a callback function. The [`api`](https://github.com/BigstickCarpet/swagger-parser#callback) parameter that's passed to the callback function is the parsed, validated, and dereferenced [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object).
 
 
-#### Node
+### Node
 ```bash
 npm install swagger-parser
 ```
@@ -52,7 +52,7 @@ parser.parse('swagger.yaml', function(err, api, metadata) {
 });
 ```
 
-#### Bower
+### Bower
 ```bash
 bower install swagger-parser
 ```
@@ -70,7 +70,7 @@ Then add this to your HTML page:
 </script>
 ```
 
-#### AMD (Require.js)
+### AMD (Require.js)
 Just add `swagger-parser` to your AMD module's dependencies, or `require("swagger-parser")` explicitly.
 
 ```javascript
@@ -144,10 +144,25 @@ person:
 ````
 
 
-
 Contributing
 --------------------------
-I welcome any contributions, enhancements, and bug-fixes.  [File an issue](https://github.com/BigstickCarpet/swagger-parser/issues) on GitHub and [submit a pull request](https://github.com/BigstickCarpet/swagger-parser/pulls).  Use JSHint to make sure your code passes muster.  (see [.jshintrc](.jshintrc)).
+I welcome any contributions, enhancements, and bug-fixes.  [File an issue](https://github.com/BigstickCarpet/swagger-parser/issues) on GitHub and [submit a pull request](https://github.com/BigstickCarpet/swagger-parser/pulls).  Just make sure you build the code and run the unit tests first.
+
+#### Building/Testing
+To build the project locally on your computer:
+
+1. __Clone this repo__<br>
+`git clone https://github.com/BigstickCarpet/swagger-parser.git`
+
+2. __Install dev dependencies__<br>
+`npm install`
+
+3. __Run the build script__<br>
+`npm run build`
+
+4. __Run unit tests__<br>
+`npm test`
+
 
 License
 --------------------------
