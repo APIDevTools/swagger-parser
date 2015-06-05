@@ -16,7 +16,7 @@ Swagger-Parser
 
 |[Live Demo!](http://bigstickcarpet.github.io/swagger-parser/)
 |------------------------------------------------------------
-
+ 
 
 Features
 --------------------------
