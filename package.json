@@ -43,7 +43,6 @@
   "devDependencies": {
     "browserify": "^10.2.3",
     "chai": "^3.0.0",
-    "commander": "^2.8.1",
     "coveralls": "^2.11.2",
     "gulp": "^3.9.0",
     "gulp-rename": "^1.2.2",
@@ -74,6 +73,7 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
+    "commander": "^2.8.1",
     "debug": "^2.2.0",
     "js-yaml": "^3.3.1",
     "lodash": "^3.9.3",
