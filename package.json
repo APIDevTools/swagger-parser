@@ -33,6 +33,9 @@
     "update-deps": "npm-check-updates -u && npm update",
     "release": "npm run update-deps && npm run build && npm test && bump --prompt --tag --push --all && npm publish"
   },
+  "bin": {
+    "swagger-parser": "./bin/index.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/BigstickCarpet/swagger-parser.git"
@@ -40,6 +43,7 @@
   "devDependencies": {
     "browserify": "^10.2.3",
     "chai": "^3.0.0",
+    "commander": "^2.8.1",
     "coveralls": "^2.11.2",
     "gulp": "^3.9.0",
     "gulp-rename": "^1.2.2",
