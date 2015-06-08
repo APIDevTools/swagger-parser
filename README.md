@@ -144,6 +144,32 @@ person:
 ````
 
 
+Command Line Interface (CLI)
+--------------------------
+Command line usage emulates the `options` in [the API](#the-api).
+
+#### Installation
+```
+npm install swagger-parser -g
+``` 
+#### Usage
+
+    Usage: swagger-parser [options] <swaggerfile ...>
+
+    Options:
+
+    	-h, --help         output usage information
+    	-V, --version      output the version number
+    	-j, --json         Do not allow YAML, only JSON
+    	-m, --minify       Remove pretty formatting (ignores -s)
+    	-s, --spaces <n>   Number of spaces in prettification (default: 2)
+    	-nd, --noderef     Do not dereference $ref pointers
+    	-ne, --noexternal  Do not resolve external $ref pointers
+    	-nr, --noresolve   Do not resolve $ref pointers
+    	-ns, --nostrict    Do not do strict validation
+    	-nv, --novalidate  Do not validate schema
+
+
 Contributing
 --------------------------
 I welcome any contributions, enhancements, and bug-fixes.  [File an issue](https://github.com/BigstickCarpet/swagger-parser/issues) on GitHub and [submit a pull request](https://github.com/BigstickCarpet/swagger-parser/pulls).  Just make sure you build the code and run the unit tests first.
