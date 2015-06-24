@@ -6,16 +6,8 @@ describe('Real-world tests', function() {
 
   beforeEach(function() {
     // Some of these APIs are REALLY big, so increase the timeout threshold.
-    var timeout = 4000;
-
-    // Increase the timeout thresholds when running on Travis CI,
-    // because Travis is SO. FREAKING. SLOW.
-    if (env.isTravisCI) {
-      timeout *= 3;
-    }
-
-    this.currentTest.timeout(timeout);
-    this.currentTest.slow(timeout);
+    this.currentTest.timeout(4000 * env.timeoutMultiplier);
+    this.currentTest.slow(3000 * env.timeoutMultiplier);
   });
 
   env.realWorldFiles.forEach(function(file, index) {

@@ -1,11 +1,5 @@
 'use strict';
 
-// Set timeout thresholds
-beforeEach(function() {
-  this.currentTest.timeout(2000);
-  this.currentTest.slow(1000);
-});
-
 var env = {
   /**
    * Are we running in Node?
@@ -18,16 +12,16 @@ var env = {
   isBrowser: isBrowser(),
 
   /**
-   * Are we running in Travis CI?
-   * If so, then we increase the test timeout thresholds, since Travis is SO. SLOW.
-   */
-  isTravisCI: isTravisCI(),
-
-  /**
    * Are we running on gh-pages?
    * If so, then we skip certain tests that don't play nice with GitHub's server.
    */
   isGitHub: isGitHub(),
+
+  /**
+   * Certain environments (Travis CI and Internet Explorer) are known to be really damn slow.
+   * So we need to increase the test timeout thresholds for them.
+   */
+  timeoutMultiplier: getTimeoutMultiplier(),
 
   /**
    * The global object (i.e. window or global)
@@ -156,6 +150,12 @@ else {
   window.require = function() {};
 }
 
+// Set timeout thresholds
+beforeEach(function() {
+  this.currentTest.timeout(2000 * env.timeoutMultiplier);
+  this.currentTest.slow(1000 * env.timeoutMultiplier);
+});
+
 /**
  * Are we running in Node (versus a web browser)?
  * @returns {boolean}
@@ -173,14 +173,6 @@ function isBrowser() {
 }
 
 /**
- * Checks for the Travis CI environment variable.
- * @returns {boolean}
- */
-function isTravisCI() {
-  return isNode() && process.env.TRAVIS === 'true';
-}
-
-/**
  * If we're not running on localhost, then assume we're running on GitHub Pages.
  * @returns {boolean}
  */
@@ -188,4 +180,25 @@ function isGitHub() {
   return isBrowser() &&
     window.location.hostname !== 'localhost' &&
     window.location.hostname !== '127.0.0.1';
+}
+
+/**
+ * Certain environments (Travis CI and Internet Explorer) are much slower than others,
+ * so we increase the normal test timeout for them.
+ * @returns {number}
+ */
+function getTimeoutMultiplier() {
+  if (isNode() && process.env.TRAVIS === 'true') {
+    // Travis CI
+    return 3;
+  }
+  else if (isBrowser() &&
+    (window.navigator.userAgent.indexOf('MSIE') >= 0 || window.navigator.userAgent.indexOf('Trident') >= 0)) {
+    // Internet Explorer
+    // TODO: We HAVE to find a way to improve performance on IE!!!
+    return 10;
+  }
+  else {
+    return 1;
+  }
 }
