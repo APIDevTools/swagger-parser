@@ -177,7 +177,7 @@ function isBrowser() {
  * @returns {boolean}
  */
 function isTravisCI() {
-  return process.env.TRAVIS === 'true';
+  return isNode() && process.env.TRAVIS === 'true';
 }
 
 /**

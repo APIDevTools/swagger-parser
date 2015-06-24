@@ -11,7 +11,7 @@ describe('Real-world tests', function() {
     // Increase the timeout thresholds when running on Travis CI,
     // because Travis is SO. FREAKING. SLOW.
     if (env.isTravisCI) {
-      timeout *= 2;
+      timeout *= 3;
     }
 
     this.currentTest.timeout(timeout);
