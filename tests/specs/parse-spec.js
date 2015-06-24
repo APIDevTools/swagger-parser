@@ -32,6 +32,13 @@ describe('env.parser.parse tests', function() {
 
     it('should parse a file with special characters in the path',
       function(done) {
+        if (env.isGitHub) {
+          // Skip this test when running on GitHub Pages.
+          // The gh-pages server doesn't like these special characters and returns a 404
+          done();
+          return;
+        }
+
         var swaggerFilePath = '__({[ ! % & $ # @ ` ~ ,)}]__/__({[ ! % & $ # @ ` ~ ,)}]__.yaml';
         if (env.isBrowser) {
           swaggerFilePath = '__({[ ! % & $ # @ ` ~ ,)}]__/__({[ ! % & $ # @ ` ~ ,)}]__-web.yaml';

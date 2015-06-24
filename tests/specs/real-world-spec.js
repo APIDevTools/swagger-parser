@@ -8,8 +8,15 @@ describe('Real-world tests', function() {
     it((index + 1) + ') ' + file,
       function(done) {
         // Some of these APIs are REALLY big and take a few seconds to process.
-        this.timeout(15000);
-        this.slow(6000);
+        this.timeout(4000);
+        this.slow(3000);
+
+        if (env.isGitHub && file.indexOf('/adsense/') >= 0) {
+          // Skip this test when running on GitHub Pages.
+          // The gh-pages server attempts to serve the Google AdSense script instead of Swagger file.
+          done();
+          return;
+        }
 
         env.parser.parse(env.getPath('real-world/' + file), function(err, api, metadata) {
           if (err) {

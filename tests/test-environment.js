@@ -1,15 +1,27 @@
 'use strict';
 
+// Set timeout thresholds
+beforeEach(function() {
+  this.currentTest.timeout(2000);
+  this.currentTest.slow(1000);
+});
+
 var env = {
   /**
    * Are we running in Node?
    */
-  isNode: typeof(require) === 'function',
+  isNode: isNode(),
 
   /**
    * Are we running in a browser?
    */
-  isBrowser: typeof(require) !== 'function',
+  isBrowser: isBrowser(),
+
+  /**
+   * Are we running on gh-pages?
+   * If so, then we skip certain tests that don't play nice with GitHub's server.
+   */
+  isGitHub: isGitHub(),
 
   /**
    * The global object (i.e. window or global)
@@ -136,4 +148,30 @@ else {
   window.env = env;
   window.expect = window.chai.expect;
   window.require = function() {};
+}
+
+/**
+ * Are we running in Node (versus a web browser)?
+ * @returns {boolean}
+ */
+function isNode() {
+  return typeof(require) === 'function';
+}
+
+/**
+ * Just the opposite.  :)
+ * @returns {boolean}
+ */
+function isBrowser() {
+  return !isNode();
+}
+
+/**
+ * If we're not running on localhost, then assume we're running on GitHub Pages.
+ * @returns {boolean}
+ */
+function isGitHub() {
+  return isBrowser() &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1';
 }
