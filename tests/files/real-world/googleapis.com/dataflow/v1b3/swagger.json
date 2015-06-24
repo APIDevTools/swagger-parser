@@ -9,6 +9,7 @@
       "url": "https://google.com"
     },
     "version": "v1b3",
+    "x-providerName": "googleapis.com",
     "x-origin": {
       "format": "google",
       "version": "v1",
@@ -1897,6 +1898,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "network": {
+          "type": "string"
         },
         "numWorkers": {
           "type": "integer",

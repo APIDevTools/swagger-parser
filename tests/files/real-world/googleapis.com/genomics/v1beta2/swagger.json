@@ -9,6 +9,7 @@
       "url": "https://google.com"
     },
     "version": "v1beta2",
+    "x-providerName": "googleapis.com",
     "x-origin": {
       "format": "google",
       "version": "v1",
@@ -3402,6 +3403,11 @@
       "type": "object",
       "description": "A Dataset is a collection of genomic data.",
       "properties": {
+        "createTime": {
+          "type": "string",
+          "description": "The time this dataset was created, in seconds from the epoch.",
+          "format": "int64"
+        },
         "id": {
           "type": "string",
           "description": "The Google generated ID of the dataset, immutable."
@@ -3474,16 +3480,16 @@
       "properties": {
         "exportUri": {
           "type": "string",
-          "description": "A Google Cloud Storage URI for the exported BAM file. The currently authenticated user must have write access to the new file. An error will be returned if the URI already contains data."
+          "description": "Required. A Google Cloud Storage URI for the exported BAM file. The currently authenticated user must have write access to the new file. An error will be returned if the URI already contains data."
         },
         "projectNumber": {
           "type": "string",
-          "description": "The Google Developers Console project number that owns this export.",
+          "description": "Required. The Google Developers Console project number that owns this export.",
           "format": "int64"
         },
         "readGroupSetIds": {
           "type": "array",
-          "description": "The IDs of the read group sets to export.",
+          "description": "Required. The IDs of the read group sets to export.",
           "items": {
             "type": "string"
           }
@@ -3665,7 +3671,7 @@
     },
     "Int32Value": {
       "type": "object",
-      "description": "Wrapper message for int32.",
+      "description": "Wrapper message for `int32`.\n\nThe JSON representation for `Int32Value` is JSON number.",
       "properties": {
         "value": {
           "type": "integer",

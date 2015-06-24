@@ -28,6 +28,12 @@ if (env.isNode) {
 else {
   // In browsers, just use this hard-coded list of files
   env.realWorldFiles = [
+    'bitdango.com/1.0.0/swagger.json',
+    'clickmeter.com/v2/swagger.json',
+    'datumbox.com/1.0/swagger.json',
+    'embarcadero.com/1.0.0/swagger.json',
+    'eriomem.net/0.1/swagger.json',
+    'firebrowse.org/1.1.10 beta (2015-06-09 09:57:15 49d9c62394f1b2c2c9db6e9f)/swagger.json',
     'googleapis.com/adexchangebuyer/v1.2/swagger.json',
     'googleapis.com/adexchangebuyer/v1.3/swagger.json',
     'googleapis.com/adexchangeseller/v1/swagger.json',
@@ -55,8 +61,12 @@ else {
     'googleapis.com/calendar/v3/swagger.json',
     'googleapis.com/civicinfo/v2/swagger.json',
     'googleapis.com/cloudmonitoring/v2beta2/swagger.json',
+    'googleapis.com/cloudresourcemanager/v1beta1/swagger.json',
+    'googleapis.com/clouduseraccounts/alpha/swagger.json',
+    'googleapis.com/clouduseraccounts/vm_alpha/swagger.json',
     'googleapis.com/compute/v1/swagger.json',
     'googleapis.com/computeaccounts/alpha/swagger.json',
+    'googleapis.com/container/v1/swagger.json',
     'googleapis.com/container/v1beta1/swagger.json',
     'googleapis.com/content/v2/swagger.json',
     'googleapis.com/coordinate/v1/swagger.json',
@@ -89,6 +99,7 @@ else {
     'googleapis.com/gamesConfiguration/v1configuration/swagger.json',
     'googleapis.com/gamesManagement/v1management/swagger.json',
     'googleapis.com/gan/v1beta1/swagger.json',
+    'googleapis.com/genomics/v1/swagger.json',
     'googleapis.com/genomics/v1beta2/swagger.json',
     'googleapis.com/gmail/v1/swagger.json',
     'googleapis.com/groupsmigration/v1/swagger.json',
@@ -134,6 +145,13 @@ else {
     'googleapis.com/webmasters/v3/swagger.json',
     'googleapis.com/youtube/v3/swagger.json',
     'googleapis.com/youtubeAnalytics/v1/swagger.json',
-    'googleapis.com/youtubeAnalytics/v1beta1/swagger.json'
+    'googleapis.com/youtubeAnalytics/v1beta1/swagger.json',
+    'gsa.gov/0.1/swagger.json',
+    'owler.com/1.0.0/swagger.json',
+    'peel-ci.com/1.0.0/swagger.json',
+    'rummblelabs.com/1.0.0/swagger.json',
+    'slideroom.com/v2/swagger.json',
+    'spectrocoin.com/1.0.0/swagger.json',
+    'vatapi.com/1/swagger.json'
   ];
 }

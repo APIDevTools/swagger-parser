@@ -9,6 +9,7 @@
       "url": "https://google.com"
     },
     "version": "alpha",
+    "x-providerName": "googleapis.com",
     "x-origin": {
       "format": "google",
       "version": "v1",
@@ -41,7 +42,7 @@
           {
             "name": "operation",
             "in": "path",
-            "description": "Name of the operation resource to delete.",
+            "description": "Name of the Operations resource to delete.",
             "required": true,
             "type": "string"
           }
@@ -50,6 +51,7 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
               "https://www.googleapis.com/auth/computeaccounts"
             ]
           }
@@ -80,7 +82,7 @@
           {
             "name": "operation",
             "in": "path",
-            "description": "Name of the operation resource to return.",
+            "description": "Name of the Operations resource to return.",
             "required": true,
             "type": "string"
           }
@@ -89,6 +91,8 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
+              "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
               "https://www.googleapis.com/auth/computeaccounts",
               "https://www.googleapis.com/auth/computeaccounts.readonly"
             ]
@@ -145,22 +149,28 @@
           {
             "name": "filter",
             "in": "query",
-            "description": "Optional. Filter expression for filtering listed resources.",
+            "description": "Sets a filter expression for filtering listed resources, in the form filter={expression}. Your {expression} must contain the following:\nFIELD_NAME COMPARISON_STRING LITERAL_STRING\n \n- FIELD_NAME: The name of the field you want to compare. The field name must be valid for the type of resource being filtered. Only atomic field types are supported (string, number, boolean). Array and object fields are not currently supported. \n- COMPARISON_STRING: The comparison string, either eq (equals) or ne (not equals). \n- LITERAL_STRING: The literal string value to filter to. The literal value must be valid for the type of field (string, number, boolean). For string fields, the literal value is interpreted as a regular expression using RE2 syntax. The literal value must match the entire field.  For example, you can filter by the name of a resource:\nfilter=name ne example-instance\nThe above filter returns only results whose name field does not equal example-instance. You can also enclose your literal string in single, double, or no quotes.",
             "type": "string"
           },
           {
             "name": "maxResults",
             "in": "query",
-            "description": "Optional. Maximum count of results to be returned. Maximum value is 500 and default value is 500.",
+            "description": "Maximum count of results to be returned.",
             "default": 500,
             "type": "integer",
             "minimum": 0,
             "maximum": 500
           },
           {
+            "name": "orderBy",
+            "in": "query",
+            "description": "Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name.\n\nYou can also sort results in descending order based on the creation timestamp using orderBy=\"creationTimestamp desc\". This sorts results based on the creationTimestamp field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first.\n\nCurrently, only sorting by name or creationTimestamp desc is supported.",
+            "type": "string"
+          },
+          {
             "name": "pageToken",
             "in": "query",
-            "description": "Optional. Tag returned by a previous list request truncated by maxResults. Used to continue a previous list request.",
+            "description": "Specifies a page token to use. Use this parameter if you want to list the next page of results. Set pageToken to the nextPageToken returned by a previous list request.",
             "type": "string"
           }
         ],
@@ -168,6 +178,8 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
+              "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
               "https://www.googleapis.com/auth/computeaccounts",
               "https://www.googleapis.com/auth/computeaccounts.readonly"
             ]
@@ -240,6 +252,7 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
               "https://www.googleapis.com/auth/computeaccounts"
             ]
           }
@@ -274,7 +287,7 @@
     },
     "/{project}/global/groups/{groupName}": {
       "delete": {
-        "description": "Deletes the specified group resource.",
+        "description": "Deletes the specified Group resource.",
         "operationId": "computeaccounts.groups.delete",
         "responses": {
           "200": {
@@ -295,7 +308,7 @@
           {
             "name": "groupName",
             "in": "path",
-            "description": "Name of the group resource to delete.",
+            "description": "Name of the Group resource to delete.",
             "required": true,
             "type": "string"
           }
@@ -304,6 +317,7 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
               "https://www.googleapis.com/auth/computeaccounts"
             ]
           }
@@ -313,7 +327,7 @@
         ]
       },
       "get": {
-        "description": "Returns the specified group resource.",
+        "description": "Returns the specified Group resource.",
         "operationId": "computeaccounts.groups.get",
         "responses": {
           "200": {
@@ -334,7 +348,7 @@
           {
             "name": "groupName",
             "in": "path",
-            "description": "Name of the group resource to return.",
+            "description": "Name of the Group resource to return.",
             "required": true,
             "type": "string"
           }
@@ -343,6 +357,8 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
+              "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
               "https://www.googleapis.com/auth/computeaccounts",
               "https://www.googleapis.com/auth/computeaccounts.readonly"
             ]
@@ -378,7 +394,7 @@
     },
     "/{project}/global/groups": {
       "post": {
-        "description": "Creates a group resource in the specified project using the data included in the request.",
+        "description": "Creates a Group resource in the specified project using the data included in the request.",
         "operationId": "computeaccounts.groups.insert",
         "responses": {
           "200": {
@@ -408,6 +424,7 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
               "https://www.googleapis.com/auth/computeaccounts"
             ]
           }
@@ -438,22 +455,28 @@
           {
             "name": "filter",
             "in": "query",
-            "description": "Optional. Filter expression for filtering listed resources.",
+            "description": "Sets a filter expression for filtering listed resources, in the form filter={expression}. Your {expression} must contain the following:\nFIELD_NAME COMPARISON_STRING LITERAL_STRING\n \n- FIELD_NAME: The name of the field you want to compare. The field name must be valid for the type of resource being filtered. Only atomic field types are supported (string, number, boolean). Array and object fields are not currently supported. \n- COMPARISON_STRING: The comparison string, either eq (equals) or ne (not equals). \n- LITERAL_STRING: The literal string value to filter to. The literal value must be valid for the type of field (string, number, boolean). For string fields, the literal value is interpreted as a regular expression using RE2 syntax. The literal value must match the entire field.  For example, you can filter by the name of a resource:\nfilter=name ne example-instance\nThe above filter returns only results whose name field does not equal example-instance. You can also enclose your literal string in single, double, or no quotes.",
             "type": "string"
           },
           {
             "name": "maxResults",
             "in": "query",
-            "description": "Optional. Maximum count of results to be returned. Maximum value is 500 and default value is 500.",
+            "description": "Maximum count of results to be returned.",
             "default": 500,
             "type": "integer",
             "minimum": 0,
             "maximum": 500
           },
           {
+            "name": "orderBy",
+            "in": "query",
+            "description": "Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name.\n\nYou can also sort results in descending order based on the creation timestamp using orderBy=\"creationTimestamp desc\". This sorts results based on the creationTimestamp field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first.\n\nCurrently, only sorting by name or creationTimestamp desc is supported.",
+            "type": "string"
+          },
+          {
             "name": "pageToken",
             "in": "query",
-            "description": "Optional. Tag returned by a previous list request truncated by maxResults. Used to continue a previous list request.",
+            "description": "Specifies a page token to use. Use this parameter if you want to list the next page of results. Set pageToken to the nextPageToken returned by a previous list request.",
             "type": "string"
           }
         ],
@@ -461,6 +484,8 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
+              "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
               "https://www.googleapis.com/auth/computeaccounts",
               "https://www.googleapis.com/auth/computeaccounts.readonly"
             ]
@@ -533,6 +558,7 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
               "https://www.googleapis.com/auth/computeaccounts"
             ]
           }
@@ -567,7 +593,7 @@
     },
     "/{project}/zones/{zone}/authorizedKeysView/{user}": {
       "post": {
-        "description": "Returns the AuthorizedKeysView of the specified user.",
+        "description": "Returns a list of authorized public keys for a specific user account.",
         "operationId": "computeaccounts.linux.getAuthorizedKeysView",
         "responses": {
           "200": {
@@ -595,14 +621,14 @@
           {
             "name": "user",
             "in": "path",
-            "description": "Username of the AuthorizedKeysView to return.",
+            "description": "The user account for which you want to get a list of authorized public keys.",
             "required": true,
             "type": "string"
           },
           {
             "name": "instance",
             "in": "query",
-            "description": "The fully-qualified URL of the instance requesting the view.",
+            "description": "The fully-qualified URL of the virtual machine requesting the view.",
             "required": true,
             "type": "string"
           }
@@ -611,6 +637,8 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
+              "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
               "https://www.googleapis.com/auth/computeaccounts",
               "https://www.googleapis.com/auth/computeaccounts.readonly"
             ]
@@ -646,7 +674,7 @@
     },
     "/{project}/zones/{zone}/linuxAccountViews": {
       "post": {
-        "description": "Retrieves the Linux views for an instance contained within the specified project.",
+        "description": "Retrieves a list of user accounts for an instance within a specific project.",
         "operationId": "computeaccounts.linux.getLinuxAccountViews",
         "responses": {
           "200": {
@@ -674,35 +702,41 @@
           {
             "name": "instance",
             "in": "query",
-            "description": "The fully-qualified URL of the instance requesting the views.",
+            "description": "The fully-qualified URL of the virtual machine requesting the views.",
             "required": true,
             "type": "string"
           },
           {
             "name": "filter",
             "in": "query",
-            "description": "Optional. Filter expression for filtering listed resources.",
+            "description": "Sets a filter expression for filtering listed resources, in the form filter={expression}. Your {expression} must contain the following:\nFIELD_NAME COMPARISON_STRING LITERAL_STRING\n \n- FIELD_NAME: The name of the field you want to compare. The field name must be valid for the type of resource being filtered. Only atomic field types are supported (string, number, boolean). Array and object fields are not currently supported. \n- COMPARISON_STRING: The comparison string, either eq (equals) or ne (not equals). \n- LITERAL_STRING: The literal string value to filter to. The literal value must be valid for the type of field (string, number, boolean). For string fields, the literal value is interpreted as a regular expression using RE2 syntax. The literal value must match the entire field.  For example, you can filter by the name of a resource:\nfilter=name ne example-instance\nThe above filter returns only results whose name field does not equal example-instance. You can also enclose your literal string in single, double, or no quotes.",
             "type": "string"
           },
           {
             "name": "maxResults",
             "in": "query",
-            "description": "Optional. Maximum count of results to be returned. Maximum value is 500 and default value is 500.",
+            "description": "Maximum count of results to be returned.",
             "default": 500,
             "type": "integer",
             "minimum": 0,
             "maximum": 500
           },
           {
+            "name": "orderBy",
+            "in": "query",
+            "description": "Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name.\n\nYou can also sort results in descending order based on the creation timestamp using orderBy=\"creationTimestamp desc\". This sorts results based on the creationTimestamp field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first.\n\nCurrently, only sorting by name or creationTimestamp desc is supported.",
+            "type": "string"
+          },
+          {
             "name": "pageToken",
             "in": "query",
-            "description": "Optional. Tag returned by a previous list request truncated by maxResults. Used to continue a previous list request.",
+            "description": "Specifies a page token to use. Use this parameter if you want to list the next page of results. Set pageToken to the nextPageToken returned by a previous list request.",
             "type": "string"
           },
           {
             "name": "user",
             "in": "query",
-            "description": "If provided, the user whose login is triggering an immediate refresh of the views.",
+            "description": "If provided, the user requesting the views. If left blank, the system is requesting the views, instead of a particular user.",
             "type": "string"
           }
         ],
@@ -710,6 +744,8 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
+              "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
               "https://www.googleapis.com/auth/computeaccounts",
               "https://www.googleapis.com/auth/computeaccounts.readonly"
             ]
@@ -745,7 +781,7 @@
     },
     "/{project}/global/users/{user}/addPublicKey": {
       "post": {
-        "description": "Adds a public key to the specified user using the data included in the request.",
+        "description": "Adds a public key to the specified User resource with the data included in the request.",
         "operationId": "computeaccounts.users.addPublicKey",
         "responses": {
           "200": {
@@ -782,6 +818,7 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
               "https://www.googleapis.com/auth/computeaccounts"
             ]
           }
@@ -816,7 +853,7 @@
     },
     "/{project}/global/users/{user}": {
       "delete": {
-        "description": "Deletes the specified user resource.",
+        "description": "Deletes the specified User resource.",
         "operationId": "computeaccounts.users.delete",
         "responses": {
           "200": {
@@ -846,6 +883,7 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
               "https://www.googleapis.com/auth/computeaccounts"
             ]
           }
@@ -855,7 +893,7 @@
         ]
       },
       "get": {
-        "description": "Returns the specified user resource.",
+        "description": "Returns the specified User resource.",
         "operationId": "computeaccounts.users.get",
         "responses": {
           "200": {
@@ -885,6 +923,8 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
+              "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
               "https://www.googleapis.com/auth/computeaccounts",
               "https://www.googleapis.com/auth/computeaccounts.readonly"
             ]
@@ -920,7 +960,7 @@
     },
     "/{project}/global/users": {
       "post": {
-        "description": "Creates a user resource in the specified project using the data included in the request.",
+        "description": "Creates a User resource in the specified project using the data included in the request.",
         "operationId": "computeaccounts.users.insert",
         "responses": {
           "200": {
@@ -950,6 +990,7 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
               "https://www.googleapis.com/auth/computeaccounts"
             ]
           }
@@ -959,7 +1000,7 @@
         ]
       },
       "get": {
-        "description": "Retrieves the list of users contained within the specified project.",
+        "description": "Retrieves a list of users contained within the specified project.",
         "operationId": "computeaccounts.users.list",
         "responses": {
           "200": {
@@ -980,22 +1021,28 @@
           {
             "name": "filter",
             "in": "query",
-            "description": "Optional. Filter expression for filtering listed resources.",
+            "description": "Sets a filter expression for filtering listed resources, in the form filter={expression}. Your {expression} must contain the following:\nFIELD_NAME COMPARISON_STRING LITERAL_STRING\n \n- FIELD_NAME: The name of the field you want to compare. The field name must be valid for the type of resource being filtered. Only atomic field types are supported (string, number, boolean). Array and object fields are not currently supported. \n- COMPARISON_STRING: The comparison string, either eq (equals) or ne (not equals). \n- LITERAL_STRING: The literal string value to filter to. The literal value must be valid for the type of field (string, number, boolean). For string fields, the literal value is interpreted as a regular expression using RE2 syntax. The literal value must match the entire field.  For example, you can filter by the name of a resource:\nfilter=name ne example-instance\nThe above filter returns only results whose name field does not equal example-instance. You can also enclose your literal string in single, double, or no quotes.",
             "type": "string"
           },
           {
             "name": "maxResults",
             "in": "query",
-            "description": "Optional. Maximum count of results to be returned. Maximum value is 500 and default value is 500.",
+            "description": "Maximum count of results to be returned.",
             "default": 500,
             "type": "integer",
             "minimum": 0,
             "maximum": 500
           },
           {
+            "name": "orderBy",
+            "in": "query",
+            "description": "Sorts list results by a certain order. By default, results are returned in alphanumerical order based on the resource name.\n\nYou can also sort results in descending order based on the creation timestamp using orderBy=\"creationTimestamp desc\". This sorts results based on the creationTimestamp field in reverse chronological order (newest result first). Use this to sort resources like operations so that the newest operation is returned first.\n\nCurrently, only sorting by name or creationTimestamp desc is supported.",
+            "type": "string"
+          },
+          {
             "name": "pageToken",
             "in": "query",
-            "description": "Optional. Tag returned by a previous list request truncated by maxResults. Used to continue a previous list request.",
+            "description": "Specifies a page token to use. Use this parameter if you want to list the next page of results. Set pageToken to the nextPageToken returned by a previous list request.",
             "type": "string"
           }
         ],
@@ -1003,6 +1050,8 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
+              "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
               "https://www.googleapis.com/auth/computeaccounts",
               "https://www.googleapis.com/auth/computeaccounts.readonly"
             ]
@@ -1075,6 +1124,7 @@
           {
             "Oauth2": [
               "https://www.googleapis.com/auth/cloud-platform",
+              "https://www.googleapis.com/auth/cloud.useraccounts",
               "https://www.googleapis.com/auth/computeaccounts"
             ]
           }
@@ -1111,11 +1161,11 @@
   "definitions": {
     "AuthorizedKeysView": {
       "type": "object",
-      "description": "A list of authorized public keys for a user.",
+      "description": "A list of authorized public keys for a user account.",
       "properties": {
         "keys": {
           "type": "array",
-          "description": "[Output Only] The authorized public keys in SSH format.",
+          "description": "[Output Only] The list of authorized public keys in SSH format.",
           "items": {
             "type": "string"
           }
@@ -1141,7 +1191,7 @@
         },
         "kind": {
           "type": "string",
-          "description": "[Output Only] Type of the resource. Always computeaccounts#group for groups.",
+          "description": "[Output Only] Type of the resource. Always clouduseraccounts#group for groups.",
           "default": "computeaccounts#group"
         },
         "members": {
@@ -1178,7 +1228,7 @@
         },
         "kind": {
           "type": "string",
-          "description": "[Output Only] Type of resource. Always computeaccounts#groupList for lists of groups.",
+          "description": "[Output Only] Type of resource. Always clouduseraccounts#groupList for lists of groups.",
           "default": "computeaccounts#groupList"
         },
         "nextPageToken": {
@@ -1217,7 +1267,7 @@
     },
     "LinuxAccountViews": {
       "type": "object",
-      "description": "A list of all Linux accounts for this project. Linux Account Views are only used by Compute Engine virtual machines to get information about user accounts for a project or instance. They are read-only views into users and groups managed by the Compute Engine Accounts API.",
+      "description": "A list of all Linux accounts for this project. This API is only used by Compute Engine virtual machines to get information about user accounts for a project or instance. Linux resources are read-only views into users and groups managed by the Compute Engine Accounts API.",
       "properties": {
         "groupViews": {
           "type": "array",
@@ -1228,7 +1278,7 @@
         },
         "kind": {
           "type": "string",
-          "description": "[Output Only] Type of the resource. Always computeaccounts#linuxAccountViews for Linux views.",
+          "description": "[Output Only] Type of the resource. Always clouduseraccounts#linuxAccountViews for Linux resources.",
           "default": "computeaccounts#linuxAccountViews"
         },
         "userViews": {
@@ -1264,7 +1314,7 @@
       "properties": {
         "gid": {
           "type": "integer",
-          "description": "[Output Only] GID.",
+          "description": "[Output Only] The Group ID.",
           "format": "uint32"
         },
         "groupName": {
@@ -1273,7 +1323,7 @@
         },
         "members": {
           "type": "array",
-          "description": "[Output Only] List of usernames who belong to the group.",
+          "description": "[Output Only] List of user accounts that belong to the group.",
           "items": {
             "type": "string"
           }
@@ -1308,17 +1358,17 @@
         },
         "username": {
           "type": "string",
-          "description": "[Output Only] The username for the account."
+          "description": "[Output Only] The username of the account."
         }
       }
     },
     "Operation": {
       "type": "object",
-      "description": "An operation resource, used to manage asynchronous API requests.",
+      "description": "An Operation resource, used to manage asynchronous API requests.",
       "properties": {
         "clientOperationId": {
           "type": "string",
-          "description": "[Output Only] An optional identifier specified by the client when the mutation was initiated. Must be unique for all operation resources in the project"
+          "description": "[Output Only] An optional identifier specified by the client when the mutation was initiated. Must be unique for all Operation resources in the project."
         },
         "creationTimestamp": {
           "type": "string",
@@ -1388,7 +1438,7 @@
         },
         "progress": {
           "type": "integer",
-          "description": "[Output Only] An optional progress indicator that ranges from 0 to 100. There is no requirement that this be linear or support any granularity of operations. This should not be used to guess at when the operation will be complete. This number should be monotonically increasing as the operation progresses.",
+          "description": "[Output Only] An optional progress indicator that ranges from 0 to 100. There is no requirement that this be linear or support any granularity of operations. This should not be used to guess at when the operation will be complete. This number should monotonically increase as the operation progresses.",
           "format": "int32"
         },
         "region": {
@@ -1487,7 +1537,7 @@
     },
     "OperationList": {
       "type": "object",
-      "description": "Contains a list of operation resources.",
+      "description": "Contains a list of Operation resources.",
       "properties": {
         "id": {
           "type": "string",
@@ -1495,7 +1545,7 @@
         },
         "items": {
           "type": "array",
-          "description": "[Output Only] The operation resources.",
+          "description": "[Output Only] The Operation resources.",
           "items": {
             "$ref": "#/definitions/Operation"
           }
@@ -1567,7 +1617,7 @@
         },
         "kind": {
           "type": "string",
-          "description": "[Output Only] Type of the resource. Always computeaccounts#user for users.",
+          "description": "[Output Only] Type of the resource. Always clouduseraccounts#user for users.",
           "default": "computeaccounts#user"
         },
         "name": {
@@ -1608,7 +1658,7 @@
         },
         "kind": {
           "type": "string",
-          "description": "[Output Only] Type of resource. Always computeaccounts#userList for lists of users.",
+          "description": "[Output Only] Type of resource. Always clouduseraccounts#userList for lists of users.",
           "default": "computeaccounts#userList"
         },
         "nextPageToken": {
@@ -1679,6 +1729,8 @@
       "authorizationUrl": "https://accounts.google.com/o/oauth2/auth",
       "scopes": {
         "https://www.googleapis.com/auth/cloud-platform": "View and manage your data across Google Cloud Platform services",
+        "https://www.googleapis.com/auth/cloud.useraccounts": "Manage your Google Cloud User Accounts",
+        "https://www.googleapis.com/auth/cloud.useraccounts.readonly": "View your Google Cloud User Accounts",
         "https://www.googleapis.com/auth/computeaccounts": "Manage your Google Compute Accounts",
         "https://www.googleapis.com/auth/computeaccounts.readonly": "View your Google Compute Accounts"
       }

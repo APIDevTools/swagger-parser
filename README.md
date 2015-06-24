@@ -16,7 +16,7 @@ Swagger-Parser
 
 |[Live Demo!](http://bigstickcarpet.github.io/swagger-parser/)
 |------------------------------------------------------------
- 
+
 
 Features
 --------------------------
@@ -25,7 +25,7 @@ Features
 * __Dereferences__ all `$ref` pointers, including pointers to __external files and URLs__
 * Asynchronously downloads and __caches__ external files and URLs
 * __[Tested](http://bigstickcarpet.com/swagger-parser/tests/index.html)__ in Node.js and all major web browsers on Windows, Mac, and Linux
-* Tested on __[over 100 Google APIs](https://github.com/APIs-guru/api-models/tree/master/google)__
+* Tested on __[over 100 Google APIs](https://github.com/APIs-guru/api-models/tree/master/googleapis.com)__
 * Supports nested `$ref` pointers, even in external files and URLs
 * Supports circular `$ref` pointers (see [notes](#circular-refs) below)
 * Multiple `$ref` pointers to the same object are resolved to the [same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124)
@@ -102,7 +102,7 @@ Called after the parsing is finished, or when an error occurs.  See [callback](#
 #### Options
 |Property               |Type        |Default       |Description
 |:----------------------|:-----------|:-------------|:----------
-|`parseYaml`            |bool        |true          |Determines whether the parser will allow Swagger specs in YAML format.  If set to `false`, then only JSON will be allowed. 
+|`parseYaml`            |bool        |true          |Determines whether the parser will allow Swagger specs in YAML format.  If set to `false`, then only JSON will be allowed.
 |`dereference$Refs`     |bool        |true          |Determines whether `$ref` pointers in the Swagger API will be replaced with their resolved values.  Different `$ref` pointers that resolve to the same object will be replaced with [the same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124).  Setting this option to `false` will leave the `$ref` pointers in the Swagger API, but you can still access the resolved values using the [metadata object](#metadata).
 |`resolve$Refs`         |bool        |true          |Determines whether `$ref` pointers will be resolved.  Setting this option to `false` effectively disables `dereference$Refs` as well. The difference is that the [metadata object](#metadata) won't be populated either.
 |`resolveExternal$Refs` |bool        |true          |Determines whether `$ref` pointers will be resolved if they point to external files or URLs.  Internal `$ref` pointers will still be resolved and dereferenced.
@@ -166,4 +166,4 @@ To build the project locally on your computer:
 
 License
 --------------------------
-Swagger-Parser is 100% free and open-source, under the [MIT license](LICENSE). Use it however you want. 
+Swagger-Parser is 100% free and open-source, under the [MIT license](LICENSE). Use it however you want.

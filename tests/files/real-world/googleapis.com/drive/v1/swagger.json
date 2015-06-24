@@ -9,6 +9,7 @@
       "url": "https://google.com"
     },
     "version": "v1",
+    "x-providerName": "googleapis.com",
     "x-origin": {
       "format": "google",
       "version": "v1",
@@ -92,7 +93,7 @@
           {
             "name": "newRevision",
             "in": "query",
-            "description": "Whether a blob upload should create a new revision. If false, the blob data in the current head revision is replaced. If true or not set, a new blob is created as head revision, and previous revisions are preserved (causing increased use of the user's data storage quota).",
+            "description": "Whether a blob upload should create a new revision. If false, the blob data in the current head revision is replaced. If true or not set, a new blob is created as head revision, and previous unpinned revisions are preserved for a short period of time. Pinned revisions are stored indefinitely, using additional storage quota, up to a maximum of 200 revisions.",
             "default": true,
             "type": "boolean"
           },
@@ -154,7 +155,7 @@
           {
             "name": "newRevision",
             "in": "query",
-            "description": "Whether a blob upload should create a new revision. If false, the blob data in the current head revision is replaced. If true or not set, a new blob is created as head revision, and previous revisions are preserved (causing increased use of the user's data storage quota).",
+            "description": "Whether a blob upload should create a new revision. If false, the blob data in the current head revision is replaced. If true or not set, a new blob is created as head revision, and previous unpinned revisions are preserved for a short period of time. Pinned revisions are stored indefinitely, using additional storage quota, up to a maximum of 200 revisions.",
             "default": true,
             "type": "boolean"
           },
@@ -484,7 +485,7 @@
       "flow": "implicit",
       "authorizationUrl": "https://accounts.google.com/o/oauth2/auth",
       "scopes": {
-        "https://www.googleapis.com/auth/drive.file": "View and manage Google Drive files that you have opened or created with this app"
+        "https://www.googleapis.com/auth/drive.file": "View and manage Google Drive files and folders that you have opened or created with this app"
       }
     }
   },

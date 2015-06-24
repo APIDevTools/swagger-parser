@@ -9,6 +9,7 @@
       "url": "https://google.com"
     },
     "version": "v2",
+    "x-providerName": "googleapis.com",
     "x-origin": {
       "format": "google",
       "version": "v1",
@@ -1343,7 +1344,7 @@
           {
             "name": "newRevision",
             "in": "query",
-            "description": "Whether a blob upload should create a new revision. If false, the blob data in the current head revision is replaced. If true or not set, a new blob is created as head revision, and previous revisions are preserved (causing increased use of the user's data storage quota).",
+            "description": "Whether a blob upload should create a new revision. If false, the blob data in the current head revision is replaced. If true or not set, a new blob is created as head revision, and previous unpinned revisions are preserved for a short period of time. Pinned revisions are stored indefinitely, using additional storage quota, up to a maximum of 200 revisions.",
             "default": true,
             "type": "boolean"
           },
@@ -1468,7 +1469,7 @@
           {
             "name": "newRevision",
             "in": "query",
-            "description": "Whether a blob upload should create a new revision. If false, the blob data in the current head revision is replaced. If true or not set, a new blob is created as head revision, and previous revisions are preserved (causing increased use of the user's data storage quota).",
+            "description": "Whether a blob upload should create a new revision. If false, the blob data in the current head revision is replaced. If true or not set, a new blob is created as head revision, and previous unpinned revisions are preserved for a short period of time. Pinned revisions are stored indefinitely, using additional storage quota, up to a maximum of 200 revisions.",
             "default": true,
             "type": "boolean"
           },
@@ -4503,6 +4504,10 @@
           "type": "boolean",
           "description": "Whether this file is in the Application Data folder."
         },
+        "canComment": {
+          "type": "boolean",
+          "description": "Whether the current user can comment on the file."
+        },
         "copyable": {
           "type": "boolean",
           "description": "Whether the file can be copied by the current user."
@@ -4778,6 +4783,10 @@
           "type": "string",
           "description": "The original filename if the file was uploaded manually, or the original title if the file was inserted through the API. Note that renames of the title will not change the original filename. This will only be populated on files with content stored in Drive."
         },
+        "ownedByMe": {
+          "type": "boolean",
+          "description": "Whether the file is owned by the current user."
+        },
         "ownerNames": {
           "type": "array",
           "description": "Name(s) of the owner(s) of this file.",
@@ -4821,6 +4830,10 @@
         "selfLink": {
           "type": "string",
           "description": "A link back to this file."
+        },
+        "shareable": {
+          "type": "boolean",
+          "description": "Whether the file's sharing settings can be modified by the current user."
         },
         "shared": {
           "type": "boolean",
@@ -5368,7 +5381,7 @@
         "https://www.googleapis.com/auth/drive": "View and manage the files in your Google Drive",
         "https://www.googleapis.com/auth/drive.appdata": "View and manage its own configuration data in your Google Drive",
         "https://www.googleapis.com/auth/drive.apps.readonly": "View your Google Drive apps",
-        "https://www.googleapis.com/auth/drive.file": "View and manage Google Drive files that you have opened or created with this app",
+        "https://www.googleapis.com/auth/drive.file": "View and manage Google Drive files and folders that you have opened or created with this app",
         "https://www.googleapis.com/auth/drive.metadata": "View and manage metadata of files in your Google Drive",
         "https://www.googleapis.com/auth/drive.metadata.readonly": "View metadata for files in your Google Drive",
         "https://www.googleapis.com/auth/drive.readonly": "View the files in your Google Drive",
