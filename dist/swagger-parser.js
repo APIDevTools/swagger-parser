@@ -901,8 +901,7 @@ function State() {
 (function (process){
 'use strict';
 
-var fs             = require('fs'),
-    Path           = require('path'),
+var Path           = require('path'),
     url            = require('url'),
     format         = require('util').format,
     _drop          = require('lodash/array/drop'),
@@ -994,7 +993,7 @@ var util = module.exports = {
    * @returns {boolean}
    */
   isBrowser: function() {
-    return fs.readFile === undefined;
+    return !!process.browser;
   },
 
   /**
@@ -1225,7 +1224,7 @@ function makeError(Klass, err, message) {
 
 }).call(this,require('_process'))
 
-},{"_process":24,"debug":45,"fs":10,"lodash/array/drop":79,"lodash/lang/isArray":155,"lodash/lang/isFunction":157,"lodash/lang/isPlainObject":161,"lodash/object/keys":166,"path":23,"url":42,"util":44}],9:[function(require,module,exports){
+},{"_process":24,"debug":45,"lodash/array/drop":79,"lodash/lang/isArray":155,"lodash/lang/isFunction":157,"lodash/lang/isPlainObject":161,"lodash/object/keys":166,"path":23,"url":42,"util":44}],9:[function(require,module,exports){
 'use strict';
 
 module.exports = validate;
