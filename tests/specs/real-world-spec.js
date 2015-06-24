@@ -5,9 +5,10 @@ describe('Real-world tests', function() {
   'use strict';
 
   beforeEach(function() {
-    // Some of these APIs are REALLY big, so increase the timeout threshold.
-    this.currentTest.timeout(5000 * env.timeoutMultiplier);
-    this.currentTest.slow(3000 * env.timeoutMultiplier);
+    // Some of these APIs are REALLY big, so we need to allow a large enough timeout
+    // to allow for parsing and for garbage collection between each test.
+    this.currentTest.timeout(6000 * env.timeoutMultiplier);
+    this.currentTest.slow(5000 * env.timeoutMultiplier);
   });
 
   env.realWorldFiles.forEach(function(file, index) {
