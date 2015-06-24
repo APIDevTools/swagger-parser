@@ -18,6 +18,12 @@ var env = {
   isBrowser: isBrowser(),
 
   /**
+   * Are we running in Travis CI?
+   * If so, then we increase the test timeout thresholds, since Travis is SO. SLOW.
+   */
+  isTravisCI: isTravisCI(),
+
+  /**
    * Are we running on gh-pages?
    * If so, then we skip certain tests that don't play nice with GitHub's server.
    */
@@ -164,6 +170,14 @@ function isNode() {
  */
 function isBrowser() {
   return !isNode();
+}
+
+/**
+ * Checks for the Travis CI environment variable.
+ * @returns {boolean}
+ */
+function isTravisCI() {
+  return process.env.TRAVIS === 'true';
 }
 
 /**

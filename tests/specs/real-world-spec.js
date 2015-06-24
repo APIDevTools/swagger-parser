@@ -4,16 +4,26 @@ require('../files/real-world/file-list');
 describe('Real-world tests', function() {
   'use strict';
 
+  beforeEach(function() {
+    // Some of these APIs are REALLY big, so increase the timeout threshold.
+    var timeout = 4000;
+
+    // Increase the timeout thresholds when running on Travis CI,
+    // because Travis is SO. FREAKING. SLOW.
+    if (env.isTravisCI) {
+      timeout *= 2;
+    }
+
+    this.currentTest.timeout(timeout);
+    this.currentTest.slow(timeout);
+  });
+
   env.realWorldFiles.forEach(function(file, index) {
     it((index + 1) + ') ' + file,
       function(done) {
-        // Some of these APIs are REALLY big and take a few seconds to process.
-        this.timeout(4000);
-        this.slow(3000);
-
         if (env.isGitHub && file.indexOf('/adsense/') >= 0) {
-          // Skip this test when running on GitHub Pages.
-          // The gh-pages server attempts to serve the Google AdSense script instead of Swagger file.
+          // Skip Google AdSense tests when running on GitHub Pages.
+          // The gh-pages server mistakenly attempts to serve the AdSense script instead of Swagger file.
           done();
           return;
         }

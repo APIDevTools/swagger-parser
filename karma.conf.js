@@ -52,8 +52,8 @@ module.exports = function(config) {
 
   if (isTravisCI || isWindows) {
     cfg.exclude = [
-      // Travis-CI and IE both choke when trying to parse 100+ very large Swagger files,
-      // so skip those files when running on Travis or Windows
+      // Skip the 100+ Swagger Files when running IN A BROWSER on Travis or Windows because they both choke.
+      // NOTE: We DO still run these 100+ tests IN NODE on these platforms.  Just not in the browser.
       'tests/files/real-world/file-list.js'
     ];
   }
