@@ -1,20 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.swagger || (g.swagger = {})).parser = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
-
-module.exports.parse = require('./parse');
-module.exports.defaults = require('./defaults');
-
-/**
- * Exposing internal functions for testing purposes.
- * NOTE: These will be removed at some point, SO DON'T USE THEM!
- * @private
- */
-module.exports.__ = {
-  safeLoad: require('js-yaml').safeLoad,
-  cloneDeep: require('lodash/lang/cloneDeep')
-};
-
-},{"./defaults":2,"./parse":4,"js-yaml":48,"lodash/lang/cloneDeep":153}],2:[function(require,module,exports){
 /**
  * The default parsing options.
  * @name defaults
@@ -60,7 +44,7 @@ module.exports = {
   strictValidation: true
 };
 
-},{}],3:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 'use strict';
 
 module.exports = dereference;
@@ -160,7 +144,23 @@ function isCircularReference(resolved, parents, callback) {
   }
 }
 
-},{"./util":8,"lodash/array/last":80,"lodash/collection/contains":83}],4:[function(require,module,exports){
+},{"./util":8,"lodash/array/last":80,"lodash/collection/contains":83}],3:[function(require,module,exports){
+'use strict';
+
+module.exports.parse = require('./parse');
+module.exports.defaults = require('./defaults');
+
+/**
+ * Exposing internal functions for testing purposes.
+ * NOTE: These will be removed at some point, SO DON'T USE THEM!
+ * @private
+ */
+module.exports.__ = {
+  safeLoad: require('js-yaml').safeLoad,
+  cloneDeep: require('lodash/lang/cloneDeep')
+};
+
+},{"./defaults":1,"./parse":4,"js-yaml":48,"lodash/lang/cloneDeep":153}],4:[function(require,module,exports){
 'use strict';
 
 module.exports = parse;
@@ -335,7 +335,7 @@ function getMetadata(state) {
 }
 
 
-},{"./defaults":2,"./dereference":3,"./read":5,"./resolve":6,"./state":7,"./util":8,"./validate":9,"lodash/lang/cloneDeep":153,"lodash/lang/isEmpty":156,"lodash/lang/isFunction":157,"lodash/lang/isNumber":159,"lodash/lang/isString":162,"lodash/object/merge":168,"lodash/object/pick":170,"path":23}],5:[function(require,module,exports){
+},{"./defaults":1,"./dereference":2,"./read":5,"./resolve":6,"./state":7,"./util":8,"./validate":9,"lodash/lang/cloneDeep":153,"lodash/lang/isEmpty":156,"lodash/lang/isFunction":157,"lodash/lang/isNumber":159,"lodash/lang/isString":162,"lodash/object/merge":168,"lodash/object/pick":170,"path":23}],5:[function(require,module,exports){
 'use strict';
 
 module.exports = read;
@@ -3055,14 +3055,14 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 },{}],14:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
-  var e, m,
-      eLen = nBytes * 8 - mLen - 1,
-      eMax = (1 << eLen) - 1,
-      eBias = eMax >> 1,
-      nBits = -7,
-      i = isLE ? (nBytes - 1) : 0,
-      d = isLE ? -1 : 1,
-      s = buffer[offset + i]
+  var e, m
+  var eLen = nBytes * 8 - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var nBits = -7
+  var i = isLE ? (nBytes - 1) : 0
+  var d = isLE ? -1 : 1
+  var s = buffer[offset + i]
 
   i += d
 
@@ -3088,14 +3088,14 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
 }
 
 exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
-  var e, m, c,
-      eLen = nBytes * 8 - mLen - 1,
-      eMax = (1 << eLen) - 1,
-      eBias = eMax >> 1,
-      rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0),
-      i = isLE ? 0 : (nBytes - 1),
-      d = isLE ? 1 : -1,
-      s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
+  var e, m, c
+  var eLen = nBytes * 8 - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
+  var i = isLE ? 0 : (nBytes - 1)
+  var d = isLE ? 1 : -1
+  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
 
   value = Math.abs(value)
 
@@ -24299,7 +24299,7 @@ function recursiveCompare(A, B) {
 	if (A === B) {
 		return true;
 	}
-	if (typeof A === "object" && typeof B === "object") {
+	if (A && B && typeof A === "object" && typeof B === "object") {
 		if (Array.isArray(A) !== Array.isArray(B)) {
 			return false;
 		} else if (Array.isArray(A)) {
@@ -25239,7 +25239,7 @@ tv4.tv4 = tv4;
 return tv4; // used by _header.js to globalise.
 
 }));
-},{}]},{},[1])(1)
+},{}]},{},[3])(3)
 });
 
 
