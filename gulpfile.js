@@ -4,6 +4,8 @@ var gulp       = require('gulp'),
     sourcemaps = require('gulp-sourcemaps'),
     rename     = require('gulp-rename'),
     uglify     = require('gulp-uglify'),
+    fs         = require('fs'),
+    path       = require('path'),
     source     = require('vinyl-source-stream'),
     buffer     = require('vinyl-buffer'),
     browserify = require('browserify');
@@ -11,6 +13,7 @@ var gulp       = require('gulp'),
 // Top-level tasks
 gulp.task('default', ['build']);
 gulp.task('build', ['browserify', 'uglify']);
+gulp.task('update-tests', ['copy-test-deps']);
 
 /**
  * Builds the following files:
@@ -52,3 +55,20 @@ function getBrowserifyStream() {
     .pipe(buffer())
     .pipe(sourcemaps.init({loadMaps: true}));
 }
+
+/**
+ * Copies unit test dependencies (mocha, chai, sinon) from node_modules to tests/lib.
+ */
+gulp.task('copy-test-deps', function() {
+  var files = [
+    'node_modules/mocha/mocha.css',
+    'node_modules/mocha/mocha.js',
+    'node_modules/chai/chai.js',
+    'node_modules/sinon/pkg/sinon.js'
+  ];
+
+  files.forEach(function(file) {
+    var dest = path.join('tests', 'lib', path.basename(file));
+    fs.createReadStream(file).pipe(fs.createWriteStream(dest));
+  });
+});

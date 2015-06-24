@@ -22,13 +22,13 @@ Features
 --------------------------
 * Parses Swagger specs in __JSON or YAML__ format
 * __Validates__ against the [official Swagger 2.0 schema](http://github.com/reverb/swagger-spec/blob/master/versions/2.0.md)
-* Dereferences all __$ref__ pointers, including pointers to __external files and URLs__
+* __Dereferences__ all `$ref` pointers, including pointers to __external files and URLs__
 * Asynchronously downloads and __caches__ external files and URLs
-* __Tested__ in Node.js and all major web browsers on Windows, Mac, and Linux
-* Tested on [over 100 Google APIs](https://github.com/APIs-guru/api-models/tree/master/google)
-* Supports nested $ref pointers, even in external files and URLs
-* Supports circular $ref pointers (see [notes](#circular-refs) below)
-* Multiple $ref pointers to the same object are resolved to the [same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124)
+* __[Tested](http://bigstickcarpet.com/swagger-parser/tests/index.html)__ in Node.js and all major web browsers on Windows, Mac, and Linux
+* Tested on __[over 100 Google APIs](https://github.com/APIs-guru/api-models/tree/master/google)__
+* Supports nested `$ref` pointers, even in external files and URLs
+* Supports circular `$ref` pointers (see [notes](#circular-refs) below)
+* Multiple `$ref` pointers to the same object are resolved to the [same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124)
 
 
 Installation and Use
