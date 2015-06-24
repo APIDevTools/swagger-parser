@@ -57,7 +57,7 @@ function getBrowserifyStream() {
 }
 
 /**
- * Copies unit test dependencies (mocha, chai, sinon) from node_modules to tests/lib.
+ * Copies unit test dependencies (mocha, chai, sinon) from node_modules to www/js.
  */
 gulp.task('copy-test-deps', function() {
   var files = [
@@ -68,7 +68,7 @@ gulp.task('copy-test-deps', function() {
   ];
 
   files.forEach(function(file) {
-    var dest = path.join('tests', 'lib', path.basename(file));
+    var dest = path.join('www', 'js', path.basename(file));
     fs.createReadStream(file).pipe(fs.createWriteStream(dest));
   });
 });
