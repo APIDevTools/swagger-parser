@@ -6,7 +6,7 @@ describe('Real-world tests', function() {
 
   beforeEach(function() {
     // Some of these APIs are REALLY big, so increase the timeout threshold.
-    this.currentTest.timeout(4000 * env.timeoutMultiplier);
+    this.currentTest.timeout(5000 * env.timeoutMultiplier);
     this.currentTest.slow(3000 * env.timeoutMultiplier);
   });
 
