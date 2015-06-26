@@ -27,8 +27,8 @@
   "scripts": {
     "build": "npm run lint && gulp build",
     "lint": "jshint . --verbose && jscs . --verbose",
-    "test": "istanbul cover _mocha -- --recursive tests && npm run karma",
-    "mocha": "mocha --recursive tests",
+    "test": "istanbul cover _mocha -- --bail --recursive tests && npm run karma",
+    "mocha": "mocha --bail --recursive tests",
     "karma": "karma start --single-run",
     "upgrade": "npm-check-updates -u && npm update && gulp update-tests",
     "release": "npm run upgrade && npm run build && npm test && bump --prompt --tag --push --all && npm publish"
@@ -54,7 +54,7 @@
     "karma-phantomjs-launcher": "^0.2.0",
     "karma-safari-launcher": "^0.1.1",
     "karma-sinon": "^1.0.4",
-    "istanbul": "^0.3.15",
+    "istanbul": "^0.3.16",
     "coveralls": "^2.11.2",
     "mocha": "^2.2.5",
     "chai": "^3.0.0",

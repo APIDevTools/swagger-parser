@@ -16,6 +16,18 @@ describe('Dereferencing tests', function() {
       }
     );
 
+    it('should not dereference shorthand pointers if "dereferenceInternal$Refs" is false',
+      function(done) {
+        env.parser.parse(env.getPath('good/shorthand-refs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
+          if (err) {
+            return done(err);
+          }
+          expect(api).to.deep.equal(env.resolved.shorthandRefs);
+          done();
+        });
+      }
+    );
+
     it('should dereference shorthand "definition" references',
       function(done) {
         env.parser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api) {
@@ -36,6 +48,27 @@ describe('Dereferencing tests', function() {
             return done(err);
           }
           expect(api).to.deep.equal(env.resolved.externalRefs);
+          done();
+        });
+      }
+    );
+
+    it('should dereference external pointers if "dereferenceInternal$Refs" is false',
+      function(done) {
+        env.parser.parse(env.getPath('good/external-refs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
+          if (err) {
+            return done(err);
+          }
+
+          if (env.isBrowser) {
+            // Browsers differ in how they convert binary data to strings,
+            // so we can't compare the exact data for the external image file
+            var imageSchema = api.paths['/pets'].post.responses[500].schema;
+            expect(imageSchema.example).to.be.a('string').and.not.empty;
+            imageSchema.example = '';
+          }
+
+          expect(api).to.deep.equal(env.dereferenced.externalRefs);
           done();
         });
       }
@@ -86,6 +119,18 @@ describe('Dereferencing tests', function() {
       }
     );
 
+    it('should only dereference external references if "dereferenceInternal$Refs" is false',
+      function(done) {
+        env.parser.parse(env.getPath('good/refs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
+          if (err) {
+            return done(err);
+          }
+          expect(api).to.deep.equal(env.dereferenced.external.refs);
+          done();
+        });
+      }
+    );
+
     it('should dereference nested references',
       function(done) {
         env.parser.parse(env.getPath('good/nested-refs.yaml'), function(err, api) {
@@ -105,6 +150,18 @@ describe('Dereferencing tests', function() {
             return done(err);
           }
           expect(api).to.deep.equal(env.dereferenced.externalBackRefs);
+          done();
+        });
+      }
+    );
+
+    it('should not dereference internal references in external files if "dereferenceInternal$Refs" is false',
+      function(done) {
+        env.parser.parse(env.getPath('good/external-backrefs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
+          if (err) {
+            return done(err);
+          }
+          expect(api).to.deep.equal(env.dereferenced.external.externalBackRefs);
           done();
         });
       }

@@ -58,7 +58,9 @@ var env = {
   /**
    * Resolved and dereferenced API objects.
    */
-  dereferenced: {},
+  dereferenced: {
+    external: {}
+  },
 
   /**
    * The list of real-world Swagger API files (see /tests/files/real-world)

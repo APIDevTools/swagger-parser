@@ -27,6 +27,7 @@ module.exports = function(config) {
       'tests/files/good/image-resolved.js',
       'tests/files/**/*-resolved.js',
       'tests/files/**/*-dereferenced.js',
+      'tests/files/**/*-dereferenced-external.js',
       {pattern: 'tests/files/**', included: false},
 
       // Unit tests

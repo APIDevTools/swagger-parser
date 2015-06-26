@@ -100,14 +100,15 @@ An object containing one or more parsing options. See [options](#options) below.
 Called after the parsing is finished, or when an error occurs.  See [callback](#callback) below for details.
 
 #### Options
-|Property               |Type        |Default       |Description
-|:----------------------|:-----------|:-------------|:----------
-|`parseYaml`            |bool        |true          |Determines whether the parser will allow Swagger specs in YAML format.  If set to `false`, then only JSON will be allowed.
-|`dereference$Refs`     |bool        |true          |Determines whether `$ref` pointers in the Swagger API will be replaced with their resolved values.  Different `$ref` pointers that resolve to the same object will be replaced with [the same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124).  Setting this option to `false` will leave the `$ref` pointers in the Swagger API, but you can still access the resolved values using the [metadata object](#metadata).
-|`resolve$Refs`         |bool        |true          |Determines whether `$ref` pointers will be resolved.  Setting this option to `false` effectively disables `dereference$Refs` as well. The difference is that the [metadata object](#metadata) won't be populated either.
-|`resolveExternal$Refs` |bool        |true          |Determines whether `$ref` pointers will be resolved if they point to external files or URLs.  Internal `$ref` pointers will still be resolved and dereferenced.
-|`validateSchema`       |bool        |true          |Determines whether your API will be validated against the official Swagger schema.  If set to `false`, then the resulting [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object) may be missing properties, have properties of the wrong data type, etc.
-|`strictValidation`     |bool        |true          |Determines whether to perform strict validation, which enforces parts of the Swagger Spec that aren't enforced by the JSON schema.  For example, duplicate parameters, invalid parameter types, etc.
+|Property                       |Type        |Default       |Description
+|:------------------------------|:-----------|:-------------|:----------
+|`parseYaml`                    |bool        |true          |Enables/disables support for Swagger specs in YAML format.  If set to `false`, then only JSON will be allowed.
+|`dereference$Refs`             |bool        |true          |Replaces `$ref` pointers in the Swagger object with their resolved values, resulting in a POJO (Plain-Old JavaScript Object) that is much easier to work with. Different `$ref` pointers that resolve to the same object will be replaced with [the same object instance](https://github.com/BigstickCarpet/swagger-parser/blob/c5c2f0033af992fa11f0f41ded3567ce7e9517a2/tests/specs/dereference-spec.js#L124).  <p>Setting this option to `false` will leave the `$ref` pointers in the Swagger API, but you can still access the resolved values using the [metadata object](#metadata).
+|`dereferenceInternal$Refs`     |bool        |true          |If disabled, then only _external_ `$ref` pointers will be dereferenced. This can be used to easily bundle a multi-file Swagger API into a single file, without affecting internal `$ref` pointers.
+|`resolve$Refs`                 |bool        |true          |If disabled, then `$ref` pointers will not be resolved or dereferenced. This effectively disables `dereference$Refs` as well. The difference is that the [metadata object](#metadata) won't be populated either.
+|`resolveExternal$Refs`         |bool        |true          |If disabled, then only _internal_ `$ref` pointers will be resolved.  Any `$ref` pointers to external files or URLs will be ignored.
+|`validateSchema`               |bool        |true          |Validates the API against the official Swagger schema.  If set to `false`, then the resulting [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object) may be missing properties, have properties of the wrong data type, etc.
+|`strictValidation`             |bool        |true          |Performs additional validation to ensure that the API is valid according to the [Swagger Spec](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md).  This will detect things like duplicate parameters, invalid parameter types, etc. that aren't covered by the `validateSchema` option.
 
 #### Callback
 |Parameter  |Type                |Description
