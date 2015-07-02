@@ -1,5 +1,5 @@
 /**
- * Sinon.JS 1.15.3, 2015/06/11
+ * Sinon.JS 1.15.4, 2015/06/27
  *
  * @author Christian Johansen (christian@cjohansen.no)
  * @author Contributors: https://github.com/cjohansen/Sinon.JS/blob/master/AUTHORS
@@ -3312,9 +3312,9 @@ var sinon = (function () {
         var match = sinon.match;
 
         function mock(object) {
-            if (typeof console !== undefined && console.warn) {
-                console.warn("mock will be removed from Sinon.JS v2.0");
-            }
+            // if (typeof console !== undefined && console.warn) {
+            //     console.warn("mock will be removed from Sinon.JS v2.0");
+            // }
 
             if (!object) {
                 return sinon.expectation.create("Anonymous mock");
