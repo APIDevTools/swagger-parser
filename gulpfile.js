@@ -45,7 +45,7 @@ gulp.task('uglify', function() {
 function getBrowserifyStream() {
   var bundle = browserify({
     entries: ['./lib/index.js'],
-    standalone: 'swagger.parser',
+    standalone: 'SwaggerParser',
     debug: true
   }).bundle();
 

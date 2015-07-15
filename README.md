@@ -62,7 +62,7 @@ Then add this to your HTML page:
 ```html
 <script src="bower_components/swagger-parser/dist/swagger-parser.js"></script>
 <script>
-  swagger.parser.parse('http://mysite.com/swagger.yaml', function(err, api, metadata) {
+  SwaggerParser.parse('http://mysite.com/swagger.yaml', function(err, api, metadata) {
     if (!err) {
       console.log("API name: " + api.info.title + ", Version: " + api.info.version);
     }

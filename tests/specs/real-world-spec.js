@@ -21,7 +21,7 @@ describe('Real-world tests', function() {
           return;
         }
 
-        env.parser.parse(env.getPath('real-world/' + file), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('real-world/' + file), function(err, api, parser) {
           if (err) {
             expect(err).to.be.an.instanceOf(ReferenceError);
             expect(err.message).to.contain('circular reference(s) detected')
@@ -31,7 +31,7 @@ describe('Real-world tests', function() {
           expect(api.swagger).to.be.a('string').and.not.empty;
           expect(api.info).to.be.an('object').and.not.empty;
           expect(api.paths).to.be.an('object');                   // <-- api.paths can be empty
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }

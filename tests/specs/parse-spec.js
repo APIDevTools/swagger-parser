@@ -1,17 +1,17 @@
 require('../test-environment.js');
 
-describe('env.parser.parse tests', function() {
+describe('SwaggerParser.parse tests', function() {
   'use strict';
 
   describe('Success tests', function() {
     it('should parse a YAML file',
       function(done) {
-        env.parser.parse(env.getPath('good/minimal.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('good/minimal.yaml'), function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.resolved.minimal);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -19,12 +19,12 @@ describe('env.parser.parse tests', function() {
 
     it('should parse a JSON file',
       function(done) {
-        env.parser.parse(env.getPath('good/minimal.json'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('good/minimal.json'), function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.resolved.minimal);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -44,12 +44,12 @@ describe('env.parser.parse tests', function() {
           swaggerFilePath = '__({[ ! % & $ # @ ` ~ ,)}]__/__({[ ! % & $ # @ ` ~ ,)}]__-web.yaml';
         }
 
-        env.parser.parse(env.getPath(swaggerFilePath), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath(swaggerFilePath), function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.dereferenced.specialCharacters);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -58,12 +58,12 @@ describe('env.parser.parse tests', function() {
     it('can be called with a String object',
       function(done) {
         //noinspection JSPrimitiveTypeWrapperUsage
-        env.parser.parse(new String(env.getPath('good/minimal.yaml')), function(err, api, metadata) {
+        SwaggerParser.parse(new String(env.getPath('good/minimal.yaml')), function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.resolved.minimal);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -71,12 +71,12 @@ describe('env.parser.parse tests', function() {
 
     it('can be called with an already-parsed object (without references)',
       function(done) {
-        env.parser.parse(env.dereferenced.petStore, function(err, api, metadata) {
+        SwaggerParser.parse(env.dereferenced.petStore, function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.dereferenced.petStore);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -84,12 +84,12 @@ describe('env.parser.parse tests', function() {
 
     it('can be called with an already-parsed object (with references)',
       function(done) {
-        env.parser.parse(env.resolved.nestedRefs, function(err, api, metadata) {
+        SwaggerParser.parse(env.resolved.nestedRefs, function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.dereferenced.nestedRefs);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -97,12 +97,12 @@ describe('env.parser.parse tests', function() {
 
     it('can be called with an already-dereferenced object',
       function(done) {
-        env.parser.parse(env.dereferenced.refs, function(err, api, metadata) {
+        SwaggerParser.parse(env.dereferenced.refs, function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.dereferenced.refs);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -112,34 +112,34 @@ describe('env.parser.parse tests', function() {
       function(done) {
         var counter = 0;
 
-        env.parser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.dereferenced.shorthandRefs);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           if (++counter === 3) {
             done();
           }
         });
 
-        env.parser.parse(env.getPath('good/minimal.json'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('good/minimal.json'), function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.resolved.minimal);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           if (++counter === 3) {
             done();
           }
         });
 
-        env.parser.parse(env.getPath('good/nested-refs.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('good/nested-refs.yaml'), function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.dereferenced.nestedRefs);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           if (++counter === 3) {
             done();
           }
@@ -152,54 +152,54 @@ describe('env.parser.parse tests', function() {
   describe('Failure tests', function() {
     it('should throw an error if called with no params',
       function() {
-        expect(env.call(env.parser.parse)).to.throw(/Expected a Swagger file or object/);
+        expect(env.call(SwaggerParser.parse)).to.throw(/A callback function must be provided/);
       }
     );
 
     it('should throw an error if called with only a file path',
       function() {
-        expect(env.call(env.parser.parse, 'foo')).to.throw(/A callback function must be provided/);
+        expect(env.call(SwaggerParser.parse, 'foo')).to.throw(/A callback function must be provided/);
       }
     );
 
     it('should throw an error if called with only an object',
       function() {
-        expect(env.call(env.parser.parse, env.resolved.minimal)).to.throw(/A callback function must be provided/);
+        expect(env.call(SwaggerParser.parse, env.resolved.minimal)).to.throw(/A callback function must be provided/);
       }
     );
 
     it('should throw an error if called with only a callback',
       function() {
-        expect(env.call(env.parser.parse, env.noop)).to.throw(/Expected a Swagger file or object/);
+        expect(env.call(SwaggerParser.parse, env.noop)).to.throw(/A callback function must be provided/);
       }
     );
 
     it('should throw an error if called with only a file path and an options object',
       function() {
-        expect(env.call(env.parser.parse, 'foo', {parseYaml: true})).to.throw(/A callback function must be provided/);
+        expect(env.call(SwaggerParser.parse, 'foo', {parseYaml: true})).to.throw(/A callback function must be provided/);
       }
     );
 
     it('should throw an error if the filename is blank',
       function() {
-        expect(env.call(env.parser.parse, '')).to.throw(/Expected a Swagger file or object/);
+        expect(env.call(SwaggerParser.parse, '')).to.throw(/A callback function must be provided/);
       }
     );
 
     it('should throw an error if the filename is a blank String object',
       function() {
         //noinspection JSPrimitiveTypeWrapperUsage
-        expect(env.call(env.parser.parse, new String())).to.throw(/Expected a Swagger file or object/);
+        expect(env.call(SwaggerParser.parse, new String())).to.throw(/A callback function must be provided/);
       }
     );
 
     it('should return an error if called with only an options object and a callback',
       function(done) {
-        env.parser.parse({parseYaml: true}, function(err, api, metadata) {
+        SwaggerParser.parse({parseYaml: true}, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.contain('The object is not a valid Swagger API definition');
-          expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(err.message).to.contain('[object Object] is not a Swagger API, or is malformed');
+          expect(api).to.deep.equal({parseYaml: true});
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -207,11 +207,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if an invalid file is given',
       function(done) {
-        env.parser.parse(env.getPath('good/nonexistent-file.json'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('good/nonexistent-file.json'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(Error);
           expect(err.message).to.match(/Error opening file|Error downloading file/);
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -219,11 +219,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if an invalid URL is given',
       function(done) {
-        env.parser.parse('http://nonexistent-server.com/nonexistent-file.json', function(err, api, metadata) {
+        SwaggerParser.parse('http://nonexistent-server.com/nonexistent-file.json', function(err, api, parser) {
           expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.match(/Error downloading file|Error parsing file|The object is not a valid Swagger API definition/);
+          expect(err.message).to.match(/Error downloading file|Error parsing file|nonexistent-file.json is not a Swagger API/);
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -231,11 +231,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if an already-parsed object contains external refs that cannot be resolved',
       function(done) {
-        env.parser.parse(env.resolved.refs, function(err, api, metadata) {
+        SwaggerParser.parse(env.resolved.refs, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.match(/Error opening file|Error downloading file/);
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -243,11 +243,23 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if a YAML file is given and YAML is disabled',
       function(done) {
-        env.parser.parse(env.getPath('good/minimal.yaml'), {parseYaml: false}, function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('good/minimal.yaml'), {parseYaml: false}, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('Error parsing file');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
+          done();
+        });
+      }
+    );
+
+    it('should return an error if a JSON file is given and JSON is disabled',
+      function(done) {
+        SwaggerParser.parse(env.getPath('good/minimal.json'), {parse: false}, function(err, api, parser) {
+          expect(err).to.be.an.instanceOf(SyntaxError);
+          expect(err.message).to.contain('Error parsing file');
+          expect(api).to.be.null;
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -255,11 +267,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if the file is blank (YAML parser)',
       function(done) {
-        env.parser.parse(env.getPath('bad/blank.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/blank.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.match(/Parsed value is empty|HTTP 204: No Content/);
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -267,11 +279,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if the file is blank (JSON parser)',
       function(done) {
-        env.parser.parse(env.getPath('bad/blank.yaml'), {parseYaml: false}, function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/blank.yaml'), {parseYaml: false}, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
-          expect(err.message).to.match(/Unexpected end of input|HTTP 204: No Content/);
+          expect(err.message).to.match(/Error parsing file|HTTP 204: No Content/);
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -279,11 +291,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if the Swagger version is too old',
       function(done) {
-        env.parser.parse(env.getPath('bad/old-version.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/old-version.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('Unsupported Swagger version: 1.2');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -291,11 +303,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if the Swagger version is too new',
       function(done) {
-        env.parser.parse(env.getPath('bad/newer-version.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/newer-version.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('Unsupported Swagger version: 3');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -303,11 +315,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if the Swagger version is a number',
       function(done) {
-        env.parser.parse(env.getPath('bad/numeric-version.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/numeric-version.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('Swagger version number must be a string (e.g. "2.0") not a number');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -315,11 +327,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if the API version is a number',
       function(done) {
-        env.parser.parse(env.getPath('bad/numeric-info-version.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/numeric-info-version.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('API version number must be a string (e.g. "1.0.0") not a number');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -327,11 +339,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if a YAML file is malformed',
       function(done) {
-        env.parser.parse(env.getPath('bad/malformed.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/malformed.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('Error parsing file');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -339,11 +351,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if a JSON file is malformed',
       function(done) {
-        env.parser.parse(env.getPath('bad/malformed.json'), {parseYaml: false}, function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/malformed.json'), {parseYaml: false}, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('Error parsing file');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -351,11 +363,11 @@ describe('env.parser.parse tests', function() {
 
     it('should return an error if an external reference uses an invalid host',
       function(done) {
-        env.parser.parse(env.getPath('bad/invalid-external-host.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/invalid-external-host.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(Error);
           expect(err.message).to.match(/Error downloading file|URI malformed|malformed URI|URI error|URIError/);
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -377,12 +389,12 @@ describe('env.parser.parse tests', function() {
         function(done) {
           mockHttpResponse(200, 'type: object');
 
-          env.parser.parse(env.getPath('good/mock-url.yaml'), function(err, api, metadata) {
+          SwaggerParser.parse(env.getPath('good/mock-url.yaml'), function(err, api, parser) {
             if (err) {
               return done(err);
             }
             expect(api).to.deep.equal(env.dereferenced.mockUrl);
-            expect(metadata).to.satisfy(env.isMetadata);
+            expect(parser).to.be.an.instanceOf(SwaggerParser);
             done();
           });
         }
@@ -392,11 +404,11 @@ describe('env.parser.parse tests', function() {
         function(done) {
           mockHttpResponse(204);
 
-          env.parser.parse(MOCK_URL, function(err, api, metadata) {
+          SwaggerParser.parse(MOCK_URL, function(err, api, parser) {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.message).to.contain('HTTP 204: No Content');
             expect(api).to.be.null;
-            expect(metadata).to.satisfy(env.isMetadata);
+            expect(parser).to.be.an.instanceOf(SwaggerParser);
             done();
           });
         }
@@ -406,11 +418,11 @@ describe('env.parser.parse tests', function() {
         function(done) {
           mockHttpResponse(404);
 
-          env.parser.parse(MOCK_URL, function(err, api, metadata) {
+          SwaggerParser.parse(MOCK_URL, function(err, api, parser) {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.message).to.contain('HTTP ERROR 404');
             expect(api).to.be.null;
-            expect(metadata).to.satisfy(env.isMetadata);
+            expect(parser).to.be.an.instanceOf(SwaggerParser);
             done();
           });
         }
@@ -420,11 +432,11 @@ describe('env.parser.parse tests', function() {
         function(done) {
           mockHttpResponse(500);
 
-          env.parser.parse(MOCK_URL, function(err, api, metadata) {
+          SwaggerParser.parse(MOCK_URL, function(err, api, parser) {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.message).to.contain('HTTP ERROR 500');
             expect(api).to.be.null;
-            expect(metadata).to.satisfy(env.isMetadata);
+            expect(parser).to.be.an.instanceOf(SwaggerParser);
             done();
           });
         }
@@ -434,11 +446,11 @@ describe('env.parser.parse tests', function() {
         function(done) {
           mockHttpResponse(200, ':');
 
-          env.parser.parse(MOCK_URL, function(err, api, metadata) {
+          SwaggerParser.parse(MOCK_URL, function(err, api, parser) {
             expect(err).to.be.an.instanceOf(SyntaxError);
             expect(err.message).to.contain('Error parsing file');
             expect(api).to.be.null;
-            expect(metadata).to.satisfy(env.isMetadata);
+            expect(parser).to.be.an.instanceOf(SwaggerParser);
             done();
           });
         }

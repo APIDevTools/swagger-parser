@@ -1,912 +1,152 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.swagger || (g.swagger = {})).parser = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/**
- * The default parsing options.
- * @name defaults
- * @type {{parseYaml: boolean, resolve$Refs: boolean, resolveExternal$Refs: boolean, validateSchema: boolean}}
- */
-module.exports = {
-  /**
-   * Determines whether the parser will allow Swagger specs in YAML format.
-   * If set to `false`, then only JSON will be allowed.
-   * @type {boolean}
-   */
-  parseYaml: true,
-
-  /**
-   * Determines whether `$ref` pointers will be resolved.
-   * @type {boolean}
-   */
-  resolve$Refs: true,
-
-  /**
-   * Determines whether `$ref` pointers will be resolved if they point to external files or URLs.
-   * @type {boolean}
-   */
-  resolveExternal$Refs: true,
-
-  /**
-   * Determines whether `$ref` pointers in the Swagger API object will be replaced with their resolved objects.
-   * @type {boolean}
-   */
-  dereference$Refs: true,
-
-  /**
-   * Determines whether internal `$ref` pointers (those that do not point to external files or URLs)
-   * in the Swagger API object will be replaced with their resolved objects.
-   * @type {boolean}
-   */
-  dereferenceInternal$Refs: true,
-
-  /**
-   * Determines whether the API will be validated against the Swagger schema.
-   * @type {boolean}
-   */
-  validateSchema: true,
-
-  /**
-   * Determines whether to perform strict validation, which enforces parts of the Swagger Spec
-   * that aren't enforced by the JSON schema.
-   * @type {boolean}
-   */
-  strictValidation: true
-};
-
-},{}],2:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.SwaggerParser = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
-module.exports = dereference;
+var Options     = require('./options'),
+    $RefParser  = require('json-schema-ref-parser'),
+    validate    = require('./validate'),
+    util        = require('./util'),
+    _isFunction = require('lodash/lang/isFunction'),
+    _isNumber   = require('lodash/lang/isNumber');
 
-var util      = require('./util'),
-    _last     = require('lodash/array/last'),
-    _contains = require('lodash/collection/contains');
+module.exports = SwaggerParser;
 
 /**
- * Dereferences the given Swagger API, replacing "$ref" pointers
- * with their corresponding object references.
- *
- * @param   {SwaggerObject} api             The Swagger API to dereference
- * @param   {State}         state           The state for the current parse operation
- * @param   {function}      callback
+ * @constructor
+ * @extends $RefParser
  */
-function dereference(api, state, callback) {
-  if (!state.options.dereference$Refs || !state.options.resolve$Refs) {
-    // Dereferencing/Resolving is disabled, so just return the API as-is
-    util.doCallback(callback, null, api);
-    return;
-  }
-
-  var circularRefs = 0;
-
-  // Replace all $ref pointers with their resolved values
-  util.crawlObject(api, finished,
-    function(parents, propName, propPath, continueCrawling) {
-      var parent = _last(parents);
-      var $ref = parent[propName].$ref;
-
-      if ($ref) {
-        if (state.options.dereferenceInternal$Refs || util.isExternal$Ref($ref)) {
-          // We found a $ref pointer.  Do we have a corresponding resolved value?
-          var resolved = state.$refs[$ref];
-
-          if (resolved) {
-            // We have a resolved value.  But is it a circular reference?
-            isCircularReference(resolved, parents, function(isCircular) {
-              if (isCircular) {
-                // It's a circular reference, so don't dereference it.
-                circularRefs++;
-                util.debug('Circular reference detected at %s', propPath);
-              }
-              else {
-                // Replace the $ref pointer with its resolved value
-                parent[propName] = resolved;
-              }
-
-              // NOTE: This will also crawl the resolved value that we just added
-              // and replace any nested $ref pointers in it too.
-              util.doCallback(continueCrawling);
-            });
-          }
-          else {
-            util.doCallback(continueCrawling);
-          }
-        }
-        else {
-          util.doCallback(continueCrawling);
-        }
-      }
-      else {
-        util.doCallback(continueCrawling);
-      }
-    }
-  );
-
-  // Done!
-  function finished(err) {
-    if (!err && circularRefs) {
-      err = new ReferenceError(circularRefs + ' circular reference(s) detected');
-    }
-
-    util.doCallback(callback, err, api);
-  }
+function SwaggerParser() {
+  $RefParser.apply(this, arguments);
 }
 
+util.inherits(SwaggerParser, $RefParser);
+
 /**
- * Determines whether a resolved $ref value is a circular reference.
- *
- * @param   {object}    resolved    The resolved value of a $ref pointer
- * @param   {object[]}  parents     An array of resolved parent objects
- * @param   {function}  callback    Called with a boolean parameter
+ * Alias {@link $RefParser#schema} as {@link SwaggerParser#api}
  */
-function isCircularReference(resolved, parents, callback) {
-  var isCircular = false;
-
-  // Determine if the resolved value contains any of its parents
-  util.crawlObject(resolved, done,
-    function(props, propName, propPath, continueCrawling) {
-      var prop = _last(props)[propName];
-      isCircular = _contains(parents, prop);
-
-      // Continue crawling the resolved object, unless we found a circular reference
-      continueCrawling(isCircular);
-    }
-  );
-
-  function done() {
-    callback(isCircular);
+Object.defineProperty(SwaggerParser.prototype, 'api', {
+  enumerable: true,
+  get: function() {
+    return this.schema;
   }
-}
+});
 
-},{"./util":8,"lodash/array/last":81,"lodash/collection/contains":84}],3:[function(require,module,exports){
-'use strict';
-
-module.exports.parse = require('./parse');
-module.exports.defaults = require('./defaults');
-
-/**
- * Exposing internal functions for testing purposes.
- * NOTE: These will be removed at some point, SO DON'T USE THEM!
- * @private
- */
-module.exports.__ = {
-  safeLoad: require('js-yaml').safeLoad,
-  cloneDeep: require('lodash/lang/cloneDeep')
+SwaggerParser.parse = function(api, options, callback) {
+  return new SwaggerParser().parse(api, options, callback);
 };
 
-},{"./defaults":1,"./parse":4,"js-yaml":49,"lodash/lang/cloneDeep":154}],4:[function(require,module,exports){
-'use strict';
+SwaggerParser.prototype.parse = function(api, options, callback) {
+  var me = this;
 
-module.exports = parse;
+  return $RefParser.prototype.parse.call(this, api, options)
+    .then(function(api) {
+      var supportedSwaggerVersions = ['2.0'];
 
-var Path                     = require('path'),
-    read                     = require('./read'),
-    resolve                  = require('./resolve'),
-    dereference              = require('./dereference'),
-    validate                 = require('./validate'),
-    defaults                 = require('./defaults'),
-    State                    = require('./state'),
-    util                     = require('./util'),
-    _merge                   = require('lodash/object/merge'),
-    _pick                    = require('lodash/object/pick'),
-    _cloneDeep               = require('lodash/lang/cloneDeep'),
-    _isEmpty                 = require('lodash/lang/isEmpty'),
-    _isString                = require('lodash/lang/isString'),
-    _isNumber                = require('lodash/lang/isNumber'),
-    _isFunction              = require('lodash/lang/isFunction'),
-    supportedSwaggerVersions = ['2.0'];
+      // Verify that the parsed object is a Swagger API
+      if (api.swagger === undefined || api.info === undefined || api.paths === undefined) {
+        throw util.newError(SyntaxError, 'The object is not a valid Swagger API definition');
+      }
+      else if (_isNumber(api.swagger)) {
+        // This is a very common mistake, so give a helpful error message
+        throw util.newError(SyntaxError, 'Swagger version number must be a string (e.g. "2.0") not a number.');
+      }
+      else if (_isNumber(api.info.version)) {
+        // This is a very common mistake, so give a helpful error message
+        throw util.newError(SyntaxError, 'API version number must be a string (e.g. "1.0.0") not a number.');
+      }
+      else if (supportedSwaggerVersions.indexOf(api.swagger) === -1) {
+        throw util.newError(SyntaxError,
+          'Unsupported Swagger version: %d. Swagger-Parser only supports version %s',
+          api.swagger, supportedSwaggerVersions.join(', '));
+      }
 
-/**
- * Parses the given Swagger file, validates it, and dereferences "$ref" pointers.
- *
- * @param {string|SwaggerObject} swagger
- * The file path or URL of a YAML or JSON Swagger file.
- * Or an already-parsed Swagger API object, which will still be dereferenced and validated.
- *
- * @param {defaults} options
- * Options to enable/disable certain features. This object will be merged with the {@link defaults} object.
- *
- * @param {function} callback
- * The callback function that will be passed the parsed SwaggerObject
- */
-function parse(swagger, options, callback) {
-  // Shift args if necessary
+      // Looks good!
+      util.doCallback(callback, null, api);
+      return api;
+    })
+    .catch(function(err) {
+      util.doCallback(callback, err, me.schema);
+      return Promise.reject(err);
+    });
+};
+
+SwaggerParser.resolve = function(api, options, callback) {
+  return new SwaggerParser().resolve(api, options, callback);
+};
+
+SwaggerParser.dereference = function(api, options, callback) {
+  return new SwaggerParser().dereference(api, options, callback);
+};
+
+SwaggerParser.validate = function(api, options, callback) {
+  return new SwaggerParser().validate(api, options, callback);
+};
+
+SwaggerParser.prototype.validate = function(api, options, callback) {
   if (_isFunction(options)) {
     callback = options;
     options = undefined;
   }
 
-  if (_isEmpty(swagger)) {
-    throw new Error('Expected a Swagger file or object');
-  }
+  options = new Options(options);
+  var me = this;
 
-  if (!_isFunction(callback)) {
-    throw new Error('A callback function must be provided');
-  }
-
-  // Create a new state object for this parse operation
-  var state = new State();
-  state.options = _merge({}, defaults, options);
-
-  var circular$RefError = null;
-
-  // Parse, dereference, and validate
-  parseSwaggerFile(swagger, state, function(err, api) {
-    errBack(err) ||
-    resolve(api, state, function(err, api) {
-      errBack(err) ||
-      dereference(api, state, function(err, api) {
-        errBack(err) ||
-        validate(api, state, function(err, api) {
-          errBack(err) ||
-          finished(api, state);
-        });
-      });
+  return this.dereference(api, options)
+    .then(function() {
+      validate(me, options);
+      util.doCallback(callback, null, me.schema);
+      return me.schema;
+    })
+    .catch(function(err) {
+      util.doCallback(callback, err, me.schema);
+      return Promise.reject(err);
     });
-  });
-
-  // Done!
-  function finished(api) {
-    util.doCallback(callback, circular$RefError, api, getMetadata(state));
-  }
-
-  // Error!
-  function errBack(err) {
-    if (err) {
-      // Ignore circular-reference errors and keep going
-      if (err instanceof ReferenceError) {
-        circular$RefError = err;
-        return false;
-      }
-
-      // For any other error, abort immediately
-      util.doCallback(callback,
-        util.newSyntaxError(err, 'Error in Swagger definition'),
-        null,
-        getMetadata(state));
-    }
-    return !!err;
-  }
-}
+};
 
 /**
- * Parses the given JSON or YAML file/URL or Swagger object, and verifies that it's a supported Swagger API.
+ * The Swagger object
+ * https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object
  *
- * @param   {string|SwaggerObject}  swagger     The absolute or relative file path, URL, or Swagger object.
- * @param   {State}                 state       The state for the current parse operation
- * @param   {function}              callback
- */
-function parseSwaggerFile(swagger, state, callback) {
-  if (_isString(swagger)) {
-    // Open/download the file/URL
-    var path = resolveSwaggerPath(swagger, state);
-    read(path, state, verifyParsedAPI);
-  }
-  else {
-    // It's already a parsed object, but we still need to validate it
-    resolveSwaggerPath('', state);
-    verifyParsedAPI(null, _cloneDeep(swagger));
-  }
-
-  function verifyParsedAPI(err, api) {
-    if (err) {
-      util.doCallback(callback, err);
-    }
-    else if (api.swagger === undefined || api.info === undefined || api.paths === undefined) {
-      util.doCallback(callback, util.newSyntaxError('The object is not a valid Swagger API definition'));
-    }
-    else if (_isNumber(api.swagger)) {
-      // This is a very common mistake, so give a helpful error message
-      util.doCallback(callback,
-        util.newSyntaxError('Swagger version number must be a string (e.g. "2.0") not a number.'));
-    }
-    else if (_isNumber(api.info.version)) {
-      // This is a very common mistake, so give a helpful error message
-      util.doCallback(callback,
-        util.newSyntaxError('API version number must be a string (e.g. "1.0.0") not a number.'));
-    }
-    else if (supportedSwaggerVersions.indexOf(api.swagger) === -1) {
-      util.doCallback(callback, util.newSyntaxError(
-        'Unsupported Swagger version: %d. Swagger-Parser only supports version %s',
-        api.swagger, supportedSwaggerVersions.join(', ')));
-    }
-    else {
-      state.swagger = api;
-      util.doCallback(callback, null, api);
-    }
-  }
-}
-
-/**
- * Resolves the given file path or URL to determine the Swagger base directory.
- *
- * @param   {string}    path        The absolute or relative file or URL
- * @param   {State}     state       The state for the current parse operation
- * @returns {string}                The resolved absolute file path or URL
- */
-function resolveSwaggerPath(path, state) {
-  // Resolve the file path or url, relative to the CWD
-  var cwd = util.cwd();
-  var resolvedPath = util.resolvePath(cwd, path + '');
-  state.swaggerPath = resolvedPath;
-
-  // Get the directory of the Swagger file.
-  // Always append a trailing slash, to ensure that it behaves properly with {@link url#resolve}.
-  state.baseDir = Path.dirname(resolvedPath) + (util.isBrowser() ? '/' : Path.sep);
-  util.debug('Swagger base directory: %s', state.baseDir);
-
-  return resolvedPath;
-}
-
-/**
- * Returns the metadata for the current parse operation
- *
- * @param   {State}     state           The state for the current parse operation
- * @returns {State}
- */
-function getMetadata(state) {
-  return _pick(state, 'baseDir', 'files', 'urls', '$refs');
-}
-
-
-},{"./defaults":1,"./dereference":2,"./read":5,"./resolve":6,"./state":7,"./util":8,"./validate":9,"lodash/lang/cloneDeep":154,"lodash/lang/isEmpty":157,"lodash/lang/isFunction":158,"lodash/lang/isNumber":160,"lodash/lang/isString":163,"lodash/object/merge":169,"lodash/object/pick":171,"path":24}],5:[function(require,module,exports){
-'use strict';
-
-module.exports = read;
-
-var fs          = require('fs'),
-    Path        = require('path'),
-    http        = require('http'),
-    https       = require('https'),
-    url         = require('url'),
-    yaml        = require('js-yaml'),
-    util        = require('./util'),
-    _once       = require('lodash/function/once'),
-    _isEmpty    = require('lodash/lang/isEmpty'),
-    _isFunction = require('lodash/lang/isFunction');
-
-/**
- * Reads a JSON or YAML file from the local filesystem or a remote URL and returns the parsed POJO.
- * @param {string}    path        A full, absolute file path or URL
- * @param {State}     state       The state for the current parse operation
- * @param {function}  callback    function(err, parsedObject)
- */
-function read(path, state, callback) {
-  try {
-    if (isLocalFile(path)) {
-      state.files.push(path);
-      readFile(path, state, callback);
-    }
-    else {
-      var parsedUrl = url.parse(path);
-      state.urls.push(parsedUrl);
-      readUrl(parsedUrl, state, callback);
-    }
-  }
-  catch (e) {
-    callback(e);
-  }
-}
-
-/**
- * Reads a JSON or YAML file from the local filesystem and returns the parsed POJO.
- * @param {string}    filePath        The full, absolute path of the file (NOT RELATIVE!)
- * @param {State}     state           The state for the current parse operation
- * @param {function}  callback        function(err, parsedObject)
- */
-function readFile(filePath, state, callback) {
-  function errorHandler(err) {
-    callback(util.newError(err, 'Error opening file "%s"', filePath));
-  }
-
-  function parseError(err) {
-    callback(util.newSyntaxError(err, 'Error parsing file "%s"', filePath));
-  }
-
-  try {
-    util.debug('Reading file "%s"', filePath);
-
-    fs.readFile(filePath, function(err, data) {
-      if (err) {
-        return errorHandler(err);
-      }
-
-      try {
-        callback(null, parseJsonOrYaml(filePath, data, state));
-      }
-      catch (e) {
-        parseError(e);
-      }
-    });
-  }
-  catch (e) {
-    errorHandler(e);
-  }
-}
-
-/**
- * Reads a JSON or YAML file from the a remote URL and returns the parsed POJO.
- * @param {Url}       parsedUrl   The full, parsed URL
- * @param {State}     state       The state for the current parse operation
- * @param {function}  callback    function(err, parsedObject)
- */
-function readUrl(parsedUrl, state, callback) {
-  // NOTE: When HTTP errors occur, they can trigger multiple on('error') events,
-  // So we need to make sure we only invoke the callback function ONCE.
-  callback = _once(callback);
-
-  function downloadError(err) {
-    callback(util.newError(err, 'Error downloading file "%s"', parsedUrl.href));
-  }
-
-  function parseError(err) {
-    callback(util.newSyntaxError(err, 'Error parsing file "%s"', parsedUrl.href));
-  }
-
-  try {
-    var options = {
-      host: parsedUrl.host,
-      hostname: parsedUrl.hostname,
-      port: parsedUrl.port,
-      path: parsedUrl.path,
-      auth: parsedUrl.auth,
-      headers: {'Content-Type': 'application/json'}
-    };
-
-    util.debug('Downloading file "%s"', parsedUrl.href);
-
-    var protocol = parsedUrl.protocol === 'https:' ? https : http;
-    var req = protocol.get(options, function(res) {
-      var body = '';
-
-      res.on('data', function(data) {
-        // Data can be a string or a buffer
-        body = body.concat(data);
-      });
-
-      res.on('end', function() {
-        if (res.statusCode >= 400) {
-          return downloadError(util.newError('HTTP ERROR %d: %s', res.statusCode, body));
-        }
-        else if (res.statusCode === 204 || _isEmpty(body)) {
-          return downloadError(util.newError('HTTP 204: No Content'));
-        }
-
-        try {
-          callback(null, parseJsonOrYaml(parsedUrl.href, body, state));
-        }
-        catch (e) {
-          parseError(e);
-        }
-      });
-
-      res.on('error', function(e) {
-        downloadError(e);
-      });
-    });
-
-    if (_isFunction(req.setTimeout)) {
-      req.setTimeout(5000);
-    }
-
-    req.on('timeout', function() {
-      req.abort();
-    });
-
-    req.on('error', function(e) {
-      downloadError(e);
-    });
-  }
-  catch (e) {
-    downloadError(e);
-  }
-}
-
-/**
- * Determines whether the given path points to a local file that exists.
- * @param   {string}    path   A full, absolute file path or URL
- * @returns {boolean}
- */
-function isLocalFile(path) {
-  /* istanbul ignore if: code-coverage doesn't run in the browser */
-  if (util.isBrowser()) {
-    // Local files aren't supported in browsers
-    return false;
-  }
-
-  // If the path exists locally, then treat the URL as a local file
-  if (fs.existsSync(path)) {
-    return true;
-  }
-
-  return util.isLocalPath(path);
-}
-
-/**
- * Parses a JSON or YAML string into a POJO.
- * @param   {string}  path
- * @param   {string}  data
- * @param   {State}   state
- * @returns {object}
- */
-function parseJsonOrYaml(path, data, state) {
-  var parsedObject;
-
-  try {
-    if (state.options.parseYaml) {
-      util.debug('Parsing YAML file "%s"', path);
-      parsedObject = yaml.safeLoad(data);
-    }
-    else {
-      util.debug('Parsing JSON file "%s"', path);
-      parsedObject = JSON.parse(data);
-    }
-
-    if (_isEmpty(parsedObject)) {
-      //noinspection ExceptionCaughtLocallyJS
-      throw util.newSyntaxError('Parsed value is empty');
-    }
-
-    util.debug('    Parsed successfully');
-  }
-  catch (e) {
-    var ext = Path.extname(path).toLowerCase();
-    if (['.json', '.yaml', '.yml'].indexOf(ext) === -1) {
-      // It's not a YAML or JSON file, so ignore the parsing error and just treat it as a string
-      parsedObject = data;
-    }
-    else {
-      throw e;
-    }
-  }
-
-  return parsedObject;
-}
-
-
-},{"./util":8,"fs":10,"http":17,"https":21,"js-yaml":49,"lodash/function/once":89,"lodash/lang/isEmpty":157,"lodash/lang/isFunction":158,"path":24,"url":43}],6:[function(require,module,exports){
-'use strict';
-
-module.exports = resolve;
-
-var read      = require('./read'),
-    util      = require('./util'),
-    _last     = require('lodash/array/last'),
-    _result   = require('lodash/object/result'),
-    _has      = require('lodash/object/has'),
-    _isEmpty  = require('lodash/lang/isEmpty'),
-    _isString = require('lodash/lang/isString');
-
-/**
- * Resolves all $ref pointers in the given Swagger API.
- * NOTE: The API is not modified or dereferenced. The resolved $ref values are stored in {@link State.$refs}
- *
- * @param   {SwaggerObject} api             The Swagger API to resolve
- * @param   {State}         state           The state for the current parse operation
- * @param   {function}      callback
- */
-function resolve(api, state, callback) {
-  if (!state.options.resolve$Refs) {
-    // Resolving is disabled, so just return the API as-is
-    util.doCallback(callback, null, api);
-    return;
-  }
-
-  util.debug('Resolving $ref pointers in %s', state.swaggerPath);
-  resolveObject(api, '', state, callback);
-}
-
-/**
- * Recursively resolves all $ref pointers in the given object.
- * NOTE: The object is not modified or dereferenced. The resolved $ref values are stored in {@link State.$refs}
- *
- * @param   {object}    obj         The object to resolve
- * @param   {string}    objPath     The API path to the object. This is only used for logging purposes.
- * @param   {State}     state       The state for the current parse operation
- * @param   {function}  callback
- */
-function resolveObject(obj, objPath, state, callback) {
-  // Recursively crawl the object
-  util.crawlObject(obj, objPath, callback,
-    // Inspect each nested object.
-    function(parents, propName, propPath, continueCrawling) {
-      // If it's a $ref pointer, then resolve it
-      resolveIf$Ref(_last(parents)[propName], propPath, state, continueCrawling);
-    }
-  );
-}
-
-/**
- * Determines whether the given object is a $ref pointer.
- * If it is, then it will be fully resolved, and the resolved value will be passed to the callback function.
- * If it's not a $ref pointer, then the object is passed directly to the callback function.
- *
- * @param   {*}         value       The value to check. Can be any data type, not just an object.
- * @param   {string}    valuePath   The API path to the value. This is only used for logging purposes.
- * @param   {State}     state       The state for the current parse operation
- * @param   {function}  callback
- */
-function resolveIf$Ref(value, valuePath, state, callback) {
-  if (_has(value, '$ref') && _isString(value.$ref)) {
-    if (util.isExternal$Ref(value.$ref) && !state.options.resolveExternal$Refs) {
-      // Resolving external pointers is disabled, so return the $ref as-is
-      util.doCallback(callback, null, value);
-    }
-    else {
-      // This is a $ref pointer, so resolve it
-      var $refPath = valuePath + '/$ref';
-      resolve$Ref(value.$ref, $refPath, state, callback);
-    }
-  }
-  else {
-    // It's not a $ref pointer, so return it as-is
-    util.doCallback(callback, null, value);
-  }
-}
-
-/**
- * Recursively resolves a $ref pointer.
- * NOTE: The $ref pointer is not modified or dereferenced. The resolved $ref values are stored in {@link State.$refs}
- *
- * @param   {string}    $ref        The $ref pointer value to resolve
- * @param   {string}    $refPath    The path to the $ref pointer. This is only used for logging purposes.
- * @param   {State}     state       The state for the current parse operation
- * @param   {function}  callback
- */
-function resolve$Ref($ref, $refPath, state, callback) {
-  try {
-    // Check for invalid values
-    if (_isEmpty($ref)) {
-      util.doCallback(callback, util.newSyntaxError('Empty $ref pointer at "%s"', $refPath));
-      return;
-    }
-
-    // See if we've already resolved this $ref pointer
-    var cachedReference = getCached$Ref($ref, state);
-    if (cachedReference) {
-      util.debug('Resolved %s => %s', $refPath, $ref);
-      util.doCallback(callback, null, cachedReference, true);
-      return;
-    }
-
-    // Determine if it's internal or external
-    if (util.isExternal$Ref($ref)) {
-      resolveExternal$Ref($ref, state, recursiveResolve);
-    }
-    else {
-      resolveInternal$Ref($ref, state, recursiveResolve);
-    }
-  }
-  catch (e) {
-    util.doCallback(callback, e);
-  }
-
-  function recursiveResolve(err, resolved) {
-    if (err) {
-      util.doCallback(callback, err);
-      return;
-    }
-
-    if (resolved === undefined) {
-      util.doCallback(callback,
-        util.newSyntaxError('Unable to resolve %s.  \n"%s" could not be found.', $refPath, $ref));
-      return;
-    }
-
-    util.debug('Resolved %s => %s', $refPath, $ref);
-
-    // The $ref might have resolved to another $ref, so resolve recursively until we get to an object
-    resolveIf$Ref(resolved, $refPath, state,
-      function(err, resolved, cached) {
-        if (err) {
-          util.doCallback(callback, err);
-          return;
-        }
-
-        // We've resolved the $ref to something solid (an object, array, scalar value, etc.),
-        // So cache the resolved value.
-        cache$Ref($ref, resolved, state);
-
-        // The resolved object could have nested $refs, so we need to crawl it
-        resolveObject(resolved, $refPath, state,
-          function(err, resolved) {
-            if (err) {
-              util.doCallback(callback, err);
-              return;
-            }
-
-            util.doCallback(callback, null, resolved, cached);
-          }
-        );
-      }
-    );
-  }
-}
-
-/**
- * Resolves a pointer to a property in the Swagger API.
- * NOTE: This is a shallow resolve. This function is called recursively by {@link resolve$Ref} to do deep resolves.
- *
- * @param   {string}    $ref         The $ref pointer (e.g. "pet", "#/parameters/pet")
- * @param   {State}     state        The state for the current parse operation
- * @param   {function}  callback
- */
-function resolveInternal$Ref($ref, state, callback) {
-  // "pet" => "#/definitions/pet"
-  var normalized = normalize$Ref($ref, state);
-
-  // "#/paths//users/responses/200" => ["/paths", "//users", "/responses", "/200"]
-  var pathArray = normalized.match(/\/(\/?[^\/]+)/g);
-
-  // Traverse the Swagger API
-  var resolved = state.swagger;
-  for (var i = 0; i < pathArray.length; i++) {
-    var propName = pathArray[i].substr(1);
-    resolved = _result(resolved, propName);
-
-    // Exit the loop early if we get a falsy value
-    if (!resolved) {
-      break;
-    }
-  }
-
-  callback(null, resolved);
-}
-
-/**
- * Resolves a pointer to an external file or URL.
- * NOTE: This is a shallow resolve. This function is called recursively by {@link resolve$Ref} to do deep resolves.
- *
- * @param   {string}    $ref         The full, absolute path or URL
- * @param   {State}     state        The state for the current parse operation
- * @param   {function}  callback
- */
-function resolveExternal$Ref($ref, state, callback) {
-  // "./swagger.yaml" => "/full/path/to/swagger.yaml"
-  var normalized = normalize$Ref($ref, state);
-
-  read(normalized, state,
-    function(err, data) {
-      return callback(err, data);
-    }
-  );
-}
-
-/**
- * Normalizes a pointer value.
- * For example, "pet.yaml" and "./pet.yaml" both get normalized to "/swagger/base/dir/pet.yaml".
- *
- * @param   {string}    $ref         The $ref pointer (e.g. "pet", "#/parameters/pet")
- * @param   {State}     state        The state for the current parse operation
- * @returns {string}
- */
-function normalize$Ref($ref, state) {
-  if (util.isExternal$Ref($ref)) {
-    // Normalize the pointer value by resolving the path/URL relative to the Swagger file.
-    return util.resolvePath(state.baseDir, $ref);
-  }
-  else {
-    if ($ref.indexOf('#/') === 0) {
-      // The pointer is already normalized (e.g. "#/parameters/username")
-      return $ref;
-    }
-    else {
-      // This is a shorthand pointer to a model definition
-      // "pet" => "#/definitions/pet"
-      return '#/definitions/' + $ref;
-    }
-  }
-}
-
-/**
- * Returns the cached reference for the given pointer, if possible.
- *
- * @param   {string}    $ref         The $ref pointer (e.g. "pet", "#/parameters/pet")
- * @param   {State}     state        The state for the current parse operation
- */
-function getCached$Ref($ref, state) {
-  // Check for the non-normalized pointer
-  if ($ref in state.$refs) {
-    return state.$refs[$ref];
-  }
-
-  // Check for the normalized pointer
-  var normalized = normalize$Ref($ref, state);
-  if (normalized in state.$refs) {
-    // Cache the value under the non-normalized pointer too
-    return state.$refs[$ref] = state.$refs[normalized];
-  }
-
-  // It's not in the cache
-  return null;
-}
-
-/**
- * Caches a resolved reference under the given pointer AND the normalized pointer.
- *
- * @param   {string}    $ref         The $ref pointer (e.g. "pet", "#/definitions/pet")
- * @param   {object}    resolved     The resolved reference
- * @param   {State}     state        The state for the current parse operation
- */
-function cache$Ref($ref, resolved, state) {
-  var normalized = normalize$Ref($ref, state);
-
-  /* istanbul ignore if: This check is here to help detect subtle bugs and edge-cases */
-  if ($ref in state.$refs || normalized in state.$refs) {
-    throw util.newError('Swagger-Parser encountered an error while resolving a $ref pointer: "%s". ' +
-      'This is most likely a bug in Swagger-Parser, not in your code. Please report this issue on GitHub.', $ref);
-  }
-
-  state.$refs[$ref] = resolved;
-  state.$refs[normalized] = resolved;
-}
-
-},{"./read":5,"./util":8,"lodash/array/last":81,"lodash/lang/isEmpty":157,"lodash/lang/isString":163,"lodash/object/has":166,"lodash/object/result":172}],7:[function(require,module,exports){
-'use strict';
-
-module.exports = State;
-
-/**
- * The state for the current parsing operation
- * @constructor
- */
-function State() {
-  /**
-   * The path of the main Swagger file that's being parsed
-   * @type {string}
-   */
-  this.swaggerPath = '';
-
-  /**
-   * The options for the parsing operation
-   * @type {defaults}
-   */
-  this.options = null;
-
-  /**
-   * The Swagger API that is being parsed.
-   * @type {SwaggerObject}
-   */
-  this.swagger = null;
-
-  /**
-   * The directory of the Swagger file
-   * (used as the base directory for resolving relative file references)
-   */
-  this.baseDir = null;
-
-  /**
-   * The files that have been read during the parsing operation.
-   * @type {string[]}
-   */
-  this.files = [];
-
-  /**
-   * The URLs that have been downloaded during the parsing operation.
-   * @type {url.Url[]}
-   */
-  this.urls = [];
-
-  /**
-   * A map of "$ref" pointers and their resolved values
-   */
-  this.$refs = {};
-}
-
-/**
- * The Swagger object (https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object)
  * @typedef {{swagger: string, info: {}, paths: {}}} SwaggerObject
  */
 
-},{}],8:[function(require,module,exports){
-(function (process){
+},{"./options":2,"./util":3,"./validate":4,"json-schema-ref-parser":45,"lodash/lang/isFunction":164,"lodash/lang/isNumber":165}],2:[function(require,module,exports){
 'use strict';
 
-var util = module.exports = {
+var $RefParserOptions = require('json-schema-ref-parser/lib/options'),
+    util              = require('util');
+
+module.exports = Options;
+
+/**
+ * @param {Options} options
+ * @constructor
+ * @extends $RefParserOptions
+ */
+function Options(options) {
+  this.validate = {
+    schema: true,
+    spec: true
+  };
+
+  $RefParserOptions.apply(this, arguments);
+}
+
+util.inherits(Options, $RefParserOptions);
+
+},{"json-schema-ref-parser/lib/options":46,"util":40}],3:[function(require,module,exports){
+'use strict';
+
+var debug          = require('debug'),
+    util           = require('util'),
+    $RefParserUtil = require('json-schema-ref-parser/lib/util');
+
+module.exports = {
   /**
    * Writes messages to stdout.
    * Log messages are suppressed by default, but can be enabled by setting the DEBUG variable.
    * @type {function}
    */
-  debug: require('debug')('swagger:parser'),
+  debug: debug('swagger:parser'),
 
   /**
    * The HTTP methods that Swagger supports
@@ -919,624 +159,322 @@ var util = module.exports = {
    */
   swaggerParamRegExp: /\{([^/}]+)}/g,
 
-  isBrowser: isBrowser,
-  isExternal$Ref: isExternal$Ref,
-  isLocalPath: isLocalPath,
-  normalizePath: normalizePath,
-  denormalizePath: denormalizePath,
-  resolvePath: resolvePath,
-  cwd: cwd,
-  doCallback: doCallback,
-  crawlObject: crawlObject,
-  newError: newError,
-  newSyntaxError: newSyntaxError
+  inherits: util.inherits,
+  doCallback: $RefParserUtil.doCallback,
+  newError: $RefParserUtil.newError
 };
 
-var Path           = require('path'),
-    url            = require('url'),
-    format         = require('util').format,
-    _drop          = require('lodash/array/drop'),
-    _keys          = require('lodash/object/keys'),
-    _isFunction    = require('lodash/lang/isFunction'),
-    _isArray       = require('lodash/lang/isArray'),
-    _isPlainObject = require('lodash/lang/isPlainObject');
-
-// RegExp pattern to detect external $ref pointers.
-// Matches anything that starts with "http://" or contains a period (".")
-// (e.g. "http://localhost/some/path", "company.com/some/path", "file.yaml", "..\..\file.yaml", "./fileWithoutExt")
-var external$RefPattern = /^https?\:\/\/|^\.|^[^#].*\./i;
-
-/**
- * Determines whether the given $ref pointer value references an external file.
- *
- * @param   {string}    $ref         The $ref pointer (e.g. "pet", "#/parameters/pet")
- * @returns {boolean}
- */
-function isExternal$Ref($ref) {
-  return $ref && external$RefPattern.test($ref);
-}
-
-/**
- * Determines if we're running in a browser.
- * @returns {boolean}
- */
-function isBrowser() {
-  return !!process.browser;
-}
-
-/**
- * Determines whether the given path is a local filesystem path (as opposed to a remote path or URL).
- * NOTE: This does NOT verify that the path exists or is valid.
- *
- * @param   {string|Url}    path    A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
- * @returns {boolean}
- */
-function isLocalPath(path) {
-  /* istanbul ignore if: code-coverage doesn't run in the browser */
-  if (util.isBrowser()) {
-    // Local paths are not allowed in browsers
-    return false;
-  }
-
-  // NOTE: The following are all considered local files: "file://path/to/file", "/path/to/file", "c:\path\to\file"
-  path = url.parse(path);
-  return path.protocol !== 'http:' && path.protocol !== 'https:';
-}
-
-/**
- * Normalizes a path or URL across all environments (Linux, Mac, Windows, browsers).
- *
- * @param   {string}    path       A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
- * @param   {boolean}   [isLocal]  Set to true to treat `path` as a local path
- * @returns {Url}
- */
-function normalizePath(path, isLocal) {
-  isLocal = isLocal === undefined ? util.isLocalPath(path) : isLocal;
-
-  if (isLocal) {
-    path = path.split(Path.sep).join('/');  // Windows
-    path = encodeURI(path);
-    path = url.format({pathname: path});
-    return url.parse(path);
-  }
-  else {
-    return url.parse(path);
-  }
-}
-
-/**
- * De-normalizes a path or URL to a string that is properly formatted.
- *
- * @param   {string}    path       A path or URL (e.g. "/path/to/file", "c:\path\to\file", "http://company.com/path/to/file")
- * @param   {boolean}   [isLocal]  Set to true to treat `path` as a local path
- * @returns {string}
- */
-function denormalizePath(path, isLocal) {
-  isLocal = isLocal === undefined ? util.isLocalPath(path) : isLocal;
-
-  if (isLocal) {
-    path = decodeURIComponent(path);
-    return Path.normalize(path);
-  }
-  else {
-    return path;
-  }
-}
-
-/**
- * Resolves the given paths to an absolute path.
- * NOTE: This does NOT verify that the path exists or is valid.
- *
- * @param   {string}    basePath
- * The base path, which must be absolute (e.g. "/base/path", "c:\base\path", "http://company.com/base/path")
- *
- * @param   {string}    path
- * The path to be resolved, which may be relative or absolute. (e.g. "path/to/file", "path\to\file")
- *
- * @returns {string}
- * The resolved, absolute path. (e.g. "/full/path/to/file", "c:\full\path\to\file", "http://company.com/full/path/to/file")
- */
-function resolvePath(basePath, path) {
-  util.debug('Resolving path "%s", relative to "%s"', path, basePath);
-
-  // Normalize the paths
-  var baseIsLocal = util.isLocalPath(basePath);
-  var pathIsLocal = util.isLocalPath(path);
-  basePath = util.normalizePath(basePath, baseIsLocal);
-  path = util.normalizePath(path, pathIsLocal && baseIsLocal);
-
-  // url.resolve() works across all environments (Linux, Mac, Windows, browsers),
-  // even if basePath and path are different types (e.g. one is a URL, the other is a local path)
-  var resolvedUrl = url.resolve(basePath, path);
-  resolvedUrl = util.denormalizePath(resolvedUrl);
-
-  util.debug('    Resolved to %s', resolvedUrl);
-  return resolvedUrl;
-}
-
-/**
- * Returns the current working directory across environments (Linux, Mac, Windows, browsers).
- * The returned path always include a trailing slash to ensure that it behaves properly with {@link url#resolve}.
- *
- * @returns {string}
- */
-function cwd() {
-  /* istanbul ignore next: code-coverage doesn't run in the browser */
-  var dir = util.isBrowser() ? window.location.href : process.cwd() + '/';
-  dir = util.normalizePath(dir);
-
-  // Remove the file name (if any) from the pathname
-  var lastSlash = dir.pathname.lastIndexOf('/') + 1;
-  dir.pathname = dir.pathname.substr(0, lastSlash);
-
-  // Remove everything after the pathname
-  dir.path = null;
-  dir.search = null;
-  dir.query = null;
-  dir.hash = null;
-
-  // Format and denormalize only the remaining parts of the URL
-  dir = url.format(dir);
-  dir = util.denormalizePath(dir);
-
-  return dir;
-}
-
-/**
- * Asynchronously invokes the given callback function with the given parameters.
- *
- * NOTE: This unwinds the call stack, which avoids stack overflows that can occur when crawling very complex Swagger APIs
- *
- * @param {function} callback
- * @param {*}     [err]
- * @param {...*}  [params]
- */
-function doCallback(callback, err, params) {
-  var args = _drop(arguments);
-
-  /* istanbul ignore if: code-coverage doesn't run in the browser */
-  if (util.isBrowser()) {
-    process.nextTick(invokeCallback);
-  }
-  else {
-    setImmediate(invokeCallback);
-  }
-
-  function invokeCallback() {
-    callback.apply(null, args);
-  }
-}
-
-/**
- * Recursively crawls an object, and asynchronously calls the given function for each nested object.
- *
- * @param   {object|*[]}    obj
- * The object (or array) to be crawled
- *
- * @param   {string}        [path]
- * The starting path of the object (e.g. "/definitions/pet")
- *
- * @param   {function}      callback
- * Called when the entire object tree is done being crawled, or when an error occurs.
- * The signature is `function(err, obj)`.
- *
- * @param   {function}      forEach
- * Called for each nested object in the tree. The signature is `function(parents, propName, propPath, continue)`,
- * where `parents` is an array of parent objects, `propName` is the name of the nested object property,
- * `propPath` is a full path of nested object (e.g. "/paths//get/responses/200/schema"),
- * and `continue` is a function to call to resume crawling the object.
- */
-function crawlObject(obj, path, callback, forEach) {
-  // Shift args if needed
-  if (_isFunction(path)) {
-    forEach = callback;
-    callback = path;
-    path = '';
-  }
-
-  // Do nothing if it's not an object or array
-  if (!_isPlainObject(obj) && !_isArray(obj)) {
-    callback(null, obj);
-    return;
-  }
-
-  // Keep a stack of parent objects
-  var parents = forEach.__parents = forEach.__parents || [];
-  parents.push(obj);
-
-  // Loop through each item in the object/array
-  var properties = _keys(obj);
-  crawlNextProperty();
-
-  function crawlNextProperty(err) {
-    if (err) {
-      // An error occurred, so stop crawling and bubble it up
-      forEach.__parents.pop();
-      callback(err);
-      return;
-    }
-    else if (properties.length === 0) {
-      // We've crawled all of this object's properties, so we're done.
-      forEach.__parents.pop();
-      util.doCallback(callback, null, obj);
-      return;
-    }
-
-    var propName = properties.pop();
-    var propValue = obj[propName];
-    var propPath = path + '/' + propName;
-
-    if (_isPlainObject(propValue)) {
-      // Found an object property, so call the callback
-      forEach(parents, propName, propPath, function(err) {
-        if (err) {
-          // An error occurred, so bubble it up
-          crawlNextProperty(err);
-        }
-        else {
-          // Crawl the nested object (re-fetch it from the parent obj, in case it has changed)
-          util.crawlObject(obj[propName], propPath, crawlNextProperty, forEach);
-        }
-      });
-    }
-    else if (_isArray(propValue)) {
-      // This is an array property, so crawl its items
-      util.crawlObject(propValue, propPath, crawlNextProperty, forEach);
-    }
-    else {
-      // This isn't an object property, so skip it
-      util.doCallback(crawlNextProperty);
-    }
-  }
-}
-
-/**
- * Creates an Error with a formatted string message.
- *
- * @param     {Error}     [err]       The original error, if any
- * @param     {string}    [message]   A user-friendly message about the source of the error
- * @param     {...*}      [params]    One or more {@link util#format} params
- * @returns   {Error}
- */
-function newError(err, message, params) {
-  if (err instanceof Error) {
-    return makeError(Error, err, format.apply(null, _drop(arguments, 1)));
-  }
-  else {
-    return makeError(Error, null, format.apply(null, arguments));
-  }
-}
-
-/**
- * Creates a SyntaxError with a formatted string message.
- *
- * @param     {Error}     [err]       The original error, if any
- * @param     {string}    [message]   A user-friendly message about the source of the error
- * @param     {...*}      [params]    One or more {@link util#format} params
- * @returns   {SyntaxError}
- */
-function newSyntaxError(err, message, params) {
-  if (err && err instanceof Error) {
-    return makeError(SyntaxError, err, format.apply(null, _drop(arguments, 1)));
-  }
-  else {
-    return makeError(SyntaxError, null, format.apply(null, arguments));
-  }
-}
-
-/**
- * Creates a new error that wraps another error.
- *
- * @param   {Class}         Klass       The Error class to create
- * @param   {Error|null}    err         The inner Error object, if any
- * @param   {string}        message     Optional message about where and why the error occurred.
- */
-function makeError(Klass, err, message) {
-  if (err) {
-    // Append inner error information to the message
-    message += ' \n' + (err.name || 'Error') + ': ' + err.message;
-  }
-
-  var newErr = new Klass(message);
-
-  /* istanbul ignore else: Only IE doesn't have an Error.stack property */
-  if (err && err.stack) {
-    // Keep the stack trace of the original error
-    newErr.stack += ' \n\n' + err.stack;
-  }
-
-  return newErr;
-}
-
-}).call(this,require('_process'))
-
-},{"_process":25,"debug":46,"lodash/array/drop":80,"lodash/lang/isArray":156,"lodash/lang/isFunction":158,"lodash/lang/isPlainObject":162,"lodash/object/keys":167,"path":24,"url":43,"util":45}],9:[function(require,module,exports){
-'use strict';
-
-module.exports = validate;
-
-var util           = require('./util'),
-    tv4            = require('tv4'),
-    _keys          = require('lodash/object/keys'),
-    _where         = require('lodash/collection/where'),
-    _unique        = require('lodash/array/unique'),
-    swaggerSchema  = require('swagger-schema-official/schema'),
-    primitiveTypes = ['array', 'boolean', 'integer', 'number', 'string'],
-    schemaTypes    = ['array', 'boolean', 'integer', 'number', 'null', 'object', 'string', undefined];
-
-/**
- * Validates the given Swagger API for adherence to the Swagger spec.
- *
- * @param   {SwaggerObject} api             The Swagger API to validate
- * @param   {State}         state           The state for the current parse operation
- * @param   {function}      callback
- */
-function validate(api, state, callback) {
-  try {
-    if (state.options.validateSchema) {
-      validateAgainstSchema(api, state);
-    }
-
-    if (state.options.strictValidation) {
-      validateOperations(api, state);
-    }
-
-    util.doCallback(callback, null, api);
-  }
-  catch (e) {
-    util.doCallback(callback, e);
-  }
-}
-
-/**
- * Validates the given Swagger API against the Swagger schema.
- */
-function validateAgainstSchema(api, state) {
-  util.debug('Validating "%s" against the Swagger schema', state.swaggerPath);
-
-  tv4.addSchema(swaggerSchema);
-  if (tv4.validate(api, swaggerSchema)) {
-    util.debug('    Validated successfully');
-  }
-  else {
-    throw util.newSyntaxError(
-      '%s \nData path: "%s" \nSchema path: "%s"\n',
-      tv4.error.message, tv4.error.dataPath, tv4.error.schemaPath);
-  }
-}
-
-/**
- * Validates each operation in the Swagger API.
- */
-function validateOperations(api, state) {
-  // NOTE: We use for loops here instead of Array.ForEach
-  // to prevent stack overflows on very deep APIs
-  var paths = _keys(api.paths);
-  for (var i = 0; i < paths.length; i++) {
-    var pathName = paths[i];
-    var path = api.paths[pathName];
-
-    if (path && pathName.indexOf('/') === 0) {
-      pathName = '/paths' + pathName;
-
-      for (var j = 0; j < util.swaggerMethods.length; j++) {
-        var operationName = util.swaggerMethods[j];
-        var operation = path[operationName];
-
-        if (operation) {
-          operationName = pathName + '/' + operationName;
-          validateParameters(api, path, pathName, operation, operationName);
-
-          var responses = _keys(operation.responses);
-          for (var k = 0; k < responses.length; k++) {
-            var responseName = responses[k];
-            var response = operation.responses[responseName];
-            responseName = operationName + '/responses/' + responseName;
-            validateResponse(response, responseName);
-          }
-        }
-      }
-    }
-  }
-}
-
-/**
- * Validates the parameters for the given operation.
- *
- * @param   {object}    api             The entire Swagger API object
- * @param   {object}    path            A Path object, from the Swagger API
- * @param   {string}    pathId          A value that uniquely identifies the path
- * @param   {object}    operation       An Operation object, from the Swagger API
- * @param   {string}    operationId     A value that uniquely identifies the operation
- */
-function validateParameters(api, path, pathId, operation, operationId) {
-  var pathParams = path.parameters || [];
-  var operationParams = operation.parameters || [];
-
-  // Check for duplicate path parameters
-  try {
-    checkForDuplicates(pathParams);
-  }
-  catch (e) {
-    throw util.newSyntaxError(e, '%s has duplicate parameters', pathId);
-  }
-
-  // Check for duplicate operation parameters
-  try {
-    checkForDuplicates(operationParams);
-  }
-  catch (e) {
-    throw util.newSyntaxError(e, '%s has duplicate parameters', operationId);
-  }
-
-  // Combine the path and operation parameters,
-  // with the operation params taking precedence over the path params
-  var params = _unique(operationParams.concat(pathParams), function(param) {
-    return param.in + param.name;
-  });
-
-  validateBodyParameters(params, operationId);
-  validatePathParameters(params, pathId, operationId);
-  validateParameterTypes(params, api, operation, operationId);
-}
-
-/**
- * Validates body and formData parameters for the given operation.
- *
- * @param   {object[]}  params          An array of Parameter objects
- * @param   {string}    operationId     A value that uniquely identifies the operation
- */
-function validateBodyParameters(params, operationId) {
-  var bodyParams = _where(params, {in: 'body'});
-  var formParams = _where(params, {in: 'formData'});
-
-  // There can only be one "body" parameter
-  if (bodyParams.length > 1) {
-    throw util.newSyntaxError('%s has %d body parameters. Only one is allowed.', operationId, bodyParams.length);
-  }
-  else if (bodyParams.length > 0 && formParams.length > 0) {
-    // "body" params and "formData" params are mutually exclusive
-    throw util.newSyntaxError(
-      '%s has body parameters and formData parameters. Only one or the other is allowed.',
-      operationId
-    );
-  }
-}
-
-/**
- * Validates path parameters for the given path.
- *
- * @param   {object[]}  params          An array of Parameter objects
- * @param   {string}    pathId          A value that uniquely identifies the path
- * @param   {string}    operationId     A value that uniquely identifies the operation
- */
-function validatePathParameters(params, pathId, operationId) {
-  // Find all {placeholders} in the path string
-  var placeholders = pathId.match(util.swaggerParamRegExp) || [];
-
-  // Check for duplicates
-  for (var i = 0; i < placeholders.length; i++) {
-    for (var j = i + 1; j < placeholders.length; j++) {
-      if (placeholders[i] === placeholders[j]) {
-        throw util.newSyntaxError('%s has multiple path placeholders named %s', operationId, placeholders[i]);
-      }
-    }
-  }
-
-  _where(params, {in: 'path'}).forEach(function(param) {
-    if (param.required !== true) {
-      throw util.newSyntaxError(
-        'Path parameters cannot be optional. Set required=true for the "%s" parameter at %s',
-        param.name,
-        operationId
-      );
-    }
-    var match = placeholders.indexOf('{' + param.name + '}');
-    if (match === -1) {
-      throw util.newSyntaxError(
-        '%s has a path parameter named "%s", but there is no corresponding {%s} in the path string',
-        operationId,
-        param.name,
-        param.name
-      );
-    }
-    placeholders.splice(match, 1);
-  });
-
-  if (placeholders.length > 0) {
-    throw util.newSyntaxError('%s is missing path parameter(s) for %s', operationId, placeholders);
-  }
-}
-
-/**
- * Validates data types of parameters for the given operation.
- *
- * @param   {object[]}  params          An array of Parameter objects
- * @param   {object}    api             The entire Swagger API object
- * @param   {object}    operation       An Operation object, from the Swagger API
- * @param   {string}    operationId     A value that uniquely identifies the operation
- */
-function validateParameterTypes(params, api, operation, operationId) {
-  params.forEach(function(param) {
-    var validTypes, schema;
-    switch (param.in) {
-      case 'body':
-        validTypes = schemaTypes;
-        schema = param.schema;
-        break;
-      case 'formData':
-        validTypes = primitiveTypes.concat('file');
-        schema = param;
-        break;
-      default:
-        validTypes = primitiveTypes;
-        schema = param;
-    }
-
-    if (validTypes.indexOf(schema.type) === -1) {
-      throw util.newSyntaxError('%s has an invalid %s parameter type (%s)', operationId, param.in, schema.type);
-    }
-
-    if (schema.type === 'file') {
-      // "file" params require specific "consumes" types
-      var consumes = operation.consumes || api.consumes || [];
-      if (consumes.indexOf('multipart/form-data') === -1 &&
-        consumes.indexOf('application/x-www-form-urlencoded') === -1) {
-        throw util.newSyntaxError(
-          '%s has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded',
-          operationId
-        );
-      }
-    }
-    else if (schema.type === 'array' && !schema.items) {
-      throw util.newSyntaxError(
-        'The "%s" %s parameter at %s is an array, so it must include an "items" schema',
-        param.name,
-        param.in,
-        operationId
-      );
-    }
-  });
-}
-
-/**
- * Checks the given parameter list for duplicates, and throws an error if found.
- *
- * @param   {object[]}  params  An array of Parameter objects
- */
-function checkForDuplicates(params) {
-  for (var i = 0; i < params.length - 1; i++) {
-    var outer = params[i];
-    for (var j = i + 1; j < params.length; j++) {
-      var inner = params[j];
-      if (outer.name === inner.name && outer.in === inner.in) {
-        throw util.newSyntaxError('Found multiple %s parameters named "%s"', outer.in, outer.name);
-      }
-    }
-  }
-}
-
-/**
- * Validates the given response object.
- *
- * @param   {object}    response       A Response object, from the Swagger API
- * @param   {string}    responseId     A value that uniquely identifies the response
- */
-function validateResponse(response, responseId) {
-  if (response.schema) {
-    var validTypes = schemaTypes.concat('file');
-    if (validTypes.indexOf(response.schema.type) === -1) {
-      throw util.newSyntaxError('%s has an invalid response schema type (%s)', responseId, response.schema.type);
-    }
-  }
-}
-
-
-},{"./util":8,"lodash/array/unique":83,"lodash/collection/where":87,"lodash/object/keys":167,"swagger-schema-official/schema":178,"tv4":179}],10:[function(require,module,exports){
-
-},{}],11:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"dup":10}],12:[function(require,module,exports){
+},{"debug":41,"json-schema-ref-parser/lib/util":54,"util":40}],4:[function(require,module,exports){
+//'use strict';
+//
+//var util           = require('./util'),
+//    tv4            = require('tv4'),
+//    Promise        = require('./promise'),
+//    _keys          = require('lodash/object/keys'),
+//    _where         = require('lodash/collection/where'),
+//    _unique        = require('lodash/array/unique'),
+//    swaggerSchema  = require('swagger-schema-official/schema'),
+//    primitiveTypes = ['array', 'boolean', 'integer', 'number', 'string'],
+//    schemaTypes    = ['array', 'boolean', 'integer', 'number', 'null', 'object', 'string', undefined];
+//
+//module.exports = validate;
+//
+///**
+// * @this SwaggerParser
+// * @param {Options.validate} options
+// * @returns {Promise}
+// */
+//function validate(options) {
+//  /* jshint -W040 */
+//  var me = this;
+//  return new Promise(function(resolve, reject) {
+//    //tv4.addSchema(swaggerSchema);
+//    if (tv4.validate(me.api, swaggerSchema)) {
+//      util.debug('    Validated successfully');
+//    }
+//    else {
+//      reject(util.newSyntaxError(
+//        '%s \nData path: "%s" \nSchema path: "%s"\n',
+//        tv4.error.message, tv4.error.dataPath, tv4.error.schemaPath)
+//      );
+//    }
+//    resolve(me.api);
+//  });
+//}
+//
+///**
+// * Validates the given Swagger API for adherence to the Swagger spec.
+// *
+// * @param   {SwaggerObject} api             The Swagger API to validate
+// * @param   {State}         state           The state for the current parse operation
+// * @param   {function}      callback
+// */
+//function validateOLD(api, state, callback) {
+//  try {
+//    if (state.options.validateSchema) {
+//      validateAgainstSchema(api, state);
+//    }
+//
+//    if (state.options.strictValidation) {
+//      validateOperations(api, state);
+//    }
+//
+//    util.doCallback(callback, null, api);
+//  }
+//  catch (e) {
+//    util.doCallback(callback, e);
+//  }
+//}
+//
+///**
+// * Validates the given Swagger API against the Swagger schema.
+// */
+//function validateAgainstSchema(api, state) {
+//  util.debug('Validating "%s" against the Swagger schema', state.swaggerPath);
+//
+//  tv4.addSchema(swaggerSchema);
+//  if (tv4.validate(api, swaggerSchema)) {
+//    util.debug('    Validated successfully');
+//  }
+//  else {
+//    throw util.newSyntaxError(
+//      '%s \nData path: "%s" \nSchema path: "%s"\n',
+//      tv4.error.message, tv4.error.dataPath, tv4.error.schemaPath);
+//  }
+//}
+//
+///**
+// * Validates each operation in the Swagger API.
+// */
+//function validateOperations(api, state) {
+//  // NOTE: We use for loops here instead of Array.ForEach
+//  // to prevent stack overflows on very deep APIs
+//  var paths = _keys(api.paths);
+//  for (var i = 0; i < paths.length; i++) {
+//    var pathName = paths[i];
+//    var path = api.paths[pathName];
+//
+//    if (path && pathName.indexOf('/') === 0) {
+//      pathName = '/paths' + pathName;
+//
+//      for (var j = 0; j < util.swaggerMethods.length; j++) {
+//        var operationName = util.swaggerMethods[j];
+//        var operation = path[operationName];
+//
+//        if (operation) {
+//          operationName = pathName + '/' + operationName;
+//          validateParameters(api, path, pathName, operation, operationName);
+//
+//          var responses = _keys(operation.responses);
+//          for (var k = 0; k < responses.length; k++) {
+//            var responseName = responses[k];
+//            var response = operation.responses[responseName];
+//            responseName = operationName + '/responses/' + responseName;
+//            validateResponse(response, responseName);
+//          }
+//        }
+//      }
+//    }
+//  }
+//}
+//
+///**
+// * Validates the parameters for the given operation.
+// *
+// * @param   {object}    api             The entire Swagger API object
+// * @param   {object}    path            A Path object, from the Swagger API
+// * @param   {string}    pathId          A value that uniquely identifies the path
+// * @param   {object}    operation       An Operation object, from the Swagger API
+// * @param   {string}    operationId     A value that uniquely identifies the operation
+// */
+//function validateParameters(api, path, pathId, operation, operationId) {
+//  var pathParams = path.parameters || [];
+//  var operationParams = operation.parameters || [];
+//
+//  // Check for duplicate path parameters
+//  try {
+//    checkForDuplicates(pathParams);
+//  }
+//  catch (e) {
+//    throw util.newSyntaxError(e, '%s has duplicate parameters', pathId);
+//  }
+//
+//  // Check for duplicate operation parameters
+//  try {
+//    checkForDuplicates(operationParams);
+//  }
+//  catch (e) {
+//    throw util.newSyntaxError(e, '%s has duplicate parameters', operationId);
+//  }
+//
+//  // Combine the path and operation parameters,
+//  // with the operation params taking precedence over the path params
+//  var params = _unique(operationParams.concat(pathParams), function(param) {
+//    return param.in + param.name;
+//  });
+//
+//  validateBodyParameters(params, operationId);
+//  validatePathParameters(params, pathId, operationId);
+//  validateParameterTypes(params, api, operation, operationId);
+//}
+//
+///**
+// * Validates body and formData parameters for the given operation.
+// *
+// * @param   {object[]}  params          An array of Parameter objects
+// * @param   {string}    operationId     A value that uniquely identifies the operation
+// */
+//function validateBodyParameters(params, operationId) {
+//  var bodyParams = _where(params, {in: 'body'});
+//  var formParams = _where(params, {in: 'formData'});
+//
+//  // There can only be one "body" parameter
+//  if (bodyParams.length > 1) {
+//    throw util.newSyntaxError('%s has %d body parameters. Only one is allowed.', operationId, bodyParams.length);
+//  }
+//  else if (bodyParams.length > 0 && formParams.length > 0) {
+//    // "body" params and "formData" params are mutually exclusive
+//    throw util.newSyntaxError(
+//      '%s has body parameters and formData parameters. Only one or the other is allowed.',
+//      operationId
+//    );
+//  }
+//}
+//
+///**
+// * Validates path parameters for the given path.
+// *
+// * @param   {object[]}  params          An array of Parameter objects
+// * @param   {string}    pathId          A value that uniquely identifies the path
+// * @param   {string}    operationId     A value that uniquely identifies the operation
+// */
+//function validatePathParameters(params, pathId, operationId) {
+//  // Find all {placeholders} in the path string
+//  var placeholders = pathId.match(util.swaggerParamRegExp) || [];
+//
+//  // Check for duplicates
+//  for (var i = 0; i < placeholders.length; i++) {
+//    for (var j = i + 1; j < placeholders.length; j++) {
+//      if (placeholders[i] === placeholders[j]) {
+//        throw util.newSyntaxError('%s has multiple path placeholders named %s', operationId, placeholders[i]);
+//      }
+//    }
+//  }
+//
+//  _where(params, {in: 'path'}).forEach(function(param) {
+//    if (param.required !== true) {
+//      throw util.newSyntaxError(
+//        'Path parameters cannot be optional. Set required=true for the "%s" parameter at %s',
+//        param.name,
+//        operationId
+//      );
+//    }
+//    var match = placeholders.indexOf('{' + param.name + '}');
+//    if (match === -1) {
+//      throw util.newSyntaxError(
+//        '%s has a path parameter named "%s", but there is no corresponding {%s} in the path string',
+//        operationId,
+//        param.name,
+//        param.name
+//      );
+//    }
+//    placeholders.splice(match, 1);
+//  });
+//
+//  if (placeholders.length > 0) {
+//    throw util.newSyntaxError('%s is missing path parameter(s) for %s', operationId, placeholders);
+//  }
+//}
+//
+///**
+// * Validates data types of parameters for the given operation.
+// *
+// * @param   {object[]}  params          An array of Parameter objects
+// * @param   {object}    api             The entire Swagger API object
+// * @param   {object}    operation       An Operation object, from the Swagger API
+// * @param   {string}    operationId     A value that uniquely identifies the operation
+// */
+//function validateParameterTypes(params, api, operation, operationId) {
+//  params.forEach(function(param) {
+//    var validTypes, schema;
+//    switch (param.in) {
+//      case 'body':
+//        validTypes = schemaTypes;
+//        schema = param.schema;
+//        break;
+//      case 'formData':
+//        validTypes = primitiveTypes.concat('file');
+//        schema = param;
+//        break;
+//      default:
+//        validTypes = primitiveTypes;
+//        schema = param;
+//    }
+//
+//    if (validTypes.indexOf(schema.type) === -1) {
+//      throw util.newSyntaxError('%s has an invalid %s parameter type (%s)', operationId, param.in, schema.type);
+//    }
+//
+//    if (schema.type === 'file') {
+//      // "file" params require specific "consumes" types
+//      var consumes = operation.consumes || api.consumes || [];
+//      if (consumes.indexOf('multipart/form-data') === -1 &&
+//        consumes.indexOf('application/x-www-form-urlencoded') === -1) {
+//        throw util.newSyntaxError(
+//          '%s has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded',
+//          operationId
+//        );
+//      }
+//    }
+//    else if (schema.type === 'array' && !schema.items) {
+//      throw util.newSyntaxError(
+//        'The "%s" %s parameter at %s is an array, so it must include an "items" schema',
+//        param.name,
+//        param.in,
+//        operationId
+//      );
+//    }
+//  });
+//}
+//
+///**
+// * Checks the given parameter list for duplicates, and throws an error if found.
+// *
+// * @param   {object[]}  params  An array of Parameter objects
+// */
+//function checkForDuplicates(params) {
+//  for (var i = 0; i < params.length - 1; i++) {
+//    var outer = params[i];
+//    for (var j = i + 1; j < params.length; j++) {
+//      var inner = params[j];
+//      if (outer.name === inner.name && outer.in === inner.in) {
+//        throw util.newSyntaxError('Found multiple %s parameters named "%s"', outer.in, outer.name);
+//      }
+//    }
+//  }
+//}
+//
+///**
+// * Validates the given response object.
+// *
+// * @param   {object}    response       A Response object, from the Swagger API
+// * @param   {string}    responseId     A value that uniquely identifies the response
+// */
+//function validateResponse(response, responseId) {
+//  if (response.schema) {
+//    var validTypes = schemaTypes.concat('file');
+//    if (validTypes.indexOf(response.schema.type) === -1) {
+//      throw util.newSyntaxError('%s has an invalid response schema type (%s)', responseId, response.schema.type);
+//    }
+//  }
+//}
+//
+
+},{}],5:[function(require,module,exports){
+
+},{}],6:[function(require,module,exports){
+arguments[4][5][0].apply(exports,arguments)
+},{"dup":5}],7:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -2952,7 +1890,7 @@ function decodeUtf8Char (str) {
   }
 }
 
-},{"base64-js":13,"ieee754":14,"is-array":15}],13:[function(require,module,exports){
+},{"base64-js":8,"ieee754":9,"is-array":10}],8:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -3078,7 +2016,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],14:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -3164,7 +2102,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],15:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 
 /**
  * isArray
@@ -3199,7 +2137,7 @@ module.exports = isArray || function (val) {
   return !! val && '[object Array]' == str.call(val);
 };
 
-},{}],16:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3502,7 +2440,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],17:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var http = module.exports;
 var EventEmitter = require('events').EventEmitter;
 var Request = require('./lib/request');
@@ -3648,7 +2586,7 @@ http.STATUS_CODES = {
     510 : 'Not Extended',               // RFC 2774
     511 : 'Network Authentication Required' // RFC 6585
 };
-},{"./lib/request":18,"events":16,"url":43}],18:[function(require,module,exports){
+},{"./lib/request":13,"events":11,"url":38}],13:[function(require,module,exports){
 var Stream = require('stream');
 var Response = require('./response');
 var Base64 = require('Base64');
@@ -3859,7 +2797,7 @@ var isXHR2Compatible = function (obj) {
     if (typeof FormData !== 'undefined' && obj instanceof FormData) return true;
 };
 
-},{"./response":19,"Base64":20,"inherits":22,"stream":41}],19:[function(require,module,exports){
+},{"./response":14,"Base64":15,"inherits":17,"stream":36}],14:[function(require,module,exports){
 var Stream = require('stream');
 var util = require('util');
 
@@ -3981,7 +2919,7 @@ var isArray = Array.isArray || function (xs) {
     return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{"stream":41,"util":45}],20:[function(require,module,exports){
+},{"stream":36,"util":40}],15:[function(require,module,exports){
 ;(function () {
 
   var object = typeof exports != 'undefined' ? exports : this; // #8: web workers
@@ -4043,7 +2981,7 @@ var isArray = Array.isArray || function (xs) {
 
 }());
 
-},{}],21:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var http = require('http');
 
 var https = module.exports;
@@ -4058,7 +2996,7 @@ https.request = function (params, cb) {
     return http.request.call(this, params, cb);
 }
 
-},{"http":17}],22:[function(require,module,exports){
+},{"http":12}],17:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -4083,12 +3021,12 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],23:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],24:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4317,7 +3255,7 @@ var substr = 'ab'.substr(-1) === 'b'
 
 }).call(this,require('_process'))
 
-},{"_process":25}],25:[function(require,module,exports){
+},{"_process":20}],20:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -4409,7 +3347,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],26:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.3.2 by @mathias */
 ;(function(root) {
@@ -4944,7 +3882,7 @@ process.umask = function() { return 0; };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],27:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5030,7 +3968,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],28:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5117,16 +4055,16 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],29:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":27,"./encode":28}],30:[function(require,module,exports){
+},{"./decode":22,"./encode":23}],25:[function(require,module,exports){
 module.exports = require("./lib/_stream_duplex.js")
 
-},{"./lib/_stream_duplex.js":31}],31:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":26}],26:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -5220,7 +4158,7 @@ function forEach (xs, f) {
 
 }).call(this,require('_process'))
 
-},{"./_stream_readable":33,"./_stream_writable":35,"_process":25,"core-util-is":36,"inherits":22}],32:[function(require,module,exports){
+},{"./_stream_readable":28,"./_stream_writable":30,"_process":20,"core-util-is":31,"inherits":17}],27:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5268,7 +4206,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./_stream_transform":34,"core-util-is":36,"inherits":22}],33:[function(require,module,exports){
+},{"./_stream_transform":29,"core-util-is":31,"inherits":17}],28:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6224,7 +5162,7 @@ function indexOf (xs, x) {
 
 }).call(this,require('_process'))
 
-},{"./_stream_duplex":31,"_process":25,"buffer":12,"core-util-is":36,"events":16,"inherits":22,"isarray":23,"stream":41,"string_decoder/":42,"util":11}],34:[function(require,module,exports){
+},{"./_stream_duplex":26,"_process":20,"buffer":7,"core-util-is":31,"events":11,"inherits":17,"isarray":18,"stream":36,"string_decoder/":37,"util":6}],29:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6435,7 +5373,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":31,"core-util-is":36,"inherits":22}],35:[function(require,module,exports){
+},{"./_stream_duplex":26,"core-util-is":31,"inherits":17}],30:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6917,7 +5855,7 @@ function endWritable(stream, state, cb) {
 
 }).call(this,require('_process'))
 
-},{"./_stream_duplex":31,"_process":25,"buffer":12,"core-util-is":36,"inherits":22,"stream":41}],36:[function(require,module,exports){
+},{"./_stream_duplex":26,"_process":20,"buffer":7,"core-util-is":31,"inherits":17,"stream":36}],31:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -7028,10 +5966,10 @@ function objectToString(o) {
 }
 }).call(this,require("buffer").Buffer)
 
-},{"buffer":12}],37:[function(require,module,exports){
+},{"buffer":7}],32:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
-},{"./lib/_stream_passthrough.js":32}],38:[function(require,module,exports){
+},{"./lib/_stream_passthrough.js":27}],33:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = require('stream');
 exports.Readable = exports;
@@ -7040,13 +5978,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":31,"./lib/_stream_passthrough.js":32,"./lib/_stream_readable.js":33,"./lib/_stream_transform.js":34,"./lib/_stream_writable.js":35,"stream":41}],39:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":26,"./lib/_stream_passthrough.js":27,"./lib/_stream_readable.js":28,"./lib/_stream_transform.js":29,"./lib/_stream_writable.js":30,"stream":36}],34:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":34}],40:[function(require,module,exports){
+},{"./lib/_stream_transform.js":29}],35:[function(require,module,exports){
 module.exports = require("./lib/_stream_writable.js")
 
-},{"./lib/_stream_writable.js":35}],41:[function(require,module,exports){
+},{"./lib/_stream_writable.js":30}],36:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7175,7 +6113,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":16,"inherits":22,"readable-stream/duplex.js":30,"readable-stream/passthrough.js":37,"readable-stream/readable.js":38,"readable-stream/transform.js":39,"readable-stream/writable.js":40}],42:[function(require,module,exports){
+},{"events":11,"inherits":17,"readable-stream/duplex.js":25,"readable-stream/passthrough.js":32,"readable-stream/readable.js":33,"readable-stream/transform.js":34,"readable-stream/writable.js":35}],37:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7398,7 +6336,7 @@ function base64DetectIncompleteChar(buffer) {
   this.charLength = this.charReceived ? 3 : 0;
 }
 
-},{"buffer":12}],43:[function(require,module,exports){
+},{"buffer":7}],38:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -8107,14 +7045,14 @@ function isNullOrUndefined(arg) {
   return  arg == null;
 }
 
-},{"punycode":26,"querystring":29}],44:[function(require,module,exports){
+},{"punycode":21,"querystring":24}],39:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],45:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -8705,7 +7643,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":44,"_process":25,"inherits":22}],46:[function(require,module,exports){
+},{"./support/isBuffer":39,"_process":20,"inherits":17}],41:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -8875,7 +7813,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":47}],47:[function(require,module,exports){
+},{"./debug":42}],42:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -9074,7 +8012,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":48}],48:[function(require,module,exports){
+},{"ms":43}],43:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -9201,7 +8139,2202 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],49:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
+'use strict';
+
+var Url       = require('./url'),
+    $Ref      = require('./ref'),
+    util      = require('./util'),
+    _forEach  = require('lodash/collection/forEach'),
+    _isArray  = require('lodash/lang/isArray'),
+    _isObject = require('lodash/lang/isObject');
+
+module.exports = dereference;
+
+/**
+ * @param {$RefParser} parser
+ * @param {Options} options
+ * @returns {Promise}
+ */
+function dereference(parser, options) {
+  util.debug('Dereferencing $ref pointers in %s', parser._url);
+
+  var internal = options.$refs.internal;
+
+  if (options.$refs.external) {
+    // Dereference all external $refs first.
+    // This is important, because internal $refs can point to dereferenced values
+    options.$refs.internal = false;
+    crawl(parser.schema, parser._url, [], parser.$refs, options);
+  }
+
+  if (internal) {
+    // Now dereference the internal $refs.
+    options.$refs.internal = true;
+    crawl(parser.schema, parser._url, [], parser.$refs, options);
+  }
+}
+
+/**
+ * @param {object} obj
+ * @param {Url} url
+ * @param {object[]} parents
+ * @param {$Refs} $refs
+ * @param {Options} options
+ */
+function crawl(obj, url, parents, $refs, options) {
+  if (_isObject(obj) || _isArray(obj)) {
+    parents.push(obj);
+
+    _forEach(obj, function(value, key) {
+      var keyUrl = new Url(url);
+      keyUrl.hash = (keyUrl.hash || '#') + '/' + key;
+
+      if ($Ref.isAllowed(value, options)) {
+        // We found a $ref pointer.
+        util.debug('Dereferencing $ref pointer "%s" at %s', value, keyUrl);
+        var $refUrl = url.resolve(value.$ref);
+
+        // Dereference the $ref pointer
+        obj[key] = value = $refs.get($refUrl);
+
+        // Crawl the dereferenced value (unless it's circular)
+        if (parents.indexOf(value) === -1) {
+          crawl(value, $refUrl, parents, $refs, options);
+        }
+      }
+      else if (parents.indexOf(value) === -1) {
+        crawl(value, keyUrl, parents, $refs, options);
+      }
+    });
+
+    parents.pop();
+  }
+}
+
+},{"./ref":50,"./url":53,"./util":54,"lodash/collection/forEach":91,"lodash/lang/isArray":147,"lodash/lang/isObject":152}],45:[function(require,module,exports){
+'use strict';
+
+var Promise        = require('./promise'),
+    Options        = require('./options'),
+    Url            = require('./url'),
+    $Refs          = require('./refs'),
+    $Ref           = require('./ref'),
+    read           = require('./read'),
+    resolve        = require('./resolve'),
+    dereference    = require('./dereference'),
+    util           = require('./util'),
+    _cloneDeep     = require('lodash/lang/cloneDeep'),
+    _isFunction    = require('lodash/lang/isFunction'),
+    _isObject      = require('lodash/lang/isObject'),
+    _isPlainObject = require('lodash/lang/isPlainObject'),
+    _isString      = require('lodash/lang/isString');
+
+module.exports = $RefParser;
+
+function $RefParser() {
+  /**
+   * The parsed (and possibly dereferenced) JSON schema object
+   *
+   * @type {object}
+   * @readonly
+   */
+  this.schema = null;
+
+  /**
+   * The resolved $ref pointers
+   *
+   * @type {$Refs}
+   */
+  this.$refs = new $Refs();
+
+  /**
+   * @type {Url}
+   * @protected
+   */
+  this._url = null;
+}
+
+$RefParser.parse = function(schema, options, callback) {
+  return new $RefParser().parse(schema, options, callback);
+};
+
+$RefParser.prototype.parse = function(schema, options, callback) {
+  if (_isFunction(options)) {
+    callback = options;
+    options = undefined;
+  }
+
+  if (schema && _isObject(schema)) {
+    // The schema is an object, not a path/url
+    this.schema = _cloneDeep(schema);
+    this._url = Url.cwd();
+
+    util.doCallback(callback, null, this.schema);
+    return Promise.resolve(this.schema);
+  }
+
+  if (!schema || !_isString(schema)) {
+    var err = util.newError('Expected a file path, URL, or object. Got %s', schema);
+    util.doCallback(callback, err, schema);
+    return Promise.reject(err);
+  }
+
+  options = new Options(options);
+  var me = this;
+
+  // Resolve the full URL of the schema
+  var cwd = Url.cwd();
+  this._url = cwd.resolve(new Url(schema));
+
+  // Read the schema file/url
+  return read(this._url, this, options)
+    .then(function($ref) {
+      // Make sure the file was a POJO (in JSON or YAML format), NOT a Buffer or string
+      if ($ref.value && _isPlainObject($ref.value)) {
+        me.schema = $ref.value;
+        util.doCallback(callback, null, me.schema);
+        return me.schema;
+      }
+      else {
+        throw util.newError(SyntaxError, '"%s" is not a valid JSON Schema', me._url);
+      }
+    })
+    .catch(function(err) {
+      util.doCallback(callback, err);
+      return Promise.reject(err);
+    });
+};
+
+$RefParser.resolve = function(schema, options, callback) {
+  return new $RefParser().resolve(schema, options, callback);
+};
+
+$RefParser.prototype.resolve = function(schema, options, callback) {
+  if (_isFunction(options)) {
+    callback = options;
+    options = undefined;
+  }
+
+  options = new Options(options);
+  var me = this;
+
+  return this.parse(schema, options)
+    .then(function() {
+      return resolve(me, options);
+    })
+    .then(function() {
+      util.doCallback(callback, null, me.$refs);
+      return me.$refs;
+    })
+    .catch(function(err) {
+      util.doCallback(callback, err, me.$refs);
+      return Promise.reject(err);
+    });
+};
+
+$RefParser.dereference = function(schema, options, callback) {
+  return new $RefParser().dereference(schema, options, callback);
+};
+
+$RefParser.prototype.dereference = function(schema, options, callback) {
+  if (_isFunction(options)) {
+    callback = options;
+    options = undefined;
+  }
+
+  options = new Options(options);
+  var me = this;
+
+  return this.resolve(schema, options)
+    .then(function() {
+      dereference(me, options);
+      util.doCallback(callback, null, me.schema);
+      return me.schema;
+    })
+    .catch(function(err) {
+      util.doCallback(callback, err, me.schema);
+      return Promise.reject(err);
+    });
+};
+
+},{"./dereference":44,"./options":46,"./promise":48,"./read":49,"./ref":50,"./refs":51,"./resolve":52,"./url":53,"./util":54,"lodash/lang/cloneDeep":145,"lodash/lang/isFunction":149,"lodash/lang/isObject":152,"lodash/lang/isPlainObject":153,"lodash/lang/isString":154}],46:[function(require,module,exports){
+'use strict';
+
+var _merge = require('lodash/object/merge');
+
+module.exports = Options;
+
+function Options(options) {
+  this.allow = {
+    json: true,
+    yaml: true,
+    empty: true,
+    unknown: true
+  };
+
+  this.$refs = {
+    internal: true,
+    external: true
+  };
+
+  this.cache = {
+    fs: 60,
+    http: 5 * 60,
+    https: 5 * 60
+  };
+
+  _merge(this, options);
+}
+
+},{"lodash/object/merge":159}],47:[function(require,module,exports){
+'use strict';
+
+var yaml      = require('js-yaml'),
+    Url       = require('./url'),
+    util      = require('./util'),
+    _isEmpty  = require('lodash/lang/isEmpty'),
+    _isString = require('lodash/lang/isString');
+
+module.exports = parse;
+
+/**
+ * @param {string|Buffer} data
+ * @param {Url} url
+ * @param {Options} options
+ * @returns {string|Buffer|object}
+ */
+function parse(data, url, options) {
+  var parsed;
+
+  try {
+    if (options.allow.yaml) {
+      util.debug('Parsing YAML file: %s', url);
+      parsed = yaml.safeLoad(data.toString());
+      util.debug('    Parsed successfully');
+    }
+    else if (options.allow.json) {
+      util.debug('Parsing JSON file: %s', url);
+      parsed = JSON.parse(data.toString());
+      util.debug('    Parsed successfully');
+    }
+    else {
+      parsed = data;
+    }
+  }
+  catch (e) {
+    var ext = url.extname().toLowerCase();
+    if (options.allow.unknown && ['.json', '.yaml', '.yml'].indexOf(ext) === -1) {
+      // It's not a YAML or JSON file, and unknown formats are allowed,
+      // so ignore the parsing error and just return the raw data
+      util.debug('    Unknown file format. Not parsed.');
+      parsed = data;
+    }
+    else {
+      throw util.newError(SyntaxError, e, 'Error parsing "%s"', url);
+    }
+  }
+
+  var empty = _isEmpty(parsed) ||                           // empty objects
+    parsed.length === 0 ||                                  // empty Buffers
+    (_isString(parsed) && (parsed.trim().length === 0));    // empty strings
+
+  if (empty && !options.allow.empty) {
+    throw util.newError(SyntaxError, 'Error parsing "%s". \nParsed value is empty', url);
+  }
+
+  return parsed;
+}
+
+},{"./url":53,"./util":54,"js-yaml":59,"lodash/lang/isEmpty":148,"lodash/lang/isString":154}],48:[function(require,module,exports){
+/** @type {Promise} **/
+module.exports = typeof(Promise) === 'function' ? Promise : require('es6-promise').Promise;
+
+},{"es6-promise":58}],49:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var fs          = require('fs'),
+    http        = require('http'),
+    https       = require('https'),
+    parse       = require('./parse'),
+    util        = require('./util'),
+    Url         = require('./url'),
+    $Ref        = require('./ref'),
+    Promise     = require('./promise'),
+    _isFunction = require('lodash/lang/isFunction');
+
+module.exports = read;
+
+/**
+ * @param {Url} url
+ * @param {$RefParser} parser
+ * @param {Options} options
+ * @returns {Promise}
+ */
+function read(url, parser, options) {
+  try {
+    // Remove the URL fragment, if any
+    url.hash = null;
+    util.debug('Reading %s', url);
+
+    // Return from cache, if possible
+    var $ref = parser.$refs._get$Ref(url);
+    if ($ref && !$ref.isExpired()) {
+      util.debug('    cached from %s', $ref.type);
+      $ref.cached = true;
+      return Promise.resolve($ref);
+    }
+
+    // Add a placeholder $ref to the cache, so we don't read this URL multiple times
+    $ref = new $Ref(url);
+    parser.$refs._set$Ref($ref);
+
+    // Read and return the $ref
+    return read$Ref($ref, parser, options);
+  }
+  catch (e) {
+    return Promise.reject(e);
+  }
+}
+
+var $refTypes = [
+  {name: 'http', handler: httpDownload},
+  {name: 'https', handler: httpsDownload},
+  {name: 'fs', handler: readFile}
+];
+
+/**
+ * @param {$Ref} $ref
+ * @param {$RefParser} parser
+ * @param {Options} options
+ * @returns {Promise}
+ */
+function read$Ref($ref, parser, options) {
+  var typeName = '', promise = null;
+
+  try {
+    // Read the URL, based on its type
+    $refTypes.some(function(type, index) {
+      typeName = type.name;
+      util.debug('    trying %s', typeName);
+      return promise = type.handler.call(parser, $ref.url, options);
+    });
+
+    if (promise) {
+      // Update the $ref
+      $ref.type = typeName;
+
+      return promise
+        .then(function(data) {
+          // Update the $ref with the parsed file contents
+          var value = parse(data, $ref.url, options);
+          $ref.setValue(value, options);
+          $ref.cached = false;
+
+          return $ref;
+        })
+    }
+    else {
+      return Promise.reject(util.newError(SyntaxError, 'Unable to resolve $ref pointer "%s"', $ref.url));
+    }
+  }
+  catch (e) {
+    return Promise.reject(e);
+  }
+}
+
+/**
+ * @this $RefParser
+ * @param {Url} url
+ * @param {Options} options
+ * @returns {Promise|undefined}
+ */
+function readFile(url, options) {
+  if (process.browser || !options.$refs.external) {
+    return;
+  }
+
+  var file = url.format();
+  if (fs.existsSync(file)) {
+    return new Promise(function(resolve, reject) {
+      try {
+        util.debug('Reading file: %s', file);
+
+        fs.readFile(file, function(err, data) {
+          if (err) {
+            reject(util.newError(err, 'Error opening file "%s"', file));
+          }
+          else {
+            resolve(data);
+          }
+        });
+      }
+      catch (err) {
+        reject(util.newError(err, 'Error opening file "%s"', file));
+      }
+    });
+  }
+}
+
+/**
+ * @this $RefParser
+ * @param {Url} url
+ * @param {Options} options
+ * @returns {Promise|undefined}
+ */
+function httpDownload(url, options) {
+  if (!options.$refs.external) {
+    return;
+  }
+
+  if (url.protocol === 'http:') {
+    return download(http, url, options);
+  }
+}
+
+/**
+ * @this $RefParser
+ * @param {Url} url
+ * @param {Options} options
+ * @returns {Promise|undefined}
+ */
+function httpsDownload(url, options) {
+  if (!options.$refs.external) {
+    return;
+  }
+
+  if (url.protocol === 'https:') {
+    return download(https, url, options);
+  }
+}
+
+/**
+ * @param {http|https} protocol
+ * @param {Url} url
+ * @param {Options} options
+ * @returns {Promise}
+ */
+function download(protocol, url, options) {
+  return new Promise(function(resolve, reject) {
+    try {
+      util.debug('Downloading file: %s', url.href);
+
+      var req = protocol.get(
+        {
+          host: url.host,
+          hostname: url.hostname,
+          port: url.port,
+          path: url.path,
+          auth: url.auth
+        },
+        onResponse
+      );
+
+      if (_isFunction(req.setTimeout)) {
+        req.setTimeout(5000);
+      }
+
+      req.on('timeout', function() {
+        req.abort();
+      });
+
+      req.on('error', function(err) {
+        reject(util.newError(err, 'Error downloading file "%s"', url.href));
+      });
+    }
+    catch (err) {
+      reject(util.newError(err, 'Error downloading file "%s"', url.href));
+    }
+
+    function onResponse(res) {
+      var body;
+
+      res.on('data', function(data) {
+        // Data can be a string or a buffer
+        body = body ? body.concat(data) : data;
+      });
+
+      res.on('end', function() {
+        if (res.statusCode >= 400) {
+          reject(util.newError('GET %s \nHTTP ERROR %d \n%s', url.href, res.statusCode, body));
+        }
+        else if ((res.statusCode === 204 || !body || !body.length) && !options.allow.empty) {
+          reject(util.newError('GET %s \nHTTP 204: No Content', url.href));
+        }
+        else {
+          resolve(body);
+        }
+      });
+
+      res.on('error', function(err) {
+        reject(util.newError(err, 'Error downloading file "%s"', url.href));
+      });
+    }
+  });
+}
+
+}).call(this,require('_process'))
+
+},{"./parse":47,"./promise":48,"./ref":50,"./url":53,"./util":54,"_process":20,"fs":5,"http":12,"https":16,"lodash/lang/isFunction":149}],50:[function(require,module,exports){
+'use strict';
+
+var util      = require('./util'),
+    _isObject = require('lodash/lang/isObject'),
+    _isNumber = require('lodash/lang/isNumber'),
+    _isString = require('lodash/lang/isString');
+
+module.exports = $Ref;
+
+function $Ref(url) {
+  /**
+   * @type {$Refs}
+   */
+  this.$refs = null;
+
+  /**
+   * @type {Url}
+   */
+  this.url = url;
+
+  /**
+   * @type {*}
+   */
+  this.value = undefined;
+
+  /**
+   * @type {string}
+   */
+  this.type = 'pending';
+
+  /**
+   * @type {Date}
+   */
+  this.expires = undefined;
+}
+
+/**
+ * @param {*} value
+ * @param {Options} options
+ */
+$Ref.prototype.setValue = function(value, options) {
+  this.value = value;
+
+  // Extend the cache expiration
+  var cacheDuration = options.cache[this.type];
+  if (_isNumber(cacheDuration)) {
+    var expires = Date.now() + (cacheDuration * 1000);
+    this.expires = new Date(expires);
+  }
+};
+
+$Ref.prototype.isExpired = function() {
+  return this.expires && this.expires <= new Date();
+};
+
+$Ref.prototype.expire = function() {
+  this.expires = new Date();
+};
+
+$Ref.prototype.exists = function(hash) {
+  try {
+    this.get(hash);
+    return true;
+  }
+  catch (e) {
+    return false;
+  }
+};
+
+/**
+ * @param {Url} url
+ * @param {Options} options
+ * @returns {*}
+ */
+$Ref.prototype.get = function(url, options) {
+  try {
+    var props = parse(url.hash);
+    var prop = {
+      url: url,
+      value: this.value
+    };
+
+    for (var i = 0; i < props.length; i++) {
+      resolve(prop, this, options);
+
+      if (props[i] in prop.value) {
+        prop.value = prop.value[props[i]];
+      }
+    }
+
+    return resolve(prop, this, options).value;
+  }
+  catch (e) {
+    throw util.newError(SyntaxError, e,
+      'Error resolving $ref pointer "%s". \n"%s" not found.', url, url.hash);
+  }
+};
+
+/**
+ * @param {Url} url
+ * @param {*} value
+ * @param {Options} options
+ */
+$Ref.prototype.set = function(url, value, options) {
+  try {
+    var props = parse(url.hash);
+    var prop = {
+      url: url,
+      value: this.value
+    };
+
+    for (var i = 0; i < props.length - 1; i++) {
+      resolve(prop, this, options);
+
+      if (props[i] in prop.value) {
+        prop.value = prop.value[props[i]];
+      }
+      else {
+        prop.value = prop.value[props[i]] = {};
+      }
+    }
+
+    resolve(prop, this, options);
+    prop.value[props[props.length - 1]] = value;
+  }
+  catch (e) {
+    throw util.newError(SyntaxError, e,
+      'Error resolving $ref pointer "%s". \n"%s" not found.', url, url.hash);
+  }
+};
+
+/**
+ * @param {*} value
+ * @param {Options} options
+ * @returns {boolean}
+ */
+$Ref.isAllowed = function(value, options) {
+  if (value && _isObject(value) && _isString(value.$ref)) {
+    if (value.$ref[0] === '#') {
+      if (options.$refs.internal) {
+        return true;
+      }
+    }
+    else if (options.$refs.external) {
+      return true;
+    }
+  }
+};
+
+/**
+ * @param {string} hash
+ * @returns {string[]}
+ */
+function parse(hash) {
+  // Remove the leading hash if it exists
+  hash = hash[0] === '#' ? hash.substr(1) : hash;
+
+  // Split into an array
+  hash = hash.split('/');
+
+  // Decode each part, according to RFC 6901
+  // https://tools.ietf.org/html/rfc6901#section-3
+  for (var i = 0; i < hash.length; i++) {
+    hash[i] = hash[i].replace(/~1/g, '/').replace(/~0/g, '~');
+  }
+
+  if (hash[0] !== '') {
+    throw util.newError(SyntaxError, 'Invalid $ref pointer "%s". Pointers must begin with "#/"', hash);
+  }
+
+  return hash.slice(1);
+}
+
+/**
+ * @param {{url: Url, value: *}} prop
+ * @param {$Ref} $ref
+ * @param {Options} [options]
+ * @returns {{url: Url, value: *}}
+ */
+function resolve(prop, $ref, options) {
+  if ($Ref.isAllowed(prop.value, options)) {
+    var newUrl = prop.url.resolve(prop.value.$ref);
+
+    // Don't resolve circular references
+    if (newUrl.href !== prop.url.href) {
+      prop.url = newUrl;
+      prop.value = $ref.$refs.get(prop.url);
+    }
+  }
+
+  return prop;
+}
+
+},{"./util":54,"lodash/lang/isNumber":151,"lodash/lang/isObject":152,"lodash/lang/isString":154}],51:[function(require,module,exports){
+'use strict';
+
+var Url     = require('./url'),
+    Options = require('./options'),
+    util    = require('./util'),
+    _reduce = require('lodash/collection/reduce');
+
+module.exports = $Refs;
+
+function $Refs() {
+  /**
+   * A map of URLs to {@link $Ref} objects
+   *
+   * @type {object}
+   * @private
+   */
+  this._$refs = {};
+}
+
+$Refs.prototype.toJSON = function() {
+  return _reduce(this._$refs, function($refs, $ref, url) {
+    $refs[url] = $ref.value;
+    return $refs;
+  }, {});
+};
+
+/**
+ * @param {string} $ref
+ * @param {Options} [options]
+ * @returns {boolean}
+ */
+$Refs.prototype.exists = function($ref, options) {
+  try {
+    this.get($ref, options);
+    return true;
+  }
+  catch (e) {
+    return false;
+  }
+};
+
+/**
+ * @param {string} $ref
+ * @param {Options} [options]
+ * @returns {*}
+ */
+$Refs.prototype.get = function($ref, options) {
+  var url = new Url($ref);
+  var hasHash = url.hash;
+  url.hash = null;
+  var $refObj = this._$refs[url.format()];
+
+  if (!$refObj) {
+    throw util.newError('Error resolving $ref pointer "%s". \n"%s" not found.', $ref, url);
+  }
+
+  if (!hasHash) {
+    return $refObj.value;
+  }
+
+  options = new Options(options);
+  return $refObj.get(new Url($ref), options);
+};
+
+/**
+ * @param {string} $ref
+ * @param {*} value
+ * @param {Options} [options]
+ */
+$Refs.prototype.set = function($ref, value, options) {
+  var url = new Url($ref);
+  var hasHash = url.hash;
+  url.hash = null;
+  var $refObj = this._$refs[url.format()];
+
+  if (!$refObj) {
+    throw util.newError('Error resolving $ref pointer "%s". \n"%s" not found.', $ref, url);
+  }
+
+  if (!hasHash) {
+    $refObj.value = value;
+  }
+
+  options = new Options(options);
+  $refObj.set(new Url($ref), value, options);
+};
+
+/**
+ * @param {Url} url
+ * @returns {$Ref|undefined}
+ * @protected
+ */
+$Refs.prototype._get$Ref = function(url) {
+  if (url.hash) {
+    url = new Url(url);
+    url.hash = null;
+  }
+
+  return this._$refs[url.format()];
+};
+
+/**
+ * @param {$Ref} $ref
+ * @protected
+ */
+$Refs.prototype._set$Ref = function($ref) {
+  $ref.url.hash = null;
+  $ref.$refs = this;
+  this._$refs[$ref.url.format()] = $ref;
+};
+
+},{"./options":46,"./url":53,"./util":54,"lodash/collection/reduce":92}],52:[function(require,module,exports){
+'use strict';
+
+var Promise   = require('./promise'),
+    Url       = require('./url'),
+    read      = require('./read'),
+    util      = require('./util'),
+    _forEach  = require('lodash/collection/forEach'),
+    _isArray  = require('lodash/lang/isArray'),
+    _isObject = require('lodash/lang/isObject'),
+    _isString = require('lodash/lang/isString');
+
+module.exports = resolve;
+
+/**
+ * @param {$RefParser} parser
+ * @param {Options} options
+ * @returns {Promise}
+ */
+function resolve(parser, options) {
+  try {
+    if (!options.$refs.external) {
+      // Nothing to resolve, so exit early
+      return Promise.resolve();
+    }
+
+    util.debug('Resolving $ref pointers in %s', parser._url);
+    var promises = crawl(parser.schema, parser._url, parser, options);
+    return Promise.all(promises);
+  }
+  catch (e) {
+    return Promise.reject(e);
+  }
+}
+
+/**
+ * @param {object} obj
+ * @param {Url} url
+ * @param {$RefParser} parser
+ * @param {Options} options
+ * @returns {Promise[]}
+ */
+function crawl(obj, url, parser, options) {
+  var promises = [];
+
+  if (_isObject(obj) || _isArray(obj)) {
+    _forEach(obj, function(value, key) {
+      var keyUrl = new Url(url);
+      keyUrl.hash = (keyUrl.hash || '#') + '/' + key;
+
+      if (isExternal$Ref(key, value)) {
+        // We found a $ref pointer
+        util.debug('Resolving $ref pointer "%s" at %s', value, keyUrl);
+        var $refUrl = url.resolve(value);
+
+        // Crawl the $ref pointer
+        var promise = crawl$Ref($refUrl, parser, options)
+          .catch(function(err) {
+            throw util.newError(SyntaxError, err, 'Error at %s', promise.name);
+          });
+        promise.name = keyUrl.format();
+        promises.push(promise);
+      }
+      else {
+        promises = promises.concat(crawl(value, keyUrl, parser, options));
+      }
+    });
+  }
+  return promises;
+}
+
+/**
+ * @param {Url} url
+ * @param {$RefParser} parser
+ * @param {Options} options
+ * @returns {Promise}
+ */
+function crawl$Ref(url, parser, options) {
+  return read(url, parser, options)
+    .then(function($ref) {
+      // If a cached $ref is returned, then we DON'T need to crawl it
+      if (!$ref.cached) {
+        // This is a new $ref, so we need to crawl it
+        util.debug('Resolving $ref pointers in %s', $ref.url);
+        var promises = crawl($ref.value, $ref.url, parser, options);
+        return Promise.all(promises);
+      }
+    });
+}
+
+function isExternal$Ref(key, value) {
+  return key === '$ref' && value && _isString(value) && value[0] !== '#';
+}
+
+},{"./promise":48,"./read":49,"./url":53,"./util":54,"lodash/collection/forEach":91,"lodash/lang/isArray":147,"lodash/lang/isObject":152,"lodash/lang/isString":154}],53:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var path      = require('path'),
+    url       = require('url'),
+    util      = require('./util'),
+    _isString = require('lodash/lang/isString');
+
+module.exports = Url;
+
+function Url(u) {
+  if (_isString(u)) {
+    this._url = Url.parse(u);
+  }
+  else if (u instanceof Url) {
+    this._url = url.parse(u._url.format());
+  }
+  else {
+    this._url = url.parse(u);
+  }
+}
+
+Object.defineProperty(Url.prototype, 'href', {
+  get: function() {
+    return this._url.href;
+  }
+});
+
+['protocol', 'host', 'auth', 'hostname', 'port', 'pathname', 'search', 'path', 'query', 'hash'].forEach(
+  function(prop) {
+    Object.defineProperty(Url.prototype, prop, {
+      enumerable: true,
+      get: function() {
+        return this._url[prop];
+      },
+      set: function(value) {
+        if (value !== this._url[prop]) {
+          this._url[prop] = value;
+          this._url = url.parse(this._url.format());
+        }
+      }
+    })
+  }
+);
+
+Url.dirname = function() {
+  return new Url.dirname();
+};
+
+Url.prototype.dirname = function() {
+  return path.dirname(this.pathname);
+};
+
+Url.basename = function(ext) {
+  return new Url.basename(ext);
+};
+
+Url.prototype.basename = function(ext) {
+  return path.basename(this.pathname, ext);
+};
+
+Url.extname = function() {
+  return new Url.extname();
+};
+
+Url.prototype.extname = function() {
+  return path.extname(this.pathname);
+};
+
+Url.resolve = function(from, to) {
+  return new Url(from).resolve(to);
+};
+
+Url.prototype.resolve = function(relative) {
+  util.debug('Resolving path "%s", relative to "%s"', relative, this);
+
+  if (!(relative instanceof Url)) {
+    relative = new Url(relative);
+  }
+
+  // url.resolve() works across all environments (Linux, Mac, Windows, browsers),
+  // even if the the URLs are different types (e.g. one is a web URL, the other is a file path)
+  var u = url.resolve(this._url, relative._url);
+
+  var resolved = new Url(u);
+  util.debug('    Resolved to %s', resolved);
+  return resolved;
+};
+
+Url.prototype.format = function() {
+  if (process.browser || this.protocol === 'http:' || this.protocol === 'https:') {
+    // It's a web URL, so return it as-is
+    return this.href;
+  }
+
+  // It's a local file, so we need to do some extra work
+  var pathname = this.pathname;
+  var hash = this.hash;
+
+  // Decode special characters
+  pathname = decodeURIComponent(pathname);
+
+  // Normalize slashes (uses backslashes on Windows)
+  pathname = path.normalize(pathname);
+
+  // Combine the pathname and hash (if any)
+  if (hash && hash[0] === '#') {
+    return pathname + hash;
+  }
+  else if (hash) {
+    return pathname + '#' + hash;
+  }
+  else {
+    return pathname;
+  }
+};
+
+Url.prototype.toString = Url.prototype.format;
+
+Url.parse = function(urlStr) {
+  var u = url.parse(urlStr);
+
+  if (process.browser || u.protocol === 'http:' || u.protocol === 'https:') {
+    // It's a web URL, so return it as-is
+    return u;
+  }
+
+  // It's a local file, so we need to do some extra work
+  var pathname = urlStr;
+
+  // Split the hash (if any) from the pathname
+  var hash = urlStr.lastIndexOf('#');
+  if (hash === -1) {
+    hash = null;
+  }
+  else {
+    pathname = urlStr.substr(0, hash);
+    hash = urlStr.substr(hash + 1);
+  }
+
+  // Change Windows backslashes to forward slashes
+  pathname = pathname.split(path.sep).join('/');
+
+  // Encode special characters that are legal in file paths, but not in URLs
+  pathname = encodeURI(pathname);
+
+  // Parse the file path as a URL
+  urlStr = url.format({pathname: pathname, hash: hash});
+  u = url.parse(urlStr);
+
+  return new Url(u);
+};
+
+/**
+ * Returns the current working directory.
+ * The returned path always include a trailing slash
+ * to ensure that it behaves properly with {@link url#resolve}.
+ *
+ * @returns {Url}
+ */
+Url.cwd = function() {
+  /* istanbul ignore next: code-coverage doesn't run in the browser */
+  var dir = new Url(process.browser ? window.location.href : process.cwd() + '/');
+
+  // Remove the file name (if any) from the pathname
+  var lastSlash = dir.pathname.lastIndexOf('/');
+  dir.pathname = dir.pathname.substr(0, lastSlash + 1);
+
+  // Remove everything after the pathname
+  dir.path = null;
+  dir.search = null;
+  dir.query = null;
+  dir.hash = null;
+
+  return new Url(dir);
+};
+
+}).call(this,require('_process'))
+
+},{"./util":54,"_process":20,"lodash/lang/isString":154,"path":19,"url":38}],54:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var debug       = require('debug'),
+    format      = require('util').format,
+    _isFunction = require('lodash/lang/isFunction'),
+    _isString   = require('lodash/lang/isString');
+
+module.exports = {
+  /**
+   * Writes messages to stdout.
+   * Log messages are suppressed by default, but can be enabled by setting the DEBUG variable.
+   * @type {function}
+   */
+  debug: debug('json-schema-ref-parser'),
+  doCallback: doCallback,
+  newError: newError
+};
+
+/**
+ * Asynchronously invokes the given callback function with the given parameters.
+ *
+ * @param {function|undefined} callback
+ * @param {*}       [err]
+ * @param {...*}    [params]
+ */
+function doCallback(callback, err, params) {
+  if (_isFunction(callback)) {
+    var args = slice(arguments, 1);
+
+    /* istanbul ignore if: code-coverage doesn't run in the browser */
+    if (process.browser) {
+      process.nextTick(invokeCallback);
+    }
+    else {
+      setImmediate(invokeCallback);
+    }
+  }
+
+  function invokeCallback() {
+    callback.apply(null, args);
+  }
+}
+
+/**
+ * Creates an Error with a formatted string message.
+ *
+ * @param     {Class}     [Klass]     The error class to create (default is {@link Error})
+ * @param     {Error}     [err]       The original error, if any
+ * @param     {string}    [message]   A user-friendly message about the source of the error
+ * @param     {...*}      [params]    One or more {@link util#format} params
+ * @returns   {Error}
+ */
+function newError(Klass, err, message, params) {
+  if (_isFunction(Klass) && err instanceof Error) {
+    return makeError(Klass, err, format.apply(null, slice(arguments, 2)));
+  }
+  else if (_isFunction(Klass)) {
+    return makeError(Klass, null, format.apply(null, slice(arguments, 1)));
+  }
+  else if (err instanceof Error) {
+    return makeError(Error, err, format.apply(null, slice(arguments, 1)));
+  }
+  else {
+    return makeError(Error, null, format.apply(null, arguments));
+  }
+}
+
+/**
+ * Creates a new error that wraps another error.
+ *
+ * @param   {Class}         Klass       The Error class to create
+ * @param   {Error|null}    err         The inner Error object, if any
+ * @param   {string}        message     Optional message about where and why the error occurred.
+ */
+function makeError(Klass, err, message) {
+  if (err) {
+    // Append inner error information to the message
+    message += ' \n' + (err.name || 'Error') + ': ' + err.message;
+  }
+
+  var newErr = new Klass(message);
+
+  /* istanbul ignore else: Only IE doesn't have an Error.stack property */
+  if (err && _isString(err.stack)) {
+    // Keep the stack trace of the original error
+    newErr.stack += ' \n\n' + err.stack;
+  }
+
+  return newErr;
+}
+
+}).call(this,require('_process'))
+
+},{"_process":20,"debug":55,"lodash/lang/isFunction":149,"lodash/lang/isString":154,"util":40}],55:[function(require,module,exports){
+arguments[4][41][0].apply(exports,arguments)
+},{"./debug":56,"dup":41}],56:[function(require,module,exports){
+arguments[4][42][0].apply(exports,arguments)
+},{"dup":42,"ms":57}],57:[function(require,module,exports){
+arguments[4][43][0].apply(exports,arguments)
+},{"dup":43}],58:[function(require,module,exports){
+(function (process,global){
+/*!
+ * @overview es6-promise - a tiny implementation of Promises/A+.
+ * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
+ * @license   Licensed under MIT license
+ *            See https://raw.githubusercontent.com/jakearchibald/es6-promise/master/LICENSE
+ * @version   2.3.0
+ */
+
+(function() {
+    "use strict";
+    function lib$es6$promise$utils$$objectOrFunction(x) {
+      return typeof x === 'function' || (typeof x === 'object' && x !== null);
+    }
+
+    function lib$es6$promise$utils$$isFunction(x) {
+      return typeof x === 'function';
+    }
+
+    function lib$es6$promise$utils$$isMaybeThenable(x) {
+      return typeof x === 'object' && x !== null;
+    }
+
+    var lib$es6$promise$utils$$_isArray;
+    if (!Array.isArray) {
+      lib$es6$promise$utils$$_isArray = function (x) {
+        return Object.prototype.toString.call(x) === '[object Array]';
+      };
+    } else {
+      lib$es6$promise$utils$$_isArray = Array.isArray;
+    }
+
+    var lib$es6$promise$utils$$isArray = lib$es6$promise$utils$$_isArray;
+    var lib$es6$promise$asap$$len = 0;
+    var lib$es6$promise$asap$$toString = {}.toString;
+    var lib$es6$promise$asap$$vertxNext;
+    var lib$es6$promise$asap$$customSchedulerFn;
+
+    var lib$es6$promise$asap$$asap = function asap(callback, arg) {
+      lib$es6$promise$asap$$queue[lib$es6$promise$asap$$len] = callback;
+      lib$es6$promise$asap$$queue[lib$es6$promise$asap$$len + 1] = arg;
+      lib$es6$promise$asap$$len += 2;
+      if (lib$es6$promise$asap$$len === 2) {
+        // If len is 2, that means that we need to schedule an async flush.
+        // If additional callbacks are queued before the queue is flushed, they
+        // will be processed by this flush that we are scheduling.
+        if (lib$es6$promise$asap$$customSchedulerFn) {
+          lib$es6$promise$asap$$customSchedulerFn(lib$es6$promise$asap$$flush);
+        } else {
+          lib$es6$promise$asap$$scheduleFlush();
+        }
+      }
+    }
+
+    function lib$es6$promise$asap$$setScheduler(scheduleFn) {
+      lib$es6$promise$asap$$customSchedulerFn = scheduleFn;
+    }
+
+    function lib$es6$promise$asap$$setAsap(asapFn) {
+      lib$es6$promise$asap$$asap = asapFn;
+    }
+
+    var lib$es6$promise$asap$$browserWindow = (typeof window !== 'undefined') ? window : undefined;
+    var lib$es6$promise$asap$$browserGlobal = lib$es6$promise$asap$$browserWindow || {};
+    var lib$es6$promise$asap$$BrowserMutationObserver = lib$es6$promise$asap$$browserGlobal.MutationObserver || lib$es6$promise$asap$$browserGlobal.WebKitMutationObserver;
+    var lib$es6$promise$asap$$isNode = typeof process !== 'undefined' && {}.toString.call(process) === '[object process]';
+
+    // test for web worker but not in IE10
+    var lib$es6$promise$asap$$isWorker = typeof Uint8ClampedArray !== 'undefined' &&
+      typeof importScripts !== 'undefined' &&
+      typeof MessageChannel !== 'undefined';
+
+    // node
+    function lib$es6$promise$asap$$useNextTick() {
+      var nextTick = process.nextTick;
+      // node version 0.10.x displays a deprecation warning when nextTick is used recursively
+      // setImmediate should be used instead instead
+      var version = process.versions.node.match(/^(?:(\d+)\.)?(?:(\d+)\.)?(\*|\d+)$/);
+      if (Array.isArray(version) && version[1] === '0' && version[2] === '10') {
+        nextTick = setImmediate;
+      }
+      return function() {
+        nextTick(lib$es6$promise$asap$$flush);
+      };
+    }
+
+    // vertx
+    function lib$es6$promise$asap$$useVertxTimer() {
+      return function() {
+        lib$es6$promise$asap$$vertxNext(lib$es6$promise$asap$$flush);
+      };
+    }
+
+    function lib$es6$promise$asap$$useMutationObserver() {
+      var iterations = 0;
+      var observer = new lib$es6$promise$asap$$BrowserMutationObserver(lib$es6$promise$asap$$flush);
+      var node = document.createTextNode('');
+      observer.observe(node, { characterData: true });
+
+      return function() {
+        node.data = (iterations = ++iterations % 2);
+      };
+    }
+
+    // web worker
+    function lib$es6$promise$asap$$useMessageChannel() {
+      var channel = new MessageChannel();
+      channel.port1.onmessage = lib$es6$promise$asap$$flush;
+      return function () {
+        channel.port2.postMessage(0);
+      };
+    }
+
+    function lib$es6$promise$asap$$useSetTimeout() {
+      return function() {
+        setTimeout(lib$es6$promise$asap$$flush, 1);
+      };
+    }
+
+    var lib$es6$promise$asap$$queue = new Array(1000);
+    function lib$es6$promise$asap$$flush() {
+      for (var i = 0; i < lib$es6$promise$asap$$len; i+=2) {
+        var callback = lib$es6$promise$asap$$queue[i];
+        var arg = lib$es6$promise$asap$$queue[i+1];
+
+        callback(arg);
+
+        lib$es6$promise$asap$$queue[i] = undefined;
+        lib$es6$promise$asap$$queue[i+1] = undefined;
+      }
+
+      lib$es6$promise$asap$$len = 0;
+    }
+
+    function lib$es6$promise$asap$$attemptVertex() {
+      try {
+        var r = require;
+        var vertx = r('vertx');
+        lib$es6$promise$asap$$vertxNext = vertx.runOnLoop || vertx.runOnContext;
+        return lib$es6$promise$asap$$useVertxTimer();
+      } catch(e) {
+        return lib$es6$promise$asap$$useSetTimeout();
+      }
+    }
+
+    var lib$es6$promise$asap$$scheduleFlush;
+    // Decide what async method to use to triggering processing of queued callbacks:
+    if (lib$es6$promise$asap$$isNode) {
+      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useNextTick();
+    } else if (lib$es6$promise$asap$$BrowserMutationObserver) {
+      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useMutationObserver();
+    } else if (lib$es6$promise$asap$$isWorker) {
+      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useMessageChannel();
+    } else if (lib$es6$promise$asap$$browserWindow === undefined && typeof require === 'function') {
+      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$attemptVertex();
+    } else {
+      lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useSetTimeout();
+    }
+
+    function lib$es6$promise$$internal$$noop() {}
+
+    var lib$es6$promise$$internal$$PENDING   = void 0;
+    var lib$es6$promise$$internal$$FULFILLED = 1;
+    var lib$es6$promise$$internal$$REJECTED  = 2;
+
+    var lib$es6$promise$$internal$$GET_THEN_ERROR = new lib$es6$promise$$internal$$ErrorObject();
+
+    function lib$es6$promise$$internal$$selfFullfillment() {
+      return new TypeError("You cannot resolve a promise with itself");
+    }
+
+    function lib$es6$promise$$internal$$cannotReturnOwn() {
+      return new TypeError('A promises callback cannot return that same promise.');
+    }
+
+    function lib$es6$promise$$internal$$getThen(promise) {
+      try {
+        return promise.then;
+      } catch(error) {
+        lib$es6$promise$$internal$$GET_THEN_ERROR.error = error;
+        return lib$es6$promise$$internal$$GET_THEN_ERROR;
+      }
+    }
+
+    function lib$es6$promise$$internal$$tryThen(then, value, fulfillmentHandler, rejectionHandler) {
+      try {
+        then.call(value, fulfillmentHandler, rejectionHandler);
+      } catch(e) {
+        return e;
+      }
+    }
+
+    function lib$es6$promise$$internal$$handleForeignThenable(promise, thenable, then) {
+       lib$es6$promise$asap$$asap(function(promise) {
+        var sealed = false;
+        var error = lib$es6$promise$$internal$$tryThen(then, thenable, function(value) {
+          if (sealed) { return; }
+          sealed = true;
+          if (thenable !== value) {
+            lib$es6$promise$$internal$$resolve(promise, value);
+          } else {
+            lib$es6$promise$$internal$$fulfill(promise, value);
+          }
+        }, function(reason) {
+          if (sealed) { return; }
+          sealed = true;
+
+          lib$es6$promise$$internal$$reject(promise, reason);
+        }, 'Settle: ' + (promise._label || ' unknown promise'));
+
+        if (!sealed && error) {
+          sealed = true;
+          lib$es6$promise$$internal$$reject(promise, error);
+        }
+      }, promise);
+    }
+
+    function lib$es6$promise$$internal$$handleOwnThenable(promise, thenable) {
+      if (thenable._state === lib$es6$promise$$internal$$FULFILLED) {
+        lib$es6$promise$$internal$$fulfill(promise, thenable._result);
+      } else if (thenable._state === lib$es6$promise$$internal$$REJECTED) {
+        lib$es6$promise$$internal$$reject(promise, thenable._result);
+      } else {
+        lib$es6$promise$$internal$$subscribe(thenable, undefined, function(value) {
+          lib$es6$promise$$internal$$resolve(promise, value);
+        }, function(reason) {
+          lib$es6$promise$$internal$$reject(promise, reason);
+        });
+      }
+    }
+
+    function lib$es6$promise$$internal$$handleMaybeThenable(promise, maybeThenable) {
+      if (maybeThenable.constructor === promise.constructor) {
+        lib$es6$promise$$internal$$handleOwnThenable(promise, maybeThenable);
+      } else {
+        var then = lib$es6$promise$$internal$$getThen(maybeThenable);
+
+        if (then === lib$es6$promise$$internal$$GET_THEN_ERROR) {
+          lib$es6$promise$$internal$$reject(promise, lib$es6$promise$$internal$$GET_THEN_ERROR.error);
+        } else if (then === undefined) {
+          lib$es6$promise$$internal$$fulfill(promise, maybeThenable);
+        } else if (lib$es6$promise$utils$$isFunction(then)) {
+          lib$es6$promise$$internal$$handleForeignThenable(promise, maybeThenable, then);
+        } else {
+          lib$es6$promise$$internal$$fulfill(promise, maybeThenable);
+        }
+      }
+    }
+
+    function lib$es6$promise$$internal$$resolve(promise, value) {
+      if (promise === value) {
+        lib$es6$promise$$internal$$reject(promise, lib$es6$promise$$internal$$selfFullfillment());
+      } else if (lib$es6$promise$utils$$objectOrFunction(value)) {
+        lib$es6$promise$$internal$$handleMaybeThenable(promise, value);
+      } else {
+        lib$es6$promise$$internal$$fulfill(promise, value);
+      }
+    }
+
+    function lib$es6$promise$$internal$$publishRejection(promise) {
+      if (promise._onerror) {
+        promise._onerror(promise._result);
+      }
+
+      lib$es6$promise$$internal$$publish(promise);
+    }
+
+    function lib$es6$promise$$internal$$fulfill(promise, value) {
+      if (promise._state !== lib$es6$promise$$internal$$PENDING) { return; }
+
+      promise._result = value;
+      promise._state = lib$es6$promise$$internal$$FULFILLED;
+
+      if (promise._subscribers.length !== 0) {
+        lib$es6$promise$asap$$asap(lib$es6$promise$$internal$$publish, promise);
+      }
+    }
+
+    function lib$es6$promise$$internal$$reject(promise, reason) {
+      if (promise._state !== lib$es6$promise$$internal$$PENDING) { return; }
+      promise._state = lib$es6$promise$$internal$$REJECTED;
+      promise._result = reason;
+
+      lib$es6$promise$asap$$asap(lib$es6$promise$$internal$$publishRejection, promise);
+    }
+
+    function lib$es6$promise$$internal$$subscribe(parent, child, onFulfillment, onRejection) {
+      var subscribers = parent._subscribers;
+      var length = subscribers.length;
+
+      parent._onerror = null;
+
+      subscribers[length] = child;
+      subscribers[length + lib$es6$promise$$internal$$FULFILLED] = onFulfillment;
+      subscribers[length + lib$es6$promise$$internal$$REJECTED]  = onRejection;
+
+      if (length === 0 && parent._state) {
+        lib$es6$promise$asap$$asap(lib$es6$promise$$internal$$publish, parent);
+      }
+    }
+
+    function lib$es6$promise$$internal$$publish(promise) {
+      var subscribers = promise._subscribers;
+      var settled = promise._state;
+
+      if (subscribers.length === 0) { return; }
+
+      var child, callback, detail = promise._result;
+
+      for (var i = 0; i < subscribers.length; i += 3) {
+        child = subscribers[i];
+        callback = subscribers[i + settled];
+
+        if (child) {
+          lib$es6$promise$$internal$$invokeCallback(settled, child, callback, detail);
+        } else {
+          callback(detail);
+        }
+      }
+
+      promise._subscribers.length = 0;
+    }
+
+    function lib$es6$promise$$internal$$ErrorObject() {
+      this.error = null;
+    }
+
+    var lib$es6$promise$$internal$$TRY_CATCH_ERROR = new lib$es6$promise$$internal$$ErrorObject();
+
+    function lib$es6$promise$$internal$$tryCatch(callback, detail) {
+      try {
+        return callback(detail);
+      } catch(e) {
+        lib$es6$promise$$internal$$TRY_CATCH_ERROR.error = e;
+        return lib$es6$promise$$internal$$TRY_CATCH_ERROR;
+      }
+    }
+
+    function lib$es6$promise$$internal$$invokeCallback(settled, promise, callback, detail) {
+      var hasCallback = lib$es6$promise$utils$$isFunction(callback),
+          value, error, succeeded, failed;
+
+      if (hasCallback) {
+        value = lib$es6$promise$$internal$$tryCatch(callback, detail);
+
+        if (value === lib$es6$promise$$internal$$TRY_CATCH_ERROR) {
+          failed = true;
+          error = value.error;
+          value = null;
+        } else {
+          succeeded = true;
+        }
+
+        if (promise === value) {
+          lib$es6$promise$$internal$$reject(promise, lib$es6$promise$$internal$$cannotReturnOwn());
+          return;
+        }
+
+      } else {
+        value = detail;
+        succeeded = true;
+      }
+
+      if (promise._state !== lib$es6$promise$$internal$$PENDING) {
+        // noop
+      } else if (hasCallback && succeeded) {
+        lib$es6$promise$$internal$$resolve(promise, value);
+      } else if (failed) {
+        lib$es6$promise$$internal$$reject(promise, error);
+      } else if (settled === lib$es6$promise$$internal$$FULFILLED) {
+        lib$es6$promise$$internal$$fulfill(promise, value);
+      } else if (settled === lib$es6$promise$$internal$$REJECTED) {
+        lib$es6$promise$$internal$$reject(promise, value);
+      }
+    }
+
+    function lib$es6$promise$$internal$$initializePromise(promise, resolver) {
+      try {
+        resolver(function resolvePromise(value){
+          lib$es6$promise$$internal$$resolve(promise, value);
+        }, function rejectPromise(reason) {
+          lib$es6$promise$$internal$$reject(promise, reason);
+        });
+      } catch(e) {
+        lib$es6$promise$$internal$$reject(promise, e);
+      }
+    }
+
+    function lib$es6$promise$enumerator$$Enumerator(Constructor, input) {
+      var enumerator = this;
+
+      enumerator._instanceConstructor = Constructor;
+      enumerator.promise = new Constructor(lib$es6$promise$$internal$$noop);
+
+      if (enumerator._validateInput(input)) {
+        enumerator._input     = input;
+        enumerator.length     = input.length;
+        enumerator._remaining = input.length;
+
+        enumerator._init();
+
+        if (enumerator.length === 0) {
+          lib$es6$promise$$internal$$fulfill(enumerator.promise, enumerator._result);
+        } else {
+          enumerator.length = enumerator.length || 0;
+          enumerator._enumerate();
+          if (enumerator._remaining === 0) {
+            lib$es6$promise$$internal$$fulfill(enumerator.promise, enumerator._result);
+          }
+        }
+      } else {
+        lib$es6$promise$$internal$$reject(enumerator.promise, enumerator._validationError());
+      }
+    }
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._validateInput = function(input) {
+      return lib$es6$promise$utils$$isArray(input);
+    };
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._validationError = function() {
+      return new Error('Array Methods must be provided an Array');
+    };
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._init = function() {
+      this._result = new Array(this.length);
+    };
+
+    var lib$es6$promise$enumerator$$default = lib$es6$promise$enumerator$$Enumerator;
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._enumerate = function() {
+      var enumerator = this;
+
+      var length  = enumerator.length;
+      var promise = enumerator.promise;
+      var input   = enumerator._input;
+
+      for (var i = 0; promise._state === lib$es6$promise$$internal$$PENDING && i < length; i++) {
+        enumerator._eachEntry(input[i], i);
+      }
+    };
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._eachEntry = function(entry, i) {
+      var enumerator = this;
+      var c = enumerator._instanceConstructor;
+
+      if (lib$es6$promise$utils$$isMaybeThenable(entry)) {
+        if (entry.constructor === c && entry._state !== lib$es6$promise$$internal$$PENDING) {
+          entry._onerror = null;
+          enumerator._settledAt(entry._state, i, entry._result);
+        } else {
+          enumerator._willSettleAt(c.resolve(entry), i);
+        }
+      } else {
+        enumerator._remaining--;
+        enumerator._result[i] = entry;
+      }
+    };
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._settledAt = function(state, i, value) {
+      var enumerator = this;
+      var promise = enumerator.promise;
+
+      if (promise._state === lib$es6$promise$$internal$$PENDING) {
+        enumerator._remaining--;
+
+        if (state === lib$es6$promise$$internal$$REJECTED) {
+          lib$es6$promise$$internal$$reject(promise, value);
+        } else {
+          enumerator._result[i] = value;
+        }
+      }
+
+      if (enumerator._remaining === 0) {
+        lib$es6$promise$$internal$$fulfill(promise, enumerator._result);
+      }
+    };
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._willSettleAt = function(promise, i) {
+      var enumerator = this;
+
+      lib$es6$promise$$internal$$subscribe(promise, undefined, function(value) {
+        enumerator._settledAt(lib$es6$promise$$internal$$FULFILLED, i, value);
+      }, function(reason) {
+        enumerator._settledAt(lib$es6$promise$$internal$$REJECTED, i, reason);
+      });
+    };
+    function lib$es6$promise$promise$all$$all(entries) {
+      return new lib$es6$promise$enumerator$$default(this, entries).promise;
+    }
+    var lib$es6$promise$promise$all$$default = lib$es6$promise$promise$all$$all;
+    function lib$es6$promise$promise$race$$race(entries) {
+      /*jshint validthis:true */
+      var Constructor = this;
+
+      var promise = new Constructor(lib$es6$promise$$internal$$noop);
+
+      if (!lib$es6$promise$utils$$isArray(entries)) {
+        lib$es6$promise$$internal$$reject(promise, new TypeError('You must pass an array to race.'));
+        return promise;
+      }
+
+      var length = entries.length;
+
+      function onFulfillment(value) {
+        lib$es6$promise$$internal$$resolve(promise, value);
+      }
+
+      function onRejection(reason) {
+        lib$es6$promise$$internal$$reject(promise, reason);
+      }
+
+      for (var i = 0; promise._state === lib$es6$promise$$internal$$PENDING && i < length; i++) {
+        lib$es6$promise$$internal$$subscribe(Constructor.resolve(entries[i]), undefined, onFulfillment, onRejection);
+      }
+
+      return promise;
+    }
+    var lib$es6$promise$promise$race$$default = lib$es6$promise$promise$race$$race;
+    function lib$es6$promise$promise$resolve$$resolve(object) {
+      /*jshint validthis:true */
+      var Constructor = this;
+
+      if (object && typeof object === 'object' && object.constructor === Constructor) {
+        return object;
+      }
+
+      var promise = new Constructor(lib$es6$promise$$internal$$noop);
+      lib$es6$promise$$internal$$resolve(promise, object);
+      return promise;
+    }
+    var lib$es6$promise$promise$resolve$$default = lib$es6$promise$promise$resolve$$resolve;
+    function lib$es6$promise$promise$reject$$reject(reason) {
+      /*jshint validthis:true */
+      var Constructor = this;
+      var promise = new Constructor(lib$es6$promise$$internal$$noop);
+      lib$es6$promise$$internal$$reject(promise, reason);
+      return promise;
+    }
+    var lib$es6$promise$promise$reject$$default = lib$es6$promise$promise$reject$$reject;
+
+    var lib$es6$promise$promise$$counter = 0;
+
+    function lib$es6$promise$promise$$needsResolver() {
+      throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
+    }
+
+    function lib$es6$promise$promise$$needsNew() {
+      throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
+    }
+
+    var lib$es6$promise$promise$$default = lib$es6$promise$promise$$Promise;
+    /**
+      Promise objects represent the eventual result of an asynchronous operation. The
+      primary way of interacting with a promise is through its `then` method, which
+      registers callbacks to receive either a promise's eventual value or the reason
+      why the promise cannot be fulfilled.
+
+      Terminology
+      -----------
+
+      - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
+      - `thenable` is an object or function that defines a `then` method.
+      - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
+      - `exception` is a value that is thrown using the throw statement.
+      - `reason` is a value that indicates why a promise was rejected.
+      - `settled` the final resting state of a promise, fulfilled or rejected.
+
+      A promise can be in one of three states: pending, fulfilled, or rejected.
+
+      Promises that are fulfilled have a fulfillment value and are in the fulfilled
+      state.  Promises that are rejected have a rejection reason and are in the
+      rejected state.  A fulfillment value is never a thenable.
+
+      Promises can also be said to *resolve* a value.  If this value is also a
+      promise, then the original promise's settled state will match the value's
+      settled state.  So a promise that *resolves* a promise that rejects will
+      itself reject, and a promise that *resolves* a promise that fulfills will
+      itself fulfill.
+
+
+      Basic Usage:
+      ------------
+
+      ```js
+      var promise = new Promise(function(resolve, reject) {
+        // on success
+        resolve(value);
+
+        // on failure
+        reject(reason);
+      });
+
+      promise.then(function(value) {
+        // on fulfillment
+      }, function(reason) {
+        // on rejection
+      });
+      ```
+
+      Advanced Usage:
+      ---------------
+
+      Promises shine when abstracting away asynchronous interactions such as
+      `XMLHttpRequest`s.
+
+      ```js
+      function getJSON(url) {
+        return new Promise(function(resolve, reject){
+          var xhr = new XMLHttpRequest();
+
+          xhr.open('GET', url);
+          xhr.onreadystatechange = handler;
+          xhr.responseType = 'json';
+          xhr.setRequestHeader('Accept', 'application/json');
+          xhr.send();
+
+          function handler() {
+            if (this.readyState === this.DONE) {
+              if (this.status === 200) {
+                resolve(this.response);
+              } else {
+                reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
+              }
+            }
+          };
+        });
+      }
+
+      getJSON('/posts.json').then(function(json) {
+        // on fulfillment
+      }, function(reason) {
+        // on rejection
+      });
+      ```
+
+      Unlike callbacks, promises are great composable primitives.
+
+      ```js
+      Promise.all([
+        getJSON('/posts'),
+        getJSON('/comments')
+      ]).then(function(values){
+        values[0] // => postsJSON
+        values[1] // => commentsJSON
+
+        return values;
+      });
+      ```
+
+      @class Promise
+      @param {function} resolver
+      Useful for tooling.
+      @constructor
+    */
+    function lib$es6$promise$promise$$Promise(resolver) {
+      this._id = lib$es6$promise$promise$$counter++;
+      this._state = undefined;
+      this._result = undefined;
+      this._subscribers = [];
+
+      if (lib$es6$promise$$internal$$noop !== resolver) {
+        if (!lib$es6$promise$utils$$isFunction(resolver)) {
+          lib$es6$promise$promise$$needsResolver();
+        }
+
+        if (!(this instanceof lib$es6$promise$promise$$Promise)) {
+          lib$es6$promise$promise$$needsNew();
+        }
+
+        lib$es6$promise$$internal$$initializePromise(this, resolver);
+      }
+    }
+
+    lib$es6$promise$promise$$Promise.all = lib$es6$promise$promise$all$$default;
+    lib$es6$promise$promise$$Promise.race = lib$es6$promise$promise$race$$default;
+    lib$es6$promise$promise$$Promise.resolve = lib$es6$promise$promise$resolve$$default;
+    lib$es6$promise$promise$$Promise.reject = lib$es6$promise$promise$reject$$default;
+    lib$es6$promise$promise$$Promise._setScheduler = lib$es6$promise$asap$$setScheduler;
+    lib$es6$promise$promise$$Promise._setAsap = lib$es6$promise$asap$$setAsap;
+    lib$es6$promise$promise$$Promise._asap = lib$es6$promise$asap$$asap;
+
+    lib$es6$promise$promise$$Promise.prototype = {
+      constructor: lib$es6$promise$promise$$Promise,
+
+    /**
+      The primary way of interacting with a promise is through its `then` method,
+      which registers callbacks to receive either a promise's eventual value or the
+      reason why the promise cannot be fulfilled.
+
+      ```js
+      findUser().then(function(user){
+        // user is available
+      }, function(reason){
+        // user is unavailable, and you are given the reason why
+      });
+      ```
+
+      Chaining
+      --------
+
+      The return value of `then` is itself a promise.  This second, 'downstream'
+      promise is resolved with the return value of the first promise's fulfillment
+      or rejection handler, or rejected if the handler throws an exception.
+
+      ```js
+      findUser().then(function (user) {
+        return user.name;
+      }, function (reason) {
+        return 'default name';
+      }).then(function (userName) {
+        // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
+        // will be `'default name'`
+      });
+
+      findUser().then(function (user) {
+        throw new Error('Found user, but still unhappy');
+      }, function (reason) {
+        throw new Error('`findUser` rejected and we're unhappy');
+      }).then(function (value) {
+        // never reached
+      }, function (reason) {
+        // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
+        // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
+      });
+      ```
+      If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
+
+      ```js
+      findUser().then(function (user) {
+        throw new PedagogicalException('Upstream error');
+      }).then(function (value) {
+        // never reached
+      }).then(function (value) {
+        // never reached
+      }, function (reason) {
+        // The `PedgagocialException` is propagated all the way down to here
+      });
+      ```
+
+      Assimilation
+      ------------
+
+      Sometimes the value you want to propagate to a downstream promise can only be
+      retrieved asynchronously. This can be achieved by returning a promise in the
+      fulfillment or rejection handler. The downstream promise will then be pending
+      until the returned promise is settled. This is called *assimilation*.
+
+      ```js
+      findUser().then(function (user) {
+        return findCommentsByAuthor(user);
+      }).then(function (comments) {
+        // The user's comments are now available
+      });
+      ```
+
+      If the assimliated promise rejects, then the downstream promise will also reject.
+
+      ```js
+      findUser().then(function (user) {
+        return findCommentsByAuthor(user);
+      }).then(function (comments) {
+        // If `findCommentsByAuthor` fulfills, we'll have the value here
+      }, function (reason) {
+        // If `findCommentsByAuthor` rejects, we'll have the reason here
+      });
+      ```
+
+      Simple Example
+      --------------
+
+      Synchronous Example
+
+      ```javascript
+      var result;
+
+      try {
+        result = findResult();
+        // success
+      } catch(reason) {
+        // failure
+      }
+      ```
+
+      Errback Example
+
+      ```js
+      findResult(function(result, err){
+        if (err) {
+          // failure
+        } else {
+          // success
+        }
+      });
+      ```
+
+      Promise Example;
+
+      ```javascript
+      findResult().then(function(result){
+        // success
+      }, function(reason){
+        // failure
+      });
+      ```
+
+      Advanced Example
+      --------------
+
+      Synchronous Example
+
+      ```javascript
+      var author, books;
+
+      try {
+        author = findAuthor();
+        books  = findBooksByAuthor(author);
+        // success
+      } catch(reason) {
+        // failure
+      }
+      ```
+
+      Errback Example
+
+      ```js
+
+      function foundBooks(books) {
+
+      }
+
+      function failure(reason) {
+
+      }
+
+      findAuthor(function(author, err){
+        if (err) {
+          failure(err);
+          // failure
+        } else {
+          try {
+            findBoooksByAuthor(author, function(books, err) {
+              if (err) {
+                failure(err);
+              } else {
+                try {
+                  foundBooks(books);
+                } catch(reason) {
+                  failure(reason);
+                }
+              }
+            });
+          } catch(error) {
+            failure(err);
+          }
+          // success
+        }
+      });
+      ```
+
+      Promise Example;
+
+      ```javascript
+      findAuthor().
+        then(findBooksByAuthor).
+        then(function(books){
+          // found books
+      }).catch(function(reason){
+        // something went wrong
+      });
+      ```
+
+      @method then
+      @param {Function} onFulfilled
+      @param {Function} onRejected
+      Useful for tooling.
+      @return {Promise}
+    */
+      then: function(onFulfillment, onRejection) {
+        var parent = this;
+        var state = parent._state;
+
+        if (state === lib$es6$promise$$internal$$FULFILLED && !onFulfillment || state === lib$es6$promise$$internal$$REJECTED && !onRejection) {
+          return this;
+        }
+
+        var child = new this.constructor(lib$es6$promise$$internal$$noop);
+        var result = parent._result;
+
+        if (state) {
+          var callback = arguments[state - 1];
+          lib$es6$promise$asap$$asap(function(){
+            lib$es6$promise$$internal$$invokeCallback(state, child, callback, result);
+          });
+        } else {
+          lib$es6$promise$$internal$$subscribe(parent, child, onFulfillment, onRejection);
+        }
+
+        return child;
+      },
+
+    /**
+      `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
+      as the catch block of a try/catch statement.
+
+      ```js
+      function findAuthor(){
+        throw new Error('couldn't find that author');
+      }
+
+      // synchronous
+      try {
+        findAuthor();
+      } catch(reason) {
+        // something went wrong
+      }
+
+      // async with promises
+      findAuthor().catch(function(reason){
+        // something went wrong
+      });
+      ```
+
+      @method catch
+      @param {Function} onRejection
+      Useful for tooling.
+      @return {Promise}
+    */
+      'catch': function(onRejection) {
+        return this.then(null, onRejection);
+      }
+    };
+    function lib$es6$promise$polyfill$$polyfill() {
+      var local;
+
+      if (typeof global !== 'undefined') {
+          local = global;
+      } else if (typeof self !== 'undefined') {
+          local = self;
+      } else {
+          try {
+              local = Function('return this')();
+          } catch (e) {
+              throw new Error('polyfill failed because global object is unavailable in this environment');
+          }
+      }
+
+      var P = local.Promise;
+
+      if (P && Object.prototype.toString.call(P.resolve()) === '[object Promise]' && !P.cast) {
+        return;
+      }
+
+      local.Promise = lib$es6$promise$promise$$default;
+    }
+    var lib$es6$promise$polyfill$$default = lib$es6$promise$polyfill$$polyfill;
+
+    var lib$es6$promise$umd$$ES6Promise = {
+      'Promise': lib$es6$promise$promise$$default,
+      'polyfill': lib$es6$promise$polyfill$$default
+    };
+
+    /* global define:true module:true window: true */
+    if (typeof define === 'function' && define['amd']) {
+      define(function() { return lib$es6$promise$umd$$ES6Promise; });
+    } else if (typeof module !== 'undefined' && module['exports']) {
+      module['exports'] = lib$es6$promise$umd$$ES6Promise;
+    } else if (typeof this !== 'undefined') {
+      this['ES6Promise'] = lib$es6$promise$umd$$ES6Promise;
+    }
+
+    lib$es6$promise$polyfill$$default();
+}).call(this);
+
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{"_process":20}],59:[function(require,module,exports){
 'use strict';
 
 
@@ -9210,7 +10343,7 @@ var yaml = require('./lib/js-yaml.js');
 
 module.exports = yaml;
 
-},{"./lib/js-yaml.js":50}],50:[function(require,module,exports){
+},{"./lib/js-yaml.js":60}],60:[function(require,module,exports){
 'use strict';
 
 
@@ -9251,7 +10384,7 @@ module.exports.parse          = deprecated('parse');
 module.exports.compose        = deprecated('compose');
 module.exports.addConstructor = deprecated('addConstructor');
 
-},{"./js-yaml/dumper":52,"./js-yaml/exception":53,"./js-yaml/loader":54,"./js-yaml/schema":56,"./js-yaml/schema/core":57,"./js-yaml/schema/default_full":58,"./js-yaml/schema/default_safe":59,"./js-yaml/schema/failsafe":60,"./js-yaml/schema/json":61,"./js-yaml/type":62}],51:[function(require,module,exports){
+},{"./js-yaml/dumper":62,"./js-yaml/exception":63,"./js-yaml/loader":64,"./js-yaml/schema":66,"./js-yaml/schema/core":67,"./js-yaml/schema/default_full":68,"./js-yaml/schema/default_safe":69,"./js-yaml/schema/failsafe":70,"./js-yaml/schema/json":71,"./js-yaml/type":72}],61:[function(require,module,exports){
 'use strict';
 
 
@@ -9314,7 +10447,7 @@ module.exports.repeat         = repeat;
 module.exports.isNegativeZero = isNegativeZero;
 module.exports.extend         = extend;
 
-},{}],52:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable no-use-before-define*/
@@ -10158,7 +11291,7 @@ function safeDump(input, options) {
 module.exports.dump     = dump;
 module.exports.safeDump = safeDump;
 
-},{"./common":51,"./exception":53,"./schema/default_full":58,"./schema/default_safe":59}],53:[function(require,module,exports){
+},{"./common":61,"./exception":63,"./schema/default_full":68,"./schema/default_safe":69}],63:[function(require,module,exports){
 'use strict';
 
 
@@ -10185,7 +11318,7 @@ YAMLException.prototype.toString = function toString(compact) {
 
 module.exports = YAMLException;
 
-},{}],54:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable max-len,no-use-before-define*/
@@ -11773,7 +12906,7 @@ module.exports.load        = load;
 module.exports.safeLoadAll = safeLoadAll;
 module.exports.safeLoad    = safeLoad;
 
-},{"./common":51,"./exception":53,"./mark":55,"./schema/default_full":58,"./schema/default_safe":59}],55:[function(require,module,exports){
+},{"./common":61,"./exception":63,"./mark":65,"./schema/default_full":68,"./schema/default_safe":69}],65:[function(require,module,exports){
 'use strict';
 
 
@@ -11853,7 +12986,7 @@ Mark.prototype.toString = function toString(compact) {
 
 module.exports = Mark;
 
-},{"./common":51}],56:[function(require,module,exports){
+},{"./common":61}],66:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable max-len*/
@@ -11959,7 +13092,7 @@ Schema.create = function createSchema() {
 
 module.exports = Schema;
 
-},{"./common":51,"./exception":53,"./type":62}],57:[function(require,module,exports){
+},{"./common":61,"./exception":63,"./type":72}],67:[function(require,module,exports){
 // Standard YAML's Core schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2804923
 //
@@ -11979,7 +13112,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":56,"./json":61}],58:[function(require,module,exports){
+},{"../schema":66,"./json":71}],68:[function(require,module,exports){
 // JS-YAML's default schema for `load` function.
 // It is not described in the YAML specification.
 //
@@ -12006,7 +13139,7 @@ module.exports = Schema.DEFAULT = new Schema({
   ]
 });
 
-},{"../schema":56,"../type/js/function":67,"../type/js/regexp":68,"../type/js/undefined":69,"./default_safe":59}],59:[function(require,module,exports){
+},{"../schema":66,"../type/js/function":77,"../type/js/regexp":78,"../type/js/undefined":79,"./default_safe":69}],69:[function(require,module,exports){
 // JS-YAML's default schema for `safeLoad` function.
 // It is not described in the YAML specification.
 //
@@ -12036,7 +13169,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":56,"../type/binary":63,"../type/merge":71,"../type/omap":73,"../type/pairs":74,"../type/set":76,"../type/timestamp":78,"./core":57}],60:[function(require,module,exports){
+},{"../schema":66,"../type/binary":73,"../type/merge":81,"../type/omap":83,"../type/pairs":84,"../type/set":86,"../type/timestamp":88,"./core":67}],70:[function(require,module,exports){
 // Standard YAML's Failsafe schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2802346
 
@@ -12055,7 +13188,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":56,"../type/map":70,"../type/seq":75,"../type/str":77}],61:[function(require,module,exports){
+},{"../schema":66,"../type/map":80,"../type/seq":85,"../type/str":87}],71:[function(require,module,exports){
 // Standard YAML's JSON schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2803231
 //
@@ -12082,7 +13215,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":56,"../type/bool":64,"../type/float":65,"../type/int":66,"../type/null":72,"./failsafe":60}],62:[function(require,module,exports){
+},{"../schema":66,"../type/bool":74,"../type/float":75,"../type/int":76,"../type/null":82,"./failsafe":70}],72:[function(require,module,exports){
 'use strict';
 
 var YAMLException = require('./exception');
@@ -12145,7 +13278,7 @@ function Type(tag, options) {
 
 module.exports = Type;
 
-},{"./exception":53}],63:[function(require,module,exports){
+},{"./exception":63}],73:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable no-bitwise*/
@@ -12281,7 +13414,7 @@ module.exports = new Type('tag:yaml.org,2002:binary', {
   represent: representYamlBinary
 });
 
-},{"../type":62,"buffer":11}],64:[function(require,module,exports){
+},{"../type":72,"buffer":6}],74:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12320,7 +13453,7 @@ module.exports = new Type('tag:yaml.org,2002:bool', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":62}],65:[function(require,module,exports){
+},{"../type":72}],75:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -12430,7 +13563,7 @@ module.exports = new Type('tag:yaml.org,2002:float', {
   defaultStyle: 'lowercase'
 });
 
-},{"../common":51,"../type":62}],66:[function(require,module,exports){
+},{"../common":61,"../type":72}],76:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -12615,7 +13748,7 @@ module.exports = new Type('tag:yaml.org,2002:int', {
   }
 });
 
-},{"../common":51,"../type":62}],67:[function(require,module,exports){
+},{"../common":61,"../type":72}],77:[function(require,module,exports){
 'use strict';
 
 var esprima;
@@ -12703,7 +13836,7 @@ module.exports = new Type('tag:yaml.org,2002:js/function', {
   represent: representJavascriptFunction
 });
 
-},{"../../type":62,"esprima":79}],68:[function(require,module,exports){
+},{"../../type":72,"esprima":89}],78:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -12789,7 +13922,7 @@ module.exports = new Type('tag:yaml.org,2002:js/regexp', {
   represent: representJavascriptRegExp
 });
 
-},{"../../type":62}],69:[function(require,module,exports){
+},{"../../type":72}],79:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -12819,7 +13952,7 @@ module.exports = new Type('tag:yaml.org,2002:js/undefined', {
   represent: representJavascriptUndefined
 });
 
-},{"../../type":62}],70:[function(require,module,exports){
+},{"../../type":72}],80:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12829,7 +13962,7 @@ module.exports = new Type('tag:yaml.org,2002:map', {
   construct: function (data) { return null !== data ? data : {}; }
 });
 
-},{"../type":62}],71:[function(require,module,exports){
+},{"../type":72}],81:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12843,7 +13976,7 @@ module.exports = new Type('tag:yaml.org,2002:merge', {
   resolve: resolveYamlMerge
 });
 
-},{"../type":62}],72:[function(require,module,exports){
+},{"../type":72}],82:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12881,7 +14014,7 @@ module.exports = new Type('tag:yaml.org,2002:null', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":62}],73:[function(require,module,exports){
+},{"../type":72}],83:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12939,7 +14072,7 @@ module.exports = new Type('tag:yaml.org,2002:omap', {
   construct: constructYamlOmap
 });
 
-},{"../type":62}],74:[function(require,module,exports){
+},{"../type":72}],84:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -13002,7 +14135,7 @@ module.exports = new Type('tag:yaml.org,2002:pairs', {
   construct: constructYamlPairs
 });
 
-},{"../type":62}],75:[function(require,module,exports){
+},{"../type":72}],85:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -13012,7 +14145,7 @@ module.exports = new Type('tag:yaml.org,2002:seq', {
   construct: function (data) { return null !== data ? data : []; }
 });
 
-},{"../type":62}],76:[function(require,module,exports){
+},{"../type":72}],86:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -13047,7 +14180,7 @@ module.exports = new Type('tag:yaml.org,2002:set', {
   construct: constructYamlSet
 });
 
-},{"../type":62}],77:[function(require,module,exports){
+},{"../type":72}],87:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -13057,7 +14190,7 @@ module.exports = new Type('tag:yaml.org,2002:str', {
   construct: function (data) { return null !== data ? data : ''; }
 });
 
-},{"../type":62}],78:[function(require,module,exports){
+},{"../type":72}],88:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -13157,7 +14290,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
   represent: representYamlTimestamp
 });
 
-},{"../type":62}],79:[function(require,module,exports){
+},{"../type":72}],89:[function(require,module,exports){
 /*
   Copyright (C) 2013 Ariya Hidayat <ariya.hidayat@gmail.com>
   Copyright (C) 2013 Thaddee Tyl <thaddee.tyl@gmail.com>
@@ -18480,48 +19613,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 }));
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],80:[function(require,module,exports){
-var baseSlice = require('../internal/baseSlice'),
-    isIterateeCall = require('../internal/isIterateeCall');
-
-/**
- * Creates a slice of `array` with `n` elements dropped from the beginning.
- *
- * @static
- * @memberOf _
- * @category Array
- * @param {Array} array The array to query.
- * @param {number} [n=1] The number of elements to drop.
- * @param- {Object} [guard] Enables use as a callback for functions like `_.map`.
- * @returns {Array} Returns the slice of `array`.
- * @example
- *
- * _.drop([1, 2, 3]);
- * // => [2, 3]
- *
- * _.drop([1, 2, 3], 2);
- * // => [3]
- *
- * _.drop([1, 2, 3], 5);
- * // => []
- *
- * _.drop([1, 2, 3], 0);
- * // => [1, 2, 3]
- */
-function drop(array, n, guard) {
-  var length = array ? array.length : 0;
-  if (!length) {
-    return [];
-  }
-  if (guard ? isIterateeCall(array, n, guard) : n == null) {
-    n = 1;
-  }
-  return baseSlice(array, n < 0 ? 0 : n);
-}
-
-module.exports = drop;
-
-},{"../internal/baseSlice":118,"../internal/isIterateeCall":142}],81:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 /**
  * Gets the last element of `array`.
  *
@@ -18542,320 +19634,92 @@ function last(array) {
 
 module.exports = last;
 
-},{}],82:[function(require,module,exports){
-var baseCallback = require('../internal/baseCallback'),
-    baseUniq = require('../internal/baseUniq'),
-    isIterateeCall = require('../internal/isIterateeCall'),
-    sortedUniq = require('../internal/sortedUniq');
+},{}],91:[function(require,module,exports){
+var arrayEach = require('../internal/arrayEach'),
+    baseEach = require('../internal/baseEach'),
+    createForEach = require('../internal/createForEach');
 
 /**
- * Creates a duplicate-free version of an array, using
- * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
- * for equality comparisons, in which only the first occurence of each element
- * is kept. Providing `true` for `isSorted` performs a faster search algorithm
- * for sorted arrays. If an iteratee function is provided it is invoked for
- * each element in the array to generate the criterion by which uniqueness
- * is computed. The `iteratee` is bound to `thisArg` and invoked with three
- * arguments: (value, index, array).
+ * Iterates over elements of `collection` invoking `iteratee` for each element.
+ * The `iteratee` is bound to `thisArg` and invoked with three arguments:
+ * (value, index|key, collection). Iteratee functions may exit iteration early
+ * by explicitly returning `false`.
  *
- * If a property name is provided for `iteratee` the created `_.property`
- * style callback returns the property value of the given element.
- *
- * If a value is also provided for `thisArg` the created `_.matchesProperty`
- * style callback returns `true` for elements that have a matching property
- * value, else `false`.
- *
- * If an object is provided for `iteratee` the created `_.matches` style
- * callback returns `true` for elements that have the properties of the given
- * object, else `false`.
+ * **Note:** As with other "Collections" methods, objects with a "length" property
+ * are iterated like arrays. To avoid this behavior `_.forIn` or `_.forOwn`
+ * may be used for object iteration.
  *
  * @static
  * @memberOf _
- * @alias unique
- * @category Array
- * @param {Array} array The array to inspect.
- * @param {boolean} [isSorted] Specify the array is sorted.
- * @param {Function|Object|string} [iteratee] The function invoked per iteration.
- * @param {*} [thisArg] The `this` binding of `iteratee`.
- * @returns {Array} Returns the new duplicate-value-free array.
- * @example
- *
- * _.uniq([2, 1, 2]);
- * // => [2, 1]
- *
- * // using `isSorted`
- * _.uniq([1, 1, 2], true);
- * // => [1, 2]
- *
- * // using an iteratee function
- * _.uniq([1, 2.5, 1.5, 2], function(n) {
- *   return this.floor(n);
- * }, Math);
- * // => [1, 2.5]
- *
- * // using the `_.property` callback shorthand
- * _.uniq([{ 'x': 1 }, { 'x': 2 }, { 'x': 1 }], 'x');
- * // => [{ 'x': 1 }, { 'x': 2 }]
- */
-function uniq(array, isSorted, iteratee, thisArg) {
-  var length = array ? array.length : 0;
-  if (!length) {
-    return [];
-  }
-  if (isSorted != null && typeof isSorted != 'boolean') {
-    thisArg = iteratee;
-    iteratee = isIterateeCall(array, isSorted, thisArg) ? null : isSorted;
-    isSorted = false;
-  }
-  iteratee = iteratee == null ? iteratee : baseCallback(iteratee, thisArg, 3);
-  return (isSorted)
-    ? sortedUniq(array, iteratee)
-    : baseUniq(array, iteratee);
-}
-
-module.exports = uniq;
-
-},{"../internal/baseCallback":97,"../internal/baseUniq":120,"../internal/isIterateeCall":142,"../internal/sortedUniq":151}],83:[function(require,module,exports){
-module.exports = require('./uniq');
-
-},{"./uniq":82}],84:[function(require,module,exports){
-module.exports = require('./includes');
-
-},{"./includes":86}],85:[function(require,module,exports){
-var arrayFilter = require('../internal/arrayFilter'),
-    baseCallback = require('../internal/baseCallback'),
-    baseFilter = require('../internal/baseFilter'),
-    isArray = require('../lang/isArray');
-
-/**
- * Iterates over elements of `collection`, returning an array of all elements
- * `predicate` returns truthy for. The predicate is bound to `thisArg` and
- * invoked with three arguments: (value, index|key, collection).
- *
- * If a property name is provided for `predicate` the created `_.property`
- * style callback returns the property value of the given element.
- *
- * If a value is also provided for `thisArg` the created `_.matchesProperty`
- * style callback returns `true` for elements that have a matching property
- * value, else `false`.
- *
- * If an object is provided for `predicate` the created `_.matches` style
- * callback returns `true` for elements that have the properties of the given
- * object, else `false`.
- *
- * @static
- * @memberOf _
- * @alias select
+ * @alias each
  * @category Collection
  * @param {Array|Object|string} collection The collection to iterate over.
- * @param {Function|Object|string} [predicate=_.identity] The function invoked
- *  per iteration.
- * @param {*} [thisArg] The `this` binding of `predicate`.
- * @returns {Array} Returns the new filtered array.
+ * @param {Function} [iteratee=_.identity] The function invoked per iteration.
+ * @param {*} [thisArg] The `this` binding of `iteratee`.
+ * @returns {Array|Object|string} Returns `collection`.
  * @example
  *
- * _.filter([4, 5, 6], function(n) {
- *   return n % 2 == 0;
+ * _([1, 2]).forEach(function(n) {
+ *   console.log(n);
+ * }).value();
+ * // => logs each value from left to right and returns the array
+ *
+ * _.forEach({ 'a': 1, 'b': 2 }, function(n, key) {
+ *   console.log(n, key);
  * });
- * // => [4, 6]
- *
- * var users = [
- *   { 'user': 'barney', 'age': 36, 'active': true },
- *   { 'user': 'fred',   'age': 40, 'active': false }
- * ];
- *
- * // using the `_.matches` callback shorthand
- * _.pluck(_.filter(users, { 'age': 36, 'active': true }), 'user');
- * // => ['barney']
- *
- * // using the `_.matchesProperty` callback shorthand
- * _.pluck(_.filter(users, 'active', false), 'user');
- * // => ['fred']
- *
- * // using the `_.property` callback shorthand
- * _.pluck(_.filter(users, 'active'), 'user');
- * // => ['barney']
+ * // => logs each value-key pair and returns the object (iteration order is not guaranteed)
  */
-function filter(collection, predicate, thisArg) {
-  var func = isArray(collection) ? arrayFilter : baseFilter;
-  predicate = baseCallback(predicate, thisArg, 3);
-  return func(collection, predicate);
-}
+var forEach = createForEach(arrayEach, baseEach);
 
-module.exports = filter;
+module.exports = forEach;
 
-},{"../internal/arrayFilter":94,"../internal/baseCallback":97,"../internal/baseFilter":101,"../lang/isArray":156}],86:[function(require,module,exports){
-var baseIndexOf = require('../internal/baseIndexOf'),
-    getLength = require('../internal/getLength'),
-    isArray = require('../lang/isArray'),
-    isIterateeCall = require('../internal/isIterateeCall'),
-    isLength = require('../internal/isLength'),
-    isString = require('../lang/isString'),
-    values = require('../object/values');
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
+},{"../internal/arrayEach":95,"../internal/baseEach":102,"../internal/createForEach":124}],92:[function(require,module,exports){
+var arrayReduce = require('../internal/arrayReduce'),
+    baseEach = require('../internal/baseEach'),
+    createReduce = require('../internal/createReduce');
 
 /**
- * Checks if `value` is in `collection` using
- * [`SameValueZero`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)
- * for equality comparisons. If `fromIndex` is negative, it is used as the offset
- * from the end of `collection`.
+ * Reduces `collection` to a value which is the accumulated result of running
+ * each element in `collection` through `iteratee`, where each successive
+ * invocation is supplied the return value of the previous. If `accumulator`
+ * is not provided the first element of `collection` is used as the initial
+ * value. The `iteratee` is bound to `thisArg` and invoked with four arguments:
+ * (accumulator, value, index|key, collection).
+ *
+ * Many lodash methods are guarded to work as iteratees for methods like
+ * `_.reduce`, `_.reduceRight`, and `_.transform`.
+ *
+ * The guarded methods are:
+ * `assign`, `defaults`, `defaultsDeep`, `includes`, `merge`, `sortByAll`,
+ * and `sortByOrder`
  *
  * @static
  * @memberOf _
- * @alias contains, include
+ * @alias foldl, inject
  * @category Collection
- * @param {Array|Object|string} collection The collection to search.
- * @param {*} target The value to search for.
- * @param {number} [fromIndex=0] The index to search from.
- * @param- {Object} [guard] Enables use as a callback for functions like `_.reduce`.
- * @returns {boolean} Returns `true` if a matching element is found, else `false`.
+ * @param {Array|Object|string} collection The collection to iterate over.
+ * @param {Function} [iteratee=_.identity] The function invoked per iteration.
+ * @param {*} [accumulator] The initial value.
+ * @param {*} [thisArg] The `this` binding of `iteratee`.
+ * @returns {*} Returns the accumulated value.
  * @example
  *
- * _.includes([1, 2, 3], 1);
- * // => true
+ * _.reduce([1, 2], function(total, n) {
+ *   return total + n;
+ * });
+ * // => 3
  *
- * _.includes([1, 2, 3], 1, 2);
- * // => false
- *
- * _.includes({ 'user': 'fred', 'age': 40 }, 'fred');
- * // => true
- *
- * _.includes('pebbles', 'eb');
- * // => true
+ * _.reduce({ 'a': 1, 'b': 2 }, function(result, n, key) {
+ *   result[key] = n * 3;
+ *   return result;
+ * }, {});
+ * // => { 'a': 3, 'b': 6 } (iteration order is not guaranteed)
  */
-function includes(collection, target, fromIndex, guard) {
-  var length = collection ? getLength(collection) : 0;
-  if (!isLength(length)) {
-    collection = values(collection);
-    length = collection.length;
-  }
-  if (!length) {
-    return false;
-  }
-  if (typeof fromIndex != 'number' || (guard && isIterateeCall(target, fromIndex, guard))) {
-    fromIndex = 0;
-  } else {
-    fromIndex = fromIndex < 0 ? nativeMax(length + fromIndex, 0) : (fromIndex || 0);
-  }
-  return (typeof collection == 'string' || !isArray(collection) && isString(collection))
-    ? (fromIndex < length && collection.indexOf(target, fromIndex) > -1)
-    : (baseIndexOf(collection, target, fromIndex) > -1);
-}
+var reduce = createReduce(arrayReduce, baseEach);
 
-module.exports = includes;
+module.exports = reduce;
 
-},{"../internal/baseIndexOf":107,"../internal/getLength":133,"../internal/isIterateeCall":142,"../internal/isLength":144,"../lang/isArray":156,"../lang/isString":163,"../object/values":173}],87:[function(require,module,exports){
-var baseMatches = require('../internal/baseMatches'),
-    filter = require('./filter');
-
-/**
- * Performs a deep comparison between each element in `collection` and the
- * source object, returning an array of all elements that have equivalent
- * property values.
- *
- * **Note:** This method supports comparing arrays, booleans, `Date` objects,
- * numbers, `Object` objects, regexes, and strings. Objects are compared by
- * their own, not inherited, enumerable properties. For comparing a single
- * own or inherited property value see `_.matchesProperty`.
- *
- * @static
- * @memberOf _
- * @category Collection
- * @param {Array|Object|string} collection The collection to search.
- * @param {Object} source The object of property values to match.
- * @returns {Array} Returns the new filtered array.
- * @example
- *
- * var users = [
- *   { 'user': 'barney', 'age': 36, 'active': false, 'pets': ['hoppy'] },
- *   { 'user': 'fred',   'age': 40, 'active': true, 'pets': ['baby puss', 'dino'] }
- * ];
- *
- * _.pluck(_.where(users, { 'age': 36, 'active': false }), 'user');
- * // => ['barney']
- *
- * _.pluck(_.where(users, { 'pets': ['dino'] }), 'user');
- * // => ['fred']
- */
-function where(collection, source) {
-  return filter(collection, baseMatches(source));
-}
-
-module.exports = where;
-
-},{"../internal/baseMatches":112,"./filter":85}],88:[function(require,module,exports){
-/** Used as the `TypeError` message for "Functions" methods. */
-var FUNC_ERROR_TEXT = 'Expected a function';
-
-/**
- * Creates a function that invokes `func`, with the `this` binding and arguments
- * of the created function, while it is called less than `n` times. Subsequent
- * calls to the created function return the result of the last `func` invocation.
- *
- * @static
- * @memberOf _
- * @category Function
- * @param {number} n The number of calls at which `func` is no longer invoked.
- * @param {Function} func The function to restrict.
- * @returns {Function} Returns the new restricted function.
- * @example
- *
- * jQuery('#add').on('click', _.before(5, addContactToList));
- * // => allows adding up to 4 contacts to the list
- */
-function before(n, func) {
-  var result;
-  if (typeof func != 'function') {
-    if (typeof n == 'function') {
-      var temp = n;
-      n = func;
-      func = temp;
-    } else {
-      throw new TypeError(FUNC_ERROR_TEXT);
-    }
-  }
-  return function() {
-    if (--n > 0) {
-      result = func.apply(this, arguments);
-    }
-    if (n <= 1) {
-      func = null;
-    }
-    return result;
-  };
-}
-
-module.exports = before;
-
-},{}],89:[function(require,module,exports){
-var before = require('./before');
-
-/**
- * Creates a function that is restricted to invoking `func` once. Repeat calls
- * to the function return the value of the first call. The `func` is invoked
- * with the `this` binding and arguments of the created function.
- *
- * @static
- * @memberOf _
- * @category Function
- * @param {Function} func The function to restrict.
- * @returns {Function} Returns the new restricted function.
- * @example
- *
- * var initialize = _.once(createApplication);
- * initialize();
- * initialize();
- * // `initialize` invokes `createApplication` once
- */
-function once(func) {
-  return before(2, func);
-}
-
-module.exports = once;
-
-},{"./before":88}],90:[function(require,module,exports){
+},{"../internal/arrayReduce":96,"../internal/baseEach":102,"../internal/createReduce":125}],93:[function(require,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -18915,41 +19779,7 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],91:[function(require,module,exports){
-(function (global){
-var cachePush = require('./cachePush'),
-    getNative = require('./getNative');
-
-/** Native method references. */
-var Set = getNative(global, 'Set');
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeCreate = getNative(Object, 'create');
-
-/**
- *
- * Creates a cache object to store unique values.
- *
- * @private
- * @param {Array} [values] The values to cache.
- */
-function SetCache(values) {
-  var length = values ? values.length : 0;
-
-  this.data = { 'hash': nativeCreate(null), 'set': new Set };
-  while (length--) {
-    this.push(values[length]);
-  }
-}
-
-// Add functions to the `Set` cache.
-SetCache.prototype.push = cachePush;
-
-module.exports = SetCache;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"./cachePush":125,"./getNative":135}],92:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 /**
  * Copies the values of `source` to `array`.
  *
@@ -18971,7 +19801,7 @@ function arrayCopy(source, array) {
 
 module.exports = arrayCopy;
 
-},{}],93:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for callback
  * shorthands and `this` binding.
@@ -18995,34 +19825,35 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],94:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 /**
- * A specialized version of `_.filter` for arrays without support for callback
+ * A specialized version of `_.reduce` for arrays without support for callback
  * shorthands and `this` binding.
  *
  * @private
  * @param {Array} array The array to iterate over.
- * @param {Function} predicate The function invoked per iteration.
- * @returns {Array} Returns the new filtered array.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @param {*} [accumulator] The initial value.
+ * @param {boolean} [initFromArray] Specify using the first element of `array`
+ *  as the initial value.
+ * @returns {*} Returns the accumulated value.
  */
-function arrayFilter(array, predicate) {
+function arrayReduce(array, iteratee, accumulator, initFromArray) {
   var index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
+      length = array.length;
 
-  while (++index < length) {
-    var value = array[index];
-    if (predicate(value, index, array)) {
-      result[++resIndex] = value;
-    }
+  if (initFromArray && length) {
+    accumulator = array[++index];
   }
-  return result;
+  while (++index < length) {
+    accumulator = iteratee(accumulator, array[index], index, array);
+  }
+  return accumulator;
 }
 
-module.exports = arrayFilter;
+module.exports = arrayReduce;
 
-},{}],95:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for callback
  * shorthands and `this` binding.
@@ -19047,7 +19878,7 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],96:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 var baseCopy = require('./baseCopy'),
     keys = require('../object/keys');
 
@@ -19068,7 +19899,7 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"../object/keys":167,"./baseCopy":99}],97:[function(require,module,exports){
+},{"../object/keys":157,"./baseCopy":101}],99:[function(require,module,exports){
 var baseMatches = require('./baseMatches'),
     baseMatchesProperty = require('./baseMatchesProperty'),
     bindCallback = require('./bindCallback'),
@@ -19105,7 +19936,7 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"../utility/identity":176,"../utility/property":177,"./baseMatches":112,"./baseMatchesProperty":113,"./bindCallback":122}],98:[function(require,module,exports){
+},{"../utility/identity":161,"../utility/property":162,"./baseMatches":110,"./baseMatchesProperty":111,"./bindCallback":119}],100:[function(require,module,exports){
 var arrayCopy = require('./arrayCopy'),
     arrayEach = require('./arrayEach'),
     baseAssign = require('./baseAssign'),
@@ -19161,7 +19992,7 @@ cloneableTags[weakMapTag] = false;
 var objectProto = Object.prototype;
 
 /**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
  * of values.
  */
 var objToString = objectProto.toString;
@@ -19212,7 +20043,7 @@ function baseClone(value, isDeep, customizer, key, object, stackA, stackB) {
         : (object ? value : {});
     }
   }
-  // Check for circular references and return corresponding clone.
+  // Check for circular references and return its corresponding clone.
   stackA || (stackA = []);
   stackB || (stackB = []);
 
@@ -19235,7 +20066,7 @@ function baseClone(value, isDeep, customizer, key, object, stackA, stackB) {
 
 module.exports = baseClone;
 
-},{"../lang/isArray":156,"../lang/isObject":161,"./arrayCopy":92,"./arrayEach":93,"./baseAssign":96,"./baseForOwn":105,"./initCloneArray":137,"./initCloneByTag":138,"./initCloneObject":139}],99:[function(require,module,exports){
+},{"../lang/isArray":147,"../lang/isObject":152,"./arrayCopy":94,"./arrayEach":95,"./baseAssign":98,"./baseForOwn":105,"./initCloneArray":132,"./initCloneByTag":133,"./initCloneObject":134}],101:[function(require,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -19260,7 +20091,7 @@ function baseCopy(source, props, object) {
 
 module.exports = baseCopy;
 
-},{}],100:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 var baseForOwn = require('./baseForOwn'),
     createBaseEach = require('./createBaseEach');
 
@@ -19277,76 +20108,7 @@ var baseEach = createBaseEach(baseForOwn);
 
 module.exports = baseEach;
 
-},{"./baseForOwn":105,"./createBaseEach":127}],101:[function(require,module,exports){
-var baseEach = require('./baseEach');
-
-/**
- * The base implementation of `_.filter` without support for callback
- * shorthands and `this` binding.
- *
- * @private
- * @param {Array|Object|string} collection The collection to iterate over.
- * @param {Function} predicate The function invoked per iteration.
- * @returns {Array} Returns the new filtered array.
- */
-function baseFilter(collection, predicate) {
-  var result = [];
-  baseEach(collection, function(value, index, collection) {
-    if (predicate(value, index, collection)) {
-      result.push(value);
-    }
-  });
-  return result;
-}
-
-module.exports = baseFilter;
-
-},{"./baseEach":100}],102:[function(require,module,exports){
-var isArguments = require('../lang/isArguments'),
-    isArray = require('../lang/isArray'),
-    isArrayLike = require('./isArrayLike'),
-    isObjectLike = require('./isObjectLike');
-
-/**
- * The base implementation of `_.flatten` with added support for restricting
- * flattening and specifying the start index.
- *
- * @private
- * @param {Array} array The array to flatten.
- * @param {boolean} [isDeep] Specify a deep flatten.
- * @param {boolean} [isStrict] Restrict flattening to arrays-like objects.
- * @returns {Array} Returns the new flattened array.
- */
-function baseFlatten(array, isDeep, isStrict) {
-  var index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
-
-  while (++index < length) {
-    var value = array[index];
-    if (isObjectLike(value) && isArrayLike(value) &&
-        (isStrict || isArray(value) || isArguments(value))) {
-      if (isDeep) {
-        // Recursively flatten arrays (susceptible to call stack limits).
-        value = baseFlatten(value, isDeep, isStrict);
-      }
-      var valIndex = -1,
-          valLength = value.length;
-
-      while (++valIndex < valLength) {
-        result[++resIndex] = value[valIndex];
-      }
-    } else if (!isStrict) {
-      result[++resIndex] = value;
-    }
-  }
-  return result;
-}
-
-module.exports = baseFlatten;
-
-},{"../lang/isArguments":155,"../lang/isArray":156,"./isArrayLike":140,"./isObjectLike":145}],103:[function(require,module,exports){
+},{"./baseForOwn":105,"./createBaseEach":122}],103:[function(require,module,exports){
 var createBaseFor = require('./createBaseFor');
 
 /**
@@ -19365,7 +20127,7 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"./createBaseFor":128}],104:[function(require,module,exports){
+},{"./createBaseFor":123}],104:[function(require,module,exports){
 var baseFor = require('./baseFor'),
     keysIn = require('../object/keysIn');
 
@@ -19384,7 +20146,7 @@ function baseForIn(object, iteratee) {
 
 module.exports = baseForIn;
 
-},{"../object/keysIn":168,"./baseFor":103}],105:[function(require,module,exports){
+},{"../object/keysIn":158,"./baseFor":103}],105:[function(require,module,exports){
 var baseFor = require('./baseFor'),
     keys = require('../object/keys');
 
@@ -19403,7 +20165,7 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"../object/keys":167,"./baseFor":103}],106:[function(require,module,exports){
+},{"../object/keys":157,"./baseFor":103}],106:[function(require,module,exports){
 var toObject = require('./toObject');
 
 /**
@@ -19434,36 +20196,7 @@ function baseGet(object, path, pathKey) {
 
 module.exports = baseGet;
 
-},{"./toObject":152}],107:[function(require,module,exports){
-var indexOfNaN = require('./indexOfNaN');
-
-/**
- * The base implementation of `_.indexOf` without support for binary searches.
- *
- * @private
- * @param {Array} array The array to search.
- * @param {*} value The value to search for.
- * @param {number} fromIndex The index to search from.
- * @returns {number} Returns the index of the matched value, else `-1`.
- */
-function baseIndexOf(array, value, fromIndex) {
-  if (value !== value) {
-    return indexOfNaN(array, fromIndex);
-  }
-  var index = fromIndex - 1,
-      length = array.length;
-
-  while (++index < length) {
-    if (array[index] === value) {
-      return index;
-    }
-  }
-  return -1;
-}
-
-module.exports = baseIndexOf;
-
-},{"./indexOfNaN":136}],108:[function(require,module,exports){
+},{"./toObject":143}],107:[function(require,module,exports){
 var baseIsEqualDeep = require('./baseIsEqualDeep'),
     isObject = require('../lang/isObject'),
     isObjectLike = require('./isObjectLike');
@@ -19493,7 +20226,7 @@ function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"../lang/isObject":161,"./baseIsEqualDeep":109,"./isObjectLike":145}],109:[function(require,module,exports){
+},{"../lang/isObject":152,"./baseIsEqualDeep":108,"./isObjectLike":140}],108:[function(require,module,exports){
 var equalArrays = require('./equalArrays'),
     equalByTag = require('./equalByTag'),
     equalObjects = require('./equalObjects'),
@@ -19512,7 +20245,7 @@ var objectProto = Object.prototype;
 var hasOwnProperty = objectProto.hasOwnProperty;
 
 /**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
  * of values.
  */
 var objToString = objectProto.toString;
@@ -19597,24 +20330,7 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"../lang/isArray":156,"../lang/isTypedArray":164,"./equalArrays":130,"./equalByTag":131,"./equalObjects":132}],110:[function(require,module,exports){
-/**
- * The base implementation of `_.isFunction` without support for environments
- * with incorrect `typeof` results.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
- */
-function baseIsFunction(value) {
-  // Avoid a Chakra JIT bug in compatibility modes of IE 11.
-  // See https://github.com/jashkenas/underscore/issues/1621 for more details.
-  return typeof value == 'function' || false;
-}
-
-module.exports = baseIsFunction;
-
-},{}],111:[function(require,module,exports){
+},{"../lang/isArray":147,"../lang/isTypedArray":155,"./equalArrays":126,"./equalByTag":127,"./equalObjects":128}],109:[function(require,module,exports){
 var baseIsEqual = require('./baseIsEqual'),
     toObject = require('./toObject');
 
@@ -19668,7 +20384,7 @@ function baseIsMatch(object, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"./baseIsEqual":108,"./toObject":152}],112:[function(require,module,exports){
+},{"./baseIsEqual":107,"./toObject":143}],110:[function(require,module,exports){
 var baseIsMatch = require('./baseIsMatch'),
     getMatchData = require('./getMatchData'),
     toObject = require('./toObject');
@@ -19700,7 +20416,7 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"./baseIsMatch":111,"./getMatchData":134,"./toObject":152}],113:[function(require,module,exports){
+},{"./baseIsMatch":109,"./getMatchData":130,"./toObject":143}],111:[function(require,module,exports){
 var baseGet = require('./baseGet'),
     baseIsEqual = require('./baseIsEqual'),
     baseSlice = require('./baseSlice'),
@@ -19747,7 +20463,7 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"../array/last":81,"../lang/isArray":156,"./baseGet":106,"./baseIsEqual":108,"./baseSlice":118,"./isKey":143,"./isStrictComparable":146,"./toObject":152,"./toPath":153}],114:[function(require,module,exports){
+},{"../array/last":90,"../lang/isArray":147,"./baseGet":106,"./baseIsEqual":107,"./baseSlice":117,"./isKey":138,"./isStrictComparable":141,"./toObject":143,"./toPath":144}],112:[function(require,module,exports){
 var arrayEach = require('./arrayEach'),
     baseMergeDeep = require('./baseMergeDeep'),
     isArray = require('../lang/isArray'),
@@ -19764,7 +20480,7 @@ var arrayEach = require('./arrayEach'),
  * @private
  * @param {Object} object The destination object.
  * @param {Object} source The source object.
- * @param {Function} [customizer] The function to customize merging properties.
+ * @param {Function} [customizer] The function to customize merged values.
  * @param {Array} [stackA=[]] Tracks traversed source objects.
  * @param {Array} [stackB=[]] Associates values with source counterparts.
  * @returns {Object} Returns `object`.
@@ -19774,7 +20490,7 @@ function baseMerge(object, source, customizer, stackA, stackB) {
     return object;
   }
   var isSrcArr = isArrayLike(source) && (isArray(source) || isTypedArray(source)),
-      props = isSrcArr ? null : keys(source);
+      props = isSrcArr ? undefined : keys(source);
 
   arrayEach(props || source, function(srcValue, key) {
     if (props) {
@@ -19805,7 +20521,7 @@ function baseMerge(object, source, customizer, stackA, stackB) {
 
 module.exports = baseMerge;
 
-},{"../lang/isArray":156,"../lang/isObject":161,"../lang/isTypedArray":164,"../object/keys":167,"./arrayEach":93,"./baseMergeDeep":115,"./isArrayLike":140,"./isObjectLike":145}],115:[function(require,module,exports){
+},{"../lang/isArray":147,"../lang/isObject":152,"../lang/isTypedArray":155,"../object/keys":157,"./arrayEach":95,"./baseMergeDeep":113,"./isArrayLike":135,"./isObjectLike":140}],113:[function(require,module,exports){
 var arrayCopy = require('./arrayCopy'),
     isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
@@ -19824,7 +20540,7 @@ var arrayCopy = require('./arrayCopy'),
  * @param {Object} source The source object.
  * @param {string} key The key of the value to merge.
  * @param {Function} mergeFunc The function to merge values.
- * @param {Function} [customizer] The function to customize merging properties.
+ * @param {Function} [customizer] The function to customize merged values.
  * @param {Array} [stackA=[]] Tracks traversed source objects.
  * @param {Array} [stackB=[]] Associates values with source counterparts.
  * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
@@ -19874,7 +20590,7 @@ function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stack
 
 module.exports = baseMergeDeep;
 
-},{"../lang/isArguments":155,"../lang/isArray":156,"../lang/isPlainObject":162,"../lang/isTypedArray":164,"../lang/toPlainObject":165,"./arrayCopy":92,"./isArrayLike":140}],116:[function(require,module,exports){
+},{"../lang/isArguments":146,"../lang/isArray":147,"../lang/isPlainObject":153,"../lang/isTypedArray":155,"../lang/toPlainObject":156,"./arrayCopy":94,"./isArrayLike":135}],114:[function(require,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -19890,7 +20606,7 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],117:[function(require,module,exports){
+},{}],115:[function(require,module,exports){
 var baseGet = require('./baseGet'),
     toPath = require('./toPath');
 
@@ -19911,7 +20627,33 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"./baseGet":106,"./toPath":153}],118:[function(require,module,exports){
+},{"./baseGet":106,"./toPath":144}],116:[function(require,module,exports){
+/**
+ * The base implementation of `_.reduce` and `_.reduceRight` without support
+ * for callback shorthands and `this` binding, which iterates over `collection`
+ * using the provided `eachFunc`.
+ *
+ * @private
+ * @param {Array|Object|string} collection The collection to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @param {*} accumulator The initial value.
+ * @param {boolean} initFromCollection Specify using the first or last element
+ *  of `collection` as the initial value.
+ * @param {Function} eachFunc The function to iterate over `collection`.
+ * @returns {*} Returns the accumulated value.
+ */
+function baseReduce(collection, iteratee, accumulator, initFromCollection, eachFunc) {
+  eachFunc(collection, function(value, index, collection) {
+    accumulator = initFromCollection
+      ? (initFromCollection = false, value)
+      : iteratee(accumulator, value, index, collection);
+  });
+  return accumulator;
+}
+
+module.exports = baseReduce;
+
+},{}],117:[function(require,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -19945,7 +20687,7 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],119:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 /**
  * Converts `value` to a string if it's not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -19955,98 +20697,12 @@ module.exports = baseSlice;
  * @returns {string} Returns the string.
  */
 function baseToString(value) {
-  if (typeof value == 'string') {
-    return value;
-  }
   return value == null ? '' : (value + '');
 }
 
 module.exports = baseToString;
 
-},{}],120:[function(require,module,exports){
-var baseIndexOf = require('./baseIndexOf'),
-    cacheIndexOf = require('./cacheIndexOf'),
-    createCache = require('./createCache');
-
-/**
- * The base implementation of `_.uniq` without support for callback shorthands
- * and `this` binding.
- *
- * @private
- * @param {Array} array The array to inspect.
- * @param {Function} [iteratee] The function invoked per iteration.
- * @returns {Array} Returns the new duplicate-value-free array.
- */
-function baseUniq(array, iteratee) {
-  var index = -1,
-      indexOf = baseIndexOf,
-      length = array.length,
-      isCommon = true,
-      isLarge = isCommon && length >= 200,
-      seen = isLarge ? createCache() : null,
-      result = [];
-
-  if (seen) {
-    indexOf = cacheIndexOf;
-    isCommon = false;
-  } else {
-    isLarge = false;
-    seen = iteratee ? [] : result;
-  }
-  outer:
-  while (++index < length) {
-    var value = array[index],
-        computed = iteratee ? iteratee(value, index, array) : value;
-
-    if (isCommon && value === value) {
-      var seenIndex = seen.length;
-      while (seenIndex--) {
-        if (seen[seenIndex] === computed) {
-          continue outer;
-        }
-      }
-      if (iteratee) {
-        seen.push(computed);
-      }
-      result.push(value);
-    }
-    else if (indexOf(seen, computed, 0) < 0) {
-      if (iteratee || isLarge) {
-        seen.push(computed);
-      }
-      result.push(value);
-    }
-  }
-  return result;
-}
-
-module.exports = baseUniq;
-
-},{"./baseIndexOf":107,"./cacheIndexOf":124,"./createCache":129}],121:[function(require,module,exports){
-/**
- * The base implementation of `_.values` and `_.valuesIn` which creates an
- * array of `object` property values corresponding to the property names
- * of `props`.
- *
- * @private
- * @param {Object} object The object to query.
- * @param {Array} props The property names to get values for.
- * @returns {Object} Returns the array of property values.
- */
-function baseValues(object, props) {
-  var index = -1,
-      length = props.length,
-      result = Array(length);
-
-  while (++index < length) {
-    result[index] = object[props[index]];
-  }
-  return result;
-}
-
-module.exports = baseValues;
-
-},{}],122:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 var identity = require('../utility/identity');
 
 /**
@@ -20087,31 +20743,11 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"../utility/identity":176}],123:[function(require,module,exports){
+},{"../utility/identity":161}],120:[function(require,module,exports){
 (function (global){
-var constant = require('../utility/constant'),
-    getNative = require('./getNative');
-
 /** Native method references. */
-var ArrayBuffer = getNative(global, 'ArrayBuffer'),
-    bufferSlice = getNative(ArrayBuffer && new ArrayBuffer(0), 'slice'),
-    floor = Math.floor,
-    Uint8Array = getNative(global, 'Uint8Array');
-
-/** Used to clone array buffers. */
-var Float64Array = (function() {
-  // Safari 5 errors when using an array buffer to initialize a typed array
-  // where the array buffer's `byteLength` is not a multiple of the typed
-  // array's `BYTES_PER_ELEMENT`.
-  try {
-    var func = getNative(global, 'Float64Array'),
-        result = new func(new ArrayBuffer(10), 0, 1) && func;
-  } catch(e) {}
-  return result || null;
-}());
-
-/** Used as the size, in bytes, of each `Float64Array` element. */
-var FLOAT64_BYTES_PER_ELEMENT = Float64Array ? Float64Array.BYTES_PER_ELEMENT : 0;
+var ArrayBuffer = global.ArrayBuffer,
+    Uint8Array = global.Uint8Array;
 
 /**
  * Creates a clone of the given array buffer.
@@ -20121,85 +20757,24 @@ var FLOAT64_BYTES_PER_ELEMENT = Float64Array ? Float64Array.BYTES_PER_ELEMENT : 
  * @returns {ArrayBuffer} Returns the cloned array buffer.
  */
 function bufferClone(buffer) {
-  return bufferSlice.call(buffer, 0);
-}
-if (!bufferSlice) {
-  // PhantomJS has `ArrayBuffer` and `Uint8Array` but not `Float64Array`.
-  bufferClone = !(ArrayBuffer && Uint8Array) ? constant(null) : function(buffer) {
-    var byteLength = buffer.byteLength,
-        floatLength = Float64Array ? floor(byteLength / FLOAT64_BYTES_PER_ELEMENT) : 0,
-        offset = floatLength * FLOAT64_BYTES_PER_ELEMENT,
-        result = new ArrayBuffer(byteLength);
+  var result = new ArrayBuffer(buffer.byteLength),
+      view = new Uint8Array(result);
 
-    if (floatLength) {
-      var view = new Float64Array(result, 0, floatLength);
-      view.set(new Float64Array(buffer, 0, floatLength));
-    }
-    if (byteLength != offset) {
-      view = new Uint8Array(result, offset);
-      view.set(new Uint8Array(buffer, offset));
-    }
-    return result;
-  };
+  view.set(new Uint8Array(buffer));
+  return result;
 }
 
 module.exports = bufferClone;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../utility/constant":175,"./getNative":135}],124:[function(require,module,exports){
-var isObject = require('../lang/isObject');
-
-/**
- * Checks if `value` is in `cache` mimicking the return signature of
- * `_.indexOf` by returning `0` if the value is found, else `-1`.
- *
- * @private
- * @param {Object} cache The cache to search.
- * @param {*} value The value to search for.
- * @returns {number} Returns `0` if `value` is found, else `-1`.
- */
-function cacheIndexOf(cache, value) {
-  var data = cache.data,
-      result = (typeof value == 'string' || isObject(value)) ? data.set.has(value) : data.hash[value];
-
-  return result ? 0 : -1;
-}
-
-module.exports = cacheIndexOf;
-
-},{"../lang/isObject":161}],125:[function(require,module,exports){
-var isObject = require('../lang/isObject');
-
-/**
- * Adds `value` to the cache.
- *
- * @private
- * @name push
- * @memberOf SetCache
- * @param {*} value The value to cache.
- */
-function cachePush(value) {
-  var data = this.data;
-  if (typeof value == 'string' || isObject(value)) {
-    data.set.add(value);
-  } else {
-    data.hash[value] = true;
-  }
-}
-
-module.exports = cachePush;
-
-},{"../lang/isObject":161}],126:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 var bindCallback = require('./bindCallback'),
     isIterateeCall = require('./isIterateeCall'),
     restParam = require('../function/restParam');
 
 /**
- * Creates a function that assigns properties of source object(s) to a given
- * destination object.
- *
- * **Note:** This function is used to create `_.assign`, `_.defaults`, and `_.merge`.
+ * Creates a `_.assign`, `_.defaults`, or `_.merge` function.
  *
  * @private
  * @param {Function} assigner The function to assign values.
@@ -20236,7 +20811,7 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"../function/restParam":90,"./bindCallback":122,"./isIterateeCall":142}],127:[function(require,module,exports){
+},{"../function/restParam":93,"./bindCallback":119,"./isIterateeCall":137}],122:[function(require,module,exports){
 var getLength = require('./getLength'),
     isLength = require('./isLength'),
     toObject = require('./toObject');
@@ -20269,7 +20844,7 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"./getLength":133,"./isLength":144,"./toObject":152}],128:[function(require,module,exports){
+},{"./getLength":129,"./isLength":139,"./toObject":143}],123:[function(require,module,exports){
 var toObject = require('./toObject');
 
 /**
@@ -20298,34 +20873,53 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{"./toObject":152}],129:[function(require,module,exports){
-(function (global){
-var SetCache = require('./SetCache'),
-    constant = require('../utility/constant'),
-    getNative = require('./getNative');
-
-/** Native method references. */
-var Set = getNative(global, 'Set');
-
-/* Native method references for those with the same name as other `lodash` methods. */
-var nativeCreate = getNative(Object, 'create');
+},{"./toObject":143}],124:[function(require,module,exports){
+var bindCallback = require('./bindCallback'),
+    isArray = require('../lang/isArray');
 
 /**
- * Creates a `Set` cache object to optimize linear searches of large arrays.
+ * Creates a function for `_.forEach` or `_.forEachRight`.
  *
  * @private
- * @param {Array} [values] The values to cache.
- * @returns {null|Object} Returns the new cache object if `Set` is supported, else `null`.
+ * @param {Function} arrayFunc The function to iterate over an array.
+ * @param {Function} eachFunc The function to iterate over a collection.
+ * @returns {Function} Returns the new each function.
  */
-var createCache = !(nativeCreate && Set) ? constant(null) : function(values) {
-  return new SetCache(values);
-};
+function createForEach(arrayFunc, eachFunc) {
+  return function(collection, iteratee, thisArg) {
+    return (typeof iteratee == 'function' && thisArg === undefined && isArray(collection))
+      ? arrayFunc(collection, iteratee)
+      : eachFunc(collection, bindCallback(iteratee, thisArg, 3));
+  };
+}
 
-module.exports = createCache;
+module.exports = createForEach;
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../lang/isArray":147,"./bindCallback":119}],125:[function(require,module,exports){
+var baseCallback = require('./baseCallback'),
+    baseReduce = require('./baseReduce'),
+    isArray = require('../lang/isArray');
 
-},{"../utility/constant":175,"./SetCache":91,"./getNative":135}],130:[function(require,module,exports){
+/**
+ * Creates a function for `_.reduce` or `_.reduceRight`.
+ *
+ * @private
+ * @param {Function} arrayFunc The function to iterate over an array.
+ * @param {Function} eachFunc The function to iterate over a collection.
+ * @returns {Function} Returns the new each function.
+ */
+function createReduce(arrayFunc, eachFunc) {
+  return function(collection, iteratee, accumulator, thisArg) {
+    var initFromArray = arguments.length < 3;
+    return (typeof iteratee == 'function' && thisArg === undefined && isArray(collection))
+      ? arrayFunc(collection, iteratee, accumulator, initFromArray)
+      : baseReduce(collection, baseCallback(iteratee, thisArg, 4), accumulator, initFromArray, eachFunc);
+  };
+}
+
+module.exports = createReduce;
+
+},{"../lang/isArray":147,"./baseCallback":99,"./baseReduce":116}],126:[function(require,module,exports){
 var arraySome = require('./arraySome');
 
 /**
@@ -20378,7 +20972,7 @@ function equalArrays(array, other, equalFunc, customizer, isLoose, stackA, stack
 
 module.exports = equalArrays;
 
-},{"./arraySome":95}],131:[function(require,module,exports){
+},{"./arraySome":97}],127:[function(require,module,exports){
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
     dateTag = '[object Date]',
@@ -20395,7 +20989,7 @@ var boolTag = '[object Boolean]',
  * `Boolean`, `Date`, `Error`, `Number`, `RegExp`, or `String`.
  *
  * @private
- * @param {Object} value The object to compare.
+ * @param {Object} object The object to compare.
  * @param {Object} other The other object to compare.
  * @param {string} tag The `toStringTag` of the objects to compare.
  * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
@@ -20428,7 +21022,7 @@ function equalByTag(object, other, tag) {
 
 module.exports = equalByTag;
 
-},{}],132:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 var keys = require('../object/keys');
 
 /** Used for native method references. */
@@ -20497,7 +21091,7 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"../object/keys":167}],133:[function(require,module,exports){
+},{"../object/keys":157}],129:[function(require,module,exports){
 var baseProperty = require('./baseProperty');
 
 /**
@@ -20514,7 +21108,7 @@ var getLength = baseProperty('length');
 
 module.exports = getLength;
 
-},{"./baseProperty":116}],134:[function(require,module,exports){
+},{"./baseProperty":114}],130:[function(require,module,exports){
 var isStrictComparable = require('./isStrictComparable'),
     pairs = require('../object/pairs');
 
@@ -20537,7 +21131,7 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"../object/pairs":170,"./isStrictComparable":146}],135:[function(require,module,exports){
+},{"../object/pairs":160,"./isStrictComparable":141}],131:[function(require,module,exports){
 var isNative = require('../lang/isNative');
 
 /**
@@ -20555,32 +21149,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"../lang/isNative":159}],136:[function(require,module,exports){
-/**
- * Gets the index at which the first occurrence of `NaN` is found in `array`.
- *
- * @private
- * @param {Array} array The array to search.
- * @param {number} fromIndex The index to search from.
- * @param {boolean} [fromRight] Specify iterating from right to left.
- * @returns {number} Returns the index of the matched `NaN`, else `-1`.
- */
-function indexOfNaN(array, fromIndex, fromRight) {
-  var length = array.length,
-      index = fromIndex + (fromRight ? 0 : -1);
-
-  while ((fromRight ? index-- : ++index < length)) {
-    var other = array[index];
-    if (other !== other) {
-      return index;
-    }
-  }
-  return -1;
-}
-
-module.exports = indexOfNaN;
-
-},{}],137:[function(require,module,exports){
+},{"../lang/isNative":150}],132:[function(require,module,exports){
 /** Used for native method references. */
 var objectProto = Object.prototype;
 
@@ -20608,7 +21177,7 @@ function initCloneArray(array) {
 
 module.exports = initCloneArray;
 
-},{}],138:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 var bufferClone = require('./bufferClone');
 
 /** `Object#toString` result references. */
@@ -20673,7 +21242,7 @@ function initCloneByTag(object, tag, isDeep) {
 
 module.exports = initCloneByTag;
 
-},{"./bufferClone":123}],139:[function(require,module,exports){
+},{"./bufferClone":120}],134:[function(require,module,exports){
 /**
  * Initializes an object clone.
  *
@@ -20691,7 +21260,7 @@ function initCloneObject(object) {
 
 module.exports = initCloneObject;
 
-},{}],140:[function(require,module,exports){
+},{}],135:[function(require,module,exports){
 var getLength = require('./getLength'),
     isLength = require('./isLength');
 
@@ -20708,12 +21277,12 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"./getLength":133,"./isLength":144}],141:[function(require,module,exports){
+},{"./getLength":129,"./isLength":139}],136:[function(require,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
 /**
- * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
+ * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
  */
 var MAX_SAFE_INTEGER = 9007199254740991;
@@ -20734,7 +21303,7 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],142:[function(require,module,exports){
+},{}],137:[function(require,module,exports){
 var isArrayLike = require('./isArrayLike'),
     isIndex = require('./isIndex'),
     isObject = require('../lang/isObject');
@@ -20764,7 +21333,7 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"../lang/isObject":161,"./isArrayLike":140,"./isIndex":141}],143:[function(require,module,exports){
+},{"../lang/isObject":152,"./isArrayLike":135,"./isIndex":136}],138:[function(require,module,exports){
 var isArray = require('../lang/isArray'),
     toObject = require('./toObject');
 
@@ -20794,9 +21363,9 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"../lang/isArray":156,"./toObject":152}],144:[function(require,module,exports){
+},{"../lang/isArray":147,"./toObject":143}],139:[function(require,module,exports){
 /**
- * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
+ * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
  */
 var MAX_SAFE_INTEGER = 9007199254740991;
@@ -20804,7 +21373,7 @@ var MAX_SAFE_INTEGER = 9007199254740991;
 /**
  * Checks if `value` is a valid array-like length.
  *
- * **Note:** This function is based on [`ToLength`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-tolength).
+ * **Note:** This function is based on [`ToLength`](http://ecma-international.org/ecma-262/6.0/#sec-tolength).
  *
  * @private
  * @param {*} value The value to check.
@@ -20816,7 +21385,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],145:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 /**
  * Checks if `value` is object-like.
  *
@@ -20830,7 +21399,7 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],146:[function(require,module,exports){
+},{}],141:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -20847,113 +21416,7 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"../lang/isObject":161}],147:[function(require,module,exports){
-var toObject = require('./toObject');
-
-/**
- * A specialized version of `_.pick` which picks `object` properties specified
- * by `props`.
- *
- * @private
- * @param {Object} object The source object.
- * @param {string[]} props The property names to pick.
- * @returns {Object} Returns the new object.
- */
-function pickByArray(object, props) {
-  object = toObject(object);
-
-  var index = -1,
-      length = props.length,
-      result = {};
-
-  while (++index < length) {
-    var key = props[index];
-    if (key in object) {
-      result[key] = object[key];
-    }
-  }
-  return result;
-}
-
-module.exports = pickByArray;
-
-},{"./toObject":152}],148:[function(require,module,exports){
-var baseForIn = require('./baseForIn');
-
-/**
- * A specialized version of `_.pick` which picks `object` properties `predicate`
- * returns truthy for.
- *
- * @private
- * @param {Object} object The source object.
- * @param {Function} predicate The function invoked per iteration.
- * @returns {Object} Returns the new object.
- */
-function pickByCallback(object, predicate) {
-  var result = {};
-  baseForIn(object, function(value, key, object) {
-    if (predicate(value, key, object)) {
-      result[key] = value;
-    }
-  });
-  return result;
-}
-
-module.exports = pickByCallback;
-
-},{"./baseForIn":104}],149:[function(require,module,exports){
-var baseForIn = require('./baseForIn'),
-    isObjectLike = require('./isObjectLike');
-
-/** `Object#toString` result references. */
-var objectTag = '[object Object]';
-
-/** Used for native method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
- * of values.
- */
-var objToString = objectProto.toString;
-
-/**
- * A fallback implementation of `_.isPlainObject` which checks if `value`
- * is an object created by the `Object` constructor or has a `[[Prototype]]`
- * of `null`.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
- */
-function shimIsPlainObject(value) {
-  var Ctor;
-
-  // Exit early for non `Object` objects.
-  if (!(isObjectLike(value) && objToString.call(value) == objectTag) ||
-      (!hasOwnProperty.call(value, 'constructor') &&
-        (Ctor = value.constructor, typeof Ctor == 'function' && !(Ctor instanceof Ctor)))) {
-    return false;
-  }
-  // IE < 9 iterates inherited properties before own properties. If the first
-  // iterated property is an object's own property then there are no inherited
-  // enumerable properties.
-  var result;
-  // In most environments an object's own properties are iterated before
-  // its inherited properties. If the last iterated property is an object's
-  // own property then there are no inherited enumerable properties.
-  baseForIn(value, function(subValue, key) {
-    result = key;
-  });
-  return result === undefined || hasOwnProperty.call(value, result);
-}
-
-module.exports = shimIsPlainObject;
-
-},{"./baseForIn":104,"./isObjectLike":145}],150:[function(require,module,exports){
+},{"../lang/isObject":152}],142:[function(require,module,exports){
 var isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
     isIndex = require('./isIndex'),
@@ -20996,38 +21459,7 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"../lang/isArguments":155,"../lang/isArray":156,"../object/keysIn":168,"./isIndex":141,"./isLength":144}],151:[function(require,module,exports){
-/**
- * An implementation of `_.uniq` optimized for sorted arrays without support
- * for callback shorthands and `this` binding.
- *
- * @private
- * @param {Array} array The array to inspect.
- * @param {Function} [iteratee] The function invoked per iteration.
- * @returns {Array} Returns the new duplicate-value-free array.
- */
-function sortedUniq(array, iteratee) {
-  var seen,
-      index = -1,
-      length = array.length,
-      resIndex = -1,
-      result = [];
-
-  while (++index < length) {
-    var value = array[index],
-        computed = iteratee ? iteratee(value, index, array) : value;
-
-    if (!index || seen !== computed) {
-      seen = computed;
-      result[++resIndex] = value;
-    }
-  }
-  return result;
-}
-
-module.exports = sortedUniq;
-
-},{}],152:[function(require,module,exports){
+},{"../lang/isArguments":146,"../lang/isArray":147,"../object/keysIn":158,"./isIndex":136,"./isLength":139}],143:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -21043,7 +21475,7 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"../lang/isObject":161}],153:[function(require,module,exports){
+},{"../lang/isObject":152}],144:[function(require,module,exports){
 var baseToString = require('./baseToString'),
     isArray = require('../lang/isArray');
 
@@ -21073,7 +21505,7 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"../lang/isArray":156,"./baseToString":119}],154:[function(require,module,exports){
+},{"../lang/isArray":147,"./baseToString":118}],145:[function(require,module,exports){
 var baseClone = require('../internal/baseClone'),
     bindCallback = require('../internal/bindCallback');
 
@@ -21130,21 +21562,18 @@ function cloneDeep(value, customizer, thisArg) {
 
 module.exports = cloneDeep;
 
-},{"../internal/baseClone":98,"../internal/bindCallback":122}],155:[function(require,module,exports){
+},{"../internal/baseClone":100,"../internal/bindCallback":119}],146:[function(require,module,exports){
 var isArrayLike = require('../internal/isArrayLike'),
     isObjectLike = require('../internal/isObjectLike');
-
-/** `Object#toString` result references. */
-var argsTag = '[object Arguments]';
 
 /** Used for native method references. */
 var objectProto = Object.prototype;
 
-/**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
- * of values.
- */
-var objToString = objectProto.toString;
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/** Native method references. */
+var propertyIsEnumerable = objectProto.propertyIsEnumerable;
 
 /**
  * Checks if `value` is classified as an `arguments` object.
@@ -21163,12 +21592,13 @@ var objToString = objectProto.toString;
  * // => false
  */
 function isArguments(value) {
-  return isObjectLike(value) && isArrayLike(value) && objToString.call(value) == argsTag;
+  return isObjectLike(value) && isArrayLike(value) &&
+    hasOwnProperty.call(value, 'callee') && !propertyIsEnumerable.call(value, 'callee');
 }
 
 module.exports = isArguments;
 
-},{"../internal/isArrayLike":140,"../internal/isObjectLike":145}],156:[function(require,module,exports){
+},{"../internal/isArrayLike":135,"../internal/isObjectLike":140}],147:[function(require,module,exports){
 var getNative = require('../internal/getNative'),
     isLength = require('../internal/isLength'),
     isObjectLike = require('../internal/isObjectLike');
@@ -21180,7 +21610,7 @@ var arrayTag = '[object Array]';
 var objectProto = Object.prototype;
 
 /**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
  * of values.
  */
 var objToString = objectProto.toString;
@@ -21210,7 +21640,7 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"../internal/getNative":135,"../internal/isLength":144,"../internal/isObjectLike":145}],157:[function(require,module,exports){
+},{"../internal/getNative":131,"../internal/isLength":139,"../internal/isObjectLike":140}],148:[function(require,module,exports){
 var isArguments = require('./isArguments'),
     isArray = require('./isArray'),
     isArrayLike = require('../internal/isArrayLike'),
@@ -21259,10 +21689,8 @@ function isEmpty(value) {
 
 module.exports = isEmpty;
 
-},{"../internal/isArrayLike":140,"../internal/isObjectLike":145,"../object/keys":167,"./isArguments":155,"./isArray":156,"./isFunction":158,"./isString":163}],158:[function(require,module,exports){
-(function (global){
-var baseIsFunction = require('../internal/baseIsFunction'),
-    getNative = require('../internal/getNative');
+},{"../internal/isArrayLike":135,"../internal/isObjectLike":140,"../object/keys":157,"./isArguments":146,"./isArray":147,"./isFunction":149,"./isString":154}],149:[function(require,module,exports){
+var isObject = require('./isObject');
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
@@ -21271,13 +21699,10 @@ var funcTag = '[object Function]';
 var objectProto = Object.prototype;
 
 /**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
  * of values.
  */
 var objToString = objectProto.toString;
-
-/** Native method references. */
-var Uint8Array = getNative(global, 'Uint8Array');
 
 /**
  * Checks if `value` is classified as a `Function` object.
@@ -21295,23 +21720,18 @@ var Uint8Array = getNative(global, 'Uint8Array');
  * _.isFunction(/abc/);
  * // => false
  */
-var isFunction = !(baseIsFunction(/x/) || (Uint8Array && !baseIsFunction(Uint8Array))) ? baseIsFunction : function(value) {
+function isFunction(value) {
   // The use of `Object#toString` avoids issues with the `typeof` operator
   // in older versions of Chrome and Safari which return 'function' for regexes
   // and Safari 8 equivalents which return 'object' for typed array constructors.
-  return objToString.call(value) == funcTag;
-};
+  return isObject(value) && objToString.call(value) == funcTag;
+}
 
 module.exports = isFunction;
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"../internal/baseIsFunction":110,"../internal/getNative":135}],159:[function(require,module,exports){
-var escapeRegExp = require('../string/escapeRegExp'),
+},{"./isObject":152}],150:[function(require,module,exports){
+var isFunction = require('./isFunction'),
     isObjectLike = require('../internal/isObjectLike');
-
-/** `Object#toString` result references. */
-var funcTag = '[object Function]';
 
 /** Used to detect host constructors (Safari > 5). */
 var reIsHostCtor = /^\[object .+?Constructor\]$/;
@@ -21325,15 +21745,9 @@ var fnToString = Function.prototype.toString;
 /** Used to check objects for own properties. */
 var hasOwnProperty = objectProto.hasOwnProperty;
 
-/**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
- * of values.
- */
-var objToString = objectProto.toString;
-
 /** Used to detect if a method is native. */
 var reIsNative = RegExp('^' +
-  escapeRegExp(fnToString.call(hasOwnProperty))
+  fnToString.call(hasOwnProperty).replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
   .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
 );
 
@@ -21357,7 +21771,7 @@ function isNative(value) {
   if (value == null) {
     return false;
   }
-  if (objToString.call(value) == funcTag) {
+  if (isFunction(value)) {
     return reIsNative.test(fnToString.call(value));
   }
   return isObjectLike(value) && reIsHostCtor.test(value);
@@ -21365,7 +21779,7 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"../internal/isObjectLike":145,"../string/escapeRegExp":174}],160:[function(require,module,exports){
+},{"../internal/isObjectLike":140,"./isFunction":149}],151:[function(require,module,exports){
 var isObjectLike = require('../internal/isObjectLike');
 
 /** `Object#toString` result references. */
@@ -21375,7 +21789,7 @@ var numberTag = '[object Number]';
 var objectProto = Object.prototype;
 
 /**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
  * of values.
  */
 var objToString = objectProto.toString;
@@ -21408,7 +21822,7 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"../internal/isObjectLike":145}],161:[function(require,module,exports){
+},{"../internal/isObjectLike":140}],152:[function(require,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -21438,9 +21852,10 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],162:[function(require,module,exports){
-var getNative = require('../internal/getNative'),
-    shimIsPlainObject = require('../internal/shimIsPlainObject');
+},{}],153:[function(require,module,exports){
+var baseForIn = require('../internal/baseForIn'),
+    isArguments = require('./isArguments'),
+    isObjectLike = require('../internal/isObjectLike');
 
 /** `Object#toString` result references. */
 var objectTag = '[object Object]';
@@ -21448,14 +21863,14 @@ var objectTag = '[object Object]';
 /** Used for native method references. */
 var objectProto = Object.prototype;
 
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
 /**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
  * of values.
  */
 var objToString = objectProto.toString;
-
-/** Native method references. */
-var getPrototypeOf = getNative(Object, 'getPrototypeOf');
 
 /**
  * Checks if `value` is a plain object, that is, an object created by the
@@ -21487,21 +21902,30 @@ var getPrototypeOf = getNative(Object, 'getPrototypeOf');
  * _.isPlainObject(Object.create(null));
  * // => true
  */
-var isPlainObject = !getPrototypeOf ? shimIsPlainObject : function(value) {
-  if (!(value && objToString.call(value) == objectTag)) {
+function isPlainObject(value) {
+  var Ctor;
+
+  // Exit early for non `Object` objects.
+  if (!(isObjectLike(value) && objToString.call(value) == objectTag && !isArguments(value)) ||
+      (!hasOwnProperty.call(value, 'constructor') && (Ctor = value.constructor, typeof Ctor == 'function' && !(Ctor instanceof Ctor)))) {
     return false;
   }
-  var valueOf = getNative(value, 'valueOf'),
-      objProto = valueOf && (objProto = getPrototypeOf(valueOf)) && getPrototypeOf(objProto);
-
-  return objProto
-    ? (value == objProto || getPrototypeOf(value) == objProto)
-    : shimIsPlainObject(value);
-};
+  // IE < 9 iterates inherited properties before own properties. If the first
+  // iterated property is an object's own property then there are no inherited
+  // enumerable properties.
+  var result;
+  // In most environments an object's own properties are iterated before
+  // its inherited properties. If the last iterated property is an object's
+  // own property then there are no inherited enumerable properties.
+  baseForIn(value, function(subValue, key) {
+    result = key;
+  });
+  return result === undefined || hasOwnProperty.call(value, result);
+}
 
 module.exports = isPlainObject;
 
-},{"../internal/getNative":135,"../internal/shimIsPlainObject":149}],163:[function(require,module,exports){
+},{"../internal/baseForIn":104,"../internal/isObjectLike":140,"./isArguments":146}],154:[function(require,module,exports){
 var isObjectLike = require('../internal/isObjectLike');
 
 /** `Object#toString` result references. */
@@ -21511,7 +21935,7 @@ var stringTag = '[object String]';
 var objectProto = Object.prototype;
 
 /**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
  * of values.
  */
 var objToString = objectProto.toString;
@@ -21538,7 +21962,7 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"../internal/isObjectLike":145}],164:[function(require,module,exports){
+},{"../internal/isObjectLike":140}],155:[function(require,module,exports){
 var isLength = require('../internal/isLength'),
     isObjectLike = require('../internal/isObjectLike');
 
@@ -21587,7 +22011,7 @@ typedArrayTags[stringTag] = typedArrayTags[weakMapTag] = false;
 var objectProto = Object.prototype;
 
 /**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
  * of values.
  */
 var objToString = objectProto.toString;
@@ -21614,7 +22038,7 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"../internal/isLength":144,"../internal/isObjectLike":145}],165:[function(require,module,exports){
+},{"../internal/isLength":139,"../internal/isObjectLike":140}],156:[function(require,module,exports){
 var baseCopy = require('../internal/baseCopy'),
     keysIn = require('../object/keysIn');
 
@@ -21647,66 +22071,7 @@ function toPlainObject(value) {
 
 module.exports = toPlainObject;
 
-},{"../internal/baseCopy":99,"../object/keysIn":168}],166:[function(require,module,exports){
-var baseGet = require('../internal/baseGet'),
-    baseSlice = require('../internal/baseSlice'),
-    isArguments = require('../lang/isArguments'),
-    isArray = require('../lang/isArray'),
-    isIndex = require('../internal/isIndex'),
-    isKey = require('../internal/isKey'),
-    isLength = require('../internal/isLength'),
-    last = require('../array/last'),
-    toPath = require('../internal/toPath');
-
-/** Used for native method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Checks if `path` is a direct property.
- *
- * @static
- * @memberOf _
- * @category Object
- * @param {Object} object The object to query.
- * @param {Array|string} path The path to check.
- * @returns {boolean} Returns `true` if `path` is a direct property, else `false`.
- * @example
- *
- * var object = { 'a': { 'b': { 'c': 3 } } };
- *
- * _.has(object, 'a');
- * // => true
- *
- * _.has(object, 'a.b.c');
- * // => true
- *
- * _.has(object, ['a', 'b', 'c']);
- * // => true
- */
-function has(object, path) {
-  if (object == null) {
-    return false;
-  }
-  var result = hasOwnProperty.call(object, path);
-  if (!result && !isKey(path)) {
-    path = toPath(path);
-    object = path.length == 1 ? object : baseGet(object, baseSlice(path, 0, -1));
-    if (object == null) {
-      return false;
-    }
-    path = last(path);
-    result = hasOwnProperty.call(object, path);
-  }
-  return result || (isLength(object.length) && isIndex(path, object.length) &&
-    (isArray(object) || isArguments(object)));
-}
-
-module.exports = has;
-
-},{"../array/last":81,"../internal/baseGet":106,"../internal/baseSlice":118,"../internal/isIndex":141,"../internal/isKey":143,"../internal/isLength":144,"../internal/toPath":153,"../lang/isArguments":155,"../lang/isArray":156}],167:[function(require,module,exports){
+},{"../internal/baseCopy":101,"../object/keysIn":158}],157:[function(require,module,exports){
 var getNative = require('../internal/getNative'),
     isArrayLike = require('../internal/isArrayLike'),
     isObject = require('../lang/isObject'),
@@ -21719,7 +22084,7 @@ var nativeKeys = getNative(Object, 'keys');
  * Creates an array of the own enumerable property names of `object`.
  *
  * **Note:** Non-object values are coerced to objects. See the
- * [ES spec](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.keys)
+ * [ES spec](http://ecma-international.org/ecma-262/6.0/#sec-object.keys)
  * for more details.
  *
  * @static
@@ -21743,7 +22108,7 @@ var nativeKeys = getNative(Object, 'keys');
  * // => ['0', '1']
  */
 var keys = !nativeKeys ? shimKeys : function(object) {
-  var Ctor = object == null ? null : object.constructor;
+  var Ctor = object == null ? undefined : object.constructor;
   if ((typeof Ctor == 'function' && Ctor.prototype === object) ||
       (typeof object != 'function' && isArrayLike(object))) {
     return shimKeys(object);
@@ -21753,7 +22118,7 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"../internal/getNative":135,"../internal/isArrayLike":140,"../internal/shimKeys":150,"../lang/isObject":161}],168:[function(require,module,exports){
+},{"../internal/getNative":131,"../internal/isArrayLike":135,"../internal/shimKeys":142,"../lang/isObject":152}],158:[function(require,module,exports){
 var isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
     isIndex = require('../internal/isIndex'),
@@ -21819,7 +22184,7 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"../internal/isIndex":141,"../internal/isLength":144,"../lang/isArguments":155,"../lang/isArray":156,"../lang/isObject":161}],169:[function(require,module,exports){
+},{"../internal/isIndex":136,"../internal/isLength":139,"../lang/isArguments":146,"../lang/isArray":147,"../lang/isObject":152}],159:[function(require,module,exports){
 var baseMerge = require('../internal/baseMerge'),
     createAssigner = require('../internal/createAssigner');
 
@@ -21875,7 +22240,7 @@ var merge = createAssigner(baseMerge);
 
 module.exports = merge;
 
-},{"../internal/baseMerge":114,"../internal/createAssigner":126}],170:[function(require,module,exports){
+},{"../internal/baseMerge":112,"../internal/createAssigner":121}],160:[function(require,module,exports){
 var keys = require('./keys'),
     toObject = require('../internal/toObject');
 
@@ -21910,196 +22275,7 @@ function pairs(object) {
 
 module.exports = pairs;
 
-},{"../internal/toObject":152,"./keys":167}],171:[function(require,module,exports){
-var baseFlatten = require('../internal/baseFlatten'),
-    bindCallback = require('../internal/bindCallback'),
-    pickByArray = require('../internal/pickByArray'),
-    pickByCallback = require('../internal/pickByCallback'),
-    restParam = require('../function/restParam');
-
-/**
- * Creates an object composed of the picked `object` properties. Property
- * names may be specified as individual arguments or as arrays of property
- * names. If `predicate` is provided it is invoked for each property of `object`
- * picking the properties `predicate` returns truthy for. The predicate is
- * bound to `thisArg` and invoked with three arguments: (value, key, object).
- *
- * @static
- * @memberOf _
- * @category Object
- * @param {Object} object The source object.
- * @param {Function|...(string|string[])} [predicate] The function invoked per
- *  iteration or property names to pick, specified as individual property
- *  names or arrays of property names.
- * @param {*} [thisArg] The `this` binding of `predicate`.
- * @returns {Object} Returns the new object.
- * @example
- *
- * var object = { 'user': 'fred', 'age': 40 };
- *
- * _.pick(object, 'user');
- * // => { 'user': 'fred' }
- *
- * _.pick(object, _.isString);
- * // => { 'user': 'fred' }
- */
-var pick = restParam(function(object, props) {
-  if (object == null) {
-    return {};
-  }
-  return typeof props[0] == 'function'
-    ? pickByCallback(object, bindCallback(props[0], props[1], 3))
-    : pickByArray(object, baseFlatten(props));
-});
-
-module.exports = pick;
-
-},{"../function/restParam":90,"../internal/baseFlatten":102,"../internal/bindCallback":122,"../internal/pickByArray":147,"../internal/pickByCallback":148}],172:[function(require,module,exports){
-var baseGet = require('../internal/baseGet'),
-    baseSlice = require('../internal/baseSlice'),
-    isFunction = require('../lang/isFunction'),
-    isKey = require('../internal/isKey'),
-    last = require('../array/last'),
-    toPath = require('../internal/toPath');
-
-/**
- * This method is like `_.get` except that if the resolved value is a function
- * it is invoked with the `this` binding of its parent object and its result
- * is returned.
- *
- * @static
- * @memberOf _
- * @category Object
- * @param {Object} object The object to query.
- * @param {Array|string} path The path of the property to resolve.
- * @param {*} [defaultValue] The value returned if the resolved value is `undefined`.
- * @returns {*} Returns the resolved value.
- * @example
- *
- * var object = { 'a': [{ 'b': { 'c1': 3, 'c2': _.constant(4) } }] };
- *
- * _.result(object, 'a[0].b.c1');
- * // => 3
- *
- * _.result(object, 'a[0].b.c2');
- * // => 4
- *
- * _.result(object, 'a.b.c', 'default');
- * // => 'default'
- *
- * _.result(object, 'a.b.c', _.constant('default'));
- * // => 'default'
- */
-function result(object, path, defaultValue) {
-  var result = object == null ? undefined : object[path];
-  if (result === undefined) {
-    if (object != null && !isKey(path, object)) {
-      path = toPath(path);
-      object = path.length == 1 ? object : baseGet(object, baseSlice(path, 0, -1));
-      result = object == null ? undefined : object[last(path)];
-    }
-    result = result === undefined ? defaultValue : result;
-  }
-  return isFunction(result) ? result.call(object) : result;
-}
-
-module.exports = result;
-
-},{"../array/last":81,"../internal/baseGet":106,"../internal/baseSlice":118,"../internal/isKey":143,"../internal/toPath":153,"../lang/isFunction":158}],173:[function(require,module,exports){
-var baseValues = require('../internal/baseValues'),
-    keys = require('./keys');
-
-/**
- * Creates an array of the own enumerable property values of `object`.
- *
- * **Note:** Non-object values are coerced to objects.
- *
- * @static
- * @memberOf _
- * @category Object
- * @param {Object} object The object to query.
- * @returns {Array} Returns the array of property values.
- * @example
- *
- * function Foo() {
- *   this.a = 1;
- *   this.b = 2;
- * }
- *
- * Foo.prototype.c = 3;
- *
- * _.values(new Foo);
- * // => [1, 2] (iteration order is not guaranteed)
- *
- * _.values('hi');
- * // => ['h', 'i']
- */
-function values(object) {
-  return baseValues(object, keys(object));
-}
-
-module.exports = values;
-
-},{"../internal/baseValues":121,"./keys":167}],174:[function(require,module,exports){
-var baseToString = require('../internal/baseToString');
-
-/**
- * Used to match `RegExp` [special characters](http://www.regular-expressions.info/characters.html#special).
- * In addition to special characters the forward slash is escaped to allow for
- * easier `eval` use and `Function` compilation.
- */
-var reRegExpChars = /[.*+?^${}()|[\]\/\\]/g,
-    reHasRegExpChars = RegExp(reRegExpChars.source);
-
-/**
- * Escapes the `RegExp` special characters "\", "/", "^", "$", ".", "|", "?",
- * "*", "+", "(", ")", "[", "]", "{" and "}" in `string`.
- *
- * @static
- * @memberOf _
- * @category String
- * @param {string} [string=''] The string to escape.
- * @returns {string} Returns the escaped string.
- * @example
- *
- * _.escapeRegExp('[lodash](https://lodash.com/)');
- * // => '\[lodash\]\(https:\/\/lodash\.com\/\)'
- */
-function escapeRegExp(string) {
-  string = baseToString(string);
-  return (string && reHasRegExpChars.test(string))
-    ? string.replace(reRegExpChars, '\\$&')
-    : string;
-}
-
-module.exports = escapeRegExp;
-
-},{"../internal/baseToString":119}],175:[function(require,module,exports){
-/**
- * Creates a function that returns `value`.
- *
- * @static
- * @memberOf _
- * @category Utility
- * @param {*} value The value to return from the new function.
- * @returns {Function} Returns the new function.
- * @example
- *
- * var object = { 'user': 'fred' };
- * var getter = _.constant(object);
- *
- * getter() === object;
- * // => true
- */
-function constant(value) {
-  return function() {
-    return value;
-  };
-}
-
-module.exports = constant;
-
-},{}],176:[function(require,module,exports){
+},{"../internal/toObject":143,"./keys":157}],161:[function(require,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -22121,7 +22297,7 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],177:[function(require,module,exports){
+},{}],162:[function(require,module,exports){
 var baseProperty = require('../internal/baseProperty'),
     basePropertyDeep = require('../internal/basePropertyDeep'),
     isKey = require('../internal/isKey');
@@ -22154,3132 +22330,15 @@ function property(path) {
 
 module.exports = property;
 
-},{"../internal/baseProperty":116,"../internal/basePropertyDeep":117,"../internal/isKey":143}],178:[function(require,module,exports){
-module.exports={
-  "title": "A JSON Schema for Swagger 2.0 API.",
-  "id": "http://swagger.io/v2/schema.json#",
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "type": "object",
-  "required": [
-    "swagger",
-    "info",
-    "paths"
-  ],
-  "additionalProperties": false,
-  "patternProperties": {
-    "^x-": {
-      "$ref": "#/definitions/vendorExtension"
-    }
-  },
-  "properties": {
-    "swagger": {
-      "type": "string",
-      "enum": [
-        "2.0"
-      ],
-      "description": "The Swagger version of this document."
-    },
-    "info": {
-      "$ref": "#/definitions/info"
-    },
-    "host": {
-      "type": "string",
-      "format": "uri",
-      "pattern": "^[^{}/ :\\\\]+(?::\\d+)?$",
-      "description": "The fully qualified URI to the host of the API."
-    },
-    "basePath": {
-      "type": "string",
-      "pattern": "^/",
-      "description": "The base path to the API. Example: '/api'."
-    },
-    "schemes": {
-      "$ref": "#/definitions/schemesList"
-    },
-    "consumes": {
-      "description": "A list of MIME types accepted by the API.",
-      "$ref": "#/definitions/mediaTypeList"
-    },
-    "produces": {
-      "description": "A list of MIME types the API can produce.",
-      "$ref": "#/definitions/mediaTypeList"
-    },
-    "paths": {
-      "$ref": "#/definitions/paths"
-    },
-    "definitions": {
-      "$ref": "#/definitions/definitions"
-    },
-    "parameters": {
-      "$ref": "#/definitions/parameterDefinitions"
-    },
-    "responses": {
-      "$ref": "#/definitions/responseDefinitions"
-    },
-    "security": {
-      "$ref": "#/definitions/security"
-    },
-    "securityDefinitions": {
-      "$ref": "#/definitions/securityDefinitions"
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/tag"
-      },
-      "uniqueItems": true
-    },
-    "externalDocs": {
-      "$ref": "#/definitions/externalDocs"
-    }
-  },
-  "definitions": {
-    "info": {
-      "type": "object",
-      "description": "General information about the API.",
-      "required": [
-        "version",
-        "title"
-      ],
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "title": {
-          "type": "string",
-          "description": "A unique and precise title of the API."
-        },
-        "version": {
-          "type": "string",
-          "description": "A semantic version number of the API."
-        },
-        "description": {
-          "type": "string",
-          "description": "A longer description of the API. Should be different from the title.  Github-flavored markdown is allowed."
-        },
-        "termsOfService": {
-          "type": "string",
-          "description": "The terms of service for the API."
-        },
-        "contact": {
-          "$ref": "#/definitions/contact"
-        },
-        "license": {
-          "$ref": "#/definitions/license"
-        }
-      }
-    },
-    "contact": {
-      "type": "object",
-      "description": "Contact information for the owners of the API.",
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "The identifying name of the contact person/organization."
-        },
-        "url": {
-          "type": "string",
-          "description": "The URL pointing to the contact information.",
-          "format": "uri"
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the contact person/organization.",
-          "format": "email"
-        }
-      }
-    },
-    "license": {
-      "type": "object",
-      "required": [
-        "name"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "The name of the license type. It's encouraged to use an OSI compatible license."
-        },
-        "url": {
-          "type": "string",
-          "description": "The URL pointing to the license.",
-          "format": "uri"
-        }
-      }
-    },
-    "paths": {
-      "type": "object",
-      "description": "Relative paths to the individual endpoints. They must be relative to the 'basePath'.",
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        },
-        "^/": {
-          "$ref": "#/definitions/pathItem"
-        }
-      },
-      "additionalProperties": false
-    },
-    "definitions": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/schema"
-      },
-      "description": "One or more JSON objects describing the schemas being consumed and produced by the API."
-    },
-    "parameterDefinitions": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/parameter"
-      },
-      "description": "One or more JSON representations for parameters"
-    },
-    "responseDefinitions": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/response"
-      },
-      "description": "One or more JSON representations for parameters"
-    },
-    "externalDocs": {
-      "type": "object",
-      "additionalProperties": false,
-      "description": "information about external documentation",
-      "required": [
-        "url"
-      ],
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string",
-          "format": "uri"
-        }
-      }
-    },
-    "examples": {
-      "type": "object",
-      "patternProperties": {
-        "^[a-z0-9-]+/[a-z0-9\\-+]+$": {}
-      },
-      "additionalProperties": false
-    },
-    "mimeType": {
-      "type": "string",
-      "description": "The MIME type of the HTTP message."
-    },
-    "operation": {
-      "type": "object",
-      "required": [
-        "responses"
-      ],
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uniqueItems": true
-        },
-        "summary": {
-          "type": "string",
-          "description": "A brief summary of the operation."
-        },
-        "description": {
-          "type": "string",
-          "description": "A longer description of the operation, github-flavored markdown is allowed."
-        },
-        "externalDocs": {
-          "$ref": "#/definitions/externalDocs"
-        },
-        "operationId": {
-          "type": "string",
-          "description": "A friendly name of the operation"
-        },
-        "produces": {
-          "description": "A list of MIME types the API can produce.",
-          "$ref": "#/definitions/mediaTypeList"
-        },
-        "consumes": {
-          "description": "A list of MIME types the API can consume.",
-          "$ref": "#/definitions/mediaTypeList"
-        },
-        "parameters": {
-          "$ref": "#/definitions/parametersList"
-        },
-        "responses": {
-          "$ref": "#/definitions/responses"
-        },
-        "schemes": {
-          "$ref": "#/definitions/schemesList"
-        },
-        "deprecated": {
-          "type": "boolean",
-          "default": false
-        },
-        "security": {
-          "$ref": "#/definitions/security"
-        }
-      }
-    },
-    "pathItem": {
-      "type": "object",
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "$ref": {
-          "type": "string"
-        },
-        "get": {
-          "$ref": "#/definitions/operation"
-        },
-        "put": {
-          "$ref": "#/definitions/operation"
-        },
-        "post": {
-          "$ref": "#/definitions/operation"
-        },
-        "delete": {
-          "$ref": "#/definitions/operation"
-        },
-        "options": {
-          "$ref": "#/definitions/operation"
-        },
-        "head": {
-          "$ref": "#/definitions/operation"
-        },
-        "patch": {
-          "$ref": "#/definitions/operation"
-        },
-        "parameters": {
-          "$ref": "#/definitions/parametersList"
-        }
-      }
-    },
-    "responses": {
-      "type": "object",
-      "description": "Response objects names can either be any valid HTTP status code or 'default'.",
-      "minProperties": 1,
-      "additionalProperties": false,
-      "patternProperties": {
-        "^([0-9]{3})$|^(default)$": {
-          "$ref": "#/definitions/responseValue"
-        },
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "not": {
-        "type": "object",
-        "additionalProperties": false,
-        "patternProperties": {
-          "^x-": {
-            "$ref": "#/definitions/vendorExtension"
-          }
-        }
-      }
-    },
-    "responseValue": {
-      "oneOf": [
-        {
-          "$ref": "#/definitions/response"
-        },
-        {
-          "$ref": "#/definitions/jsonReference"
-        }
-      ]
-    },
-    "response": {
-      "type": "object",
-      "required": [
-        "description"
-      ],
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "schema": {
-          "$ref": "#/definitions/schema"
-        },
-        "headers": {
-          "$ref": "#/definitions/headers"
-        },
-        "examples": {
-          "$ref": "#/definitions/examples"
-        }
-      },
-      "additionalProperties": false
-    },
-    "headers": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/header"
-      }
-    },
-    "header": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "integer",
-            "boolean",
-            "array"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormat"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        },
-        "description": {
-          "type": "string"
-        }
-      }
-    },
-    "vendorExtension": {
-      "description": "Any property starting with x- is valid.",
-      "additionalProperties": true,
-      "additionalItems": true
-    },
-    "bodyParameter": {
-      "type": "object",
-      "required": [
-        "name",
-        "in",
-        "schema"
-      ],
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "description": {
-          "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the parameter."
-        },
-        "in": {
-          "type": "string",
-          "description": "Determines the location of the parameter.",
-          "enum": [
-            "body"
-          ]
-        },
-        "required": {
-          "type": "boolean",
-          "description": "Determines whether or not this parameter is required or optional.",
-          "default": false
-        },
-        "schema": {
-          "$ref": "#/definitions/schema"
-        }
-      },
-      "additionalProperties": false
-    },
-    "headerParameterSubSchema": {
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "required": {
-          "type": "boolean",
-          "description": "Determines whether or not this parameter is required or optional.",
-          "default": false
-        },
-        "in": {
-          "type": "string",
-          "description": "Determines the location of the parameter.",
-          "enum": [
-            "header"
-          ]
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the parameter."
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean",
-            "integer",
-            "array"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormat"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        }
-      }
-    },
-    "queryParameterSubSchema": {
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "required": {
-          "type": "boolean",
-          "description": "Determines whether or not this parameter is required or optional.",
-          "default": false
-        },
-        "in": {
-          "type": "string",
-          "description": "Determines the location of the parameter.",
-          "enum": [
-            "query"
-          ]
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the parameter."
-        },
-        "allowEmptyValue": {
-          "type": "boolean",
-          "default": false,
-          "description": "allows sending a parameter by name only or with an empty value."
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean",
-            "integer",
-            "array"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormatWithMulti"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        }
-      }
-    },
-    "formDataParameterSubSchema": {
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "required": {
-          "type": "boolean",
-          "description": "Determines whether or not this parameter is required or optional.",
-          "default": false
-        },
-        "in": {
-          "type": "string",
-          "description": "Determines the location of the parameter.",
-          "enum": [
-            "formData"
-          ]
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the parameter."
-        },
-        "allowEmptyValue": {
-          "type": "boolean",
-          "default": false,
-          "description": "allows sending a parameter by name only or with an empty value."
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean",
-            "integer",
-            "array",
-            "file"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormatWithMulti"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        }
-      }
-    },
-    "pathParameterSubSchema": {
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "required": {
-          "type": "boolean",
-          "enum": [
-            true
-          ],
-          "description": "Determines whether or not this parameter is required or optional."
-        },
-        "in": {
-          "type": "string",
-          "description": "Determines the location of the parameter.",
-          "enum": [
-            "path"
-          ]
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the parameter."
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean",
-            "integer",
-            "array"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormat"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        }
-      }
-    },
-    "nonBodyParameter": {
-      "type": "object",
-      "required": [
-        "name",
-        "in",
-        "type"
-      ],
-      "oneOf": [
-        {
-          "$ref": "#/definitions/headerParameterSubSchema"
-        },
-        {
-          "$ref": "#/definitions/formDataParameterSubSchema"
-        },
-        {
-          "$ref": "#/definitions/queryParameterSubSchema"
-        },
-        {
-          "$ref": "#/definitions/pathParameterSubSchema"
-        }
-      ]
-    },
-    "parameter": {
-      "oneOf": [
-        {
-          "$ref": "#/definitions/bodyParameter"
-        },
-        {
-          "$ref": "#/definitions/nonBodyParameter"
-        }
-      ]
-    },
-    "schema": {
-      "type": "object",
-      "description": "A deterministic version of a JSON Schema object.",
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "$ref": {
-          "type": "string"
-        },
-        "format": {
-          "type": "string"
-        },
-        "title": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/title"
-        },
-        "description": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/description"
-        },
-        "default": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/default"
-        },
-        "multipleOf": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/multipleOf"
-        },
-        "maximum": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
-        },
-        "minLength": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
-        },
-        "pattern": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/pattern"
-        },
-        "maxItems": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
-        },
-        "minItems": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
-        },
-        "uniqueItems": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/uniqueItems"
-        },
-        "maxProperties": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
-        },
-        "minProperties": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
-        },
-        "required": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/stringArray"
-        },
-        "enum": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
-        },
-        "additionalProperties": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/additionalProperties"
-        },
-        "type": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/type"
-        },
-        "items": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/schema"
-            },
-            {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "$ref": "#/definitions/schema"
-              }
-            }
-          ],
-          "default": {}
-        },
-        "allOf": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/definitions/schema"
-          }
-        },
-        "properties": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/schema"
-          },
-          "default": {}
-        },
-        "discriminator": {
-          "type": "string"
-        },
-        "readOnly": {
-          "type": "boolean",
-          "default": false
-        },
-        "xml": {
-          "$ref": "#/definitions/xml"
-        },
-        "externalDocs": {
-          "$ref": "#/definitions/externalDocs"
-        },
-        "example": {}
-      },
-      "additionalProperties": false
-    },
-    "primitivesItems": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "integer",
-            "boolean",
-            "array"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormat"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        }
-      }
-    },
-    "security": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/securityRequirement"
-      },
-      "uniqueItems": true
-    },
-    "securityRequirement": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        },
-        "uniqueItems": true
-      }
-    },
-    "xml": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "prefix": {
-          "type": "string"
-        },
-        "attribute": {
-          "type": "boolean",
-          "default": false
-        },
-        "wrapped": {
-          "type": "boolean",
-          "default": false
-        }
-      }
-    },
-    "tag": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "name"
-      ],
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "externalDocs": {
-          "$ref": "#/definitions/externalDocs"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "securityDefinitions": {
-      "type": "object",
-      "additionalProperties": {
-        "oneOf": [
-          {
-            "$ref": "#/definitions/basicAuthenticationSecurity"
-          },
-          {
-            "$ref": "#/definitions/apiKeySecurity"
-          },
-          {
-            "$ref": "#/definitions/oauth2ImplicitSecurity"
-          },
-          {
-            "$ref": "#/definitions/oauth2PasswordSecurity"
-          },
-          {
-            "$ref": "#/definitions/oauth2ApplicationSecurity"
-          },
-          {
-            "$ref": "#/definitions/oauth2AccessCodeSecurity"
-          }
-        ]
-      }
-    },
-    "basicAuthenticationSecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "basic"
-          ]
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "apiKeySecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "name",
-        "in"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "apiKey"
-          ]
-        },
-        "name": {
-          "type": "string"
-        },
-        "in": {
-          "type": "string",
-          "enum": [
-            "header",
-            "query"
-          ]
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "oauth2ImplicitSecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "flow",
-        "authorizationUrl"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "oauth2"
-          ]
-        },
-        "flow": {
-          "type": "string",
-          "enum": [
-            "implicit"
-          ]
-        },
-        "scopes": {
-          "$ref": "#/definitions/oauth2Scopes"
-        },
-        "authorizationUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "oauth2PasswordSecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "flow",
-        "tokenUrl"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "oauth2"
-          ]
-        },
-        "flow": {
-          "type": "string",
-          "enum": [
-            "password"
-          ]
-        },
-        "scopes": {
-          "$ref": "#/definitions/oauth2Scopes"
-        },
-        "tokenUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "oauth2ApplicationSecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "flow",
-        "tokenUrl"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "oauth2"
-          ]
-        },
-        "flow": {
-          "type": "string",
-          "enum": [
-            "application"
-          ]
-        },
-        "scopes": {
-          "$ref": "#/definitions/oauth2Scopes"
-        },
-        "tokenUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "oauth2AccessCodeSecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "flow",
-        "authorizationUrl",
-        "tokenUrl"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "oauth2"
-          ]
-        },
-        "flow": {
-          "type": "string",
-          "enum": [
-            "accessCode"
-          ]
-        },
-        "scopes": {
-          "$ref": "#/definitions/oauth2Scopes"
-        },
-        "authorizationUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "tokenUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "oauth2Scopes": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "string"
-      }
-    },
-    "mediaTypeList": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/mimeType"
-      },
-      "uniqueItems": true
-    },
-    "parametersList": {
-      "type": "array",
-      "description": "The parameters needed to send a valid API call.",
-      "additionalItems": false,
-      "items": {
-        "oneOf": [
-          {
-            "$ref": "#/definitions/parameter"
-          },
-          {
-            "$ref": "#/definitions/jsonReference"
-          }
-        ]
-      },
-      "uniqueItems": true
-    },
-    "schemesList": {
-      "type": "array",
-      "description": "The transfer protocol of the API.",
-      "items": {
-        "type": "string",
-        "enum": [
-          "http",
-          "https",
-          "ws",
-          "wss"
-        ]
-      },
-      "uniqueItems": true
-    },
-    "collectionFormat": {
-      "type": "string",
-      "enum": [
-        "csv",
-        "ssv",
-        "tsv",
-        "pipes"
-      ],
-      "default": "csv"
-    },
-    "collectionFormatWithMulti": {
-      "type": "string",
-      "enum": [
-        "csv",
-        "ssv",
-        "tsv",
-        "pipes",
-        "multi"
-      ],
-      "default": "csv"
-    },
-    "title": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/title"
-    },
-    "description": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/description"
-    },
-    "default": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/default"
-    },
-    "multipleOf": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/multipleOf"
-    },
-    "maximum": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/maximum"
-    },
-    "exclusiveMaximum": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMaximum"
-    },
-    "minimum": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/minimum"
-    },
-    "exclusiveMinimum": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMinimum"
-    },
-    "maxLength": {
-      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
-    },
-    "minLength": {
-      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
-    },
-    "pattern": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/pattern"
-    },
-    "maxItems": {
-      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
-    },
-    "minItems": {
-      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
-    },
-    "uniqueItems": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/uniqueItems"
-    },
-    "enum": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
-    },
-    "jsonReference": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "$ref": {
-          "type": "string"
-        }
-      }
-    }
-  }
-}
-
-},{}],179:[function(require,module,exports){
-/*
-Author: Geraint Luff and others
-Year: 2013
-
-This code is released into the "public domain" by its author(s).  Anybody may use, alter and distribute the code without restriction.  The author makes no guarantees, and takes no liability of any kind for use of this code.
-
-If you find a bug or make an improvement, it would be courteous to let the author know, but it is not compulsory.
-*/
-(function (global, factory) {
-  if (typeof define === 'function' && define.amd) {
-    // AMD. Register as an anonymous module.
-    define([], factory);
-  } else if (typeof module !== 'undefined' && module.exports){
-    // CommonJS. Define export.
-    module.exports = factory();
-  } else {
-    // Browser globals
-    global.tv4 = factory();
-  }
-}(this, function () {
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FGlobal_Objects%2FObject%2Fkeys
-if (!Object.keys) {
-	Object.keys = (function () {
-		var hasOwnProperty = Object.prototype.hasOwnProperty,
-			hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
-			dontEnums = [
-				'toString',
-				'toLocaleString',
-				'valueOf',
-				'hasOwnProperty',
-				'isPrototypeOf',
-				'propertyIsEnumerable',
-				'constructor'
-			],
-			dontEnumsLength = dontEnums.length;
-
-		return function (obj) {
-			if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null) {
-				throw new TypeError('Object.keys called on non-object');
-			}
-
-			var result = [];
-
-			for (var prop in obj) {
-				if (hasOwnProperty.call(obj, prop)) {
-					result.push(prop);
-				}
-			}
-
-			if (hasDontEnumBug) {
-				for (var i=0; i < dontEnumsLength; i++) {
-					if (hasOwnProperty.call(obj, dontEnums[i])) {
-						result.push(dontEnums[i]);
-					}
-				}
-			}
-			return result;
-		};
-	})();
-}
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-if (!Object.create) {
-	Object.create = (function(){
-		function F(){}
-
-		return function(o){
-			if (arguments.length !== 1) {
-				throw new Error('Object.create implementation only accepts one parameter.');
-			}
-			F.prototype = o;
-			return new F();
-		};
-	})();
-}
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FGlobal_Objects%2FArray%2FisArray
-if(!Array.isArray) {
-	Array.isArray = function (vArg) {
-		return Object.prototype.toString.call(vArg) === "[object Array]";
-	};
-}
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FGlobal_Objects%2FArray%2FindexOf
-if (!Array.prototype.indexOf) {
-	Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
-		if (this === null) {
-			throw new TypeError();
-		}
-		var t = Object(this);
-		var len = t.length >>> 0;
-
-		if (len === 0) {
-			return -1;
-		}
-		var n = 0;
-		if (arguments.length > 1) {
-			n = Number(arguments[1]);
-			if (n !== n) { // shortcut for verifying if it's NaN
-				n = 0;
-			} else if (n !== 0 && n !== Infinity && n !== -Infinity) {
-				n = (n > 0 || -1) * Math.floor(Math.abs(n));
-			}
-		}
-		if (n >= len) {
-			return -1;
-		}
-		var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
-		for (; k < len; k++) {
-			if (k in t && t[k] === searchElement) {
-				return k;
-			}
-		}
-		return -1;
-	};
-}
-
-// Grungey Object.isFrozen hack
-if (!Object.isFrozen) {
-	Object.isFrozen = function (obj) {
-		var key = "tv4_test_frozen_key";
-		while (obj.hasOwnProperty(key)) {
-			key += Math.random();
-		}
-		try {
-			obj[key] = true;
-			delete obj[key];
-			return false;
-		} catch (e) {
-			return true;
-		}
-	};
-}
-// Based on: https://github.com/geraintluff/uri-templates, but with all the de-substitution stuff removed
-
-var uriTemplateGlobalModifiers = {
-	"+": true,
-	"#": true,
-	".": true,
-	"/": true,
-	";": true,
-	"?": true,
-	"&": true
-};
-var uriTemplateSuffices = {
-	"*": true
-};
-
-function notReallyPercentEncode(string) {
-	return encodeURI(string).replace(/%25[0-9][0-9]/g, function (doubleEncoded) {
-		return "%" + doubleEncoded.substring(3);
-	});
-}
-
-function uriTemplateSubstitution(spec) {
-	var modifier = "";
-	if (uriTemplateGlobalModifiers[spec.charAt(0)]) {
-		modifier = spec.charAt(0);
-		spec = spec.substring(1);
-	}
-	var separator = "";
-	var prefix = "";
-	var shouldEscape = true;
-	var showVariables = false;
-	var trimEmptyString = false;
-	if (modifier === '+') {
-		shouldEscape = false;
-	} else if (modifier === ".") {
-		prefix = ".";
-		separator = ".";
-	} else if (modifier === "/") {
-		prefix = "/";
-		separator = "/";
-	} else if (modifier === '#') {
-		prefix = "#";
-		shouldEscape = false;
-	} else if (modifier === ';') {
-		prefix = ";";
-		separator = ";";
-		showVariables = true;
-		trimEmptyString = true;
-	} else if (modifier === '?') {
-		prefix = "?";
-		separator = "&";
-		showVariables = true;
-	} else if (modifier === '&') {
-		prefix = "&";
-		separator = "&";
-		showVariables = true;
-	}
-
-	var varNames = [];
-	var varList = spec.split(",");
-	var varSpecs = [];
-	var varSpecMap = {};
-	for (var i = 0; i < varList.length; i++) {
-		var varName = varList[i];
-		var truncate = null;
-		if (varName.indexOf(":") !== -1) {
-			var parts = varName.split(":");
-			varName = parts[0];
-			truncate = parseInt(parts[1], 10);
-		}
-		var suffices = {};
-		while (uriTemplateSuffices[varName.charAt(varName.length - 1)]) {
-			suffices[varName.charAt(varName.length - 1)] = true;
-			varName = varName.substring(0, varName.length - 1);
-		}
-		var varSpec = {
-			truncate: truncate,
-			name: varName,
-			suffices: suffices
-		};
-		varSpecs.push(varSpec);
-		varSpecMap[varName] = varSpec;
-		varNames.push(varName);
-	}
-	var subFunction = function (valueFunction) {
-		var result = "";
-		var startIndex = 0;
-		for (var i = 0; i < varSpecs.length; i++) {
-			var varSpec = varSpecs[i];
-			var value = valueFunction(varSpec.name);
-			if (value === null || value === undefined || (Array.isArray(value) && value.length === 0) || (typeof value === 'object' && Object.keys(value).length === 0)) {
-				startIndex++;
-				continue;
-			}
-			if (i === startIndex) {
-				result += prefix;
-			} else {
-				result += (separator || ",");
-			}
-			if (Array.isArray(value)) {
-				if (showVariables) {
-					result += varSpec.name + "=";
-				}
-				for (var j = 0; j < value.length; j++) {
-					if (j > 0) {
-						result += varSpec.suffices['*'] ? (separator || ",") : ",";
-						if (varSpec.suffices['*'] && showVariables) {
-							result += varSpec.name + "=";
-						}
-					}
-					result += shouldEscape ? encodeURIComponent(value[j]).replace(/!/g, "%21") : notReallyPercentEncode(value[j]);
-				}
-			} else if (typeof value === "object") {
-				if (showVariables && !varSpec.suffices['*']) {
-					result += varSpec.name + "=";
-				}
-				var first = true;
-				for (var key in value) {
-					if (!first) {
-						result += varSpec.suffices['*'] ? (separator || ",") : ",";
-					}
-					first = false;
-					result += shouldEscape ? encodeURIComponent(key).replace(/!/g, "%21") : notReallyPercentEncode(key);
-					result += varSpec.suffices['*'] ? '=' : ",";
-					result += shouldEscape ? encodeURIComponent(value[key]).replace(/!/g, "%21") : notReallyPercentEncode(value[key]);
-				}
-			} else {
-				if (showVariables) {
-					result += varSpec.name;
-					if (!trimEmptyString || value !== "") {
-						result += "=";
-					}
-				}
-				if (varSpec.truncate != null) {
-					value = value.substring(0, varSpec.truncate);
-				}
-				result += shouldEscape ? encodeURIComponent(value).replace(/!/g, "%21"): notReallyPercentEncode(value);
-			}
-		}
-		return result;
-	};
-	subFunction.varNames = varNames;
-	return {
-		prefix: prefix,
-		substitution: subFunction
-	};
-}
-
-function UriTemplate(template) {
-	if (!(this instanceof UriTemplate)) {
-		return new UriTemplate(template);
-	}
-	var parts = template.split("{");
-	var textParts = [parts.shift()];
-	var prefixes = [];
-	var substitutions = [];
-	var varNames = [];
-	while (parts.length > 0) {
-		var part = parts.shift();
-		var spec = part.split("}")[0];
-		var remainder = part.substring(spec.length + 1);
-		var funcs = uriTemplateSubstitution(spec);
-		substitutions.push(funcs.substitution);
-		prefixes.push(funcs.prefix);
-		textParts.push(remainder);
-		varNames = varNames.concat(funcs.substitution.varNames);
-	}
-	this.fill = function (valueFunction) {
-		var result = textParts[0];
-		for (var i = 0; i < substitutions.length; i++) {
-			var substitution = substitutions[i];
-			result += substitution(valueFunction);
-			result += textParts[i + 1];
-		}
-		return result;
-	};
-	this.varNames = varNames;
-	this.template = template;
-}
-UriTemplate.prototype = {
-	toString: function () {
-		return this.template;
-	},
-	fillFromObject: function (obj) {
-		return this.fill(function (varName) {
-			return obj[varName];
-		});
-	}
-};
-var ValidatorContext = function ValidatorContext(parent, collectMultiple, errorMessages, checkRecursive, trackUnknownProperties) {
-	this.missing = [];
-	this.missingMap = {};
-	this.formatValidators = parent ? Object.create(parent.formatValidators) : {};
-	this.schemas = parent ? Object.create(parent.schemas) : {};
-	this.collectMultiple = collectMultiple;
-	this.errors = [];
-	this.handleError = collectMultiple ? this.collectError : this.returnError;
-	if (checkRecursive) {
-		this.checkRecursive = true;
-		this.scanned = [];
-		this.scannedFrozen = [];
-		this.scannedFrozenSchemas = [];
-		this.scannedFrozenValidationErrors = [];
-		this.validatedSchemasKey = 'tv4_validation_id';
-		this.validationErrorsKey = 'tv4_validation_errors_id';
-	}
-	if (trackUnknownProperties) {
-		this.trackUnknownProperties = true;
-		this.knownPropertyPaths = {};
-		this.unknownPropertyPaths = {};
-	}
-	this.errorMessages = errorMessages;
-	this.definedKeywords = {};
-	if (parent) {
-		for (var key in parent.definedKeywords) {
-			this.definedKeywords[key] = parent.definedKeywords[key].slice(0);
-		}
-	}
-};
-ValidatorContext.prototype.defineKeyword = function (keyword, keywordFunction) {
-	this.definedKeywords[keyword] = this.definedKeywords[keyword] || [];
-	this.definedKeywords[keyword].push(keywordFunction);
-};
-ValidatorContext.prototype.createError = function (code, messageParams, dataPath, schemaPath, subErrors) {
-	var messageTemplate = this.errorMessages[code] || ErrorMessagesDefault[code];
-	if (typeof messageTemplate !== 'string') {
-		return new ValidationError(code, "Unknown error code " + code + ": " + JSON.stringify(messageParams), messageParams, dataPath, schemaPath, subErrors);
-	}
-	// Adapted from Crockford's supplant()
-	var message = messageTemplate.replace(/\{([^{}]*)\}/g, function (whole, varName) {
-		var subValue = messageParams[varName];
-		return typeof subValue === 'string' || typeof subValue === 'number' ? subValue : whole;
-	});
-	return new ValidationError(code, message, messageParams, dataPath, schemaPath, subErrors);
-};
-ValidatorContext.prototype.returnError = function (error) {
-	return error;
-};
-ValidatorContext.prototype.collectError = function (error) {
-	if (error) {
-		this.errors.push(error);
-	}
-	return null;
-};
-ValidatorContext.prototype.prefixErrors = function (startIndex, dataPath, schemaPath) {
-	for (var i = startIndex; i < this.errors.length; i++) {
-		this.errors[i] = this.errors[i].prefixWith(dataPath, schemaPath);
-	}
-	return this;
-};
-ValidatorContext.prototype.banUnknownProperties = function () {
-	for (var unknownPath in this.unknownPropertyPaths) {
-		var error = this.createError(ErrorCodes.UNKNOWN_PROPERTY, {path: unknownPath}, unknownPath, "");
-		var result = this.handleError(error);
-		if (result) {
-			return result;
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.addFormat = function (format, validator) {
-	if (typeof format === 'object') {
-		for (var key in format) {
-			this.addFormat(key, format[key]);
-		}
-		return this;
-	}
-	this.formatValidators[format] = validator;
-};
-ValidatorContext.prototype.resolveRefs = function (schema, urlHistory) {
-	if (schema['$ref'] !== undefined) {
-		urlHistory = urlHistory || {};
-		if (urlHistory[schema['$ref']]) {
-			return this.createError(ErrorCodes.CIRCULAR_REFERENCE, {urls: Object.keys(urlHistory).join(', ')}, '', '');
-		}
-		urlHistory[schema['$ref']] = true;
-		schema = this.getSchema(schema['$ref'], urlHistory);
-	}
-	return schema;
-};
-ValidatorContext.prototype.getSchema = function (url, urlHistory) {
-	var schema;
-	if (this.schemas[url] !== undefined) {
-		schema = this.schemas[url];
-		return this.resolveRefs(schema, urlHistory);
-	}
-	var baseUrl = url;
-	var fragment = "";
-	if (url.indexOf('#') !== -1) {
-		fragment = url.substring(url.indexOf("#") + 1);
-		baseUrl = url.substring(0, url.indexOf("#"));
-	}
-	if (typeof this.schemas[baseUrl] === 'object') {
-		schema = this.schemas[baseUrl];
-		var pointerPath = decodeURIComponent(fragment);
-		if (pointerPath === "") {
-			return this.resolveRefs(schema, urlHistory);
-		} else if (pointerPath.charAt(0) !== "/") {
-			return undefined;
-		}
-		var parts = pointerPath.split("/").slice(1);
-		for (var i = 0; i < parts.length; i++) {
-			var component = parts[i].replace(/~1/g, "/").replace(/~0/g, "~");
-			if (schema[component] === undefined) {
-				schema = undefined;
-				break;
-			}
-			schema = schema[component];
-		}
-		if (schema !== undefined) {
-			return this.resolveRefs(schema, urlHistory);
-		}
-	}
-	if (this.missing[baseUrl] === undefined) {
-		this.missing.push(baseUrl);
-		this.missing[baseUrl] = baseUrl;
-		this.missingMap[baseUrl] = baseUrl;
-	}
-};
-ValidatorContext.prototype.searchSchemas = function (schema, url) {
-	if (Array.isArray(schema)) {
-		for (var i = 0; i < schema.length; i++) {
-			this.searchSchemas(schema[i], url);
-		}
-	} else if (schema && typeof schema === "object") {
-		if (typeof schema.id === "string") {
-			if (isTrustedUrl(url, schema.id)) {
-				if (this.schemas[schema.id] === undefined) {
-					this.schemas[schema.id] = schema;
-				}
-			}
-		}
-		for (var key in schema) {
-			if (key !== "enum") {
-				if (typeof schema[key] === "object") {
-					this.searchSchemas(schema[key], url);
-				} else if (key === "$ref") {
-					var uri = getDocumentUri(schema[key]);
-					if (uri && this.schemas[uri] === undefined && this.missingMap[uri] === undefined) {
-						this.missingMap[uri] = uri;
-					}
-				}
-			}
-		}
-	}
-};
-ValidatorContext.prototype.addSchema = function (url, schema) {
-	//overload
-	if (typeof url !== 'string' || typeof schema === 'undefined') {
-		if (typeof url === 'object' && typeof url.id === 'string') {
-			schema = url;
-			url = schema.id;
-		}
-		else {
-			return;
-		}
-	}
-	if (url === getDocumentUri(url) + "#") {
-		// Remove empty fragment
-		url = getDocumentUri(url);
-	}
-	this.schemas[url] = schema;
-	delete this.missingMap[url];
-	normSchema(schema, url);
-	this.searchSchemas(schema, url);
-};
-
-ValidatorContext.prototype.getSchemaMap = function () {
-	var map = {};
-	for (var key in this.schemas) {
-		map[key] = this.schemas[key];
-	}
-	return map;
-};
-
-ValidatorContext.prototype.getSchemaUris = function (filterRegExp) {
-	var list = [];
-	for (var key in this.schemas) {
-		if (!filterRegExp || filterRegExp.test(key)) {
-			list.push(key);
-		}
-	}
-	return list;
-};
-
-ValidatorContext.prototype.getMissingUris = function (filterRegExp) {
-	var list = [];
-	for (var key in this.missingMap) {
-		if (!filterRegExp || filterRegExp.test(key)) {
-			list.push(key);
-		}
-	}
-	return list;
-};
-
-ValidatorContext.prototype.dropSchemas = function () {
-	this.schemas = {};
-	this.reset();
-};
-ValidatorContext.prototype.reset = function () {
-	this.missing = [];
-	this.missingMap = {};
-	this.errors = [];
-};
-
-ValidatorContext.prototype.validateAll = function (data, schema, dataPathParts, schemaPathParts, dataPointerPath) {
-	var topLevel;
-	schema = this.resolveRefs(schema);
-	if (!schema) {
-		return null;
-	} else if (schema instanceof ValidationError) {
-		this.errors.push(schema);
-		return schema;
-	}
-
-	var startErrorCount = this.errors.length;
-	var frozenIndex, scannedFrozenSchemaIndex = null, scannedSchemasIndex = null;
-	if (this.checkRecursive && data && typeof data === 'object') {
-		topLevel = !this.scanned.length;
-		if (data[this.validatedSchemasKey]) {
-			var schemaIndex = data[this.validatedSchemasKey].indexOf(schema);
-			if (schemaIndex !== -1) {
-				this.errors = this.errors.concat(data[this.validationErrorsKey][schemaIndex]);
-				return null;
-			}
-		}
-		if (Object.isFrozen(data)) {
-			frozenIndex = this.scannedFrozen.indexOf(data);
-			if (frozenIndex !== -1) {
-				var frozenSchemaIndex = this.scannedFrozenSchemas[frozenIndex].indexOf(schema);
-				if (frozenSchemaIndex !== -1) {
-					this.errors = this.errors.concat(this.scannedFrozenValidationErrors[frozenIndex][frozenSchemaIndex]);
-					return null;
-				}
-			}
-		}
-		this.scanned.push(data);
-		if (Object.isFrozen(data)) {
-			if (frozenIndex === -1) {
-				frozenIndex = this.scannedFrozen.length;
-				this.scannedFrozen.push(data);
-				this.scannedFrozenSchemas.push([]);
-			}
-			scannedFrozenSchemaIndex = this.scannedFrozenSchemas[frozenIndex].length;
-			this.scannedFrozenSchemas[frozenIndex][scannedFrozenSchemaIndex] = schema;
-			this.scannedFrozenValidationErrors[frozenIndex][scannedFrozenSchemaIndex] = [];
-		} else {
-			if (!data[this.validatedSchemasKey]) {
-				try {
-					Object.defineProperty(data, this.validatedSchemasKey, {
-						value: [],
-						configurable: true
-					});
-					Object.defineProperty(data, this.validationErrorsKey, {
-						value: [],
-						configurable: true
-					});
-				} catch (e) {
-					//IE 7/8 workaround
-					data[this.validatedSchemasKey] = [];
-					data[this.validationErrorsKey] = [];
-				}
-			}
-			scannedSchemasIndex = data[this.validatedSchemasKey].length;
-			data[this.validatedSchemasKey][scannedSchemasIndex] = schema;
-			data[this.validationErrorsKey][scannedSchemasIndex] = [];
-		}
-	}
-
-	var errorCount = this.errors.length;
-	var error = this.validateBasic(data, schema, dataPointerPath)
-		|| this.validateNumeric(data, schema, dataPointerPath)
-		|| this.validateString(data, schema, dataPointerPath)
-		|| this.validateArray(data, schema, dataPointerPath)
-		|| this.validateObject(data, schema, dataPointerPath)
-		|| this.validateCombinations(data, schema, dataPointerPath)
-		|| this.validateHypermedia(data, schema, dataPointerPath)
-		|| this.validateFormat(data, schema, dataPointerPath)
-		|| this.validateDefinedKeywords(data, schema, dataPointerPath)
-		|| null;
-
-	if (topLevel) {
-		while (this.scanned.length) {
-			var item = this.scanned.pop();
-			delete item[this.validatedSchemasKey];
-		}
-		this.scannedFrozen = [];
-		this.scannedFrozenSchemas = [];
-	}
-
-	if (error || errorCount !== this.errors.length) {
-		while ((dataPathParts && dataPathParts.length) || (schemaPathParts && schemaPathParts.length)) {
-			var dataPart = (dataPathParts && dataPathParts.length) ? "" + dataPathParts.pop() : null;
-			var schemaPart = (schemaPathParts && schemaPathParts.length) ? "" + schemaPathParts.pop() : null;
-			if (error) {
-				error = error.prefixWith(dataPart, schemaPart);
-			}
-			this.prefixErrors(errorCount, dataPart, schemaPart);
-		}
-	}
-
-	if (scannedFrozenSchemaIndex !== null) {
-		this.scannedFrozenValidationErrors[frozenIndex][scannedFrozenSchemaIndex] = this.errors.slice(startErrorCount);
-	} else if (scannedSchemasIndex !== null) {
-		data[this.validationErrorsKey][scannedSchemasIndex] = this.errors.slice(startErrorCount);
-	}
-
-	return this.handleError(error);
-};
-ValidatorContext.prototype.validateFormat = function (data, schema) {
-	if (typeof schema.format !== 'string' || !this.formatValidators[schema.format]) {
-		return null;
-	}
-	var errorMessage = this.formatValidators[schema.format].call(null, data, schema);
-	if (typeof errorMessage === 'string' || typeof errorMessage === 'number') {
-		return this.createError(ErrorCodes.FORMAT_CUSTOM, {message: errorMessage}).prefixWith(null, "format");
-	} else if (errorMessage && typeof errorMessage === 'object') {
-		return this.createError(ErrorCodes.FORMAT_CUSTOM, {message: errorMessage.message || "?"}, errorMessage.dataPath || null, errorMessage.schemaPath || "/format");
-	}
-	return null;
-};
-ValidatorContext.prototype.validateDefinedKeywords = function (data, schema, dataPointerPath) {
-	for (var key in this.definedKeywords) {
-		if (typeof schema[key] === 'undefined') {
-			continue;
-		}
-		var validationFunctions = this.definedKeywords[key];
-		for (var i = 0; i < validationFunctions.length; i++) {
-			var func = validationFunctions[i];
-			var result = func(data, schema[key], schema, dataPointerPath);
-			if (typeof result === 'string' || typeof result === 'number') {
-				return this.createError(ErrorCodes.KEYWORD_CUSTOM, {key: key, message: result}).prefixWith(null, "format");
-			} else if (result && typeof result === 'object') {
-				var code = result.code;
-				if (typeof code === 'string') {
-					if (!ErrorCodes[code]) {
-						throw new Error('Undefined error code (use defineError): ' + code);
-					}
-					code = ErrorCodes[code];
-				} else if (typeof code !== 'number') {
-					code = ErrorCodes.KEYWORD_CUSTOM;
-				}
-				var messageParams = (typeof result.message === 'object') ? result.message : {key: key, message: result.message || "?"};
-				var schemaPath = result.schemaPath ||( "/" + key.replace(/~/g, '~0').replace(/\//g, '~1'));
-				return this.createError(code, messageParams, result.dataPath || null, schemaPath);
-			}
-		}
-	}
-	return null;
-};
-
-function recursiveCompare(A, B) {
-	if (A === B) {
-		return true;
-	}
-	if (A && B && typeof A === "object" && typeof B === "object") {
-		if (Array.isArray(A) !== Array.isArray(B)) {
-			return false;
-		} else if (Array.isArray(A)) {
-			if (A.length !== B.length) {
-				return false;
-			}
-			for (var i = 0; i < A.length; i++) {
-				if (!recursiveCompare(A[i], B[i])) {
-					return false;
-				}
-			}
-		} else {
-			var key;
-			for (key in A) {
-				if (B[key] === undefined && A[key] !== undefined) {
-					return false;
-				}
-			}
-			for (key in B) {
-				if (A[key] === undefined && B[key] !== undefined) {
-					return false;
-				}
-			}
-			for (key in A) {
-				if (!recursiveCompare(A[key], B[key])) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	return false;
-}
-
-ValidatorContext.prototype.validateBasic = function validateBasic(data, schema, dataPointerPath) {
-	var error;
-	if (error = this.validateType(data, schema, dataPointerPath)) {
-		return error.prefixWith(null, "type");
-	}
-	if (error = this.validateEnum(data, schema, dataPointerPath)) {
-		return error.prefixWith(null, "type");
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateType = function validateType(data, schema) {
-	if (schema.type === undefined) {
-		return null;
-	}
-	var dataType = typeof data;
-	if (data === null) {
-		dataType = "null";
-	} else if (Array.isArray(data)) {
-		dataType = "array";
-	}
-	var allowedTypes = schema.type;
-	if (typeof allowedTypes !== "object") {
-		allowedTypes = [allowedTypes];
-	}
-
-	for (var i = 0; i < allowedTypes.length; i++) {
-		var type = allowedTypes[i];
-		if (type === dataType || (type === "integer" && dataType === "number" && (data % 1 === 0))) {
-			return null;
-		}
-	}
-	return this.createError(ErrorCodes.INVALID_TYPE, {type: dataType, expected: allowedTypes.join("/")});
-};
-
-ValidatorContext.prototype.validateEnum = function validateEnum(data, schema) {
-	if (schema["enum"] === undefined) {
-		return null;
-	}
-	for (var i = 0; i < schema["enum"].length; i++) {
-		var enumVal = schema["enum"][i];
-		if (recursiveCompare(data, enumVal)) {
-			return null;
-		}
-	}
-	return this.createError(ErrorCodes.ENUM_MISMATCH, {value: (typeof JSON !== 'undefined') ? JSON.stringify(data) : data});
-};
-
-ValidatorContext.prototype.validateNumeric = function validateNumeric(data, schema, dataPointerPath) {
-	return this.validateMultipleOf(data, schema, dataPointerPath)
-		|| this.validateMinMax(data, schema, dataPointerPath)
-		|| this.validateNaN(data, schema, dataPointerPath)
-		|| null;
-};
-
-var CLOSE_ENOUGH_LOW = Math.pow(2, -51);
-var CLOSE_ENOUGH_HIGH = 1 - CLOSE_ENOUGH_LOW;
-ValidatorContext.prototype.validateMultipleOf = function validateMultipleOf(data, schema) {
-	var multipleOf = schema.multipleOf || schema.divisibleBy;
-	if (multipleOf === undefined) {
-		return null;
-	}
-	if (typeof data === "number") {
-		var remainder = (data/multipleOf)%1;
-		if (remainder >= CLOSE_ENOUGH_LOW && remainder < CLOSE_ENOUGH_HIGH) {
-			return this.createError(ErrorCodes.NUMBER_MULTIPLE_OF, {value: data, multipleOf: multipleOf});
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateMinMax = function validateMinMax(data, schema) {
-	if (typeof data !== "number") {
-		return null;
-	}
-	if (schema.minimum !== undefined) {
-		if (data < schema.minimum) {
-			return this.createError(ErrorCodes.NUMBER_MINIMUM, {value: data, minimum: schema.minimum}).prefixWith(null, "minimum");
-		}
-		if (schema.exclusiveMinimum && data === schema.minimum) {
-			return this.createError(ErrorCodes.NUMBER_MINIMUM_EXCLUSIVE, {value: data, minimum: schema.minimum}).prefixWith(null, "exclusiveMinimum");
-		}
-	}
-	if (schema.maximum !== undefined) {
-		if (data > schema.maximum) {
-			return this.createError(ErrorCodes.NUMBER_MAXIMUM, {value: data, maximum: schema.maximum}).prefixWith(null, "maximum");
-		}
-		if (schema.exclusiveMaximum && data === schema.maximum) {
-			return this.createError(ErrorCodes.NUMBER_MAXIMUM_EXCLUSIVE, {value: data, maximum: schema.maximum}).prefixWith(null, "exclusiveMaximum");
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateNaN = function validateNaN(data) {
-	if (typeof data !== "number") {
-		return null;
-	}
-	if (isNaN(data) === true || data === Infinity || data === -Infinity) {
-		return this.createError(ErrorCodes.NUMBER_NOT_A_NUMBER, {value: data}).prefixWith(null, "type");
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateString = function validateString(data, schema, dataPointerPath) {
-	return this.validateStringLength(data, schema, dataPointerPath)
-		|| this.validateStringPattern(data, schema, dataPointerPath)
-		|| null;
-};
-
-ValidatorContext.prototype.validateStringLength = function validateStringLength(data, schema) {
-	if (typeof data !== "string") {
-		return null;
-	}
-	if (schema.minLength !== undefined) {
-		if (data.length < schema.minLength) {
-			return this.createError(ErrorCodes.STRING_LENGTH_SHORT, {length: data.length, minimum: schema.minLength}).prefixWith(null, "minLength");
-		}
-	}
-	if (schema.maxLength !== undefined) {
-		if (data.length > schema.maxLength) {
-			return this.createError(ErrorCodes.STRING_LENGTH_LONG, {length: data.length, maximum: schema.maxLength}).prefixWith(null, "maxLength");
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateStringPattern = function validateStringPattern(data, schema) {
-	if (typeof data !== "string" || schema.pattern === undefined) {
-		return null;
-	}
-	var regexp = new RegExp(schema.pattern);
-	if (!regexp.test(data)) {
-		return this.createError(ErrorCodes.STRING_PATTERN, {pattern: schema.pattern}).prefixWith(null, "pattern");
-	}
-	return null;
-};
-ValidatorContext.prototype.validateArray = function validateArray(data, schema, dataPointerPath) {
-	if (!Array.isArray(data)) {
-		return null;
-	}
-	return this.validateArrayLength(data, schema, dataPointerPath)
-		|| this.validateArrayUniqueItems(data, schema, dataPointerPath)
-		|| this.validateArrayItems(data, schema, dataPointerPath)
-		|| null;
-};
-
-ValidatorContext.prototype.validateArrayLength = function validateArrayLength(data, schema) {
-	var error;
-	if (schema.minItems !== undefined) {
-		if (data.length < schema.minItems) {
-			error = (this.createError(ErrorCodes.ARRAY_LENGTH_SHORT, {length: data.length, minimum: schema.minItems})).prefixWith(null, "minItems");
-			if (this.handleError(error)) {
-				return error;
-			}
-		}
-	}
-	if (schema.maxItems !== undefined) {
-		if (data.length > schema.maxItems) {
-			error = (this.createError(ErrorCodes.ARRAY_LENGTH_LONG, {length: data.length, maximum: schema.maxItems})).prefixWith(null, "maxItems");
-			if (this.handleError(error)) {
-				return error;
-			}
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateArrayUniqueItems = function validateArrayUniqueItems(data, schema) {
-	if (schema.uniqueItems) {
-		for (var i = 0; i < data.length; i++) {
-			for (var j = i + 1; j < data.length; j++) {
-				if (recursiveCompare(data[i], data[j])) {
-					var error = (this.createError(ErrorCodes.ARRAY_UNIQUE, {match1: i, match2: j})).prefixWith(null, "uniqueItems");
-					if (this.handleError(error)) {
-						return error;
-					}
-				}
-			}
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateArrayItems = function validateArrayItems(data, schema, dataPointerPath) {
-	if (schema.items === undefined) {
-		return null;
-	}
-	var error, i;
-	if (Array.isArray(schema.items)) {
-		for (i = 0; i < data.length; i++) {
-			if (i < schema.items.length) {
-				if (error = this.validateAll(data[i], schema.items[i], [i], ["items", i], dataPointerPath + "/" + i)) {
-					return error;
-				}
-			} else if (schema.additionalItems !== undefined) {
-				if (typeof schema.additionalItems === "boolean") {
-					if (!schema.additionalItems) {
-						error = (this.createError(ErrorCodes.ARRAY_ADDITIONAL_ITEMS, {})).prefixWith("" + i, "additionalItems");
-						if (this.handleError(error)) {
-							return error;
-						}
-					}
-				} else if (error = this.validateAll(data[i], schema.additionalItems, [i], ["additionalItems"], dataPointerPath + "/" + i)) {
-					return error;
-				}
-			}
-		}
-	} else {
-		for (i = 0; i < data.length; i++) {
-			if (error = this.validateAll(data[i], schema.items, [i], ["items"], dataPointerPath + "/" + i)) {
-				return error;
-			}
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateObject = function validateObject(data, schema, dataPointerPath) {
-	if (typeof data !== "object" || data === null || Array.isArray(data)) {
-		return null;
-	}
-	return this.validateObjectMinMaxProperties(data, schema, dataPointerPath)
-		|| this.validateObjectRequiredProperties(data, schema, dataPointerPath)
-		|| this.validateObjectProperties(data, schema, dataPointerPath)
-		|| this.validateObjectDependencies(data, schema, dataPointerPath)
-		|| null;
-};
-
-ValidatorContext.prototype.validateObjectMinMaxProperties = function validateObjectMinMaxProperties(data, schema) {
-	var keys = Object.keys(data);
-	var error;
-	if (schema.minProperties !== undefined) {
-		if (keys.length < schema.minProperties) {
-			error = this.createError(ErrorCodes.OBJECT_PROPERTIES_MINIMUM, {propertyCount: keys.length, minimum: schema.minProperties}).prefixWith(null, "minProperties");
-			if (this.handleError(error)) {
-				return error;
-			}
-		}
-	}
-	if (schema.maxProperties !== undefined) {
-		if (keys.length > schema.maxProperties) {
-			error = this.createError(ErrorCodes.OBJECT_PROPERTIES_MAXIMUM, {propertyCount: keys.length, maximum: schema.maxProperties}).prefixWith(null, "maxProperties");
-			if (this.handleError(error)) {
-				return error;
-			}
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateObjectRequiredProperties = function validateObjectRequiredProperties(data, schema) {
-	if (schema.required !== undefined) {
-		for (var i = 0; i < schema.required.length; i++) {
-			var key = schema.required[i];
-			if (data[key] === undefined) {
-				var error = this.createError(ErrorCodes.OBJECT_REQUIRED, {key: key}).prefixWith(null, "" + i).prefixWith(null, "required");
-				if (this.handleError(error)) {
-					return error;
-				}
-			}
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateObjectProperties = function validateObjectProperties(data, schema, dataPointerPath) {
-	var error;
-	for (var key in data) {
-		var keyPointerPath = dataPointerPath + "/" + key.replace(/~/g, '~0').replace(/\//g, '~1');
-		var foundMatch = false;
-		if (schema.properties !== undefined && schema.properties[key] !== undefined) {
-			foundMatch = true;
-			if (error = this.validateAll(data[key], schema.properties[key], [key], ["properties", key], keyPointerPath)) {
-				return error;
-			}
-		}
-		if (schema.patternProperties !== undefined) {
-			for (var patternKey in schema.patternProperties) {
-				var regexp = new RegExp(patternKey);
-				if (regexp.test(key)) {
-					foundMatch = true;
-					if (error = this.validateAll(data[key], schema.patternProperties[patternKey], [key], ["patternProperties", patternKey], keyPointerPath)) {
-						return error;
-					}
-				}
-			}
-		}
-		if (!foundMatch) {
-			if (schema.additionalProperties !== undefined) {
-				if (this.trackUnknownProperties) {
-					this.knownPropertyPaths[keyPointerPath] = true;
-					delete this.unknownPropertyPaths[keyPointerPath];
-				}
-				if (typeof schema.additionalProperties === "boolean") {
-					if (!schema.additionalProperties) {
-						error = this.createError(ErrorCodes.OBJECT_ADDITIONAL_PROPERTIES, {}).prefixWith(key, "additionalProperties");
-						if (this.handleError(error)) {
-							return error;
-						}
-					}
-				} else {
-					if (error = this.validateAll(data[key], schema.additionalProperties, [key], ["additionalProperties"], keyPointerPath)) {
-						return error;
-					}
-				}
-			} else if (this.trackUnknownProperties && !this.knownPropertyPaths[keyPointerPath]) {
-				this.unknownPropertyPaths[keyPointerPath] = true;
-			}
-		} else if (this.trackUnknownProperties) {
-			this.knownPropertyPaths[keyPointerPath] = true;
-			delete this.unknownPropertyPaths[keyPointerPath];
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateObjectDependencies = function validateObjectDependencies(data, schema, dataPointerPath) {
-	var error;
-	if (schema.dependencies !== undefined) {
-		for (var depKey in schema.dependencies) {
-			if (data[depKey] !== undefined) {
-				var dep = schema.dependencies[depKey];
-				if (typeof dep === "string") {
-					if (data[dep] === undefined) {
-						error = this.createError(ErrorCodes.OBJECT_DEPENDENCY_KEY, {key: depKey, missing: dep}).prefixWith(null, depKey).prefixWith(null, "dependencies");
-						if (this.handleError(error)) {
-							return error;
-						}
-					}
-				} else if (Array.isArray(dep)) {
-					for (var i = 0; i < dep.length; i++) {
-						var requiredKey = dep[i];
-						if (data[requiredKey] === undefined) {
-							error = this.createError(ErrorCodes.OBJECT_DEPENDENCY_KEY, {key: depKey, missing: requiredKey}).prefixWith(null, "" + i).prefixWith(null, depKey).prefixWith(null, "dependencies");
-							if (this.handleError(error)) {
-								return error;
-							}
-						}
-					}
-				} else {
-					if (error = this.validateAll(data, dep, [], ["dependencies", depKey], dataPointerPath)) {
-						return error;
-					}
-				}
-			}
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateCombinations = function validateCombinations(data, schema, dataPointerPath) {
-	return this.validateAllOf(data, schema, dataPointerPath)
-		|| this.validateAnyOf(data, schema, dataPointerPath)
-		|| this.validateOneOf(data, schema, dataPointerPath)
-		|| this.validateNot(data, schema, dataPointerPath)
-		|| null;
-};
-
-ValidatorContext.prototype.validateAllOf = function validateAllOf(data, schema, dataPointerPath) {
-	if (schema.allOf === undefined) {
-		return null;
-	}
-	var error;
-	for (var i = 0; i < schema.allOf.length; i++) {
-		var subSchema = schema.allOf[i];
-		if (error = this.validateAll(data, subSchema, [], ["allOf", i], dataPointerPath)) {
-			return error;
-		}
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateAnyOf = function validateAnyOf(data, schema, dataPointerPath) {
-	if (schema.anyOf === undefined) {
-		return null;
-	}
-	var errors = [];
-	var startErrorCount = this.errors.length;
-	var oldUnknownPropertyPaths, oldKnownPropertyPaths;
-	if (this.trackUnknownProperties) {
-		oldUnknownPropertyPaths = this.unknownPropertyPaths;
-		oldKnownPropertyPaths = this.knownPropertyPaths;
-	}
-	var errorAtEnd = true;
-	for (var i = 0; i < schema.anyOf.length; i++) {
-		if (this.trackUnknownProperties) {
-			this.unknownPropertyPaths = {};
-			this.knownPropertyPaths = {};
-		}
-		var subSchema = schema.anyOf[i];
-
-		var errorCount = this.errors.length;
-		var error = this.validateAll(data, subSchema, [], ["anyOf", i], dataPointerPath);
-
-		if (error === null && errorCount === this.errors.length) {
-			this.errors = this.errors.slice(0, startErrorCount);
-
-			if (this.trackUnknownProperties) {
-				for (var knownKey in this.knownPropertyPaths) {
-					oldKnownPropertyPaths[knownKey] = true;
-					delete oldUnknownPropertyPaths[knownKey];
-				}
-				for (var unknownKey in this.unknownPropertyPaths) {
-					if (!oldKnownPropertyPaths[unknownKey]) {
-						oldUnknownPropertyPaths[unknownKey] = true;
-					}
-				}
-				// We need to continue looping so we catch all the property definitions, but we don't want to return an error
-				errorAtEnd = false;
-				continue;
-			}
-
-			return null;
-		}
-		if (error) {
-			errors.push(error.prefixWith(null, "" + i).prefixWith(null, "anyOf"));
-		}
-	}
-	if (this.trackUnknownProperties) {
-		this.unknownPropertyPaths = oldUnknownPropertyPaths;
-		this.knownPropertyPaths = oldKnownPropertyPaths;
-	}
-	if (errorAtEnd) {
-		errors = errors.concat(this.errors.slice(startErrorCount));
-		this.errors = this.errors.slice(0, startErrorCount);
-		return this.createError(ErrorCodes.ANY_OF_MISSING, {}, "", "/anyOf", errors);
-	}
-};
-
-ValidatorContext.prototype.validateOneOf = function validateOneOf(data, schema, dataPointerPath) {
-	if (schema.oneOf === undefined) {
-		return null;
-	}
-	var validIndex = null;
-	var errors = [];
-	var startErrorCount = this.errors.length;
-	var oldUnknownPropertyPaths, oldKnownPropertyPaths;
-	if (this.trackUnknownProperties) {
-		oldUnknownPropertyPaths = this.unknownPropertyPaths;
-		oldKnownPropertyPaths = this.knownPropertyPaths;
-	}
-	for (var i = 0; i < schema.oneOf.length; i++) {
-		if (this.trackUnknownProperties) {
-			this.unknownPropertyPaths = {};
-			this.knownPropertyPaths = {};
-		}
-		var subSchema = schema.oneOf[i];
-
-		var errorCount = this.errors.length;
-		var error = this.validateAll(data, subSchema, [], ["oneOf", i], dataPointerPath);
-
-		if (error === null && errorCount === this.errors.length) {
-			if (validIndex === null) {
-				validIndex = i;
-			} else {
-				this.errors = this.errors.slice(0, startErrorCount);
-				return this.createError(ErrorCodes.ONE_OF_MULTIPLE, {index1: validIndex, index2: i}, "", "/oneOf");
-			}
-			if (this.trackUnknownProperties) {
-				for (var knownKey in this.knownPropertyPaths) {
-					oldKnownPropertyPaths[knownKey] = true;
-					delete oldUnknownPropertyPaths[knownKey];
-				}
-				for (var unknownKey in this.unknownPropertyPaths) {
-					if (!oldKnownPropertyPaths[unknownKey]) {
-						oldUnknownPropertyPaths[unknownKey] = true;
-					}
-				}
-			}
-		} else if (error) {
-			errors.push(error);
-		}
-	}
-	if (this.trackUnknownProperties) {
-		this.unknownPropertyPaths = oldUnknownPropertyPaths;
-		this.knownPropertyPaths = oldKnownPropertyPaths;
-	}
-	if (validIndex === null) {
-		errors = errors.concat(this.errors.slice(startErrorCount));
-		this.errors = this.errors.slice(0, startErrorCount);
-		return this.createError(ErrorCodes.ONE_OF_MISSING, {}, "", "/oneOf", errors);
-	} else {
-		this.errors = this.errors.slice(0, startErrorCount);
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateNot = function validateNot(data, schema, dataPointerPath) {
-	if (schema.not === undefined) {
-		return null;
-	}
-	var oldErrorCount = this.errors.length;
-	var oldUnknownPropertyPaths, oldKnownPropertyPaths;
-	if (this.trackUnknownProperties) {
-		oldUnknownPropertyPaths = this.unknownPropertyPaths;
-		oldKnownPropertyPaths = this.knownPropertyPaths;
-		this.unknownPropertyPaths = {};
-		this.knownPropertyPaths = {};
-	}
-	var error = this.validateAll(data, schema.not, null, null, dataPointerPath);
-	var notErrors = this.errors.slice(oldErrorCount);
-	this.errors = this.errors.slice(0, oldErrorCount);
-	if (this.trackUnknownProperties) {
-		this.unknownPropertyPaths = oldUnknownPropertyPaths;
-		this.knownPropertyPaths = oldKnownPropertyPaths;
-	}
-	if (error === null && notErrors.length === 0) {
-		return this.createError(ErrorCodes.NOT_PASSED, {}, "", "/not");
-	}
-	return null;
-};
-
-ValidatorContext.prototype.validateHypermedia = function validateCombinations(data, schema, dataPointerPath) {
-	if (!schema.links) {
-		return null;
-	}
-	var error;
-	for (var i = 0; i < schema.links.length; i++) {
-		var ldo = schema.links[i];
-		if (ldo.rel === "describedby") {
-			var template = new UriTemplate(ldo.href);
-			var allPresent = true;
-			for (var j = 0; j < template.varNames.length; j++) {
-				if (!(template.varNames[j] in data)) {
-					allPresent = false;
-					break;
-				}
-			}
-			if (allPresent) {
-				var schemaUrl = template.fillFromObject(data);
-				var subSchema = {"$ref": schemaUrl};
-				if (error = this.validateAll(data, subSchema, [], ["links", i], dataPointerPath)) {
-					return error;
-				}
-			}
-		}
-	}
-};
-
-// parseURI() and resolveUrl() are from https://gist.github.com/1088850
-//   -  released as public domain by author ("Yaffle") - see comments on gist
-
-function parseURI(url) {
-	var m = String(url).replace(/^\s+|\s+$/g, '').match(/^([^:\/?#]+:)?(\/\/(?:[^:@]*(?::[^:@]*)?@)?(([^:\/?#]*)(?::(\d*))?))?([^?#]*)(\?[^#]*)?(#[\s\S]*)?/);
-	// authority = '//' + user + ':' + pass '@' + hostname + ':' port
-	return (m ? {
-		href     : m[0] || '',
-		protocol : m[1] || '',
-		authority: m[2] || '',
-		host     : m[3] || '',
-		hostname : m[4] || '',
-		port     : m[5] || '',
-		pathname : m[6] || '',
-		search   : m[7] || '',
-		hash     : m[8] || ''
-	} : null);
-}
-
-function resolveUrl(base, href) {// RFC 3986
-
-	function removeDotSegments(input) {
-		var output = [];
-		input.replace(/^(\.\.?(\/|$))+/, '')
-			.replace(/\/(\.(\/|$))+/g, '/')
-			.replace(/\/\.\.$/, '/../')
-			.replace(/\/?[^\/]*/g, function (p) {
-				if (p === '/..') {
-					output.pop();
-				} else {
-					output.push(p);
-				}
-		});
-		return output.join('').replace(/^\//, input.charAt(0) === '/' ? '/' : '');
-	}
-
-	href = parseURI(href || '');
-	base = parseURI(base || '');
-
-	return !href || !base ? null : (href.protocol || base.protocol) +
-		(href.protocol || href.authority ? href.authority : base.authority) +
-		removeDotSegments(href.protocol || href.authority || href.pathname.charAt(0) === '/' ? href.pathname : (href.pathname ? ((base.authority && !base.pathname ? '/' : '') + base.pathname.slice(0, base.pathname.lastIndexOf('/') + 1) + href.pathname) : base.pathname)) +
-		(href.protocol || href.authority || href.pathname ? href.search : (href.search || base.search)) +
-		href.hash;
-}
-
-function getDocumentUri(uri) {
-	return uri.split('#')[0];
-}
-function normSchema(schema, baseUri) {
-	if (schema && typeof schema === "object") {
-		if (baseUri === undefined) {
-			baseUri = schema.id;
-		} else if (typeof schema.id === "string") {
-			baseUri = resolveUrl(baseUri, schema.id);
-			schema.id = baseUri;
-		}
-		if (Array.isArray(schema)) {
-			for (var i = 0; i < schema.length; i++) {
-				normSchema(schema[i], baseUri);
-			}
-		} else {
-			if (typeof schema['$ref'] === "string") {
-				schema['$ref'] = resolveUrl(baseUri, schema['$ref']);
-			}
-			for (var key in schema) {
-				if (key !== "enum") {
-					normSchema(schema[key], baseUri);
-				}
-			}
-		}
-	}
-}
-
-var ErrorCodes = {
-	INVALID_TYPE: 0,
-	ENUM_MISMATCH: 1,
-	ANY_OF_MISSING: 10,
-	ONE_OF_MISSING: 11,
-	ONE_OF_MULTIPLE: 12,
-	NOT_PASSED: 13,
-	// Numeric errors
-	NUMBER_MULTIPLE_OF: 100,
-	NUMBER_MINIMUM: 101,
-	NUMBER_MINIMUM_EXCLUSIVE: 102,
-	NUMBER_MAXIMUM: 103,
-	NUMBER_MAXIMUM_EXCLUSIVE: 104,
-	NUMBER_NOT_A_NUMBER: 105,
-	// String errors
-	STRING_LENGTH_SHORT: 200,
-	STRING_LENGTH_LONG: 201,
-	STRING_PATTERN: 202,
-	// Object errors
-	OBJECT_PROPERTIES_MINIMUM: 300,
-	OBJECT_PROPERTIES_MAXIMUM: 301,
-	OBJECT_REQUIRED: 302,
-	OBJECT_ADDITIONAL_PROPERTIES: 303,
-	OBJECT_DEPENDENCY_KEY: 304,
-	// Array errors
-	ARRAY_LENGTH_SHORT: 400,
-	ARRAY_LENGTH_LONG: 401,
-	ARRAY_UNIQUE: 402,
-	ARRAY_ADDITIONAL_ITEMS: 403,
-	// Custom/user-defined errors
-	FORMAT_CUSTOM: 500,
-	KEYWORD_CUSTOM: 501,
-	// Schema structure
-	CIRCULAR_REFERENCE: 600,
-	// Non-standard validation options
-	UNKNOWN_PROPERTY: 1000
-};
-var ErrorCodeLookup = {};
-for (var key in ErrorCodes) {
-	ErrorCodeLookup[ErrorCodes[key]] = key;
-}
-var ErrorMessagesDefault = {
-	INVALID_TYPE: "Invalid type: {type} (expected {expected})",
-	ENUM_MISMATCH: "No enum match for: {value}",
-	ANY_OF_MISSING: "Data does not match any schemas from \"anyOf\"",
-	ONE_OF_MISSING: "Data does not match any schemas from \"oneOf\"",
-	ONE_OF_MULTIPLE: "Data is valid against more than one schema from \"oneOf\": indices {index1} and {index2}",
-	NOT_PASSED: "Data matches schema from \"not\"",
-	// Numeric errors
-	NUMBER_MULTIPLE_OF: "Value {value} is not a multiple of {multipleOf}",
-	NUMBER_MINIMUM: "Value {value} is less than minimum {minimum}",
-	NUMBER_MINIMUM_EXCLUSIVE: "Value {value} is equal to exclusive minimum {minimum}",
-	NUMBER_MAXIMUM: "Value {value} is greater than maximum {maximum}",
-	NUMBER_MAXIMUM_EXCLUSIVE: "Value {value} is equal to exclusive maximum {maximum}",
-	NUMBER_NOT_A_NUMBER: "Value {value} is not a valid number",
-	// String errors
-	STRING_LENGTH_SHORT: "String is too short ({length} chars), minimum {minimum}",
-	STRING_LENGTH_LONG: "String is too long ({length} chars), maximum {maximum}",
-	STRING_PATTERN: "String does not match pattern: {pattern}",
-	// Object errors
-	OBJECT_PROPERTIES_MINIMUM: "Too few properties defined ({propertyCount}), minimum {minimum}",
-	OBJECT_PROPERTIES_MAXIMUM: "Too many properties defined ({propertyCount}), maximum {maximum}",
-	OBJECT_REQUIRED: "Missing required property: {key}",
-	OBJECT_ADDITIONAL_PROPERTIES: "Additional properties not allowed",
-	OBJECT_DEPENDENCY_KEY: "Dependency failed - key must exist: {missing} (due to key: {key})",
-	// Array errors
-	ARRAY_LENGTH_SHORT: "Array is too short ({length}), minimum {minimum}",
-	ARRAY_LENGTH_LONG: "Array is too long ({length}), maximum {maximum}",
-	ARRAY_UNIQUE: "Array items are not unique (indices {match1} and {match2})",
-	ARRAY_ADDITIONAL_ITEMS: "Additional items not allowed",
-	// Format errors
-	FORMAT_CUSTOM: "Format validation failed ({message})",
-	KEYWORD_CUSTOM: "Keyword failed: {key} ({message})",
-	// Schema structure
-	CIRCULAR_REFERENCE: "Circular $refs: {urls}",
-	// Non-standard validation options
-	UNKNOWN_PROPERTY: "Unknown property (not in schema)"
-};
-
-function ValidationError(code, message, params, dataPath, schemaPath, subErrors) {
-	Error.call(this);
-	if (code === undefined) {
-		throw new Error ("No code supplied for error: "+ message);
-	}
-	this.message = message;
-	this.params = params;
-	this.code = code;
-	this.dataPath = dataPath || "";
-	this.schemaPath = schemaPath || "";
-	this.subErrors = subErrors || null;
-
-	var err = new Error(this.message);
-	this.stack = err.stack || err.stacktrace;
-	if (!this.stack) {
-		try {
-			throw err;
-		}
-		catch(err) {
-			this.stack = err.stack || err.stacktrace;
-		}
-	}
-}
-ValidationError.prototype = Object.create(Error.prototype);
-ValidationError.prototype.constructor = ValidationError;
-ValidationError.prototype.name = 'ValidationError';
-
-ValidationError.prototype.prefixWith = function (dataPrefix, schemaPrefix) {
-	if (dataPrefix !== null) {
-		dataPrefix = dataPrefix.replace(/~/g, "~0").replace(/\//g, "~1");
-		this.dataPath = "/" + dataPrefix + this.dataPath;
-	}
-	if (schemaPrefix !== null) {
-		schemaPrefix = schemaPrefix.replace(/~/g, "~0").replace(/\//g, "~1");
-		this.schemaPath = "/" + schemaPrefix + this.schemaPath;
-	}
-	if (this.subErrors !== null) {
-		for (var i = 0; i < this.subErrors.length; i++) {
-			this.subErrors[i].prefixWith(dataPrefix, schemaPrefix);
-		}
-	}
-	return this;
-};
-
-function isTrustedUrl(baseUrl, testUrl) {
-	if(testUrl.substring(0, baseUrl.length) === baseUrl){
-		var remainder = testUrl.substring(baseUrl.length);
-		if ((testUrl.length > 0 && testUrl.charAt(baseUrl.length - 1) === "/")
-			|| remainder.charAt(0) === "#"
-			|| remainder.charAt(0) === "?") {
-			return true;
-		}
-	}
-	return false;
-}
-
-var languages = {};
-function createApi(language) {
-	var globalContext = new ValidatorContext();
-	var currentLanguage = language || 'en';
-	var api = {
-		addFormat: function () {
-			globalContext.addFormat.apply(globalContext, arguments);
-		},
-		language: function (code) {
-			if (!code) {
-				return currentLanguage;
-			}
-			if (!languages[code]) {
-				code = code.split('-')[0]; // fall back to base language
-			}
-			if (languages[code]) {
-				currentLanguage = code;
-				return code; // so you can tell if fall-back has happened
-			}
-			return false;
-		},
-		addLanguage: function (code, messageMap) {
-			var key;
-			for (key in ErrorCodes) {
-				if (messageMap[key] && !messageMap[ErrorCodes[key]]) {
-					messageMap[ErrorCodes[key]] = messageMap[key];
-				}
-			}
-			var rootCode = code.split('-')[0];
-			if (!languages[rootCode]) { // use for base language if not yet defined
-				languages[code] = messageMap;
-				languages[rootCode] = messageMap;
-			} else {
-				languages[code] = Object.create(languages[rootCode]);
-				for (key in messageMap) {
-					if (typeof languages[rootCode][key] === 'undefined') {
-						languages[rootCode][key] = messageMap[key];
-					}
-					languages[code][key] = messageMap[key];
-				}
-			}
-			return this;
-		},
-		freshApi: function (language) {
-			var result = createApi();
-			if (language) {
-				result.language(language);
-			}
-			return result;
-		},
-		validate: function (data, schema, checkRecursive, banUnknownProperties) {
-			var context = new ValidatorContext(globalContext, false, languages[currentLanguage], checkRecursive, banUnknownProperties);
-			if (typeof schema === "string") {
-				schema = {"$ref": schema};
-			}
-			context.addSchema("", schema);
-			var error = context.validateAll(data, schema, null, null, "");
-			if (!error && banUnknownProperties) {
-				error = context.banUnknownProperties();
-			}
-			this.error = error;
-			this.missing = context.missing;
-			this.valid = (error === null);
-			return this.valid;
-		},
-		validateResult: function () {
-			var result = {};
-			this.validate.apply(result, arguments);
-			return result;
-		},
-		validateMultiple: function (data, schema, checkRecursive, banUnknownProperties) {
-			var context = new ValidatorContext(globalContext, true, languages[currentLanguage], checkRecursive, banUnknownProperties);
-			if (typeof schema === "string") {
-				schema = {"$ref": schema};
-			}
-			context.addSchema("", schema);
-			context.validateAll(data, schema, null, null, "");
-			if (banUnknownProperties) {
-				context.banUnknownProperties();
-			}
-			var result = {};
-			result.errors = context.errors;
-			result.missing = context.missing;
-			result.valid = (result.errors.length === 0);
-			return result;
-		},
-		addSchema: function () {
-			return globalContext.addSchema.apply(globalContext, arguments);
-		},
-		getSchema: function () {
-			return globalContext.getSchema.apply(globalContext, arguments);
-		},
-		getSchemaMap: function () {
-			return globalContext.getSchemaMap.apply(globalContext, arguments);
-		},
-		getSchemaUris: function () {
-			return globalContext.getSchemaUris.apply(globalContext, arguments);
-		},
-		getMissingUris: function () {
-			return globalContext.getMissingUris.apply(globalContext, arguments);
-		},
-		dropSchemas: function () {
-			globalContext.dropSchemas.apply(globalContext, arguments);
-		},
-		defineKeyword: function () {
-			globalContext.defineKeyword.apply(globalContext, arguments);
-		},
-		defineError: function (codeName, codeNumber, defaultMessage) {
-			if (typeof codeName !== 'string' || !/^[A-Z]+(_[A-Z]+)*$/.test(codeName)) {
-				throw new Error('Code name must be a string in UPPER_CASE_WITH_UNDERSCORES');
-			}
-			if (typeof codeNumber !== 'number' || codeNumber%1 !== 0 || codeNumber < 10000) {
-				throw new Error('Code number must be an integer > 10000');
-			}
-			if (typeof ErrorCodes[codeName] !== 'undefined') {
-				throw new Error('Error already defined: ' + codeName + ' as ' + ErrorCodes[codeName]);
-			}
-			if (typeof ErrorCodeLookup[codeNumber] !== 'undefined') {
-				throw new Error('Error code already used: ' + ErrorCodeLookup[codeNumber] + ' as ' + codeNumber);
-			}
-			ErrorCodes[codeName] = codeNumber;
-			ErrorCodeLookup[codeNumber] = codeName;
-			ErrorMessagesDefault[codeName] = ErrorMessagesDefault[codeNumber] = defaultMessage;
-			for (var langCode in languages) {
-				var language = languages[langCode];
-				if (language[codeName]) {
-					language[codeNumber] = language[codeNumber] || language[codeName];
-				}
-			}
-		},
-		reset: function () {
-			globalContext.reset();
-			this.error = null;
-			this.missing = [];
-			this.valid = true;
-		},
-		missing: [],
-		error: null,
-		valid: true,
-		normSchema: normSchema,
-		resolveUrl: resolveUrl,
-		getDocumentUri: getDocumentUri,
-		errorCodes: ErrorCodes
-	};
-	return api;
-}
-
-var tv4 = createApi();
-tv4.addLanguage('en-gb', ErrorMessagesDefault);
-
-//legacy property
-tv4.tv4 = tv4;
-
-return tv4; // used by _header.js to globalise.
-
-}));
-},{}]},{},[3])(3)
+},{"../internal/baseProperty":114,"../internal/basePropertyDeep":115,"../internal/isKey":138}],163:[function(require,module,exports){
+arguments[4][140][0].apply(exports,arguments)
+},{"dup":140}],164:[function(require,module,exports){
+arguments[4][149][0].apply(exports,arguments)
+},{"./isObject":166,"dup":149}],165:[function(require,module,exports){
+arguments[4][151][0].apply(exports,arguments)
+},{"../internal/isObjectLike":163,"dup":151}],166:[function(require,module,exports){
+arguments[4][152][0].apply(exports,arguments)
+},{"dup":152}]},{},[1])(1)
 });
 
 

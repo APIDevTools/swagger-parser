@@ -6,7 +6,7 @@ describe('Dereferencing tests', function() {
   describe('Success tests', function() {
     it('should not dereference shorthand pointers if "dereference$Refs" is false',
       function(done) {
-        env.parser.parse(env.getPath('good/shorthand-refs.yaml'), {dereference$Refs: false}, function(err, api) {
+        SwaggerParser.parse(env.getPath('good/shorthand-refs.yaml'), {dereference$Refs: false}, function(err, api) {
           if (err) {
             return done(err);
           }
@@ -18,7 +18,7 @@ describe('Dereferencing tests', function() {
 
     it('should not dereference shorthand pointers if "dereferenceInternal$Refs" is false',
       function(done) {
-        env.parser.parse(env.getPath('good/shorthand-refs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
+        SwaggerParser.parse(env.getPath('good/shorthand-refs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
           if (err) {
             return done(err);
           }
@@ -30,7 +30,7 @@ describe('Dereferencing tests', function() {
 
     it('should dereference shorthand "definition" references',
       function(done) {
-        env.parser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api) {
           if (err) {
             return done(err);
           }
@@ -43,7 +43,7 @@ describe('Dereferencing tests', function() {
 
     it('should not dereference external pointers if "resolveExternal$Refs" is false',
       function(done) {
-        env.parser.parse(env.getPath('good/external-refs.yaml'), {resolveExternal$Refs: false}, function(err, api) {
+        SwaggerParser.parse(env.getPath('good/external-refs.yaml'), {resolveExternal$Refs: false}, function(err, api) {
           if (err) {
             return done(err);
           }
@@ -55,7 +55,7 @@ describe('Dereferencing tests', function() {
 
     it('should dereference external pointers if "dereferenceInternal$Refs" is false',
       function(done) {
-        env.parser.parse(env.getPath('good/external-refs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
+        SwaggerParser.parse(env.getPath('good/external-refs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
           if (err) {
             return done(err);
           }
@@ -76,7 +76,7 @@ describe('Dereferencing tests', function() {
 
     it('should dereference external pointers',
       function(done) {
-        env.parser.parse(env.getPath('good/external-refs.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/external-refs.yaml'), function(err, api) {
           if (err) {
             return done(err);
           }
@@ -97,7 +97,7 @@ describe('Dereferencing tests', function() {
 
     it('should not dereference anything if "dereference$Refs" is false',
       function(done) {
-        env.parser.parse(env.getPath('good/refs.yaml'), {dereference$Refs: false}, function(err, api) {
+        SwaggerParser.parse(env.getPath('good/refs.yaml'), {dereference$Refs: false}, function(err, api) {
           if (err) {
             return done(err);
           }
@@ -109,7 +109,7 @@ describe('Dereferencing tests', function() {
 
     it('should dereference all types of references',
       function(done) {
-        env.parser.parse(env.getPath('good/refs.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/refs.yaml'), function(err, api) {
           if (err) {
             return done(err);
           }
@@ -121,7 +121,7 @@ describe('Dereferencing tests', function() {
 
     it('should only dereference external references if "dereferenceInternal$Refs" is false',
       function(done) {
-        env.parser.parse(env.getPath('good/refs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
+        SwaggerParser.parse(env.getPath('good/refs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
           if (err) {
             return done(err);
           }
@@ -133,7 +133,7 @@ describe('Dereferencing tests', function() {
 
     it('should dereference nested references',
       function(done) {
-        env.parser.parse(env.getPath('good/nested-refs.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/nested-refs.yaml'), function(err, api) {
           if (err) {
             return done(err);
           }
@@ -145,7 +145,7 @@ describe('Dereferencing tests', function() {
 
     it('should dereference internal references in external files',
       function(done) {
-        env.parser.parse(env.getPath('good/external-backrefs.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/external-backrefs.yaml'), function(err, api) {
           if (err) {
             return done(err);
           }
@@ -157,7 +157,7 @@ describe('Dereferencing tests', function() {
 
     it('should not dereference internal references in external files if "dereferenceInternal$Refs" is false',
       function(done) {
-        env.parser.parse(env.getPath('good/external-backrefs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
+        SwaggerParser.parse(env.getPath('good/external-backrefs.yaml'), {dereferenceInternal$Refs: false}, function(err, api) {
           if (err) {
             return done(err);
           }
@@ -169,7 +169,7 @@ describe('Dereferencing tests', function() {
 
     it('should dereference non-object references',
       function(done) {
-        env.parser.parse(env.getPath('good/non-object-refs.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/non-object-refs.yaml'), function(err, api) {
           if (err) {
             return done(err);
           }
@@ -182,10 +182,10 @@ describe('Dereferencing tests', function() {
 
     it('should partially-dereference circular references',
       function(done) {
-        env.parser.parse(env.getPath('good/circular-refs.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('good/circular-refs.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(ReferenceError);
           expect(err.message).to.equal('5 circular reference(s) detected');
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
 
           // The API should be partially dereferenced
           // (only non-circular $refs are resolved)
@@ -196,7 +196,7 @@ describe('Dereferencing tests', function() {
           $refs['person'] = $refs['#/definitions/person'] = env.dereferenced.circularRefsPerson;
           $refs['parent'] = $refs['#/definitions/parent'] = env.dereferenced.circularRefsParent;
           $refs['child'] = $refs['#/definitions/child'] = env.dereferenced.circularRefsChild;
-          expect(metadata.$refs).to.deep.equal($refs);
+          expect(parser.$refs).to.deep.equal($refs);
 
           done();
         });
@@ -205,7 +205,7 @@ describe('Dereferencing tests', function() {
 
     it('should ignore $refs that aren\'t strings',
       function(done) {
-        env.parser.parse(env.getPath('good/non-refs.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('good/non-refs.yaml'), function(err, api, parser) {
           if (err) {
             return done(err);
           }
@@ -215,8 +215,8 @@ describe('Dereferencing tests', function() {
           var $refs = {};
           $refs['$ref'] = $refs['#/definitions/$ref'] = env.dereferenced.nonRef;
 
-          expect(metadata).to.satisfy(env.isMetadata);
-          expect(metadata.$refs).to.deep.equal($refs);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
+          expect(parser.$refs).to.deep.equal($refs);
 
           done();
         });
@@ -225,12 +225,12 @@ describe('Dereferencing tests', function() {
 
     it('should dereference an already-parsed object',
       function(done) {
-        env.parser.parse(env.resolved.nestedRefs, function(err, api, metadata) {
+        SwaggerParser.parse(env.resolved.nestedRefs, function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.dereferenced.nestedRefs);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -238,12 +238,12 @@ describe('Dereferencing tests', function() {
 
     it('should have no effect on an already-dereferenced object',
       function(done) {
-        env.parser.parse(env.dereferenced.refs, function(err, api, metadata) {
+        SwaggerParser.parse(env.dereferenced.refs, function(err, api, parser) {
           if (err) {
             return done(err);
           }
           expect(api).to.deep.equal(env.dereferenced.refs);
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -254,7 +254,7 @@ describe('Dereferencing tests', function() {
 
     it('should resolve matching shorthand references to the same object instance',
       function(done) {
-        env.parser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/shorthand-refs.yaml'), function(err, api) {
           // Two $ref pointers to "pet"
           var $ref1 = api.paths['/pets'].post.parameters[0].schema;
           var $ref2 = api.paths['/pets'].post.responses['200'].schema;
@@ -273,7 +273,7 @@ describe('Dereferencing tests', function() {
 
     it('should resolve different-but-matching references to the same object instance',
       function(done) {
-        env.parser.parse(env.getPath('good/refs.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/refs.yaml'), function(err, api) {
           // $ref pointer to "pet"
           var $ref1 = api.paths['/pets'].post.responses['200'].schema;
 
@@ -302,7 +302,7 @@ describe('Dereferencing tests', function() {
 
     it('should resolve matching external references to the same object instance',
       function(done) {
-        env.parser.parse(env.getPath('good/external-refs.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/external-refs.yaml'), function(err, api) {
           // Three $ref pointers to "pet.yaml"
           var $ref1 = api.paths['/pets'].post.parameters[0].schema;
           var $ref2 = api.paths['/pets'].post.responses['200'].schema;
@@ -325,7 +325,7 @@ describe('Dereferencing tests', function() {
 
     it('should resolve different external references to different object instances',
       function(done) {
-        env.parser.parse(env.getPath('good/different-file-ext.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/different-file-ext.yaml'), function(err, api) {
           // $ref pointer to "pet.yaml"
           var $ref1 = api.paths['/pets'].post.parameters[0].schema;
 
@@ -352,7 +352,7 @@ describe('Dereferencing tests', function() {
 
     it('should resolve matching nested references to the same object instance',
       function(done) {
-        env.parser.parse(env.getPath('good/nested-refs.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/nested-refs.yaml'), function(err, api) {
           // $ref pointer to "pet"
           var pet$Ref1 = api.paths['/pets'].post.parameters[0].schema;
 
@@ -400,7 +400,7 @@ describe('Dereferencing tests', function() {
 
     it('should resolve array references to the same array instance',
       function(done) {
-        env.parser.parse(env.getPath('good/non-object-refs.yaml'), function(err, api) {
+        SwaggerParser.parse(env.getPath('good/non-object-refs.yaml'), function(err, api) {
           // Two $ref pointers to "#/definitions/pet/properties/type/enum" (an array)
           var $ref1 = api.paths['/pets'].post.parameters[0].schema.properties.type.enum;
           var $ref2 = api.paths['/pets'].post.responses.default.schema.properties.message.enum;
@@ -425,11 +425,11 @@ describe('Dereferencing tests', function() {
 
     it('should return an error for an invalid shorthand "definition" reference',
       function(done) {
-        env.parser.parse(env.getPath('bad/invalid-shorthand-refs.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/invalid-shorthand-refs.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('"doesnotexist" could not be found');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
 
           done();
         });
@@ -438,11 +438,11 @@ describe('Dereferencing tests', function() {
 
     it('should return an error for an invalid document-relative reference',
       function(done) {
-        env.parser.parse(env.getPath('bad/invalid-internal-refs.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/invalid-internal-refs.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('"#/definitions/doesnotexist" could not be found');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
 
           done();
         });
@@ -451,11 +451,11 @@ describe('Dereferencing tests', function() {
 
     it('should return an error for an invalid external reference',
       function(done) {
-        env.parser.parse(env.getPath('bad/invalid-external-refs.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/invalid-external-refs.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.match(/ENOENT|Error downloading file ".*doesnotexist\.yaml"/);
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
 
           done();
         });
@@ -464,11 +464,11 @@ describe('Dereferencing tests', function() {
 
     it('should return an error for an empty reference',
       function(done) {
-        env.parser.parse(env.getPath('bad/empty-refs.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/empty-refs.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('Empty $ref pointer');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
 
           done();
         });
@@ -477,11 +477,11 @@ describe('Dereferencing tests', function() {
 
     it('should return an error for an invalid nested reference',
       function(done) {
-        env.parser.parse(env.getPath('bad/invalid-nested-ref.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/invalid-nested-ref.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('"doesnotexist" could not be found');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
 
           done();
         });
@@ -490,11 +490,11 @@ describe('Dereferencing tests', function() {
 
     it('should return an error for an invalid nested object',
       function(done) {
-        env.parser.parse(env.getPath('bad/invalid-nested-obj.yaml'), function(err, api, metadata) {
+        SwaggerParser.parse(env.getPath('bad/invalid-nested-obj.yaml'), function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.contain('"foobar" could not be found');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
 
           done();
         });

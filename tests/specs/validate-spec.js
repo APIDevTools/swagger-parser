@@ -13,11 +13,11 @@ describe('Validation tests', function() {
       // Add an invalid response code
       petStore.paths['/pets'].get.responses['foobar'] = petStore.paths['/pets'].get.responses['default'];
 
-      env.parser.parse(petStore, {validateSchema: false}, function(err, api, metadata) {
+      SwaggerParser.parse(petStore, {validateSchema: false}, function(err, api, parser) {
         if (err) {
           return done(err);
         }
-        expect(metadata).to.satisfy(env.isMetadata);
+        expect(parser).to.be.an.instanceOf(SwaggerParser);
         expect(api).to.deep.equal(petStore);
         expect(api.paths['/pets'].get.responses).to.have.property('foobar').that.is.an('object');
         done();
@@ -36,11 +36,11 @@ describe('Validation tests', function() {
         required: true
       });
 
-      env.parser.parse(petStore, {strictValidation: false}, function(err, api, metadata) {
+      SwaggerParser.parse(petStore, {strictValidation: false}, function(err, api, parser) {
         if (err) {
           return done(err);
         }
-        expect(metadata).to.satisfy(env.isMetadata);
+        expect(parser).to.be.an.instanceOf(SwaggerParser);
         expect(api).to.deep.equal(petStore);
         expect(api.paths['/pets'].get.parameters[0]).to.have.property('name', param1.name);
         expect(api.paths['/pets'].get.parameters[1]).to.have.property('name', param1.name);
@@ -51,15 +51,14 @@ describe('Validation tests', function() {
     }
   );
 
-  it('should return an error if an operation has an invalid response code',
+  it.only('should return an error if an operation has an invalid response code',
     function(done) {
       petStore.paths['/pets'].get.responses['foobar'] = petStore.paths['/pets'].get.responses['default'];
 
-      env.parser.parse(petStore, function(err, api, metadata) {
+      SwaggerParser.validate(petStore, function(err, api) {
         expect(err).to.be.an.instanceOf(SyntaxError);
         expect(err.message).to.contain('Additional properties not allowed');
         expect(api).to.be.null;
-        expect(metadata).to.satisfy(env.isMetadata);
         done();
       });
     }
@@ -76,11 +75,11 @@ describe('Validation tests', function() {
           required: true
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/{petName} has duplicate parameters \nSyntaxError: Found multiple path parameters named "petName"');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -96,11 +95,11 @@ describe('Validation tests', function() {
           required: true
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/get has duplicate parameters \nSyntaxError: Found multiple query parameters named "tags"');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -118,12 +117,12 @@ describe('Validation tests', function() {
           }
         ];
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           // No error, because the operation parameter just overrides the path parameter
           if (err) {
             return done(err);
           }
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           expect(api).to.deep.equal(petStore);
           done();
         });
@@ -138,11 +137,11 @@ describe('Validation tests', function() {
           schema: {}
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/post has 2 body parameters. Only one is allowed.');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -156,11 +155,11 @@ describe('Validation tests', function() {
           type: 'string'
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/post has body parameters and formData parameters. Only one or the other is allowed.');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -172,12 +171,12 @@ describe('Validation tests', function() {
           type: 'null'
         };
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           // No error because "null" is a valid JSON Schema type
           if (err) {
             return done(err);
           }
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           expect(api).to.deep.equal(petStore);
           done();
         });
@@ -193,11 +192,11 @@ describe('Validation tests', function() {
           type: 'integer'
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/{petName}/photos/{id}/get has a path parameter named "petAge", but there is no corresponding {petAge} in the path string');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -207,11 +206,11 @@ describe('Validation tests', function() {
       function(done) {
         petStore.paths['/pets/{petName}/photos/{id}'].parameters.splice(1, 1);
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/{petName}/photos/{id}/get is missing path parameter(s) for {id}');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -222,11 +221,11 @@ describe('Validation tests', function() {
         var path = petStore.paths['/pets/{petName}/photos/{id}'];
         delete path.parameters;
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/{petName}/photos/{id}/get is missing path parameter(s) for {petName},{id}');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -236,11 +235,11 @@ describe('Validation tests', function() {
       function(done) {
         petStore.paths['/pets/{petName}/photos/{id}/{petName}'] = petStore.paths['/pets/{petName}/photos/{id}'];
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/{petName}/photos/{id}/{petName}/get has multiple path placeholders named {petName}');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -250,12 +249,12 @@ describe('Validation tests', function() {
       function(done) {
         petStore.paths['/pets/{petName}/photos/{id}'].parameters[0].required = false;
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           // This error message comes from the JSON schema validator
           expect(err.message).to.contain('Data does not match any schemas from "oneOf"');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -266,11 +265,11 @@ describe('Validation tests', function() {
         var param = petStore.paths['/pets/{petName}/photos/{id}'].parameters[0];
         delete param.required;
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: Path parameters cannot be optional. Set required=true for the "petName" parameter at /paths/pets/{petName}/photos/{id}/get');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -282,11 +281,11 @@ describe('Validation tests', function() {
           type: 'foobar'
         };
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/post has an invalid body parameter type (foobar)');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -298,11 +297,11 @@ describe('Validation tests', function() {
           type: 'file'
         };
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/post has an invalid body parameter type (file)');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -316,12 +315,12 @@ describe('Validation tests', function() {
           type: 'foobar'
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           // This error message comes from the JSON Schema validator
           expect(err.message).to.contain('Data does not match any schemas from "oneOf"');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -335,12 +334,12 @@ describe('Validation tests', function() {
           type: 'file'
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           // No error, because the "file" type is allowed for "formData" params
           if (err) {
             return done(err);
           }
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           expect(api).to.deep.equal(petStore);
           done();
         });
@@ -355,12 +354,12 @@ describe('Validation tests', function() {
           type: 'foobar'
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           // This error message comes from the JSON Schema validator
           expect(err.message).to.contain('Data does not match any schemas from "oneOf"');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -374,12 +373,12 @@ describe('Validation tests', function() {
           type: 'file'
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           // This error message comes from the JSON Schema validator
           expect(err.message).to.contain('Data does not match any schemas from "oneOf"');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -393,12 +392,12 @@ describe('Validation tests', function() {
           type: 'object'
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           // This error message comes from the JSON Schema validator
           expect(err.message).to.contain('Data does not match any schemas from "oneOf"');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -408,11 +407,11 @@ describe('Validation tests', function() {
       function(done) {
         delete petStore.paths['/pets/{petName}/photos'].post.consumes;
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/{petName}/photos/post has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -422,12 +421,12 @@ describe('Validation tests', function() {
       function(done) {
         petStore.paths['/pets/{petName}/photos'].post.consumes = ['text/plain', 'application/x-www-form-urlencoded', 'application/json'];
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           // No error, because the "consumes" contains application/x-www-form-urlencoded
           if (err) {
             return done(err);
           }
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           expect(api).to.deep.equal(petStore);
           done();
         });
@@ -442,11 +441,11 @@ describe('Validation tests', function() {
           type: 'array'
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: The "foo" query parameter at /paths/pets/get is an array, so it must include an "items" schema');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -462,11 +461,11 @@ describe('Validation tests', function() {
           }
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: The "foo" body parameter at /paths/pets/get is an array, so it must include an "items" schema');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -483,12 +482,12 @@ describe('Validation tests', function() {
           }
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           // No error, because the array has an "items" schema
           if (err) {
             return done(err);
           }
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           expect(api).to.deep.equal(petStore);
           done();
         });
@@ -505,12 +504,12 @@ describe('Validation tests', function() {
           collectionFormat: 'multi'
         });
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           // This error message comes from the JSON Schema validator
           expect(err.message).to.contain('Data does not match any schemas from "oneOf"');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -522,12 +521,12 @@ describe('Validation tests', function() {
       function(done) {
         petStore.paths['/pets'].get.responses.default.headers['last-modified'].type = 'foobar';
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           // This error message comes from the JSON Schema validator
           expect(err.message).to.contain('Data does not match any schemas from "oneOf"');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -537,12 +536,12 @@ describe('Validation tests', function() {
       function(done) {
         petStore.paths['/pets'].get.responses.default.headers['last-modified'].type = 'object';
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           // This error message comes from the JSON Schema validator
           expect(err.message).to.contain('Data does not match any schemas from "oneOf"');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -552,11 +551,11 @@ describe('Validation tests', function() {
       function(done) {
         petStore.paths['/pets'].get.responses.default.schema = {type: 'foobar'};
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(err.message).to.equal('Error in Swagger definition \nSyntaxError: /paths/pets/get/responses/default has an invalid response schema type (foobar)');
           expect(api).to.be.null;
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           done();
         });
       }
@@ -566,12 +565,12 @@ describe('Validation tests', function() {
       function(done) {
         petStore.paths['/pets'].get.responses.default.schema = {type: 'file'};
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           // No error, because the "file" type is allowed for JSON Schema responses
           if (err) {
             return done(err);
           }
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           expect(api).to.deep.equal(petStore);
           done();
         });
@@ -582,12 +581,12 @@ describe('Validation tests', function() {
       function(done) {
         petStore.paths['/pets'].get.responses.default.schema = {type: 'null'};
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           // No error, because the "null" type is allowed for JSON Schemas
           if (err) {
             return done(err);
           }
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           expect(api).to.deep.equal(petStore);
           done();
         });
@@ -598,12 +597,12 @@ describe('Validation tests', function() {
       function(done) {
         petStore.paths['/pets'].get.responses.default.schema = {};
 
-        env.parser.parse(petStore, function(err, api, metadata) {
+        SwaggerParser.parse(petStore, function(err, api, parser) {
           // No error, because an undefined type is allowed for JSON Schemas
           if (err) {
             return done(err);
           }
-          expect(metadata).to.satisfy(env.isMetadata);
+          expect(parser).to.be.an.instanceOf(SwaggerParser);
           expect(api).to.deep.equal(petStore);
           done();
         });

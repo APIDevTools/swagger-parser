@@ -82,7 +82,8 @@
     "_"             : true,
     "env"           : true,
     "expect"        : true,
-    "sinon"         : true
+    "sinon"         : true,
+    "Promise"       : true
   }
 }
 

@@ -31,7 +31,7 @@ $(function() {
 
             var preParser = options.parseYaml ? swagger.parser.__.safeLoad : JSON.parse;
             var obj = preParser(sourceEditor.getValue());
-            swagger.parser.parse(obj, options, function(e, a, m) {
+            SwaggerParser.parse(obj, options, function(e, a, m) {
                 err = e;
                 api = a;
                 metadata = m;
