@@ -28,12 +28,12 @@ Features
 * Parses Swagger specs in **JSON or YAML** format
 * **Validates** against the [Swagger 2.0 schema](https://github.com/reverb/swagger-spec/blob/master/schemas/v2.0/schema.json) _and_ the [Swagger 2.0 spec](https://github.com/reverb/swagger-spec/blob/master/versions/2.0.md)
 * **Resolves** all `$ref` pointers, including pointers to **external files and URLs**
-* Can **dereference** all `$ref` pointers, giving you a single JavaScript object that's easy to work with
+* Can **dereference** all `$ref` pointers, giving you a single JavaScript object that's easy to use
 * You can choose to dereference only internal `$refs`, external `$refs`, or both
 * Configurable **caching** of external files and URLs
 * **[Tested](http://bigstickcarpet.com/swagger-parser/tests/index.html)** in Node.js, io.js, Browserify, and all major web browsers on Windows, Mac, and Linux
 * Tested on **[over 100 Google APIs](https://github.com/APIs-guru/api-models/tree/master/googleapis.com)**
-* Supports [circular references](#circular-refs), nested references, back-references, and cross-references between files
+* Supports [circular references](#circular-refs), nested references, back-references, and cross-references
 * Different `$ref` pointers to the same value are resolved to the same object instance, thus maintaining reference equality
 
 
