@@ -51,7 +51,7 @@ describe('Validation tests', function() {
     }
   );
 
-  it.only('should return an error if an operation has an invalid response code',
+  it('should return an error if an operation has an invalid response code',
     function(done) {
       petStore.paths['/pets'].get.responses['foobar'] = petStore.paths['/pets'].get.responses['default'];
 

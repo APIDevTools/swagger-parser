@@ -76,7 +76,7 @@ describe('Dereferencing tests', function() {
 
     it('should dereference external pointers',
       function(done) {
-        SwaggerParser.parse(env.getPath('good/external-refs.yaml'), function(err, api) {
+        SwaggerParser.dereference(env.getPath('good/external-refs.yaml'), function(err, api) {
           if (err) {
             return done(err);
           }

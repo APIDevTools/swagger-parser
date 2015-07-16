@@ -32,7 +32,7 @@
     "karma": "karma start --single-run",
     "upgrade": "npm-check-updates -u && npm update && gulp update-tests",
     "bump": "bump --prerelease --tag --push --all",
-    "release": "npm run upgrade && npm run build && npm test && npm run bump && npm publish"
+    "release": "npm run upgrade && npm run build && npm test && npm run bump && npm publish --tag alpha"
   },
   "repository": {
     "type": "git",
@@ -75,8 +75,9 @@
   },
   "dependencies": {
     "debug": "^2.2.0",
-    "json-schema-ref-parser": "^1.0.0-alpha.4",
+    "json-schema-ref-parser": "^1.0.0-alpha.5",
     "lodash": "^3.10.0",
-    "swagger-schema-official": "2.0.0-96305d9"
+    "swagger-schema-official": "2.0.0-96305d9",
+    "z-schema": "^3.12.0"
   }
 }
