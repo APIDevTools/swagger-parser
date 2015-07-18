@@ -39,11 +39,11 @@
     "url": "https://github.com/BigstickCarpet/swagger-parser.git"
   },
   "devDependencies": {
-    "browserify": "^10.2.6",
+    "browserify": "^11.0.0",
     "exorcist": "^0.4.0",
     "uglifyify": "^3.0.1",
     "browserify-istanbul": "^0.2.1",
-    "karma": "^0.13.0",
+    "karma": "^0.13.2",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^0.2.0",
     "karma-cli": "0.1.0",
@@ -58,7 +58,7 @@
     "istanbul": "^0.3.17",
     "coveralls": "^2.11.2",
     "mocha": "^2.2.5",
-    "chai": "^3.0.0",
+    "chai": "^3.1.0",
     "sinon": "^1.15.4",
     "jscs": "^1.13.1",
     "jshint": "^2.8.0",
@@ -75,7 +75,7 @@
   },
   "dependencies": {
     "debug": "^2.2.0",
-    "json-schema-ref-parser": "^1.0.0-alpha.5",
+    "json-schema-ref-parser": "^1.0.0-alpha.7",
     "lodash": "^3.10.0",
     "swagger-schema-official": "2.0.0-96305d9",
     "z-schema": "^3.12.0"
