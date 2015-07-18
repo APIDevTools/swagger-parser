@@ -164,11 +164,11 @@ If you already have the Swagger API as a JavaScript object, then you can pass th
 * **options** (_optional_) - `object`<br>
 See [options](#options) above.
 
-* **callback** (_required_) - `function(err, api)`<br>
+* **callback** (_optional_) - `function(err, api)`<br>
 A callback that will receive the parsed [Swagger Object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object), or an error.
 
 * **Return Value:** `Promise`<br>
-You can use [ES6 Promise syntax](http://javascriptplayground.com/blog/2015/02/promises/) instead of a callback if you prefer. 
+See [Callbacks vs. Promises](#callbacks-vs-promises) above.
 
 
 ### `resolve(path, [options], [callback])`
@@ -182,11 +182,11 @@ If you already have the Swagger API as a JavaScript object, then you can pass th
 * **options** (_optional_) - `object`<br>
 See [options](#options) above.
 
-* **callback** (_required_) - `function(err, api)`<br>
+* **callback** (_optional_) - `function(err, api)`<br>
 A callback that will receive a [`$refs`](#refs-property) object, which has the resolved values for every `$ref` pointer.
 
 * **Return Value:** `Promise`<br>
-You can use [ES6 Promise syntax](http://javascriptplayground.com/blog/2015/02/promises/) instead of a callback if you prefer. 
+See [Callbacks vs. Promises](#callbacks-vs-promises) above.
 
 
 ### `dereference(path, [options], [callback])`
