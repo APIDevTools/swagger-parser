@@ -8837,11 +8837,12 @@ function parse(data, pathOrUrl, options) {
 (function (process){
 'use strict';
 
-var path      = require('path'),
-    url       = require('url'),
-    util      = require('./util'),
-    _isString = require('lodash/lang/isString'),
-    isWindows = /^win/.test(process.platform);
+var path            = require('path'),
+    url             = require('url'),
+    util            = require('./util'),
+    _isString       = require('lodash/lang/isString'),
+    isWindows       = /^win/.test(process.platform),
+    protocolPattern = /^[a-z0-9.+-]{2,}:/i;
 
 module.exports = PathOrUrl;
 
@@ -8927,24 +8928,35 @@ PathOrUrl.prototype.resolve = function(relative, options) {
 
   if (relative instanceof PathOrUrl) {
     // PathOrUrl objects are always absolute, so just return it as-is
-    resolved = relative.format();
-  }
-  else if (this.isUrl || relative instanceof url.Url) {
-    // Resolve as a URL
-    relative = url.parse(relative);
-    util.debug('Resolving path "%s", relative to "%s"', relative.href, this);
-    var selfUrl = this.toUrl();
-    resolved = selfUrl.resolve(relative);
-    util.debug('    Resolved to %s', resolved);
-  }
-  else {
-    // Resolve as a file path
-    util.debug('Resolving path "%s", relative to "%s"', relative, this);
-    var parsed = parseRelativeFile({}, this, relative, options);
-    resolved = PathOrUrl.prototype.format.call(parsed);
-    util.debug('    Resolved to %s', resolved);
+    return relative.format();
   }
 
+  if (relative instanceof url.Url) {
+    // Urls can be absolute or relative, so treat it like a string
+    relative = relative.format();
+  }
+
+  util.debug('Resolving path "%s", relative to "%s"', relative, this);
+
+  if (this.isUrl || protocolPattern.test(relative)) {
+    // The result will be a URL if `relative` is any of:
+    //  - an absolute url (e.g. "http://www.google.com")
+    //  - a relative url  (e.g. "../path/file.html")
+    //  - an absolute POSIX path (e.g. "/path/file")
+    //  - a relative POSIX path (e.g. "path/file")
+    //  - a relative Windows path (e.g. "path\\file.txt")
+    //
+    // The result will be a file path if `relative` is:
+    //  - an absolute Windows path (e.g. "C:\\path\\file.txt")
+    resolved = url.resolve(this.format(), relative);
+  }
+  else {
+    // The result will always be a file path
+    var parsed = parseRelativeFile({}, this, relative, options);
+    resolved = PathOrUrl.prototype.format.call(parsed);
+  }
+
+  util.debug('    Resolved to %s', resolved);
   return resolved;
 };
 
@@ -9068,16 +9080,13 @@ PathOrUrl.prototype.parse = function(href, options) {
     // It's an absolute file path
     parseFile(this, href, options);
   }
+  else if (protocolPattern.test(href)) {
+    // It's a full URL (e.g. https://host.com)
+    parseUrl(this, url.parse(href));
+  }
   else {
-    var u = url.parse(href);
-    if (u.protocol) {
-      // It's a full URL (e.g. https://host.com)
-      parseUrl(this, u);
-    }
-    else {
-      // It's a relative file path
-      parseRelativeFile(this, PathOrUrl.cwd(), href, options);
-    }
+    // It's a relative file path
+    parseRelativeFile(this, PathOrUrl.cwd(), href, options);
   }
 };
 
@@ -9234,12 +9243,13 @@ function getRoot(dir) {
   if (dir[0] === '/') {
     return '/';
   }
-  else if (isWindows && dir.substr(1, 2) === ':\\') {
+
+  var delimiter = dir.substr(1, 2);
+  if (isWindows && (delimiter === ':\\' || delimiter === ':/')) {
     return dir.substr(0, 3);
   }
-  else {
-    return '';
-  }
+
+  return '';
 }
 
 }).call(this,require('_process'))
