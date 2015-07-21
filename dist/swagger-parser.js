@@ -8547,21 +8547,7 @@ module.exports = dereference;
  */
 function dereference(parser, options) {
   util.debug('Dereferencing $ref pointers in %s', parser._base);
-
-  var internal = options.$refs.internal;
-
-  if (options.$refs.external) {
-    // Dereference all external $refs first.
-    // This is important, because internal $refs can point to dereferenced values
-    options.$refs.internal = false;
-    crawl(parser.schema, parser._base, [], parser.$refs, options);
-  }
-
-  if (internal) {
-    // Now dereference the internal $refs.
-    options.$refs.internal = true;
-    crawl(parser.schema, parser._base, [], parser.$refs, options);
-  }
+  crawl(parser.schema, parser._base, [], parser.$refs, options);
 }
 
 /**
@@ -8582,15 +8568,16 @@ function crawl(obj, pathOrUrl, parents, $refs, options) {
       if ($Ref.isAllowed(value, options)) {
         // We found a $ref pointer.
         util.debug('Dereferencing $ref pointer "%s" at %s', value.$ref, keyPath);
-        var resolved$Ref = pathOrUrl.resolve(value.$ref, {allowFileHash: true});
-        var $refPathOrUrl = new PathOrUrl(resolved$Ref, {allowFileHash: true});
+        var $refString = pathOrUrl.resolve(value.$ref, {allowFileHash: true});
+        var $refPathOrUrl = new PathOrUrl($refString, {allowFileHash: true});
 
         // Dereference the $ref pointer
-        obj[key] = value = $refs.get($refPathOrUrl);
+        var resolved$Ref = $refs._resolve($refPathOrUrl, options);
+        obj[key] = value = resolved$Ref.value;
 
         // Crawl the dereferenced value (unless it's circular)
         if (parents.indexOf(value) === -1) {
-          crawl(value, $refPathOrUrl, parents, $refs, options);
+          crawl(resolved$Ref.value, resolved$Ref.pathOrUrl, parents, $refs, options);
         }
       }
       else if (parents.indexOf(value) === -1) {
@@ -9560,30 +9547,39 @@ $Ref.prototype.exists = function(hash) {
 /**
  * @param {PathOrUrl} pathOrUrl
  * @param {Options} options
+ * @returns {Resolved$Ref}
+ */
+$Ref.prototype.resolve = function(pathOrUrl, options) {
+  var props = parse(pathOrUrl.hash);
+
+  /** @name Resolved$Ref **/
+  var prop = {
+    pathOrUrl: pathOrUrl,
+    value: this.value
+  };
+
+  for (var i = 0; i < props.length; i++) {
+    resolve(prop, this, options);
+
+    if (props[i] in prop.value) {
+      prop.value = prop.value[props[i]];
+    }
+    else {
+      throw util.newError(SyntaxError,
+        'Error resolving $ref pointer "%s". \n"%s" not found.', pathOrUrl, pathOrUrl.hash);
+    }
+  }
+
+  return resolve(prop, this, options);
+};
+
+/**
+ * @param {PathOrUrl} pathOrUrl
+ * @param {Options} options
  * @returns {*}
  */
 $Ref.prototype.get = function(pathOrUrl, options) {
-  try {
-    var props = parse(pathOrUrl.hash);
-    var prop = {
-      pathOrUrl: pathOrUrl,
-      value: this.value
-    };
-
-    for (var i = 0; i < props.length; i++) {
-      resolve(prop, this, options);
-
-      if (props[i] in prop.value) {
-        prop.value = prop.value[props[i]];
-      }
-    }
-
-    return resolve(prop, this, options).value;
-  }
-  catch (e) {
-    throw util.newError(SyntaxError, e,
-      'Error resolving $ref pointer "%s". \n"%s" not found.', pathOrUrl, pathOrUrl.hash);
-  }
+  return this.resolve(pathOrUrl, options).value;
 };
 
 /**
@@ -9662,14 +9658,15 @@ function parse(hash) {
 }
 
 /**
- * @param {{pathOrUrl: PathOrUrl, value: *}} prop
+ * @param {Resolved$Ref} prop
  * @param {$Ref} $ref
  * @param {Options} [options]
- * @returns {{pathOrUrl: PathOrUrl, value: *}}
+ * @returns {Resolved$Ref}
  */
 function resolve(prop, $ref, options) {
   if ($Ref.isAllowed(prop.value, options)) {
-    var newPathOrUrl = new PathOrUrl(prop.pathOrUrl.resolve(prop.value.$ref), {allowFileHash: true});
+    var $refString = prop.pathOrUrl.resolve(prop.value.$ref, {allowFileHash: true});
+    var newPathOrUrl = new PathOrUrl($refString, {allowFileHash: true});
 
     // Don't resolve circular references
     if (newPathOrUrl.href !== prop.pathOrUrl.href) {
@@ -9729,21 +9726,7 @@ $Refs.prototype.exists = function($ref, options) {
  * @returns {*}
  */
 $Refs.prototype.get = function($ref, options) {
-  var pathOrUrl = new PathOrUrl($ref, {allowFileHash: true});
-  var withoutHash = new PathOrUrl(pathOrUrl);
-  withoutHash.hash = '';
-  var $refObj = this._$refs[withoutHash.format()];
-
-  if (!$refObj) {
-    throw util.newError('Error resolving $ref pointer "%s". \n"%s" not found.', $ref, pathOrUrl);
-  }
-
-  if (!pathOrUrl.hash) {
-    return $refObj.value;
-  }
-
-  options = new Options(options);
-  return $refObj.get(pathOrUrl, options);
+  return this._resolve($ref, options).value;
 };
 
 /**
@@ -9767,6 +9750,33 @@ $Refs.prototype.set = function($ref, value, options) {
 
   options = new Options(options);
   $refObj.set(pathOrUrl, value, options);
+};
+
+/**
+ * @param {string} $ref
+ * @param {Options} [options]
+ * @returns {Resolved$Ref}
+ * @protected
+ */
+$Refs.prototype._resolve = function($ref, options) {
+  var pathOrUrl = new PathOrUrl($ref, {allowFileHash: true});
+  var withoutHash = new PathOrUrl(pathOrUrl);
+  withoutHash.hash = '';
+  var $refObj = this._$refs[withoutHash.format()];
+
+  if (!$refObj) {
+    throw util.newError('Error resolving $ref pointer "%s". \n"%s" not found.', $ref, pathOrUrl);
+  }
+
+  if (!pathOrUrl.hash) {
+    return {
+      pathOrUrl: $refObj.pathOrUrl,
+      value: $refObj.value
+    };
+  }
+
+  options = new Options(options);
+  return $refObj.resolve(pathOrUrl, options);
 };
 
 /**
@@ -9850,8 +9860,8 @@ function crawl(obj, pathOrUrl, parser, options) {
       if (isExternal$Ref(key, value)) {
         // We found a $ref pointer
         util.debug('Resolving $ref pointer "%s" at %s', value, keyPath);
-        var resolved$Ref = pathOrUrl.resolve(value, {allowFileHash: true});
-        var $refPathOrUrl = new PathOrUrl(resolved$Ref, {allowFileHash: true});
+        var $refString = pathOrUrl.resolve(value, {allowFileHash: true});
+        var $refPathOrUrl = new PathOrUrl($refString, {allowFileHash: true});
 
         // Crawl the $ref pointer
         var promise = crawl$Ref($refPathOrUrl, parser, options)

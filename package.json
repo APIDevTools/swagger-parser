@@ -56,9 +56,9 @@
     "karma-safari-launcher": "^0.1.1",
     "karma-sinon": "^1.0.4",
     "istanbul": "^0.3.17",
-    "coveralls": "^2.11.2",
+    "coveralls": "^2.11.3",
     "mocha": "^2.2.5",
-    "chai": "^3.1.0",
+    "chai": "^3.2.0",
     "sinon": "^1.15.4",
     "jscs": "^1.13.1",
     "jshint": "^2.8.0",
@@ -69,13 +69,13 @@
     "gulp-sourcemaps": "^1.5.2",
     "gulp-uglify": "^1.2.0",
     "jquery": "^2.1.4",
-    "nock": "^2.7",
+    "nock": "^2.9",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
     "debug": "^2.2.0",
-    "json-schema-ref-parser": "^1.0.0-alpha.8",
+    "json-schema-ref-parser": "^1.0.0-alpha.9",
     "lodash": "^3.10.0",
     "swagger-schema-official": "2.0.0-96305d9",
     "z-schema": "^3.12.0"
