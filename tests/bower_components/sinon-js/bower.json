@@ -1,0 +1,10 @@
+{
+  "name": "sinon.js",
+  "version": "1.15.4",
+  "main": "sinon.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ]
+}

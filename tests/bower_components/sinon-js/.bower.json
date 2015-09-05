@@ -1,0 +1,20 @@
+{
+  "name": "sinon.js",
+  "version": "1.15.4",
+  "main": "sinon.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ],
+  "homepage": "https://github.com/kamui/sinon-js",
+  "_release": "1.15.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.15.4",
+    "commit": "9be412813a28eb0134217b16dfc495ef3a132358"
+  },
+  "_source": "git://github.com/kamui/sinon-js.git",
+  "_target": "*",
+  "_originalSource": "sinon-js"
+}
