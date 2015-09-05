@@ -1,7 +1,7 @@
 {
   "name": "swagger-parser",
   "version": "3.0.0-alpha.5",
-  "description": "Swagger JSON/YAML parser and validator for Node and browsers",
+  "description": "Swagger 2.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
     "json",
@@ -25,26 +25,26 @@
   "homepage": "https://bigstickcarpet.github.io/swagger-parser",
   "main": "lib/index.js",
   "scripts": {
-    "build": "npm run lint && gulp build",
     "lint": "jshint . --verbose && jscs . --verbose",
-    "test": "istanbul cover _mocha -- --bail --recursive tests && npm run karma",
-    "mocha": "mocha --bail --recursive tests",
+    "build": "npm run lint && npm run browserify",
+    "browserify": "simplifyify lib/index.js --outfile dist/swagger-parser.js --standalone SwaggerParser --debug --minify",
+    "watch": "npm run browserify -- --watch",
+    "mocha": "mocha --bail --recursive tests/fixtures tests/specs",
+    "istanbul": "istanbul cover _mocha --dir coverage/node -- --bail --recursive tests/fixtures tests/specs",
     "karma": "karma start --single-run",
-    "upgrade": "npm-check-updates -u && npm update && gulp update-tests",
-    "bump": "bump --prerelease --tag --push --all",
-    "release": "npm run upgrade && npm run build && npm test && npm run bump && npm publish --tag alpha"
+    "test": "npm run browserify -- --test && npm run istanbul && npm run karma",
+    "upgrade": "ncu --upgradeAll && npm update && bower update",
+    "bump": "bump --prompt --grep lib/index.js dist/* --tag --push --all",
+    "release": "npm run upgrade && npm test && npm run bump && npm publish"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/BigstickCarpet/swagger-parser.git"
   },
   "devDependencies": {
-    "browserify": "^11.0.1",
-    "exorcist": "^0.4.0",
-    "uglifyify": "^3.0.1",
-    "browserify-istanbul": "^0.2.1",
+    "simplifyify": "^1.4.1",
+    "bower": "^1.5.2",
     "karma": "^0.13.9",
-    "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^0.2.0",
     "karma-cli": "0.1.0",
     "karma-coverage": "^0.5.1",
@@ -54,7 +54,7 @@
     "karma-mocha-reporter": "^1.1.1",
     "karma-phantomjs-launcher": "^0.2.1",
     "karma-safari-launcher": "^0.1.1",
-    "karma-sinon": "^1.0.4",
+    "karma-sauce-launcher": "^0.2.14",
     "istanbul": "^0.3.19",
     "coveralls": "^2.11.4",
     "mocha": "^2.3.0",
@@ -63,20 +63,13 @@
     "jscs": "^2.1.1",
     "jshint": "^2.8.0",
     "npm-check-updates": "^2.2.0",
-    "version-bump-prompt": "^1.5.1",
-    "gulp": "^3.9.0",
-    "gulp-rename": "^1.2.2",
-    "gulp-sourcemaps": "^1.5.2",
-    "gulp-uglify": "^1.4.0",
-    "jquery": "^2.1.4",
-    "nock": "^2.10",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "version-bump-prompt": "^1.5.1"
   },
   "dependencies": {
     "debug": "^2.2.0",
     "json-schema-ref-parser": "^1.0.0-alpha.13",
     "lodash": "^3.10.1",
+    "ono": "^1.0.22",
     "swagger-schema-official": "2.0.0-96305d9",
     "z-schema": "^3.13.0"
   }

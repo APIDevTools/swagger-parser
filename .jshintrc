@@ -79,11 +79,7 @@
 
   // Custom Globals
   "globals": {
-    "_"             : true,
-    "env"           : true,
-    "expect"        : true,
-    "sinon"         : true,
-    "Promise"       : true
+    "Promise"     : true      // ES6 Promises
   }
 }
 

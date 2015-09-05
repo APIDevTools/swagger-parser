@@ -1,10 +1,10 @@
 {
   "excludeFiles": [
     "coverage/**",
-    "dist/**",
-    "node_modules/**",
     "tests/**",
-    "www/**"
+    "dist/**",
+    "www/**",
+    "node_modules/**"
   ],
   "requireCurlyBraces": [
     "if",
@@ -67,5 +67,22 @@
   "disallowSpacesInsideParentheses": true,
 
   "disallowMultipleLineBreaks": true,
-  "disallowNewlineBeforeBlockStatements": true
+  "disallowNewlineBeforeBlockStatements": true,
+  "disallowSpaceBeforeComma": true,
+  "disallowSpaceBeforeSemicolon": true,
+
+  "jsDoc": {
+    "checkAnnotations": true,
+    "checkParamNames": true,
+    "requireParamTypes": true,
+    "checkRedundantParams": true,
+    "checkReturnTypes": true,
+    "checkRedundantReturns": true,
+    "requireReturnTypes": true,
+    "checkTypes": true,
+    "checkRedundantAccess": "enforceLeadingUnderscore",
+    "leadingUnderscoreAccess": true,
+    "requireHyphenBeforeDescription": true,
+    "requireNewlineAfterDescription": true
+  }
 }

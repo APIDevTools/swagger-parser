@@ -1,14 +1,18 @@
 {
   "name": "swagger-parser",
-  "description": "Parses a JSON or YAML Swagger spec, validates it against the Swagger schema, and dereferences all $ref pointers",
+  "description": "Swagger 2.0 parser and validator for Node and browsers",
   "keywords": [
-    "json",
     "swagger",
+    "json",
+    "yaml",
+    "parse",
+    "parser",
+    "validate",
+    "validator",
+    "validation",
     "spec",
     "specification",
     "schema",
-    "validate",
-    "validation",
     "reference",
     "dereference"
   ],
@@ -26,17 +30,20 @@
     "url": "https://github.com/BigstickCarpet/swagger-parser.git"
   },
   "ignore": [
-    "**/*~",
-    "**/._*",
-    "**/.DS_Store",
-    "npm-debug.log",
-    ".idea",
-    "node_modules",
-    "bower_components",
-    "tests",
-    "lib",
-    "/*.js",
-    "/.*"
+    "/bower_components",
+    "/lib",
+    "/www",
+    "/dist/*.test.js",
+    "/tests",
+    "/karma.conf.js",
+    "/.*",
+    "/index.html",
+    "/package.json"
   ],
-  "dependencies": {}
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "*",
+    "mocha": "*",
+    "sinon-js": "*"
+  }
 }
