@@ -1,8 +1,0 @@
-{
-    "This": is just: a plain text file.
-
-Not: valid
-    - JSON
-    - or
-    - YAML
-}

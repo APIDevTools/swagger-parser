@@ -1,0 +1,44 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: no refs
+  description: This file does not contain any $ref pointers
+
+paths:
+  /people/{name}:
+    post:
+      responses:
+        200:
+          description: A person
+          schema:
+            $ref: "#/definitions/person"
+
+definitions:
+  thing:
+    $ref: "#/definitions/thing" # circular reference to self
+
+  person:
+    properties:
+      name:
+        type: string
+      spouse:
+        type:
+          $ref: "#/definitions/person" # circular reference to parent
+
+  parent:
+    properties:
+      name:
+        type: string
+      children:
+        type: array
+        items:
+          $ref: "#/definitions/child"   # indirect circular reference
+
+  child:
+    properties:
+      name:
+        type: string
+      parents:
+        type: array
+        items:
+          $ref: "#/definitions/parent"  # indirect circular reference

@@ -1,79 +1,34 @@
 <!DOCTYPE html>
 <html>
   <head lang="en">
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="../www/js/mocha.css"/>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Swagger-Parser Tests</title>
+    <title>Swagger Parser Tests</title>
+
+    <link rel="stylesheet" href="bower_components/mocha/mocha.css"/>
   </head>
   <body>
     <div id="mocha"></div>
 
-    <!-- Test Framework -->
-    <script src="../www/js/chai.js"></script>
-    <script src="../www/js/sinon.js"></script>
-    <script src="../www/js/mocha.js"></script>
-    <script>mocha.setup('bdd')</script>
+    <!-- Third-Party Libraries -->
+    <script src="bower_components/mocha/mocha.js"></script>
+    <script src="bower_components/chai/chai.js"></script>
+    <script src="bower_components/sinon-js/sinon.js"></script>
 
-    <!-- Swagger-Parser -->
-    <script src="../dist/swagger-parser.min.js"></script>
+    <!-- Swagger Parser -->
+    <script src="../dist/swagger-parser.js"></script>
 
-    <!-- Test Helpers -->
-    <script src="test-environment.js"></script>
-    <script src="files/good/text-resolved.js"></script>
-    <script src="files/good/image-resolved.js"></script>
-    <script src="files/real-world/file-list.js"></script>
-    <script src="files/bad/invalid-resolved.js"></script>
-    <script src="files/good/circular-refs-dereferenced.js"></script>
-    <script src="files/good/circular-refs-resolved.js"></script>
-    <script src="files/good/circular-refs-person-dereferenced.js"></script>
-    <script src="files/good/circular-refs-person-resolved.js"></script>
-    <script src="files/good/circular-refs-parent-dereferenced.js"></script>
-    <script src="files/good/circular-refs-parent-resolved.js"></script>
-    <script src="files/good/circular-refs-child-dereferenced.js"></script>
-    <script src="files/good/circular-refs-child-resolved.js"></script>
-    <script src="files/good/error-dereferenced.js"></script>
-    <script src="files/good/error-resolved.js"></script>
-    <script src="files/good/error-backref-dereferenced.js"></script>
-    <script src="files/good/error-backref-resolved.js"></script>
-    <script src="files/good/error-wrapper-dereferenced.js"></script>
-    <script src="files/good/error-wrapper-resolved.js"></script>
-    <script src="files/good/external-backrefs-dereferenced.js"></script>
-    <script src="files/good/external-backrefs-dereferenced-external.js"></script>
-    <script src="files/good/external-backrefs-resolved.js"></script>
-    <script src="files/good/external-backrefs-path-resolved.js"></script>
-    <script src="files/good/external-refs-dereferenced.js"></script>
-    <script src="files/good/external-refs-resolved.js"></script>
-    <script src="files/good/minimal-resolved.js"></script>
-    <script src="files/good/nested-refs-dereferenced.js"></script>
-    <script src="files/good/nested-refs-resolved.js"></script>
-    <script src="files/good/non-refs-dereferenced.js"></script>
-    <script src="files/good/non-refs-resolved.js"></script>
-    <script src="files/good/non-object-refs-dereferenced.js"></script>
-    <script src="files/good/non-object-refs-resolved.js"></script>
-    <script src="files/good/pet-dereferenced.js"></script>
-    <script src="files/good/pet-resolved.js"></script>
-    <script src="files/good/petstore-dereferenced.js"></script>
-    <script src="files/good/refs-dereferenced.js"></script>
-    <script src="files/good/refs-dereferenced-external.js"></script>
-    <script src="files/good/refs-resolved.js"></script>
-    <script src="files/good/shorthand-refs-dereferenced.js"></script>
-    <script src="files/good/shorthand-refs-resolved.js"></script>
-    <script src="files/good/special-characters-dereferenced.js"></script>
+    <!-- Test Fixtures -->
+    <script src="fixtures/config.js"></script>
+    <script src="fixtures/globals.js"></script>
+    <script src="fixtures/helper.js"></script>
 
-    <!-- Swagger-Parser Tests -->
-    <script src="specs/exports-spec.js"></script>
-    <script src="specs/defaults-spec.js"></script>
-    <script src="specs/parse-spec.js"></script>
-    <script src="specs/resolve-spec.js"></script>
-    <script src="specs/dereference-spec.js"></script>
-    <script src="specs/validate-spec.js"></script>
-    <script src="specs/metadata-spec.js"></script>
-    <script src="specs/real-world-spec.js"></script>
+    <!-- Tests -->
+    <script src="specs/dereference.spec.js"></script>
 
     <script>
-      mocha.checkLeaks();
-      mocha.globals(['jQuery', 'Cordova', 'CDV_origSymbols', 'hacks']);
       mocha.run();
     </script>
   </body>

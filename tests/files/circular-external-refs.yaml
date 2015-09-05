@@ -1,0 +1,12 @@
+definitions:
+  thing:
+    $ref: circular-external-refs.yaml#/definitions/thing
+
+  person:
+    $ref: definitions/person.yaml
+
+  parent:
+    $ref: definitions/parent.yaml
+
+  child:
+    $ref: definitions/child.yaml

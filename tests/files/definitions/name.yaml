@@ -1,0 +1,12 @@
+title: name
+type: object
+required:
+  - first
+  - last
+properties:
+  first:
+    $ref: ../../files/definitions/definitions.yaml#/requiredString
+  middle:
+    type: string
+  last:
+    $ref: ./required-string.yaml

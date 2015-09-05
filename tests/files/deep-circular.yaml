@@ -1,0 +1,240 @@
+title: Deep Schema
+type: object
+properties:
+  name:
+    type:
+      $ref: definitions/name.yaml
+  level1:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type:
+          $ref: definitions/name.yaml
+      level2:
+        type: object
+        required:
+          - name
+        properties:
+          name:
+            type:
+              $ref: definitions/name.yaml
+          level3:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type:
+                  $ref: definitions/name.yaml
+              level4:
+                type: object
+                required:
+                  - name
+                properties:
+                  name:
+                    type:
+                      $ref: definitions/name.yaml
+                  level5:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type:
+                          $ref: definitions/name.yaml
+                      level6:
+                        type: object
+                        required:
+                          - name
+                        properties:
+                          name:
+                            type:
+                              $ref: definitions/name.yaml
+                          level7:
+                            type: object
+                            required:
+                              - name
+                            properties:
+                              name:
+                                type:
+                                  $ref: definitions/name.yaml
+                              level8:
+                                type: object
+                                required:
+                                  - name
+                                properties:
+                                  name:
+                                    type:
+                                      $ref: definitions/name.yaml
+                                  level9:
+                                    type: object
+                                    required:
+                                      - name
+                                    properties:
+                                      name:
+                                        type:
+                                          $ref: definitions/name.yaml
+                                      level10:
+                                        type: object
+                                        required:
+                                          - name
+                                        properties:
+                                          name:
+                                            type:
+                                              $ref: definitions/name.yaml
+                                          level11:
+                                            type: object
+                                            required:
+                                              - name
+                                            properties:
+                                              name:
+                                                type:
+                                                  $ref: definitions/name.yaml
+                                              level12:
+                                                type: object
+                                                required:
+                                                  - name
+                                                properties:
+                                                  name:
+                                                    type:
+                                                      $ref: definitions/name.yaml
+                                                  level13:
+                                                    type: object
+                                                    required:
+                                                      - name
+                                                    properties:
+                                                      name:
+                                                        type:
+                                                          $ref: definitions/name.yaml
+                                                      level14:
+                                                        type: object
+                                                        required:
+                                                          - name
+                                                        properties:
+                                                          name:
+                                                            type:
+                                                              $ref: definitions/name.yaml
+                                                          level15:
+                                                            type: object
+                                                            required:
+                                                              - name
+                                                            properties:
+                                                              name:
+                                                                type:
+                                                                  $ref: definitions/name.yaml
+                                                              level16:
+                                                                type: object
+                                                                required:
+                                                                  - name
+                                                                properties:
+                                                                  name:
+                                                                    type:
+                                                                      $ref: definitions/name.yaml
+                                                                  level17:
+                                                                    type: object
+                                                                    required:
+                                                                      - name
+                                                                    properties:
+                                                                      name:
+                                                                        type:
+                                                                          $ref: definitions/name.yaml
+                                                                      level18:
+                                                                        type: object
+                                                                        required:
+                                                                          - name
+                                                                        properties:
+                                                                          name:
+                                                                            type:
+                                                                              $ref: definitions/name.yaml
+                                                                          level19:
+                                                                            type: object
+                                                                            required:
+                                                                              - name
+                                                                            properties:
+                                                                              name:
+                                                                                type:
+                                                                                  $ref: definitions/name.yaml
+                                                                              level20:
+                                                                                type: object
+                                                                                required:
+                                                                                  - name
+                                                                                properties:
+                                                                                  name:
+                                                                                    type:
+                                                                                      $ref: definitions/name.yaml
+                                                                                  level21:
+                                                                                    type: object
+                                                                                    required:
+                                                                                      - name
+                                                                                    properties:
+                                                                                      name:
+                                                                                        type:
+                                                                                          $ref: definitions/name.yaml
+                                                                                      level22:
+                                                                                        type: object
+                                                                                        required:
+                                                                                          - name
+                                                                                        properties:
+                                                                                          name:
+                                                                                            type:
+                                                                                              $ref: definitions/name.yaml
+                                                                                          level23:
+                                                                                            type: object
+                                                                                            required:
+                                                                                              - name
+                                                                                            properties:
+                                                                                              name:
+                                                                                                type:
+                                                                                                  $ref: definitions/name.yaml
+                                                                                              level24:
+                                                                                                type: object
+                                                                                                required:
+                                                                                                  - name
+                                                                                                properties:
+                                                                                                  name:
+                                                                                                    type:
+                                                                                                      $ref: definitions/name.yaml
+                                                                                                  level25:
+                                                                                                    type: object
+                                                                                                    required:
+                                                                                                      - name
+                                                                                                    properties:
+                                                                                                      name:
+                                                                                                        type:
+                                                                                                          $ref: definitions/name.yaml
+                                                                                                      level26:
+                                                                                                        type: object
+                                                                                                        required:
+                                                                                                          - name
+                                                                                                        properties:
+                                                                                                          name:
+                                                                                                            type:
+                                                                                                              $ref: definitions/name.yaml
+                                                                                                          level27:
+                                                                                                            type: object
+                                                                                                            required:
+                                                                                                              - name
+                                                                                                            properties:
+                                                                                                              name:
+                                                                                                                type:
+                                                                                                                  $ref: definitions/name.yaml
+                                                                                                              level28:
+                                                                                                                type: object
+                                                                                                                required:
+                                                                                                                  - name
+                                                                                                                properties:
+                                                                                                                  name:
+                                                                                                                    type:
+                                                                                                                      $ref: definitions/name.yaml
+                                                                                                                  level29:
+                                                                                                                    type: object
+                                                                                                                    required:
+                                                                                                                      - name
+                                                                                                                    properties:
+                                                                                                                      name:
+                                                                                                                        type:
+                                                                                                                          $ref: definitions/name.yaml
+                                                                                                                      level30:
+                                                                                                                        $ref: "#"

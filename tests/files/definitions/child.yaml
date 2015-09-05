@@ -1,0 +1,9 @@
+title: child
+type: object
+properties:
+  name:
+    type: string
+  parents:
+    type: array
+    items:
+      $ref: parent.yaml  # indirect circular reference
