@@ -57,7 +57,7 @@
     "karma-sauce-launcher": "^0.2.14",
     "istanbul": "^0.3.19",
     "coveralls": "^2.11.4",
-    "mocha": "^2.3.0",
+    "mocha": "^2.3.1",
     "chai": "^3.2.0",
     "sinon": "^1.16.1",
     "jscs": "^2.1.1",
@@ -67,7 +67,7 @@
   },
   "dependencies": {
     "debug": "^2.2.0",
-    "json-schema-ref-parser": "^1.0.0-alpha.13",
+    "json-schema-ref-parser": "^1.0.0-alpha.16",
     "lodash": "^3.10.1",
     "ono": "^1.0.22",
     "swagger-schema-official": "2.0.0-96305d9",
