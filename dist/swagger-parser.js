@@ -185,12 +185,6 @@ module.exports = {
   debug: debug('swagger:parser'),
 
   /**
-   * The HTTP methods that Swagger supports
-   * (see https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#pathItemObject)
-   */
-  swaggerMethods: ['get', 'put', 'post', 'delete', 'options', 'head', 'patch'],
-
-  /**
    * Regular Expression that matches Swagger path params.
    */
   swaggerParamRegExp: /\{([^/}]+)}/g,
@@ -210,6 +204,7 @@ var util              = require('./util'),
     _where            = require('lodash/collection/where'),
     _unique           = require('lodash/array/unique'),
     swaggerSchema     = require('swagger-schema-official/schema'),
+    swaggerMethods    = require('swagger-methods'),
     schemaInitialized = false,
     primitiveTypes    = ['array', 'boolean', 'integer', 'number', 'string'],
     schemaTypes       = ['array', 'boolean', 'integer', 'number', 'null', 'object', 'string', undefined];
@@ -320,8 +315,8 @@ function validateAgainstSwaggerSpec(api) {
     if (path && pathName.indexOf('/') === 0) {
       pathName = '/paths' + pathName;
 
-      for (var j = 0; j < util.swaggerMethods.length; j++) {
-        var operationName = util.swaggerMethods[j];
+      for (var j = 0; j < swaggerMethods.length; j++) {
+        var operationName = swaggerMethods[j];
         var operation = path[operationName];
 
         if (operation) {
@@ -542,7 +537,7 @@ function validateResponse(response, responseId) {
 }
 
 
-},{"./util":3,"lodash/array/unique":55,"lodash/collection/where":58,"lodash/object/keys":125,"ono":131,"swagger-schema-official/schema":175,"z-schema":186}],5:[function(require,module,exports){
+},{"./util":3,"lodash/array/unique":55,"lodash/collection/where":58,"lodash/object/keys":125,"ono":131,"swagger-methods":175,"swagger-schema-official/schema":176,"z-schema":187}],5:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -23128,6 +23123,9 @@ function extend() {
 }
 
 },{}],175:[function(require,module,exports){
+module.exports = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch'];
+
+},{}],176:[function(require,module,exports){
 module.exports={
   "title": "A JSON Schema for Swagger 2.0 API.",
   "id": "http://swagger.io/v2/schema.json#",
@@ -24623,7 +24621,7 @@ module.exports={
     }
   }
 }
-},{}],176:[function(require,module,exports){
+},{}],177:[function(require,module,exports){
 /*!
  * Copyright (c) 2015 Chris O'Hara <cohara87@gmail.com>
  *
@@ -25382,7 +25380,7 @@ module.exports={
 
 });
 
-},{}],177:[function(require,module,exports){
+},{}],178:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -25443,7 +25441,7 @@ module.exports = {
 
 };
 
-},{}],178:[function(require,module,exports){
+},{}],179:[function(require,module,exports){
 /*jshint maxlen: false*/
 
 var validator = require("validator");
@@ -25574,7 +25572,7 @@ var FormatValidators = {
 
 module.exports = FormatValidators;
 
-},{"validator":176}],179:[function(require,module,exports){
+},{"validator":177}],180:[function(require,module,exports){
 "use strict";
 
 var FormatValidators  = require("./FormatValidators"),
@@ -26100,7 +26098,7 @@ exports.validate = function (report, schema, json) {
 
 };
 
-},{"./FormatValidators":178,"./Report":181,"./Utils":185}],180:[function(require,module,exports){
+},{"./FormatValidators":179,"./Report":182,"./Utils":186}],181:[function(require,module,exports){
 // Number.isFinite polyfill
 // http://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.isfinite
 if (typeof Number.isFinite !== "function") {
@@ -26118,7 +26116,7 @@ if (typeof Number.isFinite !== "function") {
     };
 }
 
-},{}],181:[function(require,module,exports){
+},{}],182:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -26295,7 +26293,7 @@ module.exports = Report;
 
 }).call(this,require('_process'))
 
-},{"./Errors":177,"./Utils":185,"_process":142}],182:[function(require,module,exports){
+},{"./Errors":178,"./Utils":186,"_process":142}],183:[function(require,module,exports){
 "use strict";
 
 var Report              = require("./Report");
@@ -26450,7 +26448,7 @@ exports.getSchemaByUri = function (report, uri, root) {
 
 exports.getRemotePath = getRemotePath;
 
-},{"./Report":181,"./SchemaCompilation":183,"./SchemaValidation":184,"./Utils":185}],183:[function(require,module,exports){
+},{"./Report":182,"./SchemaCompilation":184,"./SchemaValidation":185,"./Utils":186}],184:[function(require,module,exports){
 "use strict";
 
 var Report      = require("./Report");
@@ -26738,7 +26736,7 @@ exports.compileSchema = function (report, schema) {
 
 };
 
-},{"./Report":181,"./SchemaCache":182,"./Utils":185}],184:[function(require,module,exports){
+},{"./Report":182,"./SchemaCache":183,"./Utils":186}],185:[function(require,module,exports){
 "use strict";
 
 var FormatValidators = require("./FormatValidators"),
@@ -27347,7 +27345,7 @@ exports.validateSchema = function (report, schema) {
     return isValid;
 };
 
-},{"./FormatValidators":178,"./JsonValidation":179,"./Report":181,"./Utils":185}],185:[function(require,module,exports){
+},{"./FormatValidators":179,"./JsonValidation":180,"./Report":182,"./Utils":186}],186:[function(require,module,exports){
 "use strict";
 
 exports.isAbsoluteUri = function (uri) {
@@ -27566,7 +27564,7 @@ exports.ucs2decode = function (string) {
 };
 /*jshint +W016*/
 
-},{}],186:[function(require,module,exports){
+},{}],187:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -27894,7 +27892,7 @@ module.exports = ZSchema;
 
 }).call(this,require('_process'))
 
-},{"./FormatValidators":178,"./JsonValidation":179,"./Polyfills":180,"./Report":181,"./SchemaCache":182,"./SchemaCompilation":183,"./SchemaValidation":184,"./Utils":185,"./schemas/hyper-schema.json":187,"./schemas/schema.json":188,"_process":142}],187:[function(require,module,exports){
+},{"./FormatValidators":179,"./JsonValidation":180,"./Polyfills":181,"./Report":182,"./SchemaCache":183,"./SchemaCompilation":184,"./SchemaValidation":185,"./Utils":186,"./schemas/hyper-schema.json":188,"./schemas/schema.json":189,"_process":142}],188:[function(require,module,exports){
 module.exports={
     "$schema": "http://json-schema.org/draft-04/hyper-schema#",
     "id": "http://json-schema.org/draft-04/hyper-schema#",
@@ -28054,7 +28052,7 @@ module.exports={
 }
 
 
-},{}],188:[function(require,module,exports){
+},{}],189:[function(require,module,exports){
 module.exports={
     "id": "http://json-schema.org/draft-04/schema#",
     "$schema": "http://json-schema.org/draft-04/schema#",
