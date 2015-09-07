@@ -1,0 +1,46 @@
+# Travis CI config
+# http://docs.travis-ci.com/user/languages/javascript-with-nodejs/
+
+sudo: false
+language: node_js
+matrix:
+  include:
+    # IO.js
+    - node_js: iojs
+      env: KARMA=false
+
+    # Node
+    - node_js: 0.10
+      env: KARMA=false
+    - node_js: 0.11
+      env: KARMA=false
+    - node_js: 0.12
+      env: KARMA=false
+
+    # Local Browsers
+    - node_js: 0.12
+      env: KARMA_COVERAGE=true KARMA_SAUCE=false
+
+    # Sauce Labs
+    - node_js: 0.12
+      env: KARMA_SAUCE=true KARMA_COVERAGE=false
+
+  fast_finish: true
+  allow_failures:
+    - node_js: 0.12
+      env: KARMA_SAUCE=true KARMA_COVERAGE=false
+
+before_script:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - npm update -g npm
+branches:
+  only:
+    - master            # run CI on the master branch
+    - v3.0.0            # also run for v3.0.0 branch (since it's close to release)
+    - /^PR /            # also build pull requests
+after_success:
+  - cat coverage/*/lcov.info > coveralls.txt                    # concatenate all code-coverage data into a single file
+  - cat coveralls.txt                                           # output the file contents (for debugging)
+  - ls -R1 coverage/*/lcov.info                                 # list the files (for debugging)
+  - cat coveralls.txt | node_modules/coveralls/bin/coveralls.js # send code-coverage data to Coveralls
