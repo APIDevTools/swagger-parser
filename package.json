@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "version": "3.0.0-alpha.7",
+  "version": "3.0.0-alpha.8",
   "description": "Swagger 2.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
@@ -47,7 +47,7 @@
     "karma": "^0.13.9",
     "karma-chrome-launcher": "^0.2.0",
     "karma-cli": "0.1.0",
-    "karma-coverage": "^0.5.1",
+    "karma-coverage": "^0.5.2",
     "karma-firefox-launcher": "^0.1.6",
     "karma-ie-launcher": "^0.2.0",
     "karma-mocha": "^0.2.0",
@@ -57,7 +57,7 @@
     "karma-sauce-launcher": "^0.2.14",
     "istanbul": "^0.3.19",
     "coveralls": "^2.11.4",
-    "mocha": "^2.3.1",
+    "mocha": "^2.3.2",
     "chai": "^3.2.0",
     "sinon": "^1.16.1",
     "jscs": "^2.1.1",
@@ -67,7 +67,7 @@
   },
   "dependencies": {
     "debug": "^2.2.0",
-    "json-schema-ref-parser": "^1.0.0-alpha.16",
+    "json-schema-ref-parser": ">=1.0.0-alpha.17",
     "lodash": "^3.10.1",
     "ono": "^1.0.22",
     "swagger-methods": "^1.0.0",
