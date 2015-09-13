@@ -1,6 +1,6 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.SwaggerParser = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**!
- * Swagger Parser v3.0.0-alpha.8
+ * Swagger Parser v3.0.0-alpha.9
  *
  * @link https://github.com/BigstickCarpet/swagger-parser
  * @license MIT
@@ -538,7 +538,7 @@ function validateResponse(response, responseId) {
 }
 
 
-},{"./util":3,"ono":54,"swagger-methods":98,"swagger-schema-official/schema":99,"z-schema":110}],5:[function(require,module,exports){
+},{"./util":3,"ono":54,"swagger-methods":98,"swagger-schema-official/schema":99,"z-schema":114}],5:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -1036,7 +1036,7 @@ function plural(ms, n, name) {
 
 },{}],8:[function(require,module,exports){
 /**!
- * JSON Schema $Ref Parser v1.0.0-alpha.19
+ * JSON Schema $Ref Parser v1.0.0-alpha.20
  *
  * @link https://github.com/BigstickCarpet/json-schema-ref-parser
  * @license MIT
@@ -15295,7 +15295,9 @@ function drainQueue() {
         currentQueue = queue;
         queue = [];
         while (++queueIndex < len) {
-            currentQueue[queueIndex].run();
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
         }
         queueIndex = -1;
         len = queue.length;
@@ -15347,7 +15349,6 @@ process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
-// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
@@ -17988,7 +17989,7 @@ module.exports = nextTick;
 function nextTick(fn) {
   var args = new Array(arguments.length - 1);
   var i = 0;
-  while (i < arguments.length) {
+  while (i < args.length) {
     args[i++] = arguments[i];
   }
   process.nextTick(function afterTick() {
@@ -22045,6 +22046,356 @@ module.exports={
   }
 }
 },{}],100:[function(require,module,exports){
+/**
+ * lodash 3.7.0 (Custom Build) <https://lodash.com/>
+ * Build: `lodash modern modularize exports="npm" -o ./`
+ * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <https://lodash.com/license>
+ */
+var baseGet = require('lodash._baseget'),
+    toPath = require('lodash._topath');
+
+/**
+ * Gets the property value of `path` on `object`. If the resolved value is
+ * `undefined` the `defaultValue` is used in its place.
+ *
+ * @static
+ * @memberOf _
+ * @category Object
+ * @param {Object} object The object to query.
+ * @param {Array|string} path The path of the property to get.
+ * @param {*} [defaultValue] The value returned if the resolved value is `undefined`.
+ * @returns {*} Returns the resolved value.
+ * @example
+ *
+ * var object = { 'a': [{ 'b': { 'c': 3 } }] };
+ *
+ * _.get(object, 'a[0].b.c');
+ * // => 3
+ *
+ * _.get(object, ['a', '0', 'b', 'c']);
+ * // => 3
+ *
+ * _.get(object, 'a.b.c', 'default');
+ * // => 'default'
+ */
+function get(object, path, defaultValue) {
+  var result = object == null ? undefined : baseGet(object, toPath(path), path + '');
+  return result === undefined ? defaultValue : result;
+}
+
+module.exports = get;
+
+},{"lodash._baseget":101,"lodash._topath":102}],101:[function(require,module,exports){
+/**
+ * lodash 3.7.2 (Custom Build) <https://lodash.com/>
+ * Build: `lodash modern modularize exports="npm" -o ./`
+ * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <https://lodash.com/license>
+ */
+
+/**
+ * The base implementation of `get` without support for string paths
+ * and default values.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @param {Array} path The path of the property to get.
+ * @param {string} [pathKey] The key representation of path.
+ * @returns {*} Returns the resolved value.
+ */
+function baseGet(object, path, pathKey) {
+  if (object == null) {
+    return;
+  }
+  if (pathKey !== undefined && pathKey in toObject(object)) {
+    path = [pathKey];
+  }
+  var index = 0,
+      length = path.length;
+
+  while (object != null && index < length) {
+    object = object[path[index++]];
+  }
+  return (index && index == length) ? object : undefined;
+}
+
+/**
+ * Converts `value` to an object if it's not one.
+ *
+ * @private
+ * @param {*} value The value to process.
+ * @returns {Object} Returns the object.
+ */
+function toObject(value) {
+  return isObject(value) ? value : Object(value);
+}
+
+/**
+ * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
+ * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+ * @example
+ *
+ * _.isObject({});
+ * // => true
+ *
+ * _.isObject([1, 2, 3]);
+ * // => true
+ *
+ * _.isObject(1);
+ * // => false
+ */
+function isObject(value) {
+  // Avoid a V8 JIT bug in Chrome 19-20.
+  // See https://code.google.com/p/v8/issues/detail?id=2291 for more details.
+  var type = typeof value;
+  return !!value && (type == 'object' || type == 'function');
+}
+
+module.exports = baseGet;
+
+},{}],102:[function(require,module,exports){
+/**
+ * lodash 3.8.1 (Custom Build) <https://lodash.com/>
+ * Build: `lodash modern modularize exports="npm" -o ./`
+ * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <https://lodash.com/license>
+ */
+var isArray = require('lodash.isarray');
+
+/** Used to match property names within property paths. */
+var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\n\\]|\\.)*?)\2)\]/g;
+
+/** Used to match backslashes in property paths. */
+var reEscapeChar = /\\(\\)?/g;
+
+/**
+ * Converts `value` to a string if it's not one. An empty string is returned
+ * for `null` or `undefined` values.
+ *
+ * @private
+ * @param {*} value The value to process.
+ * @returns {string} Returns the string.
+ */
+function baseToString(value) {
+  return value == null ? '' : (value + '');
+}
+
+/**
+ * Converts `value` to property path array if it's not one.
+ *
+ * @private
+ * @param {*} value The value to process.
+ * @returns {Array} Returns the property path array.
+ */
+function toPath(value) {
+  if (isArray(value)) {
+    return value;
+  }
+  var result = [];
+  baseToString(value).replace(rePropName, function(match, number, quote, string) {
+    result.push(quote ? string.replace(reEscapeChar, '$1') : (number || match));
+  });
+  return result;
+}
+
+module.exports = toPath;
+
+},{"lodash.isarray":103}],103:[function(require,module,exports){
+/**
+ * lodash 3.0.4 (Custom Build) <https://lodash.com/>
+ * Build: `lodash modern modularize exports="npm" -o ./`
+ * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <https://lodash.com/license>
+ */
+
+/** `Object#toString` result references. */
+var arrayTag = '[object Array]',
+    funcTag = '[object Function]';
+
+/** Used to detect host constructors (Safari > 5). */
+var reIsHostCtor = /^\[object .+?Constructor\]$/;
+
+/**
+ * Checks if `value` is object-like.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+ */
+function isObjectLike(value) {
+  return !!value && typeof value == 'object';
+}
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/** Used to resolve the decompiled source of functions. */
+var fnToString = Function.prototype.toString;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var objToString = objectProto.toString;
+
+/** Used to detect if a method is native. */
+var reIsNative = RegExp('^' +
+  fnToString.call(hasOwnProperty).replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
+  .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
+);
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeIsArray = getNative(Array, 'isArray');
+
+/**
+ * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
+ * of an array-like value.
+ */
+var MAX_SAFE_INTEGER = 9007199254740991;
+
+/**
+ * Gets the native function at `key` of `object`.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @param {string} key The key of the method to get.
+ * @returns {*} Returns the function if it's native, else `undefined`.
+ */
+function getNative(object, key) {
+  var value = object == null ? undefined : object[key];
+  return isNative(value) ? value : undefined;
+}
+
+/**
+ * Checks if `value` is a valid array-like length.
+ *
+ * **Note:** This function is based on [`ToLength`](http://ecma-international.org/ecma-262/6.0/#sec-tolength).
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a valid length, else `false`.
+ */
+function isLength(value) {
+  return typeof value == 'number' && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
+}
+
+/**
+ * Checks if `value` is classified as an `Array` object.
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+ * @example
+ *
+ * _.isArray([1, 2, 3]);
+ * // => true
+ *
+ * _.isArray(function() { return arguments; }());
+ * // => false
+ */
+var isArray = nativeIsArray || function(value) {
+  return isObjectLike(value) && isLength(value.length) && objToString.call(value) == arrayTag;
+};
+
+/**
+ * Checks if `value` is classified as a `Function` object.
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+ * @example
+ *
+ * _.isFunction(_);
+ * // => true
+ *
+ * _.isFunction(/abc/);
+ * // => false
+ */
+function isFunction(value) {
+  // The use of `Object#toString` avoids issues with the `typeof` operator
+  // in older versions of Chrome and Safari which return 'function' for regexes
+  // and Safari 8 equivalents which return 'object' for typed array constructors.
+  return isObject(value) && objToString.call(value) == funcTag;
+}
+
+/**
+ * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
+ * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+ * @example
+ *
+ * _.isObject({});
+ * // => true
+ *
+ * _.isObject([1, 2, 3]);
+ * // => true
+ *
+ * _.isObject(1);
+ * // => false
+ */
+function isObject(value) {
+  // Avoid a V8 JIT bug in Chrome 19-20.
+  // See https://code.google.com/p/v8/issues/detail?id=2291 for more details.
+  var type = typeof value;
+  return !!value && (type == 'object' || type == 'function');
+}
+
+/**
+ * Checks if `value` is a native function.
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a native function, else `false`.
+ * @example
+ *
+ * _.isNative(Array.prototype.push);
+ * // => true
+ *
+ * _.isNative(_);
+ * // => false
+ */
+function isNative(value) {
+  if (value == null) {
+    return false;
+  }
+  if (isFunction(value)) {
+    return reIsNative.test(fnToString.call(value));
+  }
+  return isObjectLike(value) && reIsHostCtor.test(value);
+}
+
+module.exports = isArray;
+
+},{}],104:[function(require,module,exports){
 /*!
  * Copyright (c) 2015 Chris O'Hara <cohara87@gmail.com>
  *
@@ -22803,7 +23154,7 @@ module.exports={
 
 });
 
-},{}],101:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -22864,7 +23215,7 @@ module.exports = {
 
 };
 
-},{}],102:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 /*jshint maxlen: false*/
 
 var validator = require("validator");
@@ -22995,7 +23346,7 @@ var FormatValidators = {
 
 module.exports = FormatValidators;
 
-},{"validator":100}],103:[function(require,module,exports){
+},{"validator":104}],107:[function(require,module,exports){
 "use strict";
 
 var FormatValidators  = require("./FormatValidators"),
@@ -23521,7 +23872,7 @@ exports.validate = function (report, schema, json) {
 
 };
 
-},{"./FormatValidators":102,"./Report":105,"./Utils":109}],104:[function(require,module,exports){
+},{"./FormatValidators":106,"./Report":109,"./Utils":113}],108:[function(require,module,exports){
 // Number.isFinite polyfill
 // http://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.isfinite
 if (typeof Number.isFinite !== "function") {
@@ -23539,7 +23890,7 @@ if (typeof Number.isFinite !== "function") {
     };
 }
 
-},{}],105:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -23716,7 +24067,7 @@ module.exports = Report;
 
 }).call(this,require('_process'))
 
-},{"./Errors":101,"./Utils":109,"_process":65}],106:[function(require,module,exports){
+},{"./Errors":105,"./Utils":113,"_process":65}],110:[function(require,module,exports){
 "use strict";
 
 var Report              = require("./Report");
@@ -23871,7 +24222,7 @@ exports.getSchemaByUri = function (report, uri, root) {
 
 exports.getRemotePath = getRemotePath;
 
-},{"./Report":105,"./SchemaCompilation":107,"./SchemaValidation":108,"./Utils":109}],107:[function(require,module,exports){
+},{"./Report":109,"./SchemaCompilation":111,"./SchemaValidation":112,"./Utils":113}],111:[function(require,module,exports){
 "use strict";
 
 var Report      = require("./Report");
@@ -24159,7 +24510,7 @@ exports.compileSchema = function (report, schema) {
 
 };
 
-},{"./Report":105,"./SchemaCache":106,"./Utils":109}],108:[function(require,module,exports){
+},{"./Report":109,"./SchemaCache":110,"./Utils":113}],112:[function(require,module,exports){
 "use strict";
 
 var FormatValidators = require("./FormatValidators"),
@@ -24768,7 +25119,7 @@ exports.validateSchema = function (report, schema) {
     return isValid;
 };
 
-},{"./FormatValidators":102,"./JsonValidation":103,"./Report":105,"./Utils":109}],109:[function(require,module,exports){
+},{"./FormatValidators":106,"./JsonValidation":107,"./Report":109,"./Utils":113}],113:[function(require,module,exports){
 "use strict";
 
 exports.isAbsoluteUri = function (uri) {
@@ -24987,11 +25338,12 @@ exports.ucs2decode = function (string) {
 };
 /*jshint +W016*/
 
-},{}],110:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 (function (process){
 "use strict";
 
 require("./Polyfills");
+var get               = require("lodash.get");
 var Report            = require("./Report");
 var FormatValidators  = require("./FormatValidators");
 var JsonValidation    = require("./JsonValidation");
@@ -25128,7 +25480,14 @@ ZSchema.prototype.validateSchema = function (schema) {
     this.lastReport = report;
     return report.isValid();
 };
-ZSchema.prototype.validate = function (json, schema, callback) {
+ZSchema.prototype.validate = function (json, schema, options, callback) {
+
+    if (Utils.whatIs(options) === "function") {
+        callback = options;
+        options = {};
+    }
+    if (!options) { options = {}; }
+
     var whatIs = Utils.whatIs(schema);
     if (whatIs !== "string" && whatIs !== "object") {
         var e = new Error("Invalid .validate call - schema must be an string or object but " + whatIs + " was passed!");
@@ -25144,7 +25503,15 @@ ZSchema.prototype.validate = function (json, schema, callback) {
     var foundError = false;
     var report = new Report(this.options);
 
-    schema = SchemaCache.getSchema.call(this, report, schema);
+    if (typeof schema === "string") {
+        var schemaName = schema;
+        schema = SchemaCache.getSchema.call(this, report, schemaName);
+        if (!schema) {
+            throw new Error("Schema with id '" + schemaName + "' wasn't found in the validator cache!");
+        }
+    } else {
+        schema = SchemaCache.getSchema.call(this, report, schema);
+    }
 
     var compiled = false;
     if (!foundError) {
@@ -25162,6 +25529,11 @@ ZSchema.prototype.validate = function (json, schema, callback) {
     if (!validated) {
         this.lastReport = report;
         foundError = true;
+    }
+
+    if (options.schemaPath) {
+        report.rootSchema = schema;
+        schema = get(schema, options.schemaPath);
     }
 
     if (!foundError) {
@@ -25315,7 +25687,7 @@ module.exports = ZSchema;
 
 }).call(this,require('_process'))
 
-},{"./FormatValidators":102,"./JsonValidation":103,"./Polyfills":104,"./Report":105,"./SchemaCache":106,"./SchemaCompilation":107,"./SchemaValidation":108,"./Utils":109,"./schemas/hyper-schema.json":111,"./schemas/schema.json":112,"_process":65}],111:[function(require,module,exports){
+},{"./FormatValidators":106,"./JsonValidation":107,"./Polyfills":108,"./Report":109,"./SchemaCache":110,"./SchemaCompilation":111,"./SchemaValidation":112,"./Utils":113,"./schemas/hyper-schema.json":115,"./schemas/schema.json":116,"_process":65,"lodash.get":100}],115:[function(require,module,exports){
 module.exports={
     "$schema": "http://json-schema.org/draft-04/hyper-schema#",
     "id": "http://json-schema.org/draft-04/hyper-schema#",
@@ -25475,7 +25847,7 @@ module.exports={
 }
 
 
-},{}],112:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 module.exports={
     "id": "http://json-schema.org/draft-04/schema#",
     "$schema": "http://json-schema.org/draft-04/schema#",
