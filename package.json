@@ -62,16 +62,15 @@
     "sinon": "^1.16.1",
     "jscs": "^2.1.1",
     "jshint": "^2.8.0",
-    "npm-check-updates": "^2.2.0",
+    "npm-check-updates": "^2.2.3",
     "version-bump-prompt": "^1.5.1"
   },
   "dependencies": {
     "debug": "^2.2.0",
-    "json-schema-ref-parser": ">=1.0.0-alpha.17",
-    "lodash": "^3.10.1",
+    "json-schema-ref-parser": ">=1.0.0-alpha.20",
     "ono": "^1.0.22",
     "swagger-methods": "^1.0.0",
     "swagger-schema-official": "2.0.0-96305d9",
-    "z-schema": "^3.13.0"
+    "z-schema": "^3.14.1"
   }
 }

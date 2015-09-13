@@ -6,6 +6,11 @@ info:
 
 paths:
   /people/{name}:
+    parameters:
+      - name: name
+        in: path
+        type: string
+        required: true
     post:
       responses:
         200:

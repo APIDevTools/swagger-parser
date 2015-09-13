@@ -6,26 +6,32 @@ info:
 
 paths:
   /people/{name}:
+    parameters:
+      - name: name
+        in: path
+        type: string
+        required: true
     post:
       responses:
         200:
           description: A person
           schema:
-            $ref: "#/definitions/person"
+            $ref: "#/definitions/thing"
 
 definitions:
   thing:
     $ref: "#/definitions/thing" # circular reference to self
 
   person:
+    type: object
     properties:
       name:
         type: string
       spouse:
-        type:
-          $ref: "#/definitions/person" # circular reference to parent
+        $ref: "#/definitions/person" # circular reference to parent
 
   parent:
+    type: object
     properties:
       name:
         type: string
@@ -35,6 +41,7 @@ definitions:
           $ref: "#/definitions/child"   # indirect circular reference
 
   child:
+    type: object
     properties:
       name:
         type: string

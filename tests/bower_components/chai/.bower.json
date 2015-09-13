@@ -24,12 +24,12 @@
   "dependencies": {},
   "devDependencies": {},
   "homepage": "https://github.com/chaijs/chai",
-  "version": "3.2.0",
-  "_release": "3.2.0",
+  "version": "3.3.0",
+  "_release": "3.3.0",
   "_resolution": {
     "type": "version",
-    "tag": "3.2.0",
-    "commit": "4e18d2a49394f21f49eaea97f556d6a17ecbcc7e"
+    "tag": "3.3.0",
+    "commit": "df954ccacf77cc740f45730c04a37bccf7387456"
   },
   "_source": "git://github.com/chaijs/chai.git",
   "_target": "*",
