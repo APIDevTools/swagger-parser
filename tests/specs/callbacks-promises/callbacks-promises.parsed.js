@@ -42,12 +42,11 @@ helper.parsed.callbacksPromises =
       "type": "object",
       "properties": {
         "middle": {
-          "minLength": {
-            "$ref": "#/definitions/name/properties/last/minLength"
-          },
-          "type": {
-            "$ref": "#/definitions/name/properties/first/type"
-          }
+          "type": "string",
+          "enum": [
+            {"$ref": "#/definitions/name/properties/first/type"},
+            {"$ref": "#/definitions/name/properties/last/title"}
+          ]
         },
         "prefix": {
           "minLength": 3,

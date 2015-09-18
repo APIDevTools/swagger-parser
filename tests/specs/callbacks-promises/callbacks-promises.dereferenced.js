@@ -14,8 +14,8 @@ helper.dereferenced.callbacksPromises =
       "type": "object",
       "properties": {
         "middle": {
-          "minLength": 1,
-          "type": "string"
+          "type": "string",
+          "enum": ["string", "requiredString"]
         },
         "prefix": {
           "minLength": 3,
@@ -68,8 +68,8 @@ helper.dereferenced.callbacksPromises =
               "type": "object",
               "properties": {
                 "middle": {
-                  "minLength": 1,
-                  "type": "string"
+                  "type": "string",
+                  "enum": ["string", "requiredString"]
                 },
                 "prefix": {
                   "minLength": 3,

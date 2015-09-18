@@ -1,4 +1,4 @@
-helper.dereferenced.circularExternal =
+helper.validated.circularExternal =
 {
   "swagger": "2.0",
   "info": {
@@ -40,7 +40,7 @@ helper.dereferenced.circularExternal =
   },
   "definitions": {
     "thing": {
-      "$ref": "circular.yaml#/definitions/thing"
+      "$ref": "#/definitions/thing"
     },
     "person": {
       "title": "person",
@@ -81,16 +81,16 @@ helper.dereferenced.circularExternal =
   }
 };
 
-helper.dereferenced.circularExternal.paths['/thing'].get.responses['200'].schema =
-  helper.dereferenced.circularExternal.definitions.thing;
+helper.validated.circularExternal.paths['/thing'].get.responses['200'].schema =
+  helper.validated.circularExternal.definitions.thing;
 
-helper.dereferenced.circularExternal.paths['/person'].get.responses['200'].schema =
-  helper.dereferenced.circularExternal.definitions.person.properties.spouse =
-  helper.dereferenced.circularExternal.definitions.person;
+helper.validated.circularExternal.paths['/person'].get.responses['200'].schema =
+  helper.validated.circularExternal.definitions.person.properties.spouse =
+  helper.validated.circularExternal.definitions.person;
 
-helper.dereferenced.circularExternal.definitions.parent.properties.children.items =
-  helper.dereferenced.circularExternal.definitions.child;
+helper.validated.circularExternal.definitions.parent.properties.children.items =
+  helper.validated.circularExternal.definitions.child;
 
-helper.dereferenced.circularExternal.paths['/parent'].get.responses['200'].schema =
-  helper.dereferenced.circularExternal.definitions.child.properties.parents.items =
-  helper.dereferenced.circularExternal.definitions.parent;
+helper.validated.circularExternal.paths['/parent'].get.responses['200'].schema =
+  helper.validated.circularExternal.definitions.child.properties.parents.items =
+  helper.validated.circularExternal.definitions.parent;

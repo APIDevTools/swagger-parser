@@ -43,9 +43,7 @@ helper.bundled.deepCircular =
                               "type": "object",
                               "properties": {
                                 "name": {
-                                  "type": {
-                                    "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                  }
+                                  "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                 },
                                 "level5": {
                                   "required": [
@@ -54,9 +52,7 @@ helper.bundled.deepCircular =
                                   "type": "object",
                                   "properties": {
                                     "name": {
-                                      "type": {
-                                        "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                      }
+                                      "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                     },
                                     "level6": {
                                       "required": [
@@ -65,9 +61,7 @@ helper.bundled.deepCircular =
                                       "type": "object",
                                       "properties": {
                                         "name": {
-                                          "type": {
-                                            "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                          }
+                                          "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                         },
                                         "level7": {
                                           "required": [
@@ -112,9 +106,7 @@ helper.bundled.deepCircular =
                                                                   "type": "object",
                                                                   "properties": {
                                                                     "name": {
-                                                                      "type": {
-                                                                        "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                      }
+                                                                      "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                     },
                                                                     "level14": {
                                                                       "required": [
@@ -123,9 +115,7 @@ helper.bundled.deepCircular =
                                                                       "type": "object",
                                                                       "properties": {
                                                                         "name": {
-                                                                          "type": {
-                                                                            "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                          }
+                                                                          "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                         },
                                                                         "level15": {
                                                                           "required": [
@@ -140,9 +130,7 @@ helper.bundled.deepCircular =
                                                                               "type": "object",
                                                                               "properties": {
                                                                                 "name": {
-                                                                                  "type": {
-                                                                                    "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                  }
+                                                                                  "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                 },
                                                                                 "level17": {
                                                                                   "required": [
@@ -187,9 +175,7 @@ helper.bundled.deepCircular =
                                                                                                           "type": "object",
                                                                                                           "properties": {
                                                                                                             "name": {
-                                                                                                              "type": {
-                                                                                                                "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                                              }
+                                                                                                              "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                                             },
                                                                                                             "level24": {
                                                                                                               "required": [
@@ -198,9 +184,7 @@ helper.bundled.deepCircular =
                                                                                                               "type": "object",
                                                                                                               "properties": {
                                                                                                                 "name": {
-                                                                                                                  "type": {
-                                                                                                                    "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                                                  }
+                                                                                                                  "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                                                 },
                                                                                                                 "level25": {
                                                                                                                   "required": [
@@ -209,9 +193,7 @@ helper.bundled.deepCircular =
                                                                                                                   "type": "object",
                                                                                                                   "properties": {
                                                                                                                     "name": {
-                                                                                                                      "type": {
-                                                                                                                        "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                                                      }
+                                                                                                                      "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                                                     },
                                                                                                                     "level26": {
                                                                                                                       "required": [
@@ -241,30 +223,22 @@ helper.bundled.deepCircular =
                                                                                                                                       "$ref": "#/paths/~1family-tree/get/responses/200/schema"
                                                                                                                                     },
                                                                                                                                     "name": {
-                                                                                                                                      "type": {
-                                                                                                                                        "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                                                                      }
+                                                                                                                                      "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                                                                     }
                                                                                                                                   }
                                                                                                                                 },
                                                                                                                                 "name": {
-                                                                                                                                  "type": {
-                                                                                                                                    "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                                                                  }
+                                                                                                                                  "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                                                                 }
                                                                                                                               }
                                                                                                                             },
                                                                                                                             "name": {
-                                                                                                                              "type": {
-                                                                                                                                "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                                                              }
+                                                                                                                              "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                                                             }
                                                                                                                           }
                                                                                                                         },
                                                                                                                         "name": {
-                                                                                                                          "type": {
-                                                                                                                            "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                                                          }
+                                                                                                                          "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                                                         }
                                                                                                                       }
                                                                                                                     }
@@ -275,53 +249,39 @@ helper.bundled.deepCircular =
                                                                                                           }
                                                                                                         },
                                                                                                         "name": {
-                                                                                                          "type": {
-                                                                                                            "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                                          }
+                                                                                                          "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                                         }
                                                                                                       }
                                                                                                     },
                                                                                                     "name": {
-                                                                                                      "type": {
-                                                                                                        "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                                      }
+                                                                                                      "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                                     }
                                                                                                   }
                                                                                                 },
                                                                                                 "name": {
-                                                                                                  "type": {
-                                                                                                    "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                                  }
+                                                                                                  "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                                 }
                                                                                               }
                                                                                             },
                                                                                             "name": {
-                                                                                              "type": {
-                                                                                                "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                              }
+                                                                                              "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                             }
                                                                                           }
                                                                                         },
                                                                                         "name": {
-                                                                                          "type": {
-                                                                                            "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                          }
+                                                                                          "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                         }
                                                                                       }
                                                                                     },
                                                                                     "name": {
-                                                                                      "type": {
-                                                                                        "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                                      }
+                                                                                      "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                                     }
                                                                                   }
                                                                                 }
                                                                               }
                                                                             },
                                                                             "name": {
-                                                                              "type": {
-                                                                                "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                              }
+                                                                              "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                             }
                                                                           }
                                                                         }
@@ -330,44 +290,32 @@ helper.bundled.deepCircular =
                                                                   }
                                                                 },
                                                                 "name": {
-                                                                  "type": {
-                                                                    "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                                  }
+                                                                  "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                                 }
                                                               }
                                                             },
                                                             "name": {
-                                                              "type": {
-                                                                "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                              }
+                                                              "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                             }
                                                           }
                                                         },
                                                         "name": {
-                                                          "type": {
-                                                            "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                          }
+                                                          "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                         }
                                                       }
                                                     },
                                                     "name": {
-                                                      "type": {
-                                                        "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                      }
+                                                      "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                     }
                                                   }
                                                 },
                                                 "name": {
-                                                  "type": {
-                                                    "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                                  }
+                                                  "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                                 }
                                               }
                                             },
                                             "name": {
-                                              "type": {
-                                                "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                                              }
+                                              "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                                             }
                                           }
                                         }
@@ -378,62 +326,53 @@ helper.bundled.deepCircular =
                               }
                             },
                             "name": {
-                              "type": {
-                                "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                              }
+                              "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                             }
                           }
                         },
                         "name": {
-                          "type": {
-                            "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                          }
+                          "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                         }
                       }
                     },
                     "name": {
-                      "type": {
-                        "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type"
-                      }
+                      "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name"
                     }
                   }
                 },
                 "name": {
-                  "type": {
-                    "required": [
-                      "first",
-                      "last"
-                    ],
-                    "type": "object",
-                    "properties": {
-                      "middle": {
-                        "minLength": {
-                          "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type/properties/first/minLength"
-                        },
-                        "type": {
-                          "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type/properties/first/type"
-                        }
-                      },
-                      "prefix": {
-                        "minLength": 3,
-                        "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type/properties/first"
-                      },
-                      "last": {
-                        "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type/properties/first"
-                      },
-                      "suffix": {
-                        "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/type/properties/prefix",
-                        "type": "string",
-                        "maxLength": 3
-                      },
-                      "first": {
-                        "minLength": 1,
-                        "type": "string",
-                        "title": "requiredString"
-                      }
+                  "required": [
+                    "first",
+                    "last"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "middle": {
+                      "type": "string",
+                      "enum": [
+                        {"$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/first/type"},
+                        {"$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/first/title"}
+                      ]
                     },
-                    "title": "name"
-                  }
+                    "prefix": {
+                      "minLength": 3,
+                      "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/first"
+                    },
+                    "last": {
+                      "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/first"
+                    },
+                    "suffix": {
+                      "$ref": "#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/prefix",
+                      "type": "string",
+                      "maxLength": 3
+                    },
+                    "first": {
+                      "minLength": 1,
+                      "type": "string",
+                      "title": "requiredString"
+                    }
+                  },
+                  "title": "name"
                 }
               }
             }

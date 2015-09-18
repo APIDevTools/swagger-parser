@@ -14,6 +14,11 @@
   helper.dereferenced = {};
 
   /**
+   * Validated JSON schemas
+   */
+  helper.validated = {};
+
+  /**
    * Bundled JSON schemas
    */
   helper.bundled = {};

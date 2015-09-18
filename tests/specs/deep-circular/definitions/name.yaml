@@ -9,10 +9,10 @@ properties:
   last:
     $ref: ./required-string.yaml
   middle:
-    type:
-      $ref: "#/properties/first/type"
-    minLength:
-      $ref: "#/properties/first/minLength"
+    type: string
+    enum:
+      - $ref: "#/properties/first/type"
+      - $ref: "#/properties/last/title"
   prefix:
     $ref: "#/properties/last"
     minLength: 3

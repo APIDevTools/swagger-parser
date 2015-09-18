@@ -53,9 +53,7 @@ helper.bundled.circularExternal =
       "type": "object",
       "properties": {
         "spouse": {
-          "type": {
-            "$ref": "#/definitions/person"
-          }
+          "$ref": "#/definitions/person"
         },
         "name": {
           "type": "string"

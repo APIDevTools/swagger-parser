@@ -30,10 +30,10 @@ definitions:
       last:
         $ref: "#/definitions/name/properties/first"
       middle:
-        type:
-          $ref: "#/definitions/name/properties/first/type"
-        minLength:
-          $ref: "#/definitions/name/properties/last/minLength"
+        type: string
+        enum:
+          - $ref: "#/definitions/name/properties/first/type"
+          - $ref: "#/definitions/name/properties/last/title"
       prefix:
         $ref: "#/definitions/name/properties/last"
         minLength: 3

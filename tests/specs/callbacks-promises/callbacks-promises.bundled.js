@@ -20,12 +20,11 @@ helper.bundled.callbacksPromises =
           "$ref": "#/definitions/requiredString"
         },
         "middle": {
-          "minLength": {
-            "$ref": "#/definitions/requiredString/minLength"
-          },
-          "type": {
-            "$ref": "#/definitions/requiredString/type"
-          }
+          "type": "string",
+          "enum": [
+            {"$ref": "#/definitions/requiredString/type"},
+            {"$ref": "#/definitions/requiredString/title"}
+          ]
         },
         "prefix": {
           "$ref": "#/definitions/requiredString",

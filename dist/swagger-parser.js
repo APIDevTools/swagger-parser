@@ -7,12 +7,14 @@
  */
 'use strict';
 
-var validate   = require('./validate'),
-    util       = require('./util'),
-    Options    = require('./options'),
-    ono        = require('ono'),
-    Promise    = require('json-schema-ref-parser/lib/promise'),
-    $RefParser = require('json-schema-ref-parser');
+var validateSchema = require('./validate-schema'),
+    validateSpec   = require('./validate-spec'),
+    util           = require('./util'),
+    Options        = require('./options'),
+    ono            = require('ono'),
+    dereference    = require('json-schema-ref-parser/lib/dereference'),
+    Promise        = require('json-schema-ref-parser/lib/promise'),
+    $RefParser     = require('json-schema-ref-parser');
 
 module.exports = SwaggerParser;
 
@@ -56,6 +58,12 @@ Object.defineProperty(SwaggerParser.prototype, 'api', {
  * @returns {Promise} - The returned promise resolves with the parsed API object.
  */
 SwaggerParser.prototype.parse = function(api, options, callback) {
+  if (typeof(options) === 'function') {
+    callback = options;
+    options = undefined;
+  }
+
+  options = new Options(options);
   var me = this;
 
   return $RefParser.prototype.parse.call(this, api, options)
@@ -122,9 +130,21 @@ SwaggerParser.prototype.validate = function(api, options, callback) {
   options = new Options(options);
   var me = this;
 
-  return this.dereference(api, options)
+  return this.bundle(api, options)
     .then(function() {
-      validate(me, options);
+      // Validate the bundled schema, since it won't contain any circular references
+      if (options.validate.schema) {
+        validateSchema(me.api);
+      }
+
+      // Fully-dereference the schema
+      dereference(me, options);
+
+      // Validate the dereferenced schema against the Swagger spec
+      if (options.validate.spec) {
+        validateSpec(me.api);
+      }
+
       util.doCallback(callback, null, me.schema);
       return me.schema;
     })
@@ -141,7 +161,7 @@ SwaggerParser.prototype.validate = function(api, options, callback) {
  * @typedef {{swagger: string, info: {}, paths: {}}} SwaggerObject
  */
 
-},{"./options":2,"./util":3,"./validate":4,"json-schema-ref-parser":10,"json-schema-ref-parser/lib/promise":14,"ono":54}],2:[function(require,module,exports){
+},{"./options":2,"./util":3,"./validate-schema":4,"./validate-spec":5,"json-schema-ref-parser":11,"json-schema-ref-parser/lib/dereference":10,"json-schema-ref-parser/lib/promise":15,"ono":55}],2:[function(require,module,exports){
 'use strict';
 
 var $RefParserOptions = require('json-schema-ref-parser/lib/options'),
@@ -167,7 +187,7 @@ function ParserOptions(options) {
 
 util.inherits(ParserOptions, $RefParserOptions);
 
-},{"json-schema-ref-parser/lib/options":11,"util":96}],3:[function(require,module,exports){
+},{"json-schema-ref-parser/lib/options":12,"util":97}],3:[function(require,module,exports){
 'use strict';
 
 var debug          = require('debug'),
@@ -190,43 +210,23 @@ exports.debug = debug('swagger:parser');
  */
 exports.swaggerParamRegExp = /\{([^/}]+)}/g;
 
-},{"debug":5,"json-schema-ref-parser/lib/util":19,"util":96}],4:[function(require,module,exports){
+},{"debug":6,"json-schema-ref-parser/lib/util":20,"util":97}],4:[function(require,module,exports){
 'use strict';
 
 var util              = require('./util'),
     ono               = require('ono'),
     ZSchema           = require('z-schema'),
     swaggerSchema     = require('swagger-schema-official/schema'),
-    swaggerMethods    = require('swagger-methods'),
-    schemaInitialized = false,
-    primitiveTypes    = ['array', 'boolean', 'integer', 'number', 'string'],
-    schemaTypes       = ['array', 'boolean', 'integer', 'number', 'null', 'object', 'string', undefined];
+    schemaInitialized = false;
 
-module.exports = validate;
-
-/**
- * Validates the Swagger API.
- * Depending on the options, validation can include JSON Schema validation and/or Swagger Spec validation.
- *
- * @param {SwaggerParser} parser
- * @param {ParserOptions} options
- */
-function validate(parser, options) {
-  if (options.validate.schema) {
-    validateAgainstSwaggerSchema(parser.api);
-  }
-
-  if (options.validate.spec) {
-    validateAgainstSwaggerSpec(parser.api);
-  }
-}
+module.exports = validateSchema;
 
 /**
  * Validates the given Swagger API against the Swagger 2.0 schema.
  *
  * @param {SwaggerObject} api
  */
-function validateAgainstSwaggerSchema(api) {
+function validateSchema(api) {
   util.debug('Validating against the Swagger 2.0 schema');
 
   initializeSchema();
@@ -290,12 +290,23 @@ function initializeSchema() {
   });
 }
 
+},{"./util":3,"ono":55,"swagger-schema-official/schema":100,"z-schema":115}],5:[function(require,module,exports){
+'use strict';
+
+var util              = require('./util'),
+    ono               = require('ono'),
+    swaggerMethods    = require('swagger-methods'),
+    primitiveTypes    = ['array', 'boolean', 'integer', 'number', 'string'],
+    schemaTypes       = ['array', 'boolean', 'integer', 'number', 'null', 'object', 'string', undefined];
+
+module.exports = validateSpec;
+
 /**
  * Validates parts of the Swagger 2.0 spec that aren't covered by the Swagger 2.0 JSON Schema.
  *
  * @param {SwaggerObject} api
  */
-function validateAgainstSwaggerSpec(api) {
+function validateSpec(api) {
   util.debug('Validating against the Swagger 2.0 spec');
 
   // NOTE: We use for loops here instead of Array.ForEach
@@ -364,7 +375,7 @@ function validateParameters(api, path, pathId, operation, operationId) {
   // with the operation params taking precedence over the path params
   var params = pathParams.reduce(function(params, value) {
     var duplicate = params.some(function(param) {
-      return param.in === value.in && param.name == value.name;
+      return param.in === value.in && param.name === value.name;
     });
     if (!duplicate) {
       params.push(value);
@@ -437,7 +448,8 @@ function validatePathParameters(params, pathId, operationId) {
       var match = placeholders.indexOf('{' + param.name + '}');
       if (match === -1) {
         throw ono.syntax(
-          'Validation failed. %s has a path parameter named "%s", but there is no corresponding {%s} in the path string',
+          'Validation failed. %s has a path parameter named "%s", ' +
+          'but there is no corresponding {%s} in the path string',
           operationId,
           param.name,
           param.name
@@ -538,7 +550,7 @@ function validateResponse(response, responseId) {
 }
 
 
-},{"./util":3,"ono":54,"swagger-methods":98,"swagger-schema-official/schema":99,"z-schema":114}],5:[function(require,module,exports){
+},{"./util":3,"ono":55,"swagger-methods":99}],6:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -708,7 +720,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":6}],6:[function(require,module,exports){
+},{"./debug":7}],7:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -907,7 +919,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":7}],7:[function(require,module,exports){
+},{"ms":8}],8:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -1034,18 +1046,19 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /**!
- * JSON Schema $Ref Parser v1.0.0-alpha.20
+ * JSON Schema $Ref Parser v1.0.6
  *
  * @link https://github.com/BigstickCarpet/json-schema-ref-parser
  * @license MIT
  */
 'use strict';
 
-var $Ref = require('./ref'),
-    util = require('./util'),
-    url  = require('url');
+var $Ref    = require('./ref'),
+    Pointer = require('./pointer'),
+    util    = require('./util'),
+    url     = require('url');
 
 module.exports = bundle;
 
@@ -1099,7 +1112,7 @@ function remap($refs, options) {
 function crawl(obj, path, $refs, remapped, options) {
   if (obj && typeof(obj) === 'object') {
     Object.keys(obj).forEach(function(key) {
-      var keyPath = path + '/' + key;
+      var keyPath = Pointer.join(path, key);
       var value = obj[key];
 
       if ($Ref.is$Ref(value)) {
@@ -1135,18 +1148,19 @@ function dereference(basePath, $refs, options) {
 
   Object.keys($refs._$refs).forEach(function(key) {
     var $ref = $refs._$refs[key];
-    if ($ref.pathFromRoot) {
+    if ($ref.pathFromRoot !== '#') {
       $refs.set(basePath + $ref.pathFromRoot, $ref.value, options);
     }
   });
 }
 
-},{"./ref":16,"./util":19,"url":94}],9:[function(require,module,exports){
+},{"./pointer":14,"./ref":17,"./util":20,"url":95}],10:[function(require,module,exports){
 'use strict';
 
-var $Ref = require('./ref'),
-    util = require('./util'),
-    url  = require('url');
+var $Ref    = require('./ref'),
+    Pointer = require('./pointer'),
+    util    = require('./util'),
+    url     = require('url');
 
 module.exports = dereference;
 
@@ -1174,10 +1188,9 @@ function dereference(parser, options) {
 function crawl(obj, path, parents, $refs, options) {
   if (obj && typeof(obj) === 'object') {
     parents.push(obj);
-    path = util.path.ensureHash(path);
 
     Object.keys(obj).forEach(function(key) {
-      var keyPath = path + '/' + key;
+      var keyPath = Pointer.join(path, key);
       var value = obj[key];
 
       if ($Ref.isAllowed$Ref(value, options)) {
@@ -1187,11 +1200,11 @@ function crawl(obj, path, parents, $refs, options) {
         var pointer = $refs._resolve($refPath, options);
 
         // Dereference the JSON reference
-        obj[key] = value = pointer.value;
+        value = dereference$Ref(obj, key, pointer.value);
 
         // Crawl the dereferenced value (unless it's circular)
         if (parents.indexOf(value) === -1) {
-          crawl(pointer.value, pointer.path, parents, $refs, options);
+          crawl(value, pointer.path, parents, $refs, options);
         }
       }
       else if (parents.indexOf(value) === -1) {
@@ -1203,7 +1216,34 @@ function crawl(obj, path, parents, $refs, options) {
   }
 }
 
-},{"./ref":16,"./util":19,"url":94}],10:[function(require,module,exports){
+/**
+ * Replaces the specified JSON reference with its resolved value.
+ *
+ * @param {object} obj - The object that contains the JSON reference
+ * @param {string} key - The key of the JSON reference within `obj`
+ * @param {*} value - The resolved value
+ * @returns {*} - Returns the new value of the JSON reference
+ */
+function dereference$Ref(obj, key, value) {
+  var $refObj = obj[key];
+
+  if (value && typeof(value) === 'object' && Object.keys($refObj).length > 1) {
+    // The JSON reference has additional properties (other than "$ref"),
+    // so merge the resolved value rather than completely replacing the reference
+    delete $refObj.$ref;
+    Object.keys(value).forEach(function(key) {
+      if (!(key in $refObj)) {
+        $refObj[key] = value[key];
+      }
+    });
+  }
+  else {
+    // Completely replace the original reference with the resolved value
+    return obj[key] = value;
+  }
+}
+
+},{"./pointer":14,"./ref":17,"./util":20,"url":95}],11:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
@@ -1302,12 +1342,14 @@ $RefParser.prototype.parse = function(schema, options, callback) {
   var me = this;
 
   // Resolve the absolute path of the schema
+  args.schema = util.path.localPathToUrl(args.schema);
   args.schema = url.resolve(util.path.cwd(), args.schema);
   this._basePath = util.path.stripHash(args.schema);
 
   // Read the schema file/url
   return read(args.schema, this.$refs, args.options)
-    .then(function($ref) {
+    .then(function(cached$Ref) {
+      var $ref = cached$Ref.$ref;
       if (!$ref.value || typeof($ref.value) !== 'object' || $ref.value instanceof Buffer) {
         throw ono.syntax('"%s" is not a valid JSON Schema', me._basePath);
       }
@@ -1318,7 +1360,7 @@ $RefParser.prototype.parse = function(schema, options, callback) {
       }
     })
     .catch(function(err) {
-      util.doCallback(args.callback, err);
+      util.doCallback(args.callback, err, me.schema);
       return Promise.reject(err);
     });
 };
@@ -1474,7 +1516,7 @@ function normalizeArgs(args) {
 
 }).call(this,require("buffer").Buffer)
 
-},{"./bundle":8,"./dereference":9,"./options":11,"./promise":14,"./read":15,"./ref":16,"./refs":17,"./resolve":18,"./util":19,"./yaml":21,"buffer":57,"ono":54,"url":94}],11:[function(require,module,exports){
+},{"./bundle":9,"./dereference":10,"./options":12,"./promise":15,"./read":16,"./ref":17,"./refs":18,"./resolve":19,"./util":20,"./yaml":22,"buffer":58,"ono":55,"url":95}],12:[function(require,module,exports){
 'use strict';
 
 module.exports = $RefParserOptions;
@@ -1589,7 +1631,7 @@ function merge(src, dest) {
   }
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
@@ -1656,14 +1698,14 @@ function parse(data, path, options) {
  */
 function isEmpty(value) {
   return !value ||
-    (typeof(value) === 'object' && Object.keys(value) === 0) ||
+    (typeof(value) === 'object' && Object.keys(value).length === 0) ||
     (typeof(value) === 'string' && value.trim().length === 0) ||
     (value instanceof Buffer && value.length === 0);
 }
 
 }).call(this,require("buffer").Buffer)
 
-},{"./util":19,"./yaml":21,"buffer":57,"ono":54}],13:[function(require,module,exports){
+},{"./util":20,"./yaml":22,"buffer":58,"ono":55}],14:[function(require,module,exports){
 'use strict';
 
 module.exports = Pointer;
@@ -1672,6 +1714,8 @@ var $Ref         = require('./ref'),
     util         = require('./util'),
     url          = require('url'),
     ono          = require('ono'),
+    slashes      = /\//g,
+    tildes       = /~/g,
     escapedSlash = /~1/g,
     escapedTilde = /~0/g;
 
@@ -1724,7 +1768,7 @@ Pointer.prototype.resolve = function(obj, options) {
   for (var i = 0; i < tokens.length; i++) {
     if (resolveIf$Ref(this, options)) {
       // The $ref path has changed, so append the remaining tokens to the path
-      this.path += '#/' + tokens.slice(i).join('/');
+      this.path = Pointer.join(this.path, tokens.slice(i));
     }
 
     var token = tokens[i];
@@ -1823,6 +1867,30 @@ Pointer.parse = function(path) {
 };
 
 /**
+ * Creates a JSON pointer path, by joining one or more tokens to a base path.
+ *
+ * @param {string} base - The base path (e.g. "schema.json#/definitions/person")
+ * @param {string|string[]} tokens - The token(s) to append (e.g. ["name", "first"])
+ * @returns {string}
+ */
+Pointer.join = function(base, tokens) {
+  // Ensure that the base path contains a hash
+  if (base.indexOf('#') === -1) {
+    base += '#';
+  }
+
+  // Append each token to the base path
+  tokens = Array.isArray(tokens) ? tokens : [tokens];
+  for (var i = 0; i < tokens.length; i++) {
+    var token = tokens[i];
+    // Encode the token, according to RFC 6901
+    base += '/' + token.replace(tildes, '~0').replace(slashes, '~1');
+  }
+
+  return base;
+};
+
+/**
  * If the given pointer's {@link Pointer#value} is a JSON reference,
  * then the reference is resolved and {@link Pointer#value} is replaced with the resolved value.
  * In addition, {@link Pointer#path} and {@link Pointer#$ref} are updated to reflect the
@@ -1835,16 +1903,20 @@ Pointer.parse = function(path) {
 function resolveIf$Ref(pointer, options) {
   // Is the value a JSON reference? (and allowed?)
   if ($Ref.isAllowed$Ref(pointer.value, options)) {
-    var $refPath = url.resolve(pointer.path, pointer.value.$ref);
+    // Does the JSON reference have other properties (other than "$ref")?
+    // If so, then don't resolve it, since it represents a new type
+    if (Object.keys(pointer.value).length === 1) {
+      var $refPath = url.resolve(pointer.path, pointer.value.$ref);
 
-    // Is the value a reference to itself?  If so, then there's nothing to do.
-    if ($refPath !== pointer.path) {
-      // Resolve the reference
-      var resolved = pointer.$ref.$refs._resolve($refPath);
-      pointer.$ref = resolved.$ref;
-      pointer.path = resolved.path;    // pointer.path = $refPath ???
-      pointer.value = resolved.value;
-      return true;
+      // Is the value a reference to itself?  If so, then there's nothing to do.
+      if ($refPath !== pointer.path) {
+        // Resolve the reference
+        var resolved = pointer.$ref.$refs._resolve($refPath);
+        pointer.$ref = resolved.$ref;
+        pointer.path = resolved.path;    // pointer.path = $refPath ???
+        pointer.value = resolved.value;
+        return true;
+      }
     }
   }
 }
@@ -1875,12 +1947,12 @@ function setValue(pointer, token, value) {
   return value;
 }
 
-},{"./ref":16,"./util":19,"ono":54,"url":94}],14:[function(require,module,exports){
+},{"./ref":17,"./util":20,"ono":55,"url":95}],15:[function(require,module,exports){
 /** @type {Promise} **/
 module.exports = typeof(Promise) === 'function' ? Promise : require('es6-promise').Promise;
 
-},{"es6-promise":22}],15:[function(require,module,exports){
-(function (process){
+},{"es6-promise":23}],16:[function(require,module,exports){
+(function (process,Buffer){
 'use strict';
 
 var fs      = require('fs'),
@@ -1903,8 +1975,8 @@ module.exports = read;
  * @param {$RefParserOptions} options
  *
  * @returns {Promise}
- * The promise resolves with a {@link $Ref} object.
- * {@link $Ref#cached} will be true if the file was already cached.
+ * The promise resolves with an object that contains a {@link $Ref}
+ * and a flag indicating whether the {@link $Ref} came from cache or not.
  */
 function read(path, $refs, options) {
   try {
@@ -1916,8 +1988,10 @@ function read(path, $refs, options) {
     var $ref = $refs._get$Ref(path);
     if ($ref && !$ref.isExpired()) {
       util.debug('    cached from %s', $ref.type);
-      $ref.cached = true;
-      return Promise.resolve($ref);
+      return Promise.resolve({
+        $ref: $ref,
+        cached: true
+      });
     }
 
     // Add a placeholder $ref to the cache, so we don't read this URL multiple times
@@ -1950,9 +2024,11 @@ function read$Ref($ref, options) {
           // Update the $ref with the parsed file contents
           var value = parse(data, $ref.path, options);
           $ref.setValue(value, options);
-          $ref.cached = false;
 
-          return $ref;
+          return {
+            $ref: $ref,
+            cached: false
+          };
         });
     }
     else {
@@ -1984,7 +2060,7 @@ function read$RefFile($ref, options) {
   return new Promise(function(resolve, reject) {
     var file;
     try {
-      file = decodeURI($ref.path);
+      file = util.path.urlToLocalPath($ref.path);
     }
     catch (err) {
       reject(ono.uri(err, 'Malformed URI: %s', $ref.path));
@@ -2021,6 +2097,11 @@ function read$RefFile($ref, options) {
  */
 function read$RefUrl($ref, options) {
   var u = url.parse($ref.path);
+
+  if (process.browser && !u.protocol) {
+    // Use the protocol of the current page
+    u.protocol = url.parse(location.href).protocol;
+  }
 
   if (u.protocol === 'http:') {
     $ref.pathType = 'http';
@@ -2077,8 +2158,12 @@ function download(protocol, u, options) {
       var body;
 
       res.on('data', function(data) {
-        // Data can be a string or a buffer
-        body = body ? body.concat(data) : data;
+        if (body) {
+          body = Buffer.concat([new Buffer(body), new Buffer(data)]);
+        }
+        else {
+          body = data;
+        }
       });
 
       res.on('end', function() {
@@ -2089,7 +2174,7 @@ function download(protocol, u, options) {
           reject(ono('GET %s \nHTTP 204: No Content', u.href));
         }
         else {
-          resolve(body);
+          resolve(body || '');
         }
       });
 
@@ -2100,9 +2185,9 @@ function download(protocol, u, options) {
   });
 }
 
-}).call(this,require('_process'))
+}).call(this,require('_process'),require("buffer").Buffer)
 
-},{"./parse":12,"./promise":14,"./ref":16,"./util":19,"_process":65,"fs":55,"http":84,"https":62,"ono":54,"url":94}],16:[function(require,module,exports){
+},{"./parse":13,"./promise":15,"./ref":17,"./util":20,"_process":66,"buffer":58,"fs":56,"http":85,"https":63,"ono":55,"url":95}],17:[function(require,module,exports){
 'use strict';
 
 module.exports = $Ref;
@@ -2156,7 +2241,7 @@ function $Ref($refs, path) {
    *
    * @type {string}
    */
-  this.pathFromRoot = '';
+  this.pathFromRoot = '#';
 
   /**
    * The resolved value of the JSON reference.
@@ -2198,7 +2283,7 @@ $Ref.prototype.setValue = function(value, options) {
   this.value = value;
 
   // Extend the cache expiration
-  var cacheDuration = options.cache[this.type];
+  var cacheDuration = options.cache[this.pathType];
   if (cacheDuration > 0) {
     var expires = Date.now() + (cacheDuration * 1000);
     this.expires = new Date(expires);
@@ -2298,7 +2383,7 @@ $Ref.isAllowed$Ref = function(value, options) {
   }
 };
 
-},{"./pointer":13,"./util":19}],17:[function(require,module,exports){
+},{"./pointer":14,"./util":20}],18:[function(require,module,exports){
 'use strict';
 
 var Options = require('./options'),
@@ -2328,19 +2413,9 @@ function $Refs() {
  * @returns {string[]}
  */
 $Refs.prototype.paths = function(types) {
-  var $refs = this._$refs;
-  var keys = Object.keys($refs);
-  types = Array.isArray(types) ? types : Array.prototype.slice.call(arguments);
-
-  if (types.length > 0) {
-    keys = keys.filter(function(key) {
-      return types.indexOf($refs[key].pathType) !== -1;
-    });
-  }
-
-  return keys.map(function(key) {
-    // Decode URL-encoded characters for local file paths
-    return $refs[key].type === 'fs' ? decodeURI(key) : key;
+  var paths = getPaths(this._$refs, arguments);
+  return paths.map(function(path) {
+    return path.decoded;
   });
 };
 
@@ -2352,10 +2427,10 @@ $Refs.prototype.paths = function(types) {
  */
 $Refs.prototype.values = function(types) {
   var $refs = this._$refs;
-  var keys = this.paths(types);
-
-  return keys.reduce(function(obj, key) {
-    obj[key] = $refs[key].value;
+  var paths = getPaths($refs, arguments);
+  return paths.reduce(function(obj, path) {
+    obj[path.decoded] = $refs[path.encoded].value;
+    return obj;
   }, {});
 };
 
@@ -2470,11 +2545,39 @@ $Refs.prototype._get$Ref = function(path) {
   return this._$refs[withoutHash];
 };
 
-},{"./options":11,"./util":19,"ono":54}],18:[function(require,module,exports){
+/**
+ * Returns the encoded and decoded paths keys of the given object.
+ *
+ * @param {object} $refs - The object whose keys are URL-encoded paths
+ * @param {...string|string[]} [types] - Only return paths of the given types ("fs", "http", "https")
+ * @returns {object[]}
+ */
+function getPaths($refs, types) {
+  var paths = Object.keys($refs);
+
+  // Filter the paths by type
+  types = Array.isArray(types[0]) ? types[0] : Array.prototype.slice.call(types);
+  if (types.length > 0 && types[0]) {
+    paths = paths.filter(function(key) {
+      return types.indexOf($refs[key].pathType) !== -1;
+    });
+  }
+
+  // Decode local filesystem paths
+  return paths.map(function(path) {
+    return {
+      encoded: path,
+      decoded: $refs[path].pathType === 'fs' ? util.path.urlToLocalPath(path) : path
+    };
+  });
+}
+
+},{"./options":12,"./util":20,"ono":55}],19:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./promise'),
     $Ref    = require('./ref'),
+    Pointer = require('./pointer'),
     read    = require('./read'),
     util    = require('./util'),
     url     = require('url'),
@@ -2541,8 +2644,8 @@ function crawl(obj, path, pathFromRoot, $refs, options) {
     }
 
     keys.forEach(function(key) {
-      var keyPath = path + '/' + key;
-      var keyPathFromRoot = pathFromRoot + '/' + key;
+      var keyPath = Pointer.join(path, key);
+      var keyPathFromRoot = Pointer.join(pathFromRoot, key);
       var value = obj[key];
 
       if ($Ref.isExternal$Ref(value)) {
@@ -2580,9 +2683,11 @@ function crawl(obj, path, pathFromRoot, $refs, options) {
  */
 function crawl$Ref(path, pathFromRoot, $refs, options) {
   return read(path, $refs, options)
-    .then(function($ref) {
+    .then(function(cached$Ref) {
       // If a cached $ref is returned, then we DON'T need to crawl it
-      if (!$ref.cached) {
+      if (!cached$Ref.cached) {
+        var $ref = cached$Ref.$ref;
+
         // This is a new $ref, so store the path from the root of the JSON schema to this $ref
         $ref.pathFromRoot = pathFromRoot;
 
@@ -2594,7 +2699,7 @@ function crawl$Ref(path, pathFromRoot, $refs, options) {
     });
 }
 
-},{"./promise":14,"./read":15,"./ref":16,"./util":19,"ono":54,"url":94}],19:[function(require,module,exports){
+},{"./pointer":14,"./promise":15,"./read":16,"./ref":17,"./util":20,"ono":55,"url":95}],20:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -2636,11 +2741,29 @@ exports.doCallback = function doCallback(callback, err, params) {
 
 }).call(this,require('_process'))
 
-},{"./path":20,"_process":65,"debug":5}],20:[function(require,module,exports){
+},{"./path":21,"_process":66,"debug":6}],21:[function(require,module,exports){
 (function (process){
 'use strict';
 
-var protocolPattern = /^[a-z0-9.+-]+:\/\//i;
+var isWindows           = /^win/.test(process.platform),
+    forwardSlashPattern = /\//g,
+    protocolPattern     = /^[a-z0-9.+-]+:\/\//i;
+
+// RegExp patterns to URL-encode special characters in local filesystem paths
+var urlEncodePatterns = [
+  /\?/g, '%3F',
+  /\#/g, '%23',
+  isWindows ? /\\/g : /\//, '/'
+];
+
+// RegExp patterns to URL-decode special characters for local filesystem paths
+var urlDecodePatterns = [
+  /\%23/g, '#',
+  /\%24/g, '$',
+  /\%26/g, '&',
+  /\%2C/g, ',',
+  /\%40/g, '@'
+];
 
 /**
  * Returns the current working directory (in Node) or the current page URL (in browsers).
@@ -2662,13 +2785,38 @@ exports.isUrl = function isUrl(path) {
 };
 
 /**
- * Adds a hash to the given path, if it doesn't already have one.
+ * If the given path is a local filesystem path, it is converted to a URL.
  *
- * @param   {string} path
+ * @param {string} path
  * @returns {string}
  */
-exports.ensureHash = function ensureHash(path) {
-  return path.indexOf('#') === -1 ? path + '#' : path;
+exports.localPathToUrl = function localPathToUrl(path) {
+  if (!process.browser && !exports.isUrl(path)) {
+    // Manually encode characters that are not encoded by `encodeURI`
+    for (var i = 0; i < urlEncodePatterns.length; i += 2) {
+      path = path.replace(urlEncodePatterns[i], urlEncodePatterns[i + 1]);
+    }
+    path = encodeURI(path);
+  }
+  return path;
+};
+
+/**
+ * Converts a URL to a local filesystem path
+ *
+ * @param {string} url
+ * @returns {string}
+ */
+exports.urlToLocalPath = function urlToLocalPath(url) {
+  url = decodeURI(url);
+  // Manually decode characters that are not decoded by `decodeURI`
+  for (var i = 0; i < urlDecodePatterns.length; i += 2) {
+    url = url.replace(urlDecodePatterns[i], urlDecodePatterns[i + 1]);
+  }
+  if (isWindows) {
+    url = url.replace(forwardSlashPattern, '\\');
+  }
+  return url;
 };
 
 /**
@@ -2715,7 +2863,7 @@ exports.extname = function extname(path) {
 
 }).call(this,require('_process'))
 
-},{"_process":65}],21:[function(require,module,exports){
+},{"_process":66}],22:[function(require,module,exports){
 'use strict';
 
 var yaml = require('js-yaml');
@@ -2749,7 +2897,7 @@ module.exports = {
   }
 };
 
-},{"js-yaml":23}],22:[function(require,module,exports){
+},{"js-yaml":24}],23:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -3721,7 +3869,7 @@ module.exports = {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":65}],23:[function(require,module,exports){
+},{"_process":66}],24:[function(require,module,exports){
 'use strict';
 
 
@@ -3730,7 +3878,7 @@ var yaml = require('./lib/js-yaml.js');
 
 module.exports = yaml;
 
-},{"./lib/js-yaml.js":24}],24:[function(require,module,exports){
+},{"./lib/js-yaml.js":25}],25:[function(require,module,exports){
 'use strict';
 
 
@@ -3771,7 +3919,7 @@ module.exports.parse          = deprecated('parse');
 module.exports.compose        = deprecated('compose');
 module.exports.addConstructor = deprecated('addConstructor');
 
-},{"./js-yaml/dumper":26,"./js-yaml/exception":27,"./js-yaml/loader":28,"./js-yaml/schema":30,"./js-yaml/schema/core":31,"./js-yaml/schema/default_full":32,"./js-yaml/schema/default_safe":33,"./js-yaml/schema/failsafe":34,"./js-yaml/schema/json":35,"./js-yaml/type":36}],25:[function(require,module,exports){
+},{"./js-yaml/dumper":27,"./js-yaml/exception":28,"./js-yaml/loader":29,"./js-yaml/schema":31,"./js-yaml/schema/core":32,"./js-yaml/schema/default_full":33,"./js-yaml/schema/default_safe":34,"./js-yaml/schema/failsafe":35,"./js-yaml/schema/json":36,"./js-yaml/type":37}],26:[function(require,module,exports){
 'use strict';
 
 
@@ -3834,7 +3982,7 @@ module.exports.repeat         = repeat;
 module.exports.isNegativeZero = isNegativeZero;
 module.exports.extend         = extend;
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable no-use-before-define*/
@@ -4677,7 +4825,7 @@ function safeDump(input, options) {
 module.exports.dump     = dump;
 module.exports.safeDump = safeDump;
 
-},{"./common":25,"./exception":27,"./schema/default_full":32,"./schema/default_safe":33}],27:[function(require,module,exports){
+},{"./common":26,"./exception":28,"./schema/default_full":33,"./schema/default_safe":34}],28:[function(require,module,exports){
 // YAML error class. http://stackoverflow.com/questions/8458984
 //
 'use strict';
@@ -4725,7 +4873,7 @@ YAMLException.prototype.toString = function toString(compact) {
 
 module.exports = YAMLException;
 
-},{"util":96}],28:[function(require,module,exports){
+},{"util":97}],29:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable max-len,no-use-before-define*/
@@ -6307,7 +6455,7 @@ module.exports.load        = load;
 module.exports.safeLoadAll = safeLoadAll;
 module.exports.safeLoad    = safeLoad;
 
-},{"./common":25,"./exception":27,"./mark":29,"./schema/default_full":32,"./schema/default_safe":33}],29:[function(require,module,exports){
+},{"./common":26,"./exception":28,"./mark":30,"./schema/default_full":33,"./schema/default_safe":34}],30:[function(require,module,exports){
 'use strict';
 
 
@@ -6387,7 +6535,7 @@ Mark.prototype.toString = function toString(compact) {
 
 module.exports = Mark;
 
-},{"./common":25}],30:[function(require,module,exports){
+},{"./common":26}],31:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable max-len*/
@@ -6493,7 +6641,7 @@ Schema.create = function createSchema() {
 
 module.exports = Schema;
 
-},{"./common":25,"./exception":27,"./type":36}],31:[function(require,module,exports){
+},{"./common":26,"./exception":28,"./type":37}],32:[function(require,module,exports){
 // Standard YAML's Core schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2804923
 //
@@ -6513,7 +6661,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":30,"./json":35}],32:[function(require,module,exports){
+},{"../schema":31,"./json":36}],33:[function(require,module,exports){
 // JS-YAML's default schema for `load` function.
 // It is not described in the YAML specification.
 //
@@ -6540,7 +6688,7 @@ module.exports = Schema.DEFAULT = new Schema({
   ]
 });
 
-},{"../schema":30,"../type/js/function":41,"../type/js/regexp":42,"../type/js/undefined":43,"./default_safe":33}],33:[function(require,module,exports){
+},{"../schema":31,"../type/js/function":42,"../type/js/regexp":43,"../type/js/undefined":44,"./default_safe":34}],34:[function(require,module,exports){
 // JS-YAML's default schema for `safeLoad` function.
 // It is not described in the YAML specification.
 //
@@ -6570,7 +6718,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":30,"../type/binary":37,"../type/merge":45,"../type/omap":47,"../type/pairs":48,"../type/set":50,"../type/timestamp":52,"./core":31}],34:[function(require,module,exports){
+},{"../schema":31,"../type/binary":38,"../type/merge":46,"../type/omap":48,"../type/pairs":49,"../type/set":51,"../type/timestamp":53,"./core":32}],35:[function(require,module,exports){
 // Standard YAML's Failsafe schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2802346
 
@@ -6589,7 +6737,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":30,"../type/map":44,"../type/seq":49,"../type/str":51}],35:[function(require,module,exports){
+},{"../schema":31,"../type/map":45,"../type/seq":50,"../type/str":52}],36:[function(require,module,exports){
 // Standard YAML's JSON schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2803231
 //
@@ -6616,7 +6764,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":30,"../type/bool":38,"../type/float":39,"../type/int":40,"../type/null":46,"./failsafe":34}],36:[function(require,module,exports){
+},{"../schema":31,"../type/bool":39,"../type/float":40,"../type/int":41,"../type/null":47,"./failsafe":35}],37:[function(require,module,exports){
 'use strict';
 
 var YAMLException = require('./exception');
@@ -6679,7 +6827,7 @@ function Type(tag, options) {
 
 module.exports = Type;
 
-},{"./exception":27}],37:[function(require,module,exports){
+},{"./exception":28}],38:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable no-bitwise*/
@@ -6815,7 +6963,7 @@ module.exports = new Type('tag:yaml.org,2002:binary', {
   represent: representYamlBinary
 });
 
-},{"../type":36,"buffer":56}],38:[function(require,module,exports){
+},{"../type":37,"buffer":57}],39:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -6854,7 +7002,7 @@ module.exports = new Type('tag:yaml.org,2002:bool', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":36}],39:[function(require,module,exports){
+},{"../type":37}],40:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -6962,7 +7110,7 @@ module.exports = new Type('tag:yaml.org,2002:float', {
   defaultStyle: 'lowercase'
 });
 
-},{"../common":25,"../type":36}],40:[function(require,module,exports){
+},{"../common":26,"../type":37}],41:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -7147,7 +7295,7 @@ module.exports = new Type('tag:yaml.org,2002:int', {
   }
 });
 
-},{"../common":25,"../type":36}],41:[function(require,module,exports){
+},{"../common":26,"../type":37}],42:[function(require,module,exports){
 'use strict';
 
 var esprima;
@@ -7233,7 +7381,7 @@ module.exports = new Type('tag:yaml.org,2002:js/function', {
   represent: representJavascriptFunction
 });
 
-},{"../../type":36,"esprima":53}],42:[function(require,module,exports){
+},{"../../type":37,"esprima":54}],43:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -7318,7 +7466,7 @@ module.exports = new Type('tag:yaml.org,2002:js/regexp', {
   represent: representJavascriptRegExp
 });
 
-},{"../../type":36}],43:[function(require,module,exports){
+},{"../../type":37}],44:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -7348,7 +7496,7 @@ module.exports = new Type('tag:yaml.org,2002:js/undefined', {
   represent: representJavascriptUndefined
 });
 
-},{"../../type":36}],44:[function(require,module,exports){
+},{"../../type":37}],45:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -7358,7 +7506,7 @@ module.exports = new Type('tag:yaml.org,2002:map', {
   construct: function (data) { return null !== data ? data : {}; }
 });
 
-},{"../type":36}],45:[function(require,module,exports){
+},{"../type":37}],46:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -7372,7 +7520,7 @@ module.exports = new Type('tag:yaml.org,2002:merge', {
   resolve: resolveYamlMerge
 });
 
-},{"../type":36}],46:[function(require,module,exports){
+},{"../type":37}],47:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -7410,7 +7558,7 @@ module.exports = new Type('tag:yaml.org,2002:null', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":36}],47:[function(require,module,exports){
+},{"../type":37}],48:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -7468,7 +7616,7 @@ module.exports = new Type('tag:yaml.org,2002:omap', {
   construct: constructYamlOmap
 });
 
-},{"../type":36}],48:[function(require,module,exports){
+},{"../type":37}],49:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -7531,7 +7679,7 @@ module.exports = new Type('tag:yaml.org,2002:pairs', {
   construct: constructYamlPairs
 });
 
-},{"../type":36}],49:[function(require,module,exports){
+},{"../type":37}],50:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -7541,7 +7689,7 @@ module.exports = new Type('tag:yaml.org,2002:seq', {
   construct: function (data) { return null !== data ? data : []; }
 });
 
-},{"../type":36}],50:[function(require,module,exports){
+},{"../type":37}],51:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -7576,7 +7724,7 @@ module.exports = new Type('tag:yaml.org,2002:set', {
   construct: constructYamlSet
 });
 
-},{"../type":36}],51:[function(require,module,exports){
+},{"../type":37}],52:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -7586,7 +7734,7 @@ module.exports = new Type('tag:yaml.org,2002:str', {
   construct: function (data) { return null !== data ? data : ''; }
 });
 
-},{"../type":36}],52:[function(require,module,exports){
+},{"../type":37}],53:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -7681,7 +7829,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
   represent: representYamlTimestamp
 });
 
-},{"../type":36}],53:[function(require,module,exports){
+},{"../type":37}],54:[function(require,module,exports){
 /*
   Copyright (C) 2013 Ariya Hidayat <ariya.hidayat@gmail.com>
   Copyright (C) 2013 Thaddee Tyl <thaddee.tyl@gmail.com>
@@ -13004,7 +13152,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 }));
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],54:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 /**!
  * Ono v1.0.22
  *
@@ -13127,17 +13275,19 @@ function errorToJSON() {
   return json;
 }
 
-},{"util":96}],55:[function(require,module,exports){
+},{"util":97}],56:[function(require,module,exports){
 
-},{}],56:[function(require,module,exports){
-arguments[4][55][0].apply(exports,arguments)
-},{"dup":55}],57:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
+arguments[4][56][0].apply(exports,arguments)
+},{"dup":56}],58:[function(require,module,exports){
+(function (global){
 /*!
  * The buffer module from node.js, for the browser.
  *
  * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
  * @license  MIT
  */
+/* eslint-disable no-proto */
 
 var base64 = require('base64-js')
 var ieee754 = require('ieee754')
@@ -13177,20 +13327,22 @@ var rootParent = {}
  * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
  * get the Object implementation, which is slower but behaves correctly.
  */
-Buffer.TYPED_ARRAY_SUPPORT = (function () {
-  function Bar () {}
-  try {
-    var arr = new Uint8Array(1)
-    arr.foo = function () { return 42 }
-    arr.constructor = Bar
-    return arr.foo() === 42 && // typed array instances can be augmented
-        arr.constructor === Bar && // constructor can be set
-        typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
-        arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
-  } catch (e) {
-    return false
-  }
-})()
+Buffer.TYPED_ARRAY_SUPPORT = global.TYPED_ARRAY_SUPPORT !== undefined
+  ? global.TYPED_ARRAY_SUPPORT
+  : (function () {
+      function Bar () {}
+      try {
+        var arr = new Uint8Array(1)
+        arr.foo = function () { return 42 }
+        arr.constructor = Bar
+        return arr.foo() === 42 && // typed array instances can be augmented
+            arr.constructor === Bar && // constructor can be set
+            typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
+            arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
+      } catch (e) {
+        return false
+      }
+    })()
 
 function kMaxLength () {
   return Buffer.TYPED_ARRAY_SUPPORT
@@ -13346,10 +13498,16 @@ function fromJsonObject (that, object) {
   return that
 }
 
+if (Buffer.TYPED_ARRAY_SUPPORT) {
+  Buffer.prototype.__proto__ = Uint8Array.prototype
+  Buffer.__proto__ = Uint8Array
+}
+
 function allocate (that, length) {
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     // Return an augmented `Uint8Array` instance, for best performance
     that = Buffer._augment(new Uint8Array(length))
+    that.__proto__ = Buffer.prototype
   } else {
     // Fallback: Return an object instance of the Buffer class
     that.length = length
@@ -14666,7 +14824,9 @@ function blitBuffer (src, dst, offset, length) {
   return i
 }
 
-},{"base64-js":58,"ieee754":59,"is-array":60}],58:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{"base64-js":59,"ieee754":60,"is-array":61}],59:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -14792,7 +14952,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],59:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -14878,7 +15038,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 
 /**
  * isArray
@@ -14913,7 +15073,7 @@ module.exports = isArray || function (val) {
   return !! val && '[object Array]' == str.call(val);
 };
 
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -15216,7 +15376,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 var http = require('http');
 
 var https = module.exports;
@@ -15232,7 +15392,7 @@ https.request = function (params, cb) {
     return http.request.call(this, params, cb);
 }
 
-},{"http":84}],63:[function(require,module,exports){
+},{"http":85}],64:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -15257,12 +15417,12 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],65:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -15355,7 +15515,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],66:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.3.2 by @mathias */
 ;(function(root) {
@@ -15890,7 +16050,7 @@ process.umask = function() { return 0; };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],67:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -15976,7 +16136,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],68:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -16063,16 +16223,16 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],69:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":67,"./encode":68}],70:[function(require,module,exports){
+},{"./decode":68,"./encode":69}],71:[function(require,module,exports){
 module.exports = require("./lib/_stream_duplex.js")
 
-},{"./lib/_stream_duplex.js":71}],71:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":72}],72:[function(require,module,exports){
 // a duplex stream is just a stream that is both readable and writable.
 // Since JS doesn't have multiple prototypal inheritance, this class
 // prototypally inherits from Readable, and then parasitically from
@@ -16156,7 +16316,7 @@ function forEach (xs, f) {
   }
 }
 
-},{"./_stream_readable":73,"./_stream_writable":75,"core-util-is":76,"inherits":63,"process-nextick-args":77}],72:[function(require,module,exports){
+},{"./_stream_readable":74,"./_stream_writable":76,"core-util-is":77,"inherits":64,"process-nextick-args":78}],73:[function(require,module,exports){
 // a passthrough stream.
 // basically just the most minimal sort of Transform stream.
 // Every written chunk gets output as-is.
@@ -16185,7 +16345,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./_stream_transform":74,"core-util-is":76,"inherits":63}],73:[function(require,module,exports){
+},{"./_stream_transform":75,"core-util-is":77,"inherits":64}],74:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -17149,7 +17309,7 @@ function indexOf (xs, x) {
 
 }).call(this,require('_process'))
 
-},{"./_stream_duplex":71,"_process":65,"buffer":57,"core-util-is":76,"events":61,"inherits":63,"isarray":64,"process-nextick-args":77,"string_decoder/":93,"util":56}],74:[function(require,module,exports){
+},{"./_stream_duplex":72,"_process":66,"buffer":58,"core-util-is":77,"events":62,"inherits":64,"isarray":65,"process-nextick-args":78,"string_decoder/":94,"util":57}],75:[function(require,module,exports){
 // a transform stream is a readable/writable stream where you do
 // something with the data.  Sometimes it's called a "filter",
 // but that's not a great name for it, since that implies a thing where
@@ -17348,7 +17508,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":71,"core-util-is":76,"inherits":63}],75:[function(require,module,exports){
+},{"./_stream_duplex":72,"core-util-is":77,"inherits":64}],76:[function(require,module,exports){
 // A bit simpler than readable streams.
 // Implement an async ._write(chunk, cb), and it'll handle all
 // the drain event emission and buffering.
@@ -17870,7 +18030,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./_stream_duplex":71,"buffer":57,"core-util-is":76,"events":61,"inherits":63,"process-nextick-args":77,"util-deprecate":78}],76:[function(require,module,exports){
+},{"./_stream_duplex":72,"buffer":58,"core-util-is":77,"events":62,"inherits":64,"process-nextick-args":78,"util-deprecate":79}],77:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -17981,7 +18141,7 @@ function objectToString(o) {
 }
 }).call(this,require("buffer").Buffer)
 
-},{"buffer":57}],77:[function(require,module,exports){
+},{"buffer":58}],78:[function(require,module,exports){
 (function (process){
 'use strict';
 module.exports = nextTick;
@@ -17999,7 +18159,7 @@ function nextTick(fn) {
 
 }).call(this,require('_process'))
 
-},{"_process":65}],78:[function(require,module,exports){
+},{"_process":66}],79:[function(require,module,exports){
 (function (global){
 
 /**
@@ -18066,10 +18226,10 @@ function config (name) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],79:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
-},{"./lib/_stream_passthrough.js":72}],80:[function(require,module,exports){
+},{"./lib/_stream_passthrough.js":73}],81:[function(require,module,exports){
 var Stream = (function (){
   try {
     return require('st' + 'ream'); // hack to fix a circular dependency issue when used with browserify
@@ -18083,13 +18243,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":71,"./lib/_stream_passthrough.js":72,"./lib/_stream_readable.js":73,"./lib/_stream_transform.js":74,"./lib/_stream_writable.js":75}],81:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":72,"./lib/_stream_passthrough.js":73,"./lib/_stream_readable.js":74,"./lib/_stream_transform.js":75,"./lib/_stream_writable.js":76}],82:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":74}],82:[function(require,module,exports){
+},{"./lib/_stream_transform.js":75}],83:[function(require,module,exports){
 module.exports = require("./lib/_stream_writable.js")
 
-},{"./lib/_stream_writable.js":75}],83:[function(require,module,exports){
+},{"./lib/_stream_writable.js":76}],84:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -18218,7 +18378,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":61,"inherits":63,"readable-stream/duplex.js":70,"readable-stream/passthrough.js":79,"readable-stream/readable.js":80,"readable-stream/transform.js":81,"readable-stream/writable.js":82}],84:[function(require,module,exports){
+},{"events":62,"inherits":64,"readable-stream/duplex.js":71,"readable-stream/passthrough.js":80,"readable-stream/readable.js":81,"readable-stream/transform.js":82,"readable-stream/writable.js":83}],85:[function(require,module,exports){
 var ClientRequest = require('./lib/request')
 var extend = require('xtend')
 var statusCodes = require('builtin-status-codes')
@@ -18232,19 +18392,19 @@ http.request = function (opts, cb) {
 	else
 		opts = extend(opts)
 
-	// Split opts.host into its components
-	var hostHostname = opts.host ? opts.host.split(':')[0] : null
-	var hostPort = opts.host ? parseInt(opts.host.split(':')[1], 10) : null
+	var protocol = opts.protocol || ''
+	var host = opts.hostname || opts.host
+	var port = opts.port
+	var path = opts.path || '/'
 
-	opts.method = opts.method || 'GET'
+	// Necessary for IPv6 addresses
+	if (host && host.indexOf(':') !== -1)
+		host = '[' + host + ']'
+
+	// This may be a relative url. The browser should always be able to interpret it correctly.
+	opts.url = (host ? (protocol + '//' + host) : '') + (port ? ':' + port : '') + path
+	opts.method = (opts.method || 'GET').toUpperCase()
 	opts.headers = opts.headers || {}
-	opts.path = opts.path || '/'
-	opts.protocol = opts.protocol || window.location.protocol
-	// If the hostname is provided, use the default port for the protocol. If
-	// the url is instead relative, use window.location.port
-	var defaultPort = (opts.hostname || hostHostname) ? (opts.protocol === 'https:' ? 443 : 80) : window.location.port
-	opts.hostname = opts.hostname || hostHostname || window.location.hostname
-	opts.port = opts.port || hostPort || defaultPort
 
 	// Also valid opts.auth, opts.mode
 
@@ -18293,8 +18453,9 @@ http.METHODS = [
 	'UNLOCK',
 	'UNSUBSCRIBE'
 ]
-},{"./lib/request":86,"builtin-status-codes":88,"url":94,"xtend":97}],85:[function(require,module,exports){
-exports.fetch = isFunction(window.fetch) && isFunction(window.ReadableByteStream)
+},{"./lib/request":87,"builtin-status-codes":89,"url":95,"xtend":98}],86:[function(require,module,exports){
+(function (global){
+exports.fetch = isFunction(global.fetch) && isFunction(global.ReadableByteStream)
 
 exports.blobConstructor = false
 try {
@@ -18302,8 +18463,10 @@ try {
 	exports.blobConstructor = true
 } catch (e) {}
 
-var xhr = new window.XMLHttpRequest()
-xhr.open('GET', '/')
+var xhr = new global.XMLHttpRequest()
+// If location.host is empty, e.g. if this page/worker was loaded
+// from a Blob, then use example.com to avoid an error
+xhr.open('GET', global.location.host ? '/' : 'https://example.com')
 
 function checkTypeSupport (type) {
 	try {
@@ -18313,10 +18476,10 @@ function checkTypeSupport (type) {
 	return false
 }
 
-// For some strange reason, Safari 7.0 reports typeof window.ArrayBuffer === 'object'.
+// For some strange reason, Safari 7.0 reports typeof global.ArrayBuffer === 'object'.
 // Safari 7.1 appears to have fixed this bug.
-var haveArrayBuffer = typeof window.ArrayBuffer !== 'undefined'
-var haveSlice = haveArrayBuffer && isFunction(window.ArrayBuffer.prototype.slice)
+var haveArrayBuffer = typeof global.ArrayBuffer !== 'undefined'
+var haveSlice = haveArrayBuffer && isFunction(global.ArrayBuffer.prototype.slice)
 
 exports.arraybuffer = haveArrayBuffer && checkTypeSupport('arraybuffer')
 // These next two tests unavoidably show warnings in Chrome. Since fetch will always
@@ -18325,7 +18488,7 @@ exports.msstream = !exports.fetch && haveSlice && checkTypeSupport('ms-stream')
 exports.mozchunkedarraybuffer = !exports.fetch && haveArrayBuffer &&
 	checkTypeSupport('moz-chunked-arraybuffer')
 exports.overrideMimeType = isFunction(xhr.overrideMimeType)
-exports.vbArray = isFunction(window.VBArray)
+exports.vbArray = isFunction(global.VBArray)
 
 function isFunction (value) {
   return typeof value === 'function'
@@ -18333,8 +18496,10 @@ function isFunction (value) {
 
 xhr = null // Help gc
 
-},{}],86:[function(require,module,exports){
-(function (process,Buffer){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{}],87:[function(require,module,exports){
+(function (process,global,Buffer){
 // var Base64 = require('Base64')
 var capability = require('./capability')
 var foreach = require('foreach')
@@ -18368,7 +18533,6 @@ var ClientRequest = module.exports = function (opts) {
 	stream.Writable.call(self)
 
 	self._opts = opts
-	self._url = opts.protocol + '//' + opts.hostname + ':' + opts.port + opts.path
 	self._body = []
 	self._headers = {}
 	if (opts.auth)
@@ -18436,7 +18600,7 @@ ClientRequest.prototype._onFinish = function () {
 	var body
 	if (opts.method === 'POST' || opts.method === 'PUT') {
 		if (capability.blobConstructor) {
-			body = new window.Blob(self._body.map(function (buffer) {
+			body = new global.Blob(self._body.map(function (buffer) {
 				return buffer.toArrayBuffer()
 			}), {
 				type: (headersObj['content-type'] || {}).value || ''
@@ -18452,7 +18616,7 @@ ClientRequest.prototype._onFinish = function () {
 			return [headersObj[name].name, headersObj[name].value]
 		})
 
-		window.fetch(self._url, {
+		global.fetch(self._opts.url, {
 			method: self._opts.method,
 			headers: headers,
 			body: body,
@@ -18465,9 +18629,9 @@ ClientRequest.prototype._onFinish = function () {
 			self.emit('error', reason)
 		})
 	} else {
-		var xhr = self._xhr = new window.XMLHttpRequest()
+		var xhr = self._xhr = new global.XMLHttpRequest()
 		try {
-			xhr.open(self._opts.method, self._url, true)
+			xhr.open(self._opts.method, self._opts.url, true)
 		} catch (err) {
 			process.nextTick(function () {
 				self.emit('error', err)
@@ -18615,10 +18779,10 @@ var unsafeHeaders = [
 	'via'
 ]
 
-}).call(this,require('_process'),require("buffer").Buffer)
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 
-},{"./capability":85,"./response":87,"_process":65,"buffer":57,"foreach":89,"indexof":90,"inherits":63,"object-keys":91,"stream":83}],87:[function(require,module,exports){
-(function (process,Buffer){
+},{"./capability":86,"./response":88,"_process":66,"buffer":58,"foreach":90,"indexof":91,"inherits":64,"object-keys":92,"stream":84}],88:[function(require,module,exports){
+(function (process,global,Buffer){
 var capability = require('./capability')
 var foreach = require('foreach')
 var inherits = require('inherits')
@@ -18728,7 +18892,7 @@ IncomingMessage.prototype._onXHRProgress = function () {
 				break
 			try {
 				// This fails in IE8
-				response = new window.VBArray(xhr.responseBody).toArray()
+				response = new global.VBArray(xhr.responseBody).toArray()
 			} catch (e) {}
 			if (response !== null) {
 				self.push(new Buffer(response))
@@ -18772,7 +18936,7 @@ IncomingMessage.prototype._onXHRProgress = function () {
 			response = xhr.response
 			if (xhr.readyState !== rStates.LOADING)
 				break
-			var reader = new window.MSStreamReader()
+			var reader = new global.MSStreamReader()
 			reader.onprogress = function () {
 				if (reader.result.byteLength > self._pos) {
 					self.push(new Buffer(new Uint8Array(reader.result.slice(self._pos))))
@@ -18793,9 +18957,9 @@ IncomingMessage.prototype._onXHRProgress = function () {
 	}
 }
 
-}).call(this,require('_process'),require("buffer").Buffer)
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 
-},{"./capability":85,"_process":65,"buffer":57,"foreach":89,"inherits":63,"stream":83}],88:[function(require,module,exports){
+},{"./capability":86,"_process":66,"buffer":58,"foreach":90,"inherits":64,"stream":84}],89:[function(require,module,exports){
 module.exports = {
   "100": "Continue",
   "101": "Switching Protocols",
@@ -18856,7 +19020,7 @@ module.exports = {
   "511": "Network Authentication Required"
 }
 
-},{}],89:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 
 var hasOwn = Object.prototype.hasOwnProperty;
 var toString = Object.prototype.toString;
@@ -18880,7 +19044,7 @@ module.exports = function forEach (obj, fn, ctx) {
 };
 
 
-},{}],90:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -18891,7 +19055,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],91:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 'use strict';
 
 // modified from https://github.com/es-shims/es5-shim
@@ -18910,6 +19074,44 @@ var dontEnums = [
 	'propertyIsEnumerable',
 	'constructor'
 ];
+var equalsConstructorPrototype = function (o) {
+	var ctor = o.constructor;
+	return ctor && ctor.prototype === o;
+};
+var blacklistedKeys = {
+	$window: true,
+	$console: true,
+	$parent: true,
+	$self: true,
+	$frames: true,
+	$webkitIndexedDB: true,
+	$webkitStorageInfo: true
+};
+var hasAutomationEqualityBug = (function () {
+	/* global window */
+	if (typeof window === 'undefined') { return false; }
+	for (var k in window) {
+		if (!blacklistedKeys['$' + k] && has.call(window, k) && window[k] !== null && typeof window[k] === 'object') {
+			try {
+				equalsConstructorPrototype(window[k]);
+			} catch (e) {
+				return true;
+			}
+		}
+	}
+	return false;
+}());
+var equalsConstructorPrototypeIfNotBuggy = function (o) {
+	/* global window */
+	if (typeof window === 'undefined' && !hasAutomationEqualityBug) {
+		return equalsConstructorPrototype(o);
+	}
+	try {
+		return equalsConstructorPrototype(o);
+	} catch (e) {
+		return false;
+	}
+};
 
 var keysShim = function keys(object) {
 	var isObject = object !== null && typeof object === 'object';
@@ -18942,8 +19144,7 @@ var keysShim = function keys(object) {
 	}
 
 	if (hasDontEnumBug) {
-		var ctor = object.constructor;
-		var skipConstructor = ctor && ctor.prototype === object;
+		var skipConstructor = equalsConstructorPrototypeIfNotBuggy(object);
 
 		for (var k = 0; k < dontEnums.length; ++k) {
 			if (!(skipConstructor && dontEnums[k] === 'constructor') && has.call(object, dontEnums[k])) {
@@ -18978,7 +19179,7 @@ keysShim.shim = function shimObjectKeys() {
 
 module.exports = keysShim;
 
-},{"./isArguments":92}],92:[function(require,module,exports){
+},{"./isArguments":93}],93:[function(require,module,exports){
 'use strict';
 
 var toStr = Object.prototype.toString;
@@ -18997,7 +19198,7 @@ module.exports = function isArguments(value) {
 	return isArgs;
 };
 
-},{}],93:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -19220,7 +19421,7 @@ function base64DetectIncompleteChar(buffer) {
   this.charLength = this.charReceived ? 3 : 0;
 }
 
-},{"buffer":57}],94:[function(require,module,exports){
+},{"buffer":58}],95:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -19929,14 +20130,14 @@ function isNullOrUndefined(arg) {
   return  arg == null;
 }
 
-},{"punycode":66,"querystring":69}],95:[function(require,module,exports){
+},{"punycode":67,"querystring":70}],96:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],96:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -20527,7 +20728,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":95,"_process":65,"inherits":63}],97:[function(require,module,exports){
+},{"./support/isBuffer":96,"_process":66,"inherits":64}],98:[function(require,module,exports){
 module.exports = extend
 
 function extend() {
@@ -20546,10 +20747,10 @@ function extend() {
     return target
 }
 
-},{}],98:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 module.exports = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch'];
 
-},{}],99:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 module.exports={
   "title": "A JSON Schema for Swagger 2.0 API.",
   "id": "http://swagger.io/v2/schema.json#",
@@ -22045,7 +22246,7 @@ module.exports={
     }
   }
 }
-},{}],100:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 /**
  * lodash 3.7.0 (Custom Build) <https://lodash.com/>
  * Build: `lodash modern modularize exports="npm" -o ./`
@@ -22088,7 +22289,7 @@ function get(object, path, defaultValue) {
 
 module.exports = get;
 
-},{"lodash._baseget":101,"lodash._topath":102}],101:[function(require,module,exports){
+},{"lodash._baseget":102,"lodash._topath":103}],102:[function(require,module,exports){
 /**
  * lodash 3.7.2 (Custom Build) <https://lodash.com/>
  * Build: `lodash modern modularize exports="npm" -o ./`
@@ -22164,7 +22365,7 @@ function isObject(value) {
 
 module.exports = baseGet;
 
-},{}],102:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 /**
  * lodash 3.8.1 (Custom Build) <https://lodash.com/>
  * Build: `lodash modern modularize exports="npm" -o ./`
@@ -22213,7 +22414,7 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"lodash.isarray":103}],103:[function(require,module,exports){
+},{"lodash.isarray":104}],104:[function(require,module,exports){
 /**
  * lodash 3.0.4 (Custom Build) <https://lodash.com/>
  * Build: `lodash modern modularize exports="npm" -o ./`
@@ -22395,7 +22596,7 @@ function isNative(value) {
 
 module.exports = isArray;
 
-},{}],104:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 /*!
  * Copyright (c) 2015 Chris O'Hara <cohara87@gmail.com>
  *
@@ -22431,13 +22632,15 @@ module.exports = isArray;
 
     'use strict';
 
-    validator = { version: '3.43.0' };
+    validator = { version: '4.0.6' };
 
-    var emailUser = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e])|(\\[\x01-\x09\x0b\x0c\x0d-\x7f])))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))$/i;
+    var emailUserPart = /^[a-z\d!#\$%&'\*\+\-\/=\?\^_`{\|}~]+$/i;
+    var quotedEmailUser = /^([\s\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e]|(\\[\x01-\x09\x0b\x0c\x0d-\x7f]))*$/i;
 
-    var emailUserUtf8 = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))$/i;
+    var emailUserUtf8Part = /^[a-z\d!#\$%&'\*\+\-\/=\?\^_`{\|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+$/i;
+    var quotedEmailUserUtf8 = /^([\s\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|(\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*$/i;
 
-    var displayName = /^(?:[a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~\.]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(?:[a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~\.]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\s)*<(.+)>$/i;
+    var displayName = /^[a-z\d!#\$%&'\*\+\-\/=\?\^_`{\|}~\.\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+[a-z\d!#\$%&'\*\+\-\/=\?\^_`{\|}~\.\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF\s]*<(.+)>$/i;
 
     var creditCard = /^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$/;
 
@@ -22462,7 +22665,7 @@ module.exports = isArray;
       , int = /^(?:[-+]?(?:0|[1-9][0-9]*))$/
       , float = /^(?:[-+]?(?:[0-9]+))?(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/
       , hexadecimal = /^[0-9A-F]+$/i
-      , decimal = /^[-+]?[0-9]*(\.[0-9]+)?$/
+      , decimal = /^[-+]?([0-9]+|\.[0-9]+|[0-9]+\.[0-9]+)$/
       , hexcolor = /^#?([0-9A-F]{3}|[0-9A-F]{6})$/i;
 
     var ascii = /^[\x00-\x7F]+$/
@@ -22476,6 +22679,7 @@ module.exports = isArray;
 
     var phones = {
       'zh-CN': /^(\+?0?86\-?)?1[345789]\d{9}$/,
+      'zh-TW': /^(\+?886\-?|0)?9\d{8}$/,
       'en-ZA': /^(\+?27|0)\d{9}$/,
       'en-AU': /^(\+?61|0)4\d{8}$/,
       'en-HK': /^(\+?852\-?)?[569]\d{3}\-?\d{4}$/,
@@ -22487,6 +22691,9 @@ module.exports = isArray;
       'en-ZM': /^(\+26)?09[567]\d{7}$/,
       'ru-RU': /^(\+?7|8)?9\d{9}$/
     };
+
+    // from http://goo.gl/0ejHHW
+    var iso8601 = /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/;
 
     validator.extend = function (name, fn) {
         validator[name] = function () {
@@ -22571,8 +22778,6 @@ module.exports = isArray;
             if (display_email) {
                 str = display_email[1];
             }
-        } else if (/\s/.test(str)) {
-            return false;
         }
 
         var parts = str.split('@')
@@ -22584,13 +22789,33 @@ module.exports = isArray;
             user = user.replace(/\./g, '').toLowerCase();
         }
 
+        if (!validator.isByteLength(user, 0, 64) ||
+                !validator.isByteLength(domain, 0, 256)) {
+            return false;
+        }
+
         if (!validator.isFQDN(domain, {require_tld: options.require_tld})) {
             return false;
         }
 
-        return options.allow_utf8_local_part ?
-            emailUserUtf8.test(user) :
-            emailUser.test(user);
+        if (user[0] === '"') {
+            user = user.slice(1, user.length - 1);
+            return options.allow_utf8_local_part ?
+                quotedEmailUserUtf8.test(user) :
+                quotedEmailUser.test(user);
+        }
+
+        var pattern = options.allow_utf8_local_part ?
+            emailUserUtf8Part : emailUserPart;
+
+        var user_parts = user.split('.');
+        for (var i = 0; i < user_parts.length; i++) {
+            if (!pattern.test(user_parts[i])) {
+                return false;
+            }
+        }
+
+        return true;
     };
 
     var default_url_options = {
@@ -22759,6 +22984,10 @@ module.exports = isArray;
             if (!/^[a-z\u00a1-\uffff0-9-]+$/i.test(part)) {
                 return false;
             }
+            if (/[\uff01-\uff5e]/.test(part)) {
+                // disallow full-width chars
+                return false;
+            }
             if (part[0] === '-' || part[part.length - 1] === '-' ||
                     part.indexOf('---') >= 0) {
                 return false;
@@ -22782,9 +23011,9 @@ module.exports = isArray;
     validator.isNumeric = function (str) {
         return numeric.test(str);
     };
-    
+
     validator.isDecimal = function (str) {
-        return decimal.test(str);
+        return str !== '' && decimal.test(str);
     };
 
     validator.isHexadecimal = function (str) {
@@ -22828,7 +23057,8 @@ module.exports = isArray;
     };
 
     validator.isByteLength = function (str, min, max) {
-        return str.length >= min && (typeof max === 'undefined' || str.length <= max);
+        var len = encodeURI(str).split(/%..|./).length - 1;
+        return len >= min && (typeof max === 'undefined' || len <= max);
     };
 
     validator.isUUID = function (str, version) {
@@ -22849,7 +23079,7 @@ module.exports = isArray;
     validator.isBefore = function (str, date) {
         var comparison = validator.toDate(date || new Date())
           , original = validator.toDate(str);
-        return original && comparison && original < comparison;
+        return !!(original && comparison && original < comparison);
     };
 
     validator.isIn = function (str, options) {
@@ -23026,6 +23256,10 @@ module.exports = isArray;
         return validator.isHexadecimal(str) && str.length === 24;
     };
 
+    validator.isISO8601 = function (str) {
+        return iso8601.test(str);
+    };
+
     validator.ltrim = function (str, chars) {
         var pattern = chars ? new RegExp('^[' + chars + ']+', 'g') : /^\s+/g;
         return str.replace(pattern, '');
@@ -23154,7 +23388,7 @@ module.exports = isArray;
 
 });
 
-},{}],105:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -23215,7 +23449,7 @@ module.exports = {
 
 };
 
-},{}],106:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 /*jshint maxlen: false*/
 
 var validator = require("validator");
@@ -23346,7 +23580,7 @@ var FormatValidators = {
 
 module.exports = FormatValidators;
 
-},{"validator":104}],107:[function(require,module,exports){
+},{"validator":105}],108:[function(require,module,exports){
 "use strict";
 
 var FormatValidators  = require("./FormatValidators"),
@@ -23872,7 +24106,7 @@ exports.validate = function (report, schema, json) {
 
 };
 
-},{"./FormatValidators":106,"./Report":109,"./Utils":113}],108:[function(require,module,exports){
+},{"./FormatValidators":107,"./Report":110,"./Utils":114}],109:[function(require,module,exports){
 // Number.isFinite polyfill
 // http://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.isfinite
 if (typeof Number.isFinite !== "function") {
@@ -23890,7 +24124,7 @@ if (typeof Number.isFinite !== "function") {
     };
 }
 
-},{}],109:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -24067,7 +24301,7 @@ module.exports = Report;
 
 }).call(this,require('_process'))
 
-},{"./Errors":105,"./Utils":113,"_process":65}],110:[function(require,module,exports){
+},{"./Errors":106,"./Utils":114,"_process":66}],111:[function(require,module,exports){
 "use strict";
 
 var Report              = require("./Report");
@@ -24222,7 +24456,7 @@ exports.getSchemaByUri = function (report, uri, root) {
 
 exports.getRemotePath = getRemotePath;
 
-},{"./Report":109,"./SchemaCompilation":111,"./SchemaValidation":112,"./Utils":113}],111:[function(require,module,exports){
+},{"./Report":110,"./SchemaCompilation":112,"./SchemaValidation":113,"./Utils":114}],112:[function(require,module,exports){
 "use strict";
 
 var Report      = require("./Report");
@@ -24510,7 +24744,7 @@ exports.compileSchema = function (report, schema) {
 
 };
 
-},{"./Report":109,"./SchemaCache":110,"./Utils":113}],112:[function(require,module,exports){
+},{"./Report":110,"./SchemaCache":111,"./Utils":114}],113:[function(require,module,exports){
 "use strict";
 
 var FormatValidators = require("./FormatValidators"),
@@ -25119,7 +25353,7 @@ exports.validateSchema = function (report, schema) {
     return isValid;
 };
 
-},{"./FormatValidators":106,"./JsonValidation":107,"./Report":109,"./Utils":113}],113:[function(require,module,exports){
+},{"./FormatValidators":107,"./JsonValidation":108,"./Report":110,"./Utils":114}],114:[function(require,module,exports){
 "use strict";
 
 exports.isAbsoluteUri = function (uri) {
@@ -25338,7 +25572,7 @@ exports.ucs2decode = function (string) {
 };
 /*jshint +W016*/
 
-},{}],114:[function(require,module,exports){
+},{}],115:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -25534,6 +25768,9 @@ ZSchema.prototype.validate = function (json, schema, options, callback) {
     if (options.schemaPath) {
         report.rootSchema = schema;
         schema = get(schema, options.schemaPath);
+        if (!schema) {
+            throw new Error("Schema path '" + options.schemaPath + "' wasn't found in the schema!");
+        }
     }
 
     if (!foundError) {
@@ -25676,6 +25913,9 @@ ZSchema.setSchemaReader = function (schemaReader) {
 ZSchema.registerFormat = function (formatName, validatorFunction) {
     FormatValidators[formatName] = validatorFunction;
 };
+ZSchema.unregisterFormat = function (formatName) {
+    delete FormatValidators[formatName];
+};
 ZSchema.getRegisteredFormats = function () {
     return Object.keys(FormatValidators);
 };
@@ -25687,7 +25927,7 @@ module.exports = ZSchema;
 
 }).call(this,require('_process'))
 
-},{"./FormatValidators":106,"./JsonValidation":107,"./Polyfills":108,"./Report":109,"./SchemaCache":110,"./SchemaCompilation":111,"./SchemaValidation":112,"./Utils":113,"./schemas/hyper-schema.json":115,"./schemas/schema.json":116,"_process":65,"lodash.get":100}],115:[function(require,module,exports){
+},{"./FormatValidators":107,"./JsonValidation":108,"./Polyfills":109,"./Report":110,"./SchemaCache":111,"./SchemaCompilation":112,"./SchemaValidation":113,"./Utils":114,"./schemas/hyper-schema.json":116,"./schemas/schema.json":117,"_process":66,"lodash.get":101}],116:[function(require,module,exports){
 module.exports={
     "$schema": "http://json-schema.org/draft-04/hyper-schema#",
     "id": "http://json-schema.org/draft-04/hyper-schema#",
@@ -25847,7 +26087,7 @@ module.exports={
 }
 
 
-},{}],116:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 module.exports={
     "id": "http://json-schema.org/draft-04/schema#",
     "$schema": "http://json-schema.org/draft-04/schema#",

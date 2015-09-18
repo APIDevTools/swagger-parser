@@ -4,5 +4,4 @@ properties:
   name:
     type: string
   spouse:
-    type:
-      $ref: person.yaml # direct circular reference
+    $ref: person.yaml # direct circular reference

@@ -2,15 +2,15 @@
   'use strict';
 
   var name = {
+    "type": "object",
     "required": [
       "first",
       "last"
     ],
-    "type": "object",
     "properties": {
       "middle": {
-        "minLength": 1,
-        "type": "string"
+        "type": "string",
+        "enum": ["string", "requiredString"]
       },
       "prefix": {
         "minLength": 3,
@@ -81,27 +81,21 @@
                                 ],
                                 "type": "object",
                                 "properties": {
-                                  "name": {
-                                    "type": name
-                                  },
+                                  "name": name,
                                   "level5": {
                                     "required": [
                                       "name"
                                     ],
                                     "type": "object",
                                     "properties": {
-                                      "name": {
-                                        "type": name
-                                      },
+                                      "name": name,
                                       "level6": {
                                         "required": [
                                           "name"
                                         ],
                                         "type": "object",
                                         "properties": {
-                                          "name": {
-                                            "type": name
-                                          },
+                                          "name": name,
                                           "level7": {
                                             "required": [
                                               "name"
@@ -144,18 +138,14 @@
                                                                     ],
                                                                     "type": "object",
                                                                     "properties": {
-                                                                      "name": {
-                                                                        "type": name
-                                                                      },
+                                                                      "name": name,
                                                                       "level14": {
                                                                         "required": [
                                                                           "name"
                                                                         ],
                                                                         "type": "object",
                                                                         "properties": {
-                                                                          "name": {
-                                                                            "type": name
-                                                                          },
+                                                                          "name": name,
                                                                           "level15": {
                                                                             "required": [
                                                                               "name"
@@ -168,9 +158,7 @@
                                                                                 ],
                                                                                 "type": "object",
                                                                                 "properties": {
-                                                                                  "name": {
-                                                                                    "type": name
-                                                                                  },
+                                                                                  "name": name,
                                                                                   "level17": {
                                                                                     "required": [
                                                                                       "name"
@@ -213,27 +201,21 @@
                                                                                                             ],
                                                                                                             "type": "object",
                                                                                                             "properties": {
-                                                                                                              "name": {
-                                                                                                                "type": name
-                                                                                                              },
+                                                                                                              "name": name,
                                                                                                               "level24": {
                                                                                                                 "required": [
                                                                                                                   "name"
                                                                                                                 ],
                                                                                                                 "type": "object",
                                                                                                                 "properties": {
-                                                                                                                  "name": {
-                                                                                                                    "type": name
-                                                                                                                  },
+                                                                                                                  "name": name,
                                                                                                                   "level25": {
                                                                                                                     "required": [
                                                                                                                       "name"
                                                                                                                     ],
                                                                                                                     "type": "object",
                                                                                                                     "properties": {
-                                                                                                                      "name": {
-                                                                                                                        "type": name
-                                                                                                                      },
+                                                                                                                      "name": name,
                                                                                                                       "level26": {
                                                                                                                         "required": [
                                                                                                                           "name"
@@ -258,24 +240,16 @@
                                                                                                                                     ],
                                                                                                                                     "type": "object",
                                                                                                                                     "properties": {
-                                                                                                                                      "name": {
-                                                                                                                                        "type": name
-                                                                                                                                      }
+                                                                                                                                      "name": name
                                                                                                                                     }
                                                                                                                                   },
-                                                                                                                                  "name": {
-                                                                                                                                    "type": name
-                                                                                                                                  }
+                                                                                                                                  "name": name
                                                                                                                                 }
                                                                                                                               },
-                                                                                                                              "name": {
-                                                                                                                                "type": name
-                                                                                                                              }
+                                                                                                                              "name": name
                                                                                                                             }
                                                                                                                           },
-                                                                                                                          "name": {
-                                                                                                                            "type": name
-                                                                                                                          }
+                                                                                                                          "name": name
                                                                                                                         }
                                                                                                                       }
                                                                                                                     }
@@ -284,75 +258,49 @@
                                                                                                               }
                                                                                                             }
                                                                                                           },
-                                                                                                          "name": {
-                                                                                                            "type": name
-                                                                                                          }
+                                                                                                          "name": name
                                                                                                         }
                                                                                                       },
-                                                                                                      "name": {
-                                                                                                        "type": name
-                                                                                                      }
+                                                                                                      "name": name
                                                                                                     }
                                                                                                   },
-                                                                                                  "name": {
-                                                                                                    "type": name
-                                                                                                  }
+                                                                                                  "name": name
                                                                                                 }
                                                                                               },
-                                                                                              "name": {
-                                                                                                "type": name
-                                                                                              }
+                                                                                              "name": name
                                                                                             }
                                                                                           },
-                                                                                          "name": {
-                                                                                            "type": name
-                                                                                          }
+                                                                                          "name": name
                                                                                         }
                                                                                       },
-                                                                                      "name": {
-                                                                                        "type": name
-                                                                                      }
+                                                                                      "name": name
                                                                                     }
                                                                                   }
                                                                                 }
                                                                               },
-                                                                              "name": {
-                                                                                "type": name
-                                                                              }
+                                                                              "name": name
                                                                             }
                                                                           }
                                                                         }
                                                                       }
                                                                     }
                                                                   },
-                                                                  "name": {
-                                                                    "type": name
-                                                                  }
+                                                                  "name": name
                                                                 }
                                                               },
-                                                              "name": {
-                                                                "type": name
-                                                              }
+                                                              "name": name
                                                             }
                                                           },
-                                                          "name": {
-                                                            "type": name
-                                                          }
+                                                          "name": name
                                                         }
                                                       },
-                                                      "name": {
-                                                        "type": name
-                                                      }
+                                                      "name": name
                                                     }
                                                   },
-                                                  "name": {
-                                                    "type": name
-                                                  }
+                                                  "name": name
                                                 }
                                               },
-                                              "name": {
-                                                "type": name
-                                              }
+                                              "name": name
                                             }
                                           }
                                         }
@@ -361,24 +309,16 @@
                                   }
                                 }
                               },
-                              "name": {
-                                "type": name
-                              }
+                              "name": name
                             }
                           },
-                          "name": {
-                            "type": name
-                          }
+                          "name": name
                         }
                       },
-                      "name": {
-                        "type": name
-                      }
+                      "name": name
                     }
                   },
-                  "name": {
-                    "type": name
-                  }
+                  "name": name
                 }
               }
             }

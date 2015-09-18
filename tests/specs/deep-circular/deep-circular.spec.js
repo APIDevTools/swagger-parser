@@ -40,6 +40,26 @@ describe('API with deeply-nested circular $refs', function() {
       .catch(helper.shouldNotGetCalled(done));
   });
 
+  it('should validate successfully', function(done) {
+    var parser = new SwaggerParser();
+    parser
+      .validate(path.rel('specs/deep-circular/deep-circular.yaml'))
+      .then(function(schema) {
+        expect(schema).to.equal(parser.api);
+        expect(schema).to.deep.equal(helper.dereferenced.deepCircular);
+
+        // Reference equality
+        expect(schema.paths['/family-tree'].get.responses['200'].schema.properties.name.type)
+          .to.equal(schema.paths['/family-tree'].get.responses['200'].schema.properties.level1.properties.name.type)
+          .to.equal(schema.paths['/family-tree'].get.responses['200'].schema.properties.level1.properties.level2.properties.name.type)
+          .to.equal(schema.paths['/family-tree'].get.responses['200'].schema.properties.level1.properties.level2.properties.level3.properties.name.type)
+          .to.equal(schema.paths['/family-tree'].get.responses['200'].schema.properties.level1.properties.level2.properties.level3.properties.level4.properties.name.type);
+
+        done();
+      })
+      .catch(helper.shouldNotGetCalled(done));
+  });
+
   it('should bundle successfully', function(done) {
     var parser = new SwaggerParser();
     parser

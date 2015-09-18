@@ -30,7 +30,25 @@ describe('API with circular (recursive) $refs', function() {
         expect(schema).to.deep.equal(helper.dereferenced.circularExternal);
 
         // Reference equality
-        expect(schema.definitions.person.properties.spouse.type).to.equal(schema.definitions.person);
+        expect(schema.definitions.person.properties.spouse).to.equal(schema.definitions.person);
+        expect(schema.definitions.parent.properties.children.items).to.equal(schema.definitions.child);
+        expect(schema.definitions.child.properties.parents.items).to.equal(schema.definitions.parent);
+
+        done();
+      })
+      .catch(helper.shouldNotGetCalled(done));
+  });
+
+  it('should validate successfully', function(done) {
+    var parser = new SwaggerParser();
+    parser
+      .validate(path.rel('specs/circular/circular.yaml'))
+      .then(function(schema) {
+        expect(schema).to.equal(parser.api);
+        expect(schema).to.deep.equal(helper.validated.circularExternal);
+
+        // Reference equality
+        expect(schema.definitions.person.properties.spouse).to.equal(schema.definitions.person);
         expect(schema.definitions.parent.properties.children.items).to.equal(schema.definitions.child);
         expect(schema.definitions.child.properties.parents.items).to.equal(schema.definitions.parent);
 

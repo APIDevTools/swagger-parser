@@ -97,9 +97,7 @@ helper.parsed.circularExternal =
     "type": "object",
     "properties": {
       "spouse": {
-        "type": {
-          "$ref": "person.yaml"
-        }
+        "$ref": "person.yaml"
       },
       "name": {
         "type": "string"
