@@ -1,0 +1,22 @@
+title: name
+type: object
+required:
+  - first
+  - last
+properties:
+  first:
+    $ref: ../definitions/required-string.yaml
+  last:
+    $ref: ./required-string.yaml
+  middle:
+    type:
+      $ref: "#/properties/first/type"
+    minLength:
+      $ref: "#/properties/first/minLength"
+  prefix:
+    $ref: "#/properties/last"
+    minLength: 3
+  suffix:
+    type: string
+    $ref: "#/properties/prefix"
+    maxLength: 3

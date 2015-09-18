@@ -18,7 +18,8 @@ var baseConfig = {
     'tests/fixtures/**/*.js',
 
     // Tests
-    'tests/specs/**/*.spec.js'
+    'tests/specs/**/*.js',
+    {pattern: 'tests/specs/**', included: false, served: true}
   ]
 };
 
@@ -61,7 +62,7 @@ module.exports = function(config) {
  * This is intended for debugging purposes only.
  */
 function configureForDebugging(config) {
-  config.files.splice(config.files.indexOf('dist/ref-parser.min.js'), 1, 'dist/ref-parser.js');
+  config.files.splice(config.files.indexOf('dist/swagger-parser.min.js'), 1, 'dist/swagger-parser.js');
   config.browsers = ['Chrome'];
 }
 

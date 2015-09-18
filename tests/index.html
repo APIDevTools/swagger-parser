@@ -24,10 +24,30 @@
     <script src="fixtures/config.js"></script>
     <script src="fixtures/globals.js"></script>
     <script src="fixtures/helper.js"></script>
+    <script src="fixtures/path.js"></script>
 
     <!-- Tests -->
     <script src="specs/exports.spec.js"></script>
-    <script src="specs/dereference.spec.js"></script>
+
+    <script src="specs/circular/circular.parsed.js"></script>
+    <script src="specs/circular/circular.dereferenced.js"></script>
+    <script src="specs/circular/circular.bundled.js"></script>
+    <script src="specs/circular/circular.spec.js"></script>
+
+    <script src="specs/deep-circular/deep-circular.parsed.js"></script>
+    <script src="specs/deep-circular/deep-circular.dereferenced.js"></script>
+    <script src="specs/deep-circular/deep-circular.bundled.js"></script>
+    <script src="specs/deep-circular/deep-circular.spec.js"></script>
+
+    <script src="specs/object-source/object-source.parsed.js"></script>
+    <script src="specs/object-source/object-source.dereferenced.js"></script>
+    <script src="specs/object-source/object-source.bundled.js"></script>
+    <script src="specs/object-source/object-source.spec.js"></script>
+
+    <script src="specs/callbacks-promises/callbacks-promises.parsed.js"></script>
+    <script src="specs/callbacks-promises/callbacks-promises.dereferenced.js"></script>
+    <script src="specs/callbacks-promises/callbacks-promises.bundled.js"></script>
+    <script src="specs/callbacks-promises/callbacks-promises.spec.js"></script>
 
     <script>
       mocha.run();

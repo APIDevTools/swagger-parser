@@ -11,7 +11,7 @@ describe('Exports', function() {
     expect(SwaggerParser.YAML.stringify).to.be.a('function');
   });
 
-  it('should export all the static methods of $RefParser', function() {
+  it('should export all the static methods of SwaggerParser', function() {
     expect(SwaggerParser.parse).to.be.a('function');
     expect(SwaggerParser.resolve).to.be.a('function');
     expect(SwaggerParser.bundle).to.be.a('function');

@@ -1,74 +1,118 @@
 (function() {
   'use strict';
 
-  global.helper = {
-    cloneDeep: cloneDeep,
-    testsDir: getTestsDir(),
-    relPath: relPath,
-    absPath: absPath
+  global.helper = {};
+
+  /**
+   * Parsed JSON schemas
+   */
+  helper.parsed = {};
+
+  /**
+   * Dereferenced JSON schemas
+   */
+  helper.dereferenced = {};
+
+  /**
+   * Bundled JSON schemas
+   */
+  helper.bundled = {};
+
+  /**
+   * Returns a function that throws an error if called.
+   *
+   * @param {function} done
+   */
+  helper.shouldNotGetCalled = function shouldNotGetCalled(done) {
+    return function shouldNotGetCalledFN(err) {
+      if (!(err instanceof Error)) {
+        err = new Error('This function should not have gotten called.');
+      }
+      done(err);
+    };
   };
 
   /**
-   * Deep-clones an object or array
+   * Tests the {@link SwaggerParser.resolve} method,
+   * and asserts that the given file paths resolve to the given values.
+   *
+   * @param {string} filePath - The file path that should be resolved
+   * @param {*} resolvedValue - The resolved value of the file
+   * @param {...*} [params] - Additional file paths and resolved values
+   * @returns {Function}
    */
-  function cloneDeep(obj) {
-    var clone = obj;
-    if (obj && typeof(obj) === 'object') {
-      clone = obj instanceof Array ? [] : {};
-      var keys = Object.keys(obj);
+  helper.testResolve = function testResolve(filePath, resolvedValue, params) {
+    var schemaFile = path.rel(arguments[0]);
+    var parsedSchema = arguments[1];
+    var expectedFiles = [], expectedValues = [];
+    for (var i = 0; i < arguments.length; i++) {
+      expectedFiles.push(path.abs(arguments[i]));
+      expectedValues.push(arguments[++i]);
+    }
+
+    return function(done) {
+      var parser = new SwaggerParser();
+      parser
+        .resolve(schemaFile)
+        .then(function($refs) {
+          expect(parser.api).to.deep.equal(parsedSchema);
+          expect(parser.$refs).to.equal($refs);
+
+          // Resolved file paths
+          expect($refs.paths()).to.have.same.members(expectedFiles);
+          if (userAgent.isNode) {
+            expect($refs.paths(['fs'])).to.have.same.members(expectedFiles);
+            expect($refs.paths('http', 'https')).to.be.an('array').with.lengthOf(0);
+          }
+          else {
+            expect($refs.paths(['http', 'https'])).to.have.same.members(expectedFiles);
+            expect($refs.paths('fs')).to.be.an('array').with.lengthOf(0);
+          }
+
+          // Resolved values
+          var values = $refs.values();
+          expect(values).to.have.keys(expectedFiles);
+          expectedFiles.forEach(function(file, i) {
+            var actual = helper.convertNodeBuffersToPOJOs(values[file]);
+            var expected = expectedValues[i];
+            expect(actual).to.deep.equal(expected, file);
+          });
+
+          done();
+        })
+        .catch(helper.shouldNotGetCalled(done));
+    }
+  };
+
+  /**
+   * Converts Buffer objects to POJOs, so they can be compared using Chai
+   */
+  helper.convertNodeBuffersToPOJOs = function convertNodeBuffersToPOJOs(value) {
+    if (value && value.constructor && value.constructor.name === 'Buffer') {
+      // Convert Buffers to POJOs for comparison
+      value = value.toJSON();
+
+      if (userAgent.isNode && /v0\.10/.test(process.version)) {
+        // Node v0.10 serializes buffers differently
+        value = {type: 'Buffer', data: value};
+      }
+    }
+    return value;
+  };
+
+  /**
+   * Creates a deep clone of the given value.
+   */
+  helper.cloneDeep = function cloneDeep(value) {
+    var clone = value;
+    if (value && typeof(value) === 'object') {
+      clone = value instanceof Array ? [] : {};
+      var keys = Object.keys(value);
       for (var i = 0; i < keys.length; i++) {
-        clone[keys[i]] = env.cloneDeep(obj[keys[i]]);
+        clone[keys[i]] = helper.cloneDeep(value[keys[i]]);
       }
     }
     return clone;
-  }
-
-  /**
-   * Returns the relative path of a file in the "tests/files" directory
-   *
-   * NOTE: When running in a test-runner (such as Karma) the absolute path is returned instead
-   */
-  function relPath(file) {
-    if (userAgent.isNode) {
-      // Return the relative path from the project root
-      return path.join('tests', 'files', file);
-    }
-
-    // Encode special characters in paths when running in a browser
-    file = encodeURIComponent(file).split('%2F').join('/');
-
-    if (window.location.href.indexOf(helper.testsDir) === 0) {
-      // Return the relative path from "/tests/index.html"
-      return 'files/' + file;
-    }
-
-    // We're running in a test-runner (such as Karma), so return an absolute path,
-    // since we don't know the relative path of the "files" directory.
-    return helper.testsDir.replace(/^https?:\/\/[^\/]+(\/.*)/, '$1files/' + file);
-  }
-
-  /**
-   * Returns the absolute path of a file in the "tests/files" directory
-   */
-  function absPath(file) {
-    if (userAgent.isNode) {
-      return path.join(__dirname, 'files', file || '/');
-    }
-    else {
-      return helper.testsDir + 'files/' + file;
-    }
-  }
-
-  /**
-   * Returns the path of the "tests" directory
-   */
-  function getTestsDir() {
-    if (userAgent.isNode) {
-      return path.resolve('tests');
-    }
-
-    var __filename = document.querySelector('script[src*="fixtures/helper.js"]').src;
-    return __filename.substr(0, __filename.indexOf('fixtures/helper.js'));
-  }
+  };
 
 })();

@@ -1,0 +1,47 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: Name API
+  description: This is an intentionally over-complicated API that returns a person's name
+
+paths:
+  /people/{name}:
+    parameters:
+      - name: name
+        in: path
+        type: string
+        required: true
+    get:
+      responses:
+        200:
+          description: Returns the requested name
+          schema:
+            $ref: "#/definitions/name"
+
+definitions:
+  name:
+    type: object
+    required:
+      - first
+      - last
+    properties:
+      first:
+        $ref: "#/definitions/requiredString"
+      last:
+        $ref: "#/definitions/name/properties/first"
+      middle:
+        type:
+          $ref: "#/definitions/name/properties/first/type"
+        minLength:
+          $ref: "#/definitions/name/properties/last/minLength"
+      prefix:
+        $ref: "#/definitions/name/properties/last"
+        minLength: 3
+      suffix:
+        type: string
+        $ref: "#/definitions/name/properties/prefix"
+        maxLength: 3
+  requiredString:
+    title: requiredString
+    type: string
+    minLength: 1
