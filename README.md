@@ -100,11 +100,11 @@ define(["swagger-parser"], function(SwaggerParser) { /* your module's code */ })
 the API
 --------------------------
 - Methods
+    - [`validate()`](#validatepath-options-callback)
+    - [`dereference()`](#dereferencepath-options-callback)
+    - [`bundle()`](#bundlepath-options-callback)
     - [`parse()`](#parsepath-options-callback)
     - [`resolve()`](#resolvepath-options-callback)
-    - [`bundle()`](#bundlepath-options-callback)
-    - [`dereference()`](#dereferencepath-options-callback)
-    - [`validate()`](#validatepath-options-callback)
 - Objects
     - [`Options`](#options)
     - [`API`](#api-object)
@@ -123,64 +123,7 @@ the API
 - [Callbacks vs. Promises](#callbacks-vs-promises)
 
 
-### `parse(path, [options], [callback])`
-
-- **path** (_required_) - `string`<br>
-The file path or URL of your Swagger API.  The path can be absolute or relative.  In Node, the path is relative to `process.cwd()`.  In the browser, it's relative to the URL of the page.
-<br><br>
-If you already have the Swagger API as a JavaScript object, then you can pass that instead of a file path.
-
-- **options** (_optional_) - `object`<br>
-See [options](#options) below.
-
-- **callback** (_optional_) - `function(err, api)`<br>
-A callback that will receive the parsed [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object), or an error.
-
-- **Return Value:** `Promise`<br>
-See [Callbacks vs. Promises](#callbacks-vs-promises) below.
-
-Parses the given Swagger API (in JSON or YAML format), and returns it as a JavaScript object.  This method **does not** resolve `$ref` pointers or dereference anything.  It simply parses _one_ file and returns it.
-
-```javascript
-SwaggerParser.parse("my-api.yaml")
-  .then(function(api) {
-    console.log("API name: %s, Version: %s", api.info.title, api.info.version);
-  });
-```
-
-
-### `resolve(path, [options], [callback])`
-
-- **path** (_required_) - `string` or `object`<br>
-The file path or URL of your Swagger API.  See the [`parse`](#parsepath-options-callback) method for more info.
-
-- **options** (_optional_) - `object`<br>
-See [options](#options) below.
-
-- **callback** (_optional_) - `function(err, $refs)`<br>
-A callback that will receive a [`$Refs`](#refs-object) object.
-
-- **Return Value:** `Promise`<br>
-See [Callbacks vs. Promises](#callbacks-vs-promises) below.
-
-Resolves all JSON references (`$ref` pointers) in the given Swagger API.  If it references any other files/URLs, then they will be downloaded and resolved as well (unless `options.$refs.external` is false).   This method **does not** dereference anything.  It simply gives you a [`$Refs`](#refs-object) object, which is a map of all the resolved references and their values.
-
-```javascript
-SwaggerParser.resolve("my-api.yaml")
-  .then(function($refs) {
-    // $refs.paths() returns the paths of all the files in your API
-    var filePaths = $refs.paths();
-
-    // $refs.get() lets you query parts of your API
-    var name = $refs.get("schemas/person.yaml#/properties/name");
-
-    // $refs.set() lets you change parts of your API
-    $refs.set("schemas/person.yaml#/properties/favoriteColor/default", "blue");
-  });
-```
-
-
-### `bundle(path, [options], [callback])`
+### `validate(path, [options], [callback])`
 
 - **path** (_required_) - `string` or `object`<br>
 The file path or URL of your Swagger API.  See the [`parse`](#parsepath-options-callback) method for more info.
@@ -189,19 +132,24 @@ The file path or URL of your Swagger API.  See the [`parse`](#parsepath-options-
 See [options](#options) below.
 
 - **callback** (_optional_) - `function(err, api)`<br>
-A callback that will receive the bundled [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object).
+A callback that will receive the dereferenced and validated [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object).
 
 - **Return Value:** `Promise`<br>
 See [Callbacks vs. Promises](#callbacks-vs-promises) below.
 
-Bundles all referenced files/URLs into a single api that only has _internal_ `$ref` pointers.  This lets you split-up your API however you want while you're building it, but easily combine all those files together when it's time to package or distribute the API to other people.  The resulting API size will be small, since it will still contain _internal_ JSON references rather than being [fully-dereferenced](#dereferencepath-options-callback).
+Validates the Swagger API against the [Swagger 2.0 schema](https://github.com/swagger-api/swagger-spec/blob/master/schemas/v2.0/schema.json) and/or the [Swagger 2.0 spec](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md) (depending on the options).
 
-This also eliminates the risk of [circular references](#circular-refs), so the API can be safely serialized using [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
+If validation fails, then an error will be passed to the callback function, or the Promise will reject. Either way, the error will contain information about why the API is invalid.
+
+This method calls [`dereference`](#dereferencepath-options-callback) internally, so the returned [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object) is fully dereferenced.
 
 ```javascript
-SwaggerParser.bundle("my-api.yaml")
+SwaggerParser.validate("my-api.yaml")
   .then(function(api) {
-    console.log(api.definitions.person); // => {$ref: "#/definitions/schemas~1person.yaml"}
+    console.log('Yay! The API is valid.');
+  })
+  .catch(function(err) {
+    console.error('Onoes! The API is invalid. ' + err.message);
   });
 ```
 
@@ -234,7 +182,7 @@ SwaggerParser.dereference("my-api.yaml")
 ```
 
 
-### `validate(path, [options], [callback])`
+### `bundle(path, [options], [callback])`
 
 - **path** (_required_) - `string` or `object`<br>
 The file path or URL of your Swagger API.  See the [`parse`](#parsepath-options-callback) method for more info.
@@ -243,24 +191,80 @@ The file path or URL of your Swagger API.  See the [`parse`](#parsepath-options-
 See [options](#options) below.
 
 - **callback** (_optional_) - `function(err, api)`<br>
-A callback that will receive the dereferenced and validated [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object).
+A callback that will receive the bundled [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object).
 
 - **Return Value:** `Promise`<br>
 See [Callbacks vs. Promises](#callbacks-vs-promises) below.
 
-Validates the Swagger API against the [Swagger 2.0 schema](https://github.com/swagger-api/swagger-spec/blob/master/schemas/v2.0/schema.json) and/or the [Swagger 2.0 spec](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md) (depending on the options).
+Bundles all referenced files/URLs into a single api that only has _internal_ `$ref` pointers.  This lets you split-up your API however you want while you're building it, but easily combine all those files together when it's time to package or distribute the API to other people.  The resulting API size will be small, since it will still contain _internal_ JSON references rather than being [fully-dereferenced](#dereferencepath-options-callback).
 
-If validation fails, then an error will be passed to the callback function, or the Promise will reject. Either way, the error will contain information about why the API is invalid.
-
-This method calls [`dereference`](#dereferencepath-options-callback) internally, so the returned [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object) is fully dereferenced.
+This also eliminates the risk of [circular references](#circular-refs), so the API can be safely serialized using [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
 ```javascript
-SwaggerParser.validate("my-api.yaml")
+SwaggerParser.bundle("my-api.yaml")
   .then(function(api) {
-    console.log('Yay! The API is valid.');
-  })
-  .catch(function(err) {
-    console.error('Onoes! The API is invalid. ' + err.message);
+    console.log(api.definitions.person); // => {$ref: "#/definitions/schemas~1person.yaml"}
+  });
+```
+
+
+### `parse(path, [options], [callback])`
+
+- **path** (_required_) - `string`<br>
+The file path or URL of your Swagger API.  The path can be absolute or relative.  In Node, the path is relative to `process.cwd()`.  In the browser, it's relative to the URL of the page.
+<br><br>
+If you already have the Swagger API as a JavaScript object, then you can pass that instead of a file path.
+
+- **options** (_optional_) - `object`<br>
+See [options](#options) below.
+
+- **callback** (_optional_) - `function(err, api)`<br>
+A callback that will receive the parsed [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object), or an error.
+
+- **Return Value:** `Promise`<br>
+See [Callbacks vs. Promises](#callbacks-vs-promises) below.
+
+> This method is used internally by other methods, such as [`bundle`](#bundlepath-options-callback) and [`dereference`](#dereferencepath-options-callback).  You probably won't need to call this method yourself.
+
+Parses the given Swagger API (in JSON or YAML format), and returns it as a JavaScript object.  This method **does not** resolve `$ref` pointers or dereference anything.  It simply parses _one_ file and returns it.
+
+```javascript
+SwaggerParser.parse("my-api.yaml")
+  .then(function(api) {
+    console.log("API name: %s, Version: %s", api.info.title, api.info.version);
+  });
+```
+
+
+### `resolve(path, [options], [callback])`
+
+- **path** (_required_) - `string` or `object`<br>
+The file path or URL of your Swagger API.  See the [`parse`](#parsepath-options-callback) method for more info.
+
+- **options** (_optional_) - `object`<br>
+See [options](#options) below.
+
+- **callback** (_optional_) - `function(err, $refs)`<br>
+A callback that will receive a [`$Refs`](#refs-object) object.
+
+- **Return Value:** `Promise`<br>
+See [Callbacks vs. Promises](#callbacks-vs-promises) below.
+
+> This method is used internally by other methods, such as [`bundle`](#bundlepath-options-callback) and [`dereference`](#dereferencepath-options-callback).  You probably won't need to call this method yourself.
+
+Resolves all JSON references (`$ref` pointers) in the given Swagger API.  If it references any other files/URLs, then they will be downloaded and resolved as well (unless `options.$refs.external` is false).   This method **does not** dereference anything.  It simply gives you a [`$Refs`](#refs-object) object, which is a map of all the resolved references and their values.
+
+```javascript
+SwaggerParser.resolve("my-api.yaml")
+  .then(function($refs) {
+    // $refs.paths() returns the paths of all the files in your API
+    var filePaths = $refs.paths();
+
+    // $refs.get() lets you query parts of your API
+    var name = $refs.get("schemas/person.yaml#/properties/name");
+
+    // $refs.set() lets you change parts of your API
+    $refs.set("schemas/person.yaml#/properties/favoriteColor/default", "blue");
   });
 ```
 
