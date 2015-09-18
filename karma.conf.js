@@ -16,7 +16,6 @@ var baseConfig = {
 
     // Test Fixtures
     'tests/fixtures/**/*.js',
-    {pattern: 'tests/files/**', included: false, served: true},
 
     // Tests
     'tests/specs/**/*.spec.js'
@@ -24,6 +23,7 @@ var baseConfig = {
 };
 
 module.exports = function(config) {
+  var debug = process.env.DEBUG ? process.env.DEBUG === 'true' : false;
   var karma = process.env.KARMA ? process.env.KARMA === 'true' : true;
   var coverage = process.env.KARMA_COVERAGE ? process.env.KARMA_COVERAGE === 'true' : true;
   var sauce = process.env.KARMA_SAUCE ? process.env.KARMA_SAUCE === 'true' : true;
@@ -36,20 +36,34 @@ module.exports = function(config) {
     return;
   }
 
-  if (coverage) {
-    configureCodeCoverage(baseConfig);
-  }
-
-  if (sauce && sauceUsername && sauceAccessKey) {
-    configureSauceLabs(baseConfig);
+  if (debug) {
+    configureForDebugging(baseConfig);
   }
   else {
-    configureLocalBrowsers(baseConfig);
+    if (coverage) {
+      configureCodeCoverage(baseConfig);
+    }
+
+    if (sauce && sauceUsername && sauceAccessKey) {
+      configureSauceLabs(baseConfig);
+    }
+    else {
+      configureLocalBrowsers(baseConfig);
+    }
   }
 
   console.log('Karma Config:\n', JSON.stringify(baseConfig, null, 2));
   config.set(baseConfig);
 };
+
+/**
+ * Configures Karma to only run Chrome, and with unminified source code.
+ * This is intended for debugging purposes only.
+ */
+function configureForDebugging(config) {
+  config.files.splice(config.files.indexOf('dist/ref-parser.min.js'), 1, 'dist/ref-parser.js');
+  config.browsers = ['Chrome'];
+}
 
 /**
  * Configures the code-coverage reporter
@@ -168,6 +182,12 @@ function configureSauceLabs(config) {
       browserName: 'iphone',
       version: '8'
     },
+    'iOS-9': {
+      base: 'SauceLabs',
+      platform: 'OS X 10.10',
+      browserName: 'iphone',
+      version: '9'
+    },
     'Android-4-4': {
       base: 'SauceLabs',
       platform: 'Linux',
@@ -184,4 +204,8 @@ function configureSauceLabs(config) {
 
   config.reporters.push('saucelabs');
   config.browsers = Object.keys(config.customLaunchers);
+  config.captureTimeout = 120000;
+  config.browserDisconnectTimeout = 15000;
+  config.browserNoActivityTimeout = 15000;
+  // config.logLevel = 'debug';
 }

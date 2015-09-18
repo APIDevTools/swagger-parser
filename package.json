@@ -34,7 +34,7 @@
     "karma": "karma start --single-run",
     "test": "npm run browserify -- --test && npm run istanbul && npm run karma",
     "upgrade": "ncu --upgradeAll && npm update && bower update",
-    "bump": "bump --prerelease --grep lib/index.js dist/* --tag --push --all",
+    "bump": "bump --prompt --grep lib/index.js dist/* --tag --push --all",
     "release": "npm run upgrade && npm test && npm run bump && npm publish"
   },
   "repository": {

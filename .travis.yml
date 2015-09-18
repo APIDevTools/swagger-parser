@@ -5,16 +5,16 @@ sudo: false
 language: node_js
 matrix:
   include:
-    # IO.js
-    - node_js: iojs
-      env: KARMA=false
-
     # Node
     - node_js: 0.10
       env: KARMA=false
     - node_js: 0.11
       env: KARMA=false
     - node_js: 0.12
+      env: KARMA=false
+    - node_js: iojs
+      env: KARMA=false
+    - node_js: 4
       env: KARMA=false
 
     # Local Browsers
@@ -36,8 +36,7 @@ before_script:
   - npm update -g npm
 branches:
   only:
-    - master            # run CI on the master branch
-    - v3.0.0            # also run for v3.0.0 branch (since it's close to release)
+    - master            # only run CI on the master branch
     - /^PR /            # also build pull requests
 after_success:
   - cat coverage/*/lcov.info > coveralls.txt                    # concatenate all code-coverage data into a single file
