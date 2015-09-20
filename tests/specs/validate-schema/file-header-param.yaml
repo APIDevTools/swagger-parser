@@ -1,0 +1,19 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users/{username}/profile/image:
+    parameters:
+      - name: username
+        in: path
+        type: string
+        required: true
+      - name: image
+        in: header
+        type: file      # <--- The "file" type can't be used with "header" params
+    post:
+      responses:
+        default:
+          description:  hello world

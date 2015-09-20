@@ -1,0 +1,13 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users:
+    get:
+      responses:
+        "default":
+          description:  hello world
+          schema:
+            type: user    # <--- Invalid response type

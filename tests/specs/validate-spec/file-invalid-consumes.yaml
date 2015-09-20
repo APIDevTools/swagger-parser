@@ -1,0 +1,26 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+consumes:
+  - multipart/form-data                 # <--- The API allows "file" params
+  - application/x-www-form-urlencoded   # <--- The API allows "file" params
+
+paths:
+  /users/{username}/profile/image:
+    parameters:
+      - name: username
+        in: path
+        type: string
+        required: true
+      - name: image
+        in: formData
+        type: file      # <--- "file" params REQUIRE multipart/form-data or application/x-www-form-urlencoded
+    post:
+      consumes:                         # <--- This operation's "consumes" OVERRIDES the API's "consumes"
+        - application/octet-stream
+        - image/png
+      responses:
+        default:
+          description:  hello world

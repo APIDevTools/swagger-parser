@@ -1,0 +1,19 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users/{usernames}:
+    parameters:
+      - name: usernames
+        in: path
+        required: true
+        type: array
+        items:
+          type: string
+        collectionFormat: multi     # <--- Not valid for header params
+    get:
+      responses:
+        default:
+          description:  hello world

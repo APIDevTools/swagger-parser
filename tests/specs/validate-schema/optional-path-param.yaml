@@ -1,0 +1,20 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users/{username}/profile/image/{img_id}:
+    parameters:
+      - name: username
+        in: path
+        required: true
+        type: string
+      - name: img_id
+        in: path
+        required: false     # <--- Error! Path params *must* be required
+        type: number
+    get:
+      responses:
+        default:
+          description:  hello world

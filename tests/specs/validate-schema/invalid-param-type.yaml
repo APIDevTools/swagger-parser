@@ -1,0 +1,15 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users:
+    parameters:
+      - name: user
+        in: query
+        type: user      # <---- "user" is not a valid param type
+    post:
+      responses:
+        default:
+          description:  hello world
