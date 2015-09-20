@@ -16,11 +16,6 @@ Swagger Parser
 [![Browser Compatibility](https://saucelabs.com/browser-matrix/swagger-parser.svg)](https://saucelabs.com/u/swagger-parser)
 
 
-| **!!! ALPHA NOTICE !!!**
-|-----------------------------------
-|Swagger Parser 3.0 is in alpha.  It is fairly stable, but not fully tested yet, so you may find bugs.  Also, please be aware that the API might change slightly before final release.<br><br>To install the alpha, run `npm install swagger-parser@alpha`
-
-
 Features
 --------------------------
 - Parses Swagger specs in **JSON** or **YAML** format
@@ -30,7 +25,7 @@ Features
 - Can [dereference](#dereferencepath-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
 - Configurable caching of external files and URLs
 - [Tested](http://bigstickcarpet.github.io/swagger-parser/tests/index.html) in Node, IO.js, and all modern web browsers on Mac, Windows, Linux, iOS, and Android
-- Tested on [over 100 Google APIs](https://github.com/APIs-guru/api-models/tree/master/googleapis.com)
+- Tested on [over 100 real-world APIs](https://github.com/APIs-guru/api-models) from Google, Instagram, etc.
 - Supports [circular references](#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash `$ref` pointers to the same value always resolve to the same object instance
 
@@ -297,6 +292,7 @@ SwaggerParser.validate("my-api.yaml", {
 |`allow.yaml`     |bool     |true      |Determines whether YAML files are supported<br> (note: all JSON files are also valid YAML files)
 |`allow.empty`    |bool     |true      |Determines whether it's ok for a `$ref` pointer to point to an empty file
 |`allow.unknown`  |bool     |true      |Determines whether it's ok for a `$ref` pointer to point to an unknown/unsupported file type (such as HTML, text, image, etc.). The default is to resolve unknown files as a [`Buffer`](https://nodejs.org/api/buffer.html#buffer_class_buffer)
+|`allow.circular` |bool     |true      |Determines whether [circular references](#circular-refs) are allowed. If `false`, then a `ReferenceError` will be thrown if the API contains a circular reference.
 |`$refs.internal` |bool     |true      |Determines whether internal `$ref` pointers (such as `#/definitions/widget`) will be dereferenced when calling [`dereference()`](#dereferencepath-options-callback).  Either way, you'll still be able to get the value using [`$Refs.get()`](#refsgetref-options)
 |`$refs.external` |bool     |true      |Determines whether external `$ref` pointers get resolved/dereferenced. If `false`, then no files/URLs will be retrieved.  Use this if you only want to allow single-file APIs.
 |`validate.schema`|bool     |true      |Determines whether the [`validate()`](#validatepath-options-callback) method validates the API against the [Swagger 2.0 schema](https://github.com/swagger-api/swagger-spec/blob/master/schemas/v2.0/schema.json)
@@ -327,6 +323,23 @@ parser.dereference("my-api.yaml")
 When you call the [`resolve`](#resolvepath-options-callback) method, the value that gets passed to the callback function (or Promise) is a `$Refs` object.  This same object is accessible via the `parser.$refs` property of `SwaggerParser` instances.
 
 This object is a map of JSON References (`$ref` pointers) and their resolved values.  It also has several convenient helper methods that make it easy for you to navigate and manipulate the JSON References.
+
+
+### `$Refs.circular`
+
+- **Type:** `boolean`
+
+This property is `true` if the API contains any [circular references](#circular-refs).  You may want to check this property before serializing the dereferenced schema as JSON, since [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) does not support circular references by default.
+
+```javascript
+var parser = new $RefParser();
+parser.dereference("my-api.yaml")
+  .then(function() {
+    if (parser.$refs.circular) {
+      console.log('The API contains circular references');
+    }
+  });
+```
 
 
 ### `$Refs.paths([types])`
@@ -579,6 +592,8 @@ Many people prefer [ES6 Promise syntax](http://javascriptplayground.com/blog/201
 Circular $Refs
 --------------------------
 Swagger APIs can contain [circular $ref pointers](https://gist.github.com/BigstickCarpet/d18278935fc73e3a0ee1), and Swagger Parser fully supports them. Circular references can be resolved and dereferenced just like any other reference.  However, if you intend to serialize the dereferenced api as JSON, then you should be aware that [`JSON.stringify`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) does not support circular references by default, so you will need to [use a custom replacer function](https://stackoverflow.com/questions/11616630/json-stringify-avoid-typeerror-converting-circular-structure-to-json).
+
+You can disable circular references by setting the [`allow.circular`](#options) option to `false`. Then, if a circular reference is found, a `ReferenceError` will be thrown.
 
 Another option is to use the [`bundle`](#bundlepath-options-callback) method rather than the [`dereference`](#dereferencepath-options-callback) method.  Bundling does _not_ result in circular references, because it simply converts _external_ `$ref` pointers to _internal_ ones.
 
