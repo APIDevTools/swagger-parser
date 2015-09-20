@@ -5,11 +5,11 @@ describe('Object sources (instead of file paths)', function() {
     var parser = new SwaggerParser();
     parser
       .dereference(helper.cloneDeep(helper.parsed.objectSource.api))
-      .then(function(schema) {
-        expect(schema).to.equal(parser.api);
-        expect(schema).to.deep.equal(helper.dereferenced.objectSource);
+      .then(function(api) {
+        expect(api).to.equal(parser.api);
+        expect(api).to.deep.equal(helper.dereferenced.objectSource);
 
-        // The schema path should be blank, and all other paths should be relative (not absolute)
+        // The API path should be blank, and all other paths should be relative (not absolute)
         var expectedPaths = [
           '',
           path.rel('specs/object-source/definitions/definitions.json'),
@@ -20,13 +20,13 @@ describe('Object sources (instead of file paths)', function() {
         expect(parser.$refs.values()).to.have.keys(expectedPaths);
 
         // Reference equality
-        expect(schema.paths['/people/{name}'].get.responses['200'].schema)
-          .to.equal(schema.definitions.name);
-        expect(schema.definitions.requiredString)
-          .to.equal(schema.definitions.name.properties.first)
-          .to.equal(schema.definitions.name.properties.last)
-          .to.equal(schema.paths['/people/{name}'].get.responses['200'].schema.properties.first)
-          .to.equal(schema.paths['/people/{name}'].get.responses['200'].schema.properties.last);
+        expect(api.paths['/people/{name}'].get.responses['200'].schema)
+          .to.equal(api.definitions.name);
+        expect(api.definitions.requiredString)
+          .to.equal(api.definitions.name.properties.first)
+          .to.equal(api.definitions.name.properties.last)
+          .to.equal(api.paths['/people/{name}'].get.responses['200'].schema.properties.first)
+          .to.equal(api.paths['/people/{name}'].get.responses['200'].schema.properties.last);
 
         done();
       })
@@ -37,11 +37,11 @@ describe('Object sources (instead of file paths)', function() {
     var parser = new SwaggerParser();
     parser
       .bundle(helper.cloneDeep(helper.parsed.objectSource.api))
-      .then(function(schema) {
-        expect(schema).to.equal(parser.api);
-        expect(schema).to.deep.equal(helper.bundled.objectSource);
+      .then(function(api) {
+        expect(api).to.equal(parser.api);
+        expect(api).to.deep.equal(helper.bundled.objectSource);
 
-        // The schema path should be blank, and all other paths should be relative (not absolute)
+        // The API path should be blank, and all other paths should be relative (not absolute)
         var expectedPaths = [
           '',
           path.rel('specs/object-source/definitions/definitions.json'),
@@ -60,11 +60,11 @@ describe('Object sources (instead of file paths)', function() {
     var parser = new SwaggerParser();
     parser
       .dereference(helper.cloneDeep(helper.parsed.objectSource.api))
-      .then(function(schema) {
-        expect(schema).to.equal(parser.api);
-        expect(schema).to.deep.equal(helper.dereferenced.objectSource);
+      .then(function(api) {
+        expect(api).to.equal(parser.api);
+        expect(api).to.deep.equal(helper.dereferenced.objectSource);
 
-        // The schema path should be blank, and all other paths should be relative (not absolute)
+        // The API path should be blank, and all other paths should be relative (not absolute)
         var expectedPaths = [
           '',
           path.rel('specs/object-source/definitions/definitions.json'),
@@ -75,13 +75,13 @@ describe('Object sources (instead of file paths)', function() {
         expect(parser.$refs.values()).to.have.keys(expectedPaths);
 
         // Reference equality
-        expect(schema.paths['/people/{name}'].get.responses['200'].schema)
-          .to.equal(schema.definitions.name);
-        expect(schema.definitions.requiredString)
-          .to.equal(schema.definitions.name.properties.first)
-          .to.equal(schema.definitions.name.properties.last)
-          .to.equal(schema.paths['/people/{name}'].get.responses['200'].schema.properties.first)
-          .to.equal(schema.paths['/people/{name}'].get.responses['200'].schema.properties.last);
+        expect(api.paths['/people/{name}'].get.responses['200'].schema)
+          .to.equal(api.definitions.name);
+        expect(api.definitions.requiredString)
+          .to.equal(api.definitions.name.properties.first)
+          .to.equal(api.definitions.name.properties.last)
+          .to.equal(api.paths['/people/{name}'].get.responses['200'].schema.properties.first)
+          .to.equal(api.paths['/people/{name}'].get.responses['200'].schema.properties.last);
 
         done();
       })

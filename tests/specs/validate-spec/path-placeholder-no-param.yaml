@@ -1,0 +1,38 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users/{username}/{foo}:        # <---- {username} and {foo} placeholders
+    parameters:
+      - name: username            # <---- "username" path param
+        in: path
+        required: true
+        type: string
+      - name: foo
+        in: body
+        schema:
+          type: string
+    get:
+      parameters:                   # <---- there's no "foo" path param
+        - name: username
+          in: path
+          required: true
+          type: string
+        - name: foo
+          in: body
+          schema:
+            type: number
+      responses:
+        default:
+          description:  hello world
+    post:
+      parameters:                   # <---- there's no "foo" path param
+        - name: username
+          in: path
+          required: true
+          type: string
+      responses:
+        default:
+          description:  hello world

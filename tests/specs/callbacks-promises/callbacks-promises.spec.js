@@ -48,7 +48,7 @@ describe('Callback & Promise syntax', function() {
           sinon.assert.calledWithExactly(callbackFn, null, thenFnArg);
           sinon.assert.calledWithExactly(thenFn, callbackFnArg);
 
-          // Make sure the schema was parsed correctly
+          // Make sure the API was parsed correctly
           if (method !== 'resolve') {
             var actual = thenFn.firstCall.args[0];
             var expected = method === 'validate' ? helper.dereferenced.callbacksPromises : helper[method + 'd'].callbacksPromises;
@@ -88,8 +88,8 @@ describe('Callback & Promise syntax', function() {
 
           // Make sure they were called with the correct values
           var result = method === 'resolve' ? parser.$refs : parser.api;
-          var schema = method === 'resolve' ? helper.parsed.callbacksPromises : method === 'validate' ? helper.dereferenced.callbacksPromises : helper[method + 'd'].callbacksPromises;
-          expect(parser.api).to.deep.equal(schema);
+          var api = method === 'resolve' ? helper.parsed.callbacksPromises : method === 'validate' ? helper.dereferenced.callbacksPromises : helper[method + 'd'].callbacksPromises;
+          expect(parser.api).to.deep.equal(api);
           expect(parser.$refs.paths()).to.deep.equal([path.abs('specs/callbacks-promises/callbacks-promises.yaml')]);
           sinon.assert.calledWithExactly(callbackFn, null, result);
           sinon.assert.calledWithExactly(thenFn, result);

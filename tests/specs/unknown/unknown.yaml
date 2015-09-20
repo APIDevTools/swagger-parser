@@ -1,0 +1,46 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: Unknown file types
+  description: This API references external files that aren't JSON or YAML
+
+paths:
+  /files/blank:
+    get:
+      responses:
+        200:
+          description: A blank file
+          schema:
+            type: file
+            default:
+              $ref: files/blank
+
+  /files/text:
+    get:
+      responses:
+        200:
+          description: A text file
+          schema:
+            type: file
+            default:
+              $ref: files/text.txt
+
+  /files/html:
+    get:
+      responses:
+        200:
+          description: An HTML page
+          schema:
+            type: file
+            default:
+              $ref: files/page.html
+
+  /files/binary:
+    get:
+      responses:
+        200:
+          description: A binary file
+          schema:
+            type: file
+            default:
+              $ref: files/binary.png

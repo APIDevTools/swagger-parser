@@ -1,0 +1,31 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users/{username}:
+    parameters:
+      - name: username
+        in: path
+        required: true
+        type: string
+      - name: foo           # <---- Duplicate param
+        in: header
+        type: string
+        required: false
+      - name: username
+        in: header
+        type: string
+      - name: username
+        in: body
+        schema:
+          type: string
+      - name: foo           # <---- Duplicate param
+        in: header
+        type: number
+        required: true
+    get:
+      responses:
+        default:
+          description:  hello world

@@ -5,9 +5,9 @@ describe('API with circular (recursive) $refs', function() {
     var parser = new SwaggerParser();
     parser
       .parse(path.rel('specs/circular/circular.yaml'))
-      .then(function(schema) {
-        expect(schema).to.equal(parser.api);
-        expect(schema).to.deep.equal(helper.parsed.circularExternal.api);
+      .then(function(api) {
+        expect(api).to.equal(parser.api);
+        expect(api).to.deep.equal(helper.parsed.circularExternal.api);
         expect(parser.$refs.paths()).to.deep.equal([path.abs('specs/circular/circular.yaml')]);
         done();
       })
@@ -25,14 +25,14 @@ describe('API with circular (recursive) $refs', function() {
     var parser = new SwaggerParser();
     parser
       .dereference(path.rel('specs/circular/circular.yaml'))
-      .then(function(schema) {
-        expect(schema).to.equal(parser.api);
-        expect(schema).to.deep.equal(helper.dereferenced.circularExternal);
+      .then(function(api) {
+        expect(api).to.equal(parser.api);
+        expect(api).to.deep.equal(helper.dereferenced.circularExternal);
 
         // Reference equality
-        expect(schema.definitions.person.properties.spouse).to.equal(schema.definitions.person);
-        expect(schema.definitions.parent.properties.children.items).to.equal(schema.definitions.child);
-        expect(schema.definitions.child.properties.parents.items).to.equal(schema.definitions.parent);
+        expect(api.definitions.person.properties.spouse).to.equal(api.definitions.person);
+        expect(api.definitions.parent.properties.children.items).to.equal(api.definitions.child);
+        expect(api.definitions.child.properties.parents.items).to.equal(api.definitions.parent);
 
         done();
       })
@@ -43,14 +43,14 @@ describe('API with circular (recursive) $refs', function() {
     var parser = new SwaggerParser();
     parser
       .validate(path.rel('specs/circular/circular.yaml'))
-      .then(function(schema) {
-        expect(schema).to.equal(parser.api);
-        expect(schema).to.deep.equal(helper.validated.circularExternal);
+      .then(function(api) {
+        expect(api).to.equal(parser.api);
+        expect(api).to.deep.equal(helper.validated.circularExternal);
 
         // Reference equality
-        expect(schema.definitions.person.properties.spouse).to.equal(schema.definitions.person);
-        expect(schema.definitions.parent.properties.children.items).to.equal(schema.definitions.child);
-        expect(schema.definitions.child.properties.parents.items).to.equal(schema.definitions.parent);
+        expect(api.definitions.person.properties.spouse).to.equal(api.definitions.person);
+        expect(api.definitions.parent.properties.children.items).to.equal(api.definitions.child);
+        expect(api.definitions.child.properties.parents.items).to.equal(api.definitions.parent);
 
         done();
       })
@@ -61,9 +61,9 @@ describe('API with circular (recursive) $refs', function() {
     var parser = new SwaggerParser();
     parser
       .bundle(path.rel('specs/circular/circular.yaml'))
-      .then(function(schema) {
-        expect(schema).to.equal(parser.api);
-        expect(schema).to.deep.equal(helper.bundled.circularExternal);
+      .then(function(api) {
+        expect(api).to.equal(parser.api);
+        expect(api).to.deep.equal(helper.bundled.circularExternal);
         done();
       })
       .catch(helper.shouldNotGetCalled(done));

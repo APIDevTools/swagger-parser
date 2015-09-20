@@ -1,0 +1,28 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users/{username}:
+    patch:
+      parameters:
+        - name: username
+          in: path
+          required: true
+          type: string
+        - name: username
+          in: body          # <---- Body param #1
+          schema:
+            type: string
+        - name: bar
+          in: header
+          type: number
+          required: true
+        - name: bar
+          in: body          # <---- Body param #2
+          schema:
+            type: number
+      responses:
+        default:
+          description:  hello world
