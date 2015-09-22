@@ -15,7 +15,7 @@ describe('Invalid APIs (can\'t be parsed)', function() {
 
   it('invalid Swagger version (1.2)', function(done) {
     SwaggerParser
-      .parse(path.rel('specs/invalid/old-version.yaml'))
+      .dereference(path.rel('specs/invalid/old-version.yaml'))
       .then(helper.shouldNotGetCalled(done))
       .catch(function(err) {
         expect(err).to.be.an.instanceOf(SyntaxError);
@@ -27,7 +27,7 @@ describe('Invalid APIs (can\'t be parsed)', function() {
 
   it('invalid Swagger version (3.0)', function(done) {
     SwaggerParser
-      .parse(path.rel('specs/invalid/newer-version.yaml'))
+      .bundle(path.rel('specs/invalid/newer-version.yaml'))
       .then(helper.shouldNotGetCalled(done))
       .catch(function(err) {
         expect(err).to.be.an.instanceOf(SyntaxError);
@@ -39,7 +39,7 @@ describe('Invalid APIs (can\'t be parsed)', function() {
 
   it('numeric Swagger version (instead of a string)', function(done) {
     SwaggerParser
-      .parse(path.rel('specs/invalid/numeric-version.yaml'))
+      .validate(path.rel('specs/invalid/numeric-version.yaml'))
       .then(helper.shouldNotGetCalled(done))
       .catch(function(err) {
         expect(err).to.be.an.instanceOf(SyntaxError);
@@ -51,7 +51,7 @@ describe('Invalid APIs (can\'t be parsed)', function() {
 
   it('numeric API version (instead of a string)', function(done) {
     SwaggerParser
-      .parse(path.rel('specs/invalid/numeric-info-version.yaml'))
+      .validate(path.rel('specs/invalid/numeric-info-version.yaml'))
       .then(helper.shouldNotGetCalled(done))
       .catch(function(err) {
         expect(err).to.be.an.instanceOf(SyntaxError);
