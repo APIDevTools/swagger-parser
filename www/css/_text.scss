@@ -1,0 +1,34 @@
+@import "variables";
+
+/* Links */
+a {
+  color: $link-text;
+
+  &:focus,
+  &:hover {
+    color: $link-hover-text;
+  }
+}
+
+/* Headers */
+h1 {
+  color: $lightest;
+  font-size: 30px;
+
+  > span,
+  > small {
+    white-space: nowrap;
+  }
+
+  > small {
+    color: $contrast;
+  }
+
+  @media (min-width: $breakpoint-sm) {
+    font-size: 33px;
+  }
+
+  @media (min-width: $breakpoint-md) {
+    font-size: 36px;
+  }
+}

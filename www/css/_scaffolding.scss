@@ -1,0 +1,136 @@
+@import "variables";
+
+/*
+ * Top-level Scaffolding
+ */
+html,
+body {
+  background: $body-bg url(../img/bg.png);
+  background-image:
+    linear-gradient(to right, $body-bg-gradient-start, $body-bg-gradient-end ($body-bg-gradient-width / 2), transparent $body-bg-gradient-width),
+    linear-gradient(to left, $body-bg-gradient-start, $body-bg-gradient-end ($body-bg-gradient-width / 2), transparent $body-bg-gradient-width),
+    url(../img/bg.png);
+  text-shadow: 0 1px 3px $darkest-transparent;
+}
+
+body {
+  color: $body-text;
+}
+
+// Wraps the entire site, including header, footer, and content.
+// This wrapper is always full-width and full-height
+.site-wrapper {
+  height: 100%;
+  width: 100%;
+  background-image: linear-gradient(to bottom, $body-bg-gradient-start, $body-bg-gradient-end ($body-bg-gradient-width / 2), transparent $body-bg-gradient-width);
+}
+
+// Resizes/centers the site on the page at different breakpoints
+.responsive-container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+
+  @media (min-width: $breakpoint-md) {
+    width: 90%;
+    min-width: $breakpoint-md;
+  }
+
+  @media (min-width: $breakpoint-lg) {
+    width: 1024px;
+  }
+}
+
+
+/*
+ * Header
+ */
+header {
+  padding: $padding-lg;
+  text-align: center;
+
+  h1 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  .nav > li {
+    display: inline-block;
+
+    + li {
+      margin-left: $padding-md;
+    }
+
+    > a {
+      padding-right: 0;
+      padding-left: 0;
+      font-size: 16px;
+      font-weight: bold;
+      line-height: 1.1;
+      color: $alt-link-text;
+      border-bottom: 2px solid $alt-link-underline;
+
+      &:hover,
+      &:focus {
+        color: $alt-link-hover;
+        background-color: transparent;
+        border-bottom-color: $alt-link-hover-underline;
+      }
+
+      > small {
+        font-size: 9px;
+        display: block;
+      }
+    }
+
+    &.active > a,
+    &.active > a:hover,
+    &.active > a:focus {
+      color: $lightest;
+      border-bottom-color: $lightest;
+    }
+  }
+
+  @media (min-width: $breakpoint-sm) {
+    h1 {
+      float: left;
+    }
+    nav {
+      float: right;
+    }
+  }
+}
+
+
+/*
+ * Main Content Area
+ */
+.main-content {
+  padding: 0 $padding-lg;
+  margin-top: $padding-md;
+
+  @media (min-width: $breakpoint-sm) {
+    margin-top: 0;
+  }
+}
+
+
+/*
+ * Footer
+ */
+footer {
+  padding: $padding-lg;
+  text-align: center;
+  font-size: smaller;
+
+  @media (min-width: $breakpoint-sm) {
+    p {
+      display: inline-block;
+
+      + p:before {
+        content: "|";
+        padding: 0 1.5em;
+      }
+    }
+  }
+}

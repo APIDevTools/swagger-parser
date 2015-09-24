@@ -1,0 +1,91 @@
+@import "variables";
+
+.nav-tabs {
+  border-color: $tab-border;
+
+  > li {
+    a {
+      padding: $padding-xs $padding-sm;
+      color: $medium;
+
+      &:hover,
+      &:focus,
+      &:active {
+        background-color: transparent;
+        border-color: transparent;
+        color: $lightest;
+      }
+    }
+
+    &.active {
+      > a,
+      > a:hover,
+      > a:focus,
+      > a:active {
+        border-color: $tab-border;
+        border-bottom-color: $tab-bg;
+        background-color: $tab-bg;
+        color: $lightest;
+      }
+    }
+  }
+}
+
+.tab-content {
+  width: 100%;
+  height: 30em;
+  border: solid 1px $tab-border;
+  border-top: none;
+  text-shadow: none; /* Prevent inheritance from `body` */
+
+  > .tab-pane {
+    width: 100%;
+    height: 100%;
+    background-color: $tab-bg;
+
+    &#your-api-pane {
+      position: relative;
+      padding: 3em 0;
+      text-align: center;
+
+      #bookmark {
+        position: absolute;
+        bottom: $padding-md;
+        right: $padding-md;
+        font-size: smaller;
+        color: $alt-link-text;
+        text-decoration: underline;
+
+        &:hover,
+        &:focus,
+        &:active {
+          color: $link-text;
+        }
+      }
+    }
+
+    .editor {
+      height: 100%;
+      width: 100%;
+      border: none;
+      border-width: 0;
+      border-radius: 0;
+      background-color: $tab-bg;
+    }
+  }
+
+  @media (min-width: $breakpoint-sm) {
+    > .tab-pane {
+      &#your-api-pane {
+        padding: 10em 0;
+      }
+    }
+  }
+}
+
+// This is a LOW SPECIFICITY selector, so its rules will be overridden by Ace Editor themes.
+pre {
+  // Set the text color to the same as the background color,
+  // which "hides" the unstyled text until the Ace Editor theme loads
+  color: $tab-bg;
+}

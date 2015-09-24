@@ -1,0 +1,37 @@
+$darkest-transparent:       transparentize(black, .5);
+$darkest:                   #333;
+$dark:                      #777;
+$medium:                    rgba(255,255,255,.5);
+$light:                     #a9a9a9;
+$lightest:                  #fff;
+
+$contrast:                  #00be00;
+$contrast-darkest:          darken($contrast, 12%);
+$contrast-dark:             darken($contrast, 8%);
+
+$body-bg:                   $darkest;
+$body-bg-gradient-start:    $darkest-transparent;
+$body-bg-gradient-end:      transparentize(black, .9);
+$body-bg-gradient-width:    100px;
+$body-text:                 $medium;
+
+$link-text:                 $lightest;
+$link-hover-text:           $lightest;
+$alt-link-text:             transparentize($lightest, .25);
+$alt-link-hover:            transparentize($lightest, .15);
+$alt-link-underline:        transparent;
+$alt-link-hover-underline:  transparentize($lightest, .50);
+
+$padding-xl:                45px;
+$padding-lg:                30px;
+$padding-md:                20px;
+$padding-sm:                10px;
+$padding-xs:                5px;
+
+$breakpoint-xs:             480px;
+$breakpoint-sm:             768px;
+$breakpoint-md:             992px;
+$breakpoint-lg:             1200px;
+
+$tab-bg:                    black;
+$tab-border:                $medium;
