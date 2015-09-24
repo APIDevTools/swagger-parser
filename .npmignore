@@ -5,6 +5,7 @@ npm-debug.log
 /.idea
 /coverage
 /dist/*.test.js
+/docs
 karma.conf.js
 /tests
 /www
