@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Swagger 2.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
@@ -72,7 +72,7 @@
   },
   "dependencies": {
     "debug": "^2.2.0",
-    "json-schema-ref-parser": "^1.2.4",
+    "json-schema-ref-parser": "^1.2.6",
     "ono": "^1.0.22",
     "swagger-methods": "^1.0.0",
     "swagger-schema-official": "2.0.0-96305d9",

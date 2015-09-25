@@ -35,8 +35,6 @@ Related Projects
 - [Swagger Parser Online](http://bigstickcarpet.com/swagger-parser/)
 - [Swagger CLI](https://github.com/BigstickCarpet/swagger-cli)
 - [Swagger Express Middleware](https://github.com/BigstickCarpet/swagger-express-middleware)
-- [Swagger Express Mocks](https://github.com/BigstickCarpet/swagger-express-mocks)
-- [Swagger Server](https://github.com/BigstickCarpet/swagger-server)
 
 
 Example
