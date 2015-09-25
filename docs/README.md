@@ -12,15 +12,15 @@ Classes & Methods
 ---------------------
 
 #### [`SwaggerParser`](swagger-parser.md)
-- [`api`](swagger-parser.md#schema)
-- [`$refs`](swagger-parser.md#schema)
+- [`api`](swagger-parser.md#api)
+- [`$refs`](swagger-parser.md#refs)
 - [`validate()`](swagger-parser.md#validateapi-options-callback)
 - [`dereference()`](swagger-parser.md#dereferenceapi-options-callback)
 - [`bundle()`](swagger-parser.md#bundleapi-options-callback)
 - [`parse()`](swagger-parser.md#parseapi-options-callback)
 - [`resolve()`](swagger-parser.md#resolveapi-options-callback)
 
-#### [`$Refs`](#refs.md)
+#### [`$Refs`](refs.md)
 - [`paths()`](refs.md#pathstypes)
 - [`values()`](refs.md#valuestypes)
 - [`isExpired()`](refs.md#isexpiredref)
@@ -50,7 +50,7 @@ var parser = new SwaggerParser();
 parser.validate("my-api.yaml");
 ```
 
-The difference is that in the second example you now have a reference to `parser`, which means you can access the results ([`parser.api`](swagger-parser.md#api-object) and [`parser.$refs`](swagger-parser.md#refs-object)) anytime you want, rather than just in the callback function. Also, having a `SwaggerParser` instance allows you to benefit from **[caching](options.md#caching)**, so the next time you call [`parser.resolve()`](swagger-parser.md#resolveapi-options-callback), it won't need to re-download those files again (as long as the cache hasn't expired).
+The difference is that in the second example you now have a reference to `parser`, which means you can access the results ([`parser.api`](swagger-parser.md#api-object) and [`parser.$refs`](swagger-parser.md#refs)) anytime you want, rather than just in the callback function. Also, having a `SwaggerParser` instance allows you to benefit from **[caching](options.md#caching)**, so the next time you call [`parser.resolve()`](swagger-parser.md#resolveapi-options-callback), it won't need to re-download those files again (as long as the cache hasn't expired).
 
 
 ### Callbacks vs. Promises
