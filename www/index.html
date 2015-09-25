@@ -22,15 +22,15 @@
           </h1>
           <nav>
             <ul class="nav">
-              <li class="active"><a href="#">Demo</a></li>
+              <li class="active"><a id="nav-demo" href="#">Demo</a></li>
               <li>
-                <a href="https://github.com/BigstickCarpet/swagger-parser">Source</a>
+                <a id="nav-source" href="https://github.com/BigstickCarpet/swagger-parser">Source</a>
               </li>
               <li>
-                <a href="https://github.com/BigstickCarpet/swagger-parser/blob/master/docs/README.md">API</a>
+                <a id="nav-api" href="https://github.com/BigstickCarpet/swagger-parser/blob/master/docs/README.md">API</a>
               </li>
               <li>
-                <a href="https://www.npmjs.com/package/swagger-cli">CLI</a>
+                <a id="nav-cli" href="https://www.npmjs.com/package/swagger-cli">CLI</a>
               </li>
             </ul>
           </nav>
@@ -42,37 +42,37 @@
 
               <div class="keep-together">
                 <div class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <a id="allow-dropdown-toggle" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span id="allow-label">Allow all file types</span> <span class="caret"></span>
                   </a>
                   <ul id="allow-menu" class="dropdown-menu">
-                    <li><a class="checkbox"><label>
+                    <li><a id="allow-json" class="checkbox"><label>
                       <input type="checkbox" name="allow-json" value="yes" data-value="JSON" checked autocomplete="off"> Allow JSON
                     </label></a></li>
-                    <li><a class="checkbox"><label>
+                    <li><a id="allow-yaml" class="checkbox"><label>
                       <input type="checkbox" name="allow-yaml" value="yes" data-value="YAML" checked autocomplete="off"> Allow YAML
                     </label></a></li>
-                    <li><a class="checkbox"><label>
+                    <li><a id="allow-empty" class="checkbox"><label>
                       <input type="checkbox" name="allow-empty" value="yes" data-value="empty" checked autocomplete="off"> Allow empty files
                     </label></a></li>
-                    <li><a class="checkbox"><label>
+                    <li><a id="allow-unknown" class="checkbox"><label>
                       <input type="checkbox" name="allow-unknown" value="yes" data-value="unknown" checked autocomplete="off"> Allow unknown file types
                     </label></a></li>
                   </ul>
                 </div>
 
                 <div class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <a id="refs-dropdown-toggle" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span id="refs-label">Follow all $refs</span> <span class="caret"></span>
                   </a>
                   <ul id="refs-menu" class="dropdown-menu">
-                    <li><a class="checkbox"><label>
+                    <li><a id="refs-internal" class="checkbox"><label>
                       <input type="checkbox" name="refs-internal" value="yes" data-value="internal" checked autocomplete="off"> Follow internal $refs
                     </label></a></li>
-                    <li><a class="checkbox"><label>
+                    <li><a id="refs-external" class="checkbox"><label>
                       <input type="checkbox" name="refs-external" value="yes" data-value="external" checked autocomplete="off"> Follow external $refs
                     </label></a></li>
-                    <li><a class="checkbox"><label>
+                    <li><a id="refs-circular" class="checkbox"><label>
                       <input type="checkbox" name="refs-circular" value="yes" data-value="circular" checked autocomplete="off"> Follow circular $refs
                     </label></a></li>
                   </ul>
@@ -81,28 +81,28 @@
 
               <div class="keep-together">
                 <div class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <a id="validate-dropdown-toggle" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span id="validate-label">Validate everything</span> <span class="caret"></span>
                   </a>
                   <ul id="validate-menu" class="dropdown-menu">
-                    <li><a class="checkbox"><label>
+                    <li><a id="validate-schema" class="checkbox"><label>
                       <input type="checkbox" name="validate-schema" value="yes" data-value="schema" checked autocomplete="off"> Validate against Swagger 2.0 schema
                     </label></a></li>
-                    <li><a class="checkbox"><label>
+                    <li><a id="validate-spec" class="checkbox"><label>
                       <input type="checkbox" name="validate-spec" value="yes" data-value="spec" checked autocomplete="off"> Validate against Swagger 2.0 spec
                     </label></a></li>
                   </ul>
                 </div>
 
                 <div class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <a id="cache-dropdown-toggle" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span id="cache-label">Cache for 5 minutes</span> <span class="caret"></span>
                   </a>
                   <ul id="cache-menu" class="dropdown-menu dropdown-menu-right">
-                    <li><a class="checkbox"><label>
+                    <li><a id="cache-http" class="checkbox"><label>
                       <input type="number" name="cache-http" autocomplete="off" value="300" min="1" max="999" step="1"> secs for HTTP
                     </label></a></li>
-                    <li><a class="checkbox"><label>
+                    <li><a id="cache-https" class="checkbox"><label>
                       <input type="number" name="cache-https" autocomplete="off" value="300" min="1" max="999" step="1"> secs for HTTPS
                     </label></a></li>
                   </ul>
@@ -117,11 +117,11 @@
                     <span class="sr-only">Toggle Dropdown</span>
                   </button>
                   <ul id="method-menu" class="dropdown-menu">
-                    <li><a href="#" data-value="validate">Validate it!</a></li>
-                    <li><a href="#" data-value="dereference">Dereference it!</a></li>
-                    <li><a href="#" data-value="bundle">Bundle it!</a></li>
-                    <li><a href="#" data-value="parse">Parse it!</a></li>
-                    <li><a href="#" data-value="resolve">Resolve it!</a></li>
+                    <li><a id="method-validate" href="#" data-value="validate">Validate it!</a></li>
+                    <li><a id="method-dereference" href="#" data-value="dereference">Dereference it!</a></li>
+                    <li><a id="method-bundle" href="#" data-value="bundle">Bundle it!</a></li>
+                    <li><a id="method-parse" href="#" data-value="parse">Parse it!</a></li>
+                    <li><a id="method-resolve" href="#" data-value="resolve">Resolve it!</a></li>
                   </ul>
                 </div>
               </div>
@@ -131,8 +131,8 @@
               <li role="presentation">
                 <a id="your-api-tab" href="#your-api-pane" role="tab" aria-controls="your-api-pane" data-toggle="tab">Your API</a>
               </li>
-              <li id="sample-api-tab" class="active" role="presentation">
-                <a href="#sample-api-pane" role="tab" aria-controls="sample-api-pane" data-toggle="tab">Sample API</a>
+              <li class="active" role="presentation">
+                <a id="sample-api-tab" href="#sample-api-pane" role="tab" aria-controls="sample-api-pane" data-toggle="tab">Sample API</a>
               </li>
             </ul>
             <div class="tab-content">
@@ -271,6 +271,7 @@ definitions:
       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
       })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
       ga('create', 'UA-68102273-1', 'auto');
+      ga('require', 'linkid');
       ga('send', 'pageview');
     </script>
   </body>
