@@ -32,7 +32,7 @@ Features
 
 Related Projects
 --------------------------
-- [Swagger Parser Online](http://bigstickcarpet.com/swagger-parser/)
+- [Swagger Parser Online](http://bigstickcarpet.com/swagger-parser/) **<--- try Swagger Parser in your browser right now!**
 - [Swagger CLI](https://github.com/BigstickCarpet/swagger-cli)
 - [Swagger Express Middleware](https://github.com/BigstickCarpet/swagger-express-middleware)
 
