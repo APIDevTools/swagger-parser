@@ -1215,7 +1215,7 @@ exports.showResult = function(title, content) {
  */
 exports.showError = function(err) {
   this.results.removeClass('hidden').addClass('error');
-  this.addResult('Error!', err.stack || err.message);
+  this.addResult('Error!', err.message + '\n\n' + err.stack);
   showResults();
 };
 
