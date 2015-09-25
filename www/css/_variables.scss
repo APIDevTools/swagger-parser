@@ -35,3 +35,12 @@ $breakpoint-lg:             1200px;
 
 $tab-bg:                    black;
 $tab-border:                $medium;
+$results-tab-bg:            $contrast-darkest;
+$results-tab-border:        $contrast;
+$error-tab-bg: #a10009;
+$error-tab-border:          lighten($error-tab-bg, 10%);
+$tab-pane-height:           30em;
+
+$editor-bg:                 $tab-bg;
+$editor-scrollbar-track:    darken($darkest, 5%);
+$editor-scrollbar-thumb:    $dark;

@@ -72,21 +72,18 @@ function setNumber(input, value) {
  */
 function setBookmarkURL() {
   var query = {};
-  form.allow.json.is(':checked') || (query['allow-json'] = 'no');
-  form.allow.yaml.is(':checked') || (query['allow-yaml'] = 'no');
-  form.allow.empty.is(':checked') || (query['allow-empty'] = 'no');
-  form.allow.unknown.is(':checked') || (query['allow-unknown'] = 'no');
-  form.refs.internal.is(':checked') || (query['refs-internal'] = 'no');
-  form.refs.external.is(':checked') || (query['refs-external'] = 'no');
-  form.refs.circular.is(':checked') || (query['refs-circular'] = 'no');
-  form.validate.schema.is(':checked') || (query['validate-schema'] = 'no');
-  form.validate.spec.is(':checked') || (query['validate-spec'] = 'no');
-
-  var cacheHttp = form.cache.parse(form.cache.http.val());
-  cacheHttp === 300 || (query['cache-http'] = cacheHttp);
-
-  var cacheHttps = form.cache.parse(form.cache.https.val());
-  cacheHttps === 300 || (query['cache-https'] = cacheHttps);
+  var options = form.getOptions();
+  options.allow.json || (query['allow-json'] = 'no');
+  options.allow.yaml || (query['allow-yaml'] = 'no');
+  options.allow.empty || (query['allow-empty'] = 'no');
+  options.allow.unknown || (query['allow-unknown'] = 'no');
+  options.$refs.internal || (query['refs-internal'] = 'no');
+  options.$refs.external || (query['refs-external'] = 'no');
+  options.$refs.circular || (query['refs-circular'] = 'no');
+  options.validate.schema || (query['validate-schema'] = 'no');
+  options.validate.spec || (query['validate-spec'] = 'no');
+  options.cache.http === 300 || (query['cache-http'] = options.cache.http);
+  options.cache.https === 300 || (query['cache-https'] = options.cache.https);
 
   var method = form.method.button.val();
   method === 'validate' || (query['method'] = method);

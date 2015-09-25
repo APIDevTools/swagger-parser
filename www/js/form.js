@@ -48,7 +48,55 @@ exports.init = function() {
 
   this.url = this.form.find('input[name=url]');
   this.bookmark = this.form.find('#bookmark');
-  this.sampleAPI = this.form.find('#sample-api');
+};
+
+/**
+ * Returns a Swagger Parser options object,
+ * set to the current values of all the form fields.
+ */
+exports.getOptions = function() {
+  return {
+    allow: {
+      json: this.allow.json.is(':checked'),
+      yaml: this.allow.yaml.is(':checked'),
+      empty: this.allow.empty.is(':checked'),
+      unknown: this.allow.unknown.is(':checked')
+    },
+    $refs: {
+      internal: this.refs.internal.is(':checked'),
+      external: this.refs.external.is(':checked'),
+      circular: this.refs.circular.is(':checked')
+    },
+    validate: {
+      schema: this.validate.schema.is(':checked'),
+      spec: this.validate.spec.is(':checked')
+    },
+    cache: {
+      http: parseCacheValue(this.cache.http.val()),
+      https: parseCacheValue(this.cache.https.val())
+    }
+  };
+};
+
+/**
+ * Returns the Swagger API or URL, depending on the current form fields.
+ */
+exports.getAPI = function() {
+  var url = this.url.val();
+  if (url) {
+    return url;
+  }
+
+  var sampleAPI = this.sampleAPI.getValue();
+  if (this.allow.yaml.is(':checked')) {
+    return SwaggerParser.YAML.parse(sampleAPI);
+  }
+  else if (this.allow.json.is(':checked')) {
+    return JSON.parse(sampleAPI);
+  }
+  else {
+    throw new SyntaxError('Unable to parse the API. Neither YAML nor JSON are allowed.');
+  }
 };
 
 /**

@@ -1,0 +1,35 @@
+@import "variables";
+
+.editor {
+  height: 100%;
+  width: 100%;
+  border: none;
+  border-width: 0;
+  border-radius: 0;
+  background-color: $tab-bg;
+}
+
+// This is a LOW SPECIFICITY selector, so its rules will be overridden by Ace Editor themes.
+pre {
+  // Set the text color to the same as the background color,
+  // which "hides" the unstyled text until the Ace Editor theme loads
+  color: $tab-bg;
+
+  &::-webkit-scrollbar,
+  .ace_scrollbar::-webkit-scrollbar {
+    background-color: $editor-scrollbar-track;
+  }
+
+  &::-webkit-scrollbar-track,
+  .ace_scrollbar::-webkit-scrollbar-track {
+    background-color: $editor-scrollbar-track;
+  }
+
+  &::-webkit-scrollbar-thumb,
+  .ace_scrollbar::-webkit-scrollbar-thumb {
+    background-color: $editor-scrollbar-thumb;
+    border: solid 4px $editor-scrollbar-track;
+    border-radius: 3px;
+  }
+
+}

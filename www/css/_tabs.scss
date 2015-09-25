@@ -33,7 +33,7 @@
 
 .tab-content {
   width: 100%;
-  height: 30em;
+  height: $tab-pane-height;
   border: solid 1px $tab-border;
   border-top: none;
   text-shadow: none; /* Prevent inheritance from `body` */
@@ -63,15 +63,6 @@
         }
       }
     }
-
-    .editor {
-      height: 100%;
-      width: 100%;
-      border: none;
-      border-width: 0;
-      border-radius: 0;
-      background-color: $tab-bg;
-    }
   }
 
   @media (min-width: $breakpoint-sm) {
@@ -81,11 +72,4 @@
       }
     }
   }
-}
-
-// This is a LOW SPECIFICITY selector, so its rules will be overridden by Ace Editor themes.
-pre {
-  // Set the text color to the same as the background color,
-  // which "hides" the unstyled text until the Ace Editor theme loads
-  color: $tab-bg;
 }

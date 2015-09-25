@@ -73,13 +73,13 @@ function setRefsLabel() {
       form.refs.label.text('No $refs allowed');
       break;
     case 1:
-      form.refs.label.text('Only allow ' + values.checked[0] + ' $refs');
+      form.refs.label.text('Only follow ' + values.checked[0] + ' $refs');
       break;
     case 2:
-      form.refs.label.text('Don\'t allow ' + values.unchecked[0] + ' $refs');
+      form.refs.label.text('Don\'t follow ' + values.unchecked[0] + ' $refs');
       break;
     case 3:
-      form.refs.label.text('Allow all $refs');
+      form.refs.label.text('Follow all $refs');
   }
 }
 
@@ -91,10 +91,10 @@ function setValidateLabel() {
 
   switch (values.checked.length) {
     case 0:
-      form.validate.label.text('Don\'t validate');
+      form.validate.label.text('Don\'t validate anything');
       break;
     case 1:
-      form.validate.label.text('Swagger ' + values.checked[0] + ' validation');
+      form.validate.label.text('Don\'t validate Swagger ' + values.checked[0]);
       break;
     case 2:
       form.validate.label.text('Validate everything');
