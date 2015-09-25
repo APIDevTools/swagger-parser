@@ -13601,7 +13601,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
 },{"../type":38}],55:[function(require,module,exports){
 /**!
- * JSON Schema $Ref Parser v1.2.1
+ * JSON Schema $Ref Parser v1.2.4
  *
  * @link https://github.com/BigstickCarpet/json-schema-ref-parser
  * @license MIT

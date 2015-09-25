@@ -13,7 +13,7 @@ describe('Callback & Promise syntax', function() {
   });
 
   ['parse', 'resolve', 'dereference', 'bundle', 'validate'].forEach(function(method) {
-    describe(method + ' method (instance)', function() {
+    describe(method + ' method', function() {
       it('should call the callback function and Promise.then() (static)', testCallbackAndPromise_Static(method));
       it('should call the callback function and Promise.then() (instance)', testCallbackAndPromise_Success(method));
       it('should call the callback function and Promise.catch()', testCallbackAndPromise_Error(method));
