@@ -11,7 +11,7 @@ Things to Know
 Classes & Methods
 ---------------------
 
-#### [`$RefParser`](swagger-parser.md)
+#### [`SwaggerParser`](swagger-parser.md)
 - [`api`](swagger-parser.md#schema)
 - [`$refs`](swagger-parser.md#schema)
 - [`validate()`](swagger-parser.md#validateapi-options-callback)

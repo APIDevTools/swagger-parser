@@ -38,7 +38,7 @@
     "test": "npm run browserify -- --test && npm run istanbul && npm run karma",
     "upgrade": "ncu --upgradeAll && npm update && bower update",
     "bump": "bump --prompt --grep lib/index.js dist/* --tag --push --all",
-    "release": "npm run upgrade && npm test && npm run bump && npm publish"
+    "release": "npm run upgrade && npm run build-www && npm test && npm run bump && npm publish"
   },
   "repository": {
     "type": "git",

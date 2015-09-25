@@ -1,7 +1,7 @@
 Options
 ==========================
 
-All [`SwaggerParser`](ref-parser.md) methods accept an optional `options` parameter, which you can use to customize how the API is parsed, resolved, dereferenced, etc.
+All [`SwaggerParser`](swagger-parser.md) methods accept an optional `options` parameter, which you can use to customize how the API is parsed, resolved, dereferenced, etc.
 
 If you pass an options parameter, you _don't_ need to specify _every_ option.  Any options you don't specify will use their default values, as shown below.
 
