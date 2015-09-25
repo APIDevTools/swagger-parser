@@ -171,12 +171,6 @@ function configureSauceLabs(config) {
       platform: 'OS X 10.10',
       browserName: 'safari'
     },
-    'iOS-6': {
-      base: 'SauceLabs',
-      platform: 'OS X 10.10',
-      browserName: 'iphone',
-      version: '6'
-    },
     'iOS-8': {
       base: 'SauceLabs',
       platform: 'OS X 10.10',
