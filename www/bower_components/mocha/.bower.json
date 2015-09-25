@@ -43,12 +43,12 @@
     "tap"
   ],
   "license": "MIT",
-  "version": "2.3.2",
-  "_release": "2.3.2",
+  "version": "2.3.3",
+  "_release": "2.3.3",
   "_resolution": {
     "type": "version",
-    "tag": "v2.3.2",
-    "commit": "0f8f831f8373b9c6ca4c74304cbfee608339b829"
+    "tag": "v2.3.3",
+    "commit": "69a193eaf82d3410da03190f32fc27e28fa1b4b0"
   },
   "_source": "git://github.com/mochajs/mocha.git",
   "_target": "*",
