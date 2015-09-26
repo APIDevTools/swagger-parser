@@ -15,6 +15,7 @@ Swagger Parser
 
 [![Browser Compatibility](https://saucelabs.com/browser-matrix/swagger-parser.svg)](https://saucelabs.com/u/swagger-parser)
 
+[![Online Demo](http://bigstickcarpet.com/swagger-parser/www/img/demo.svg)](http://bigstickcarpet.com/swagger-parser/)
 
 Features
 --------------------------
@@ -32,7 +33,6 @@ Features
 
 Related Projects
 --------------------------
-- [Swagger Parser Online](http://bigstickcarpet.com/swagger-parser/) **<--- try Swagger Parser in your browser right now!**
 - [Swagger CLI](https://github.com/BigstickCarpet/swagger-cli)
 - [Swagger Express Middleware](https://github.com/BigstickCarpet/swagger-express-middleware)
 
