@@ -1,0 +1,23 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users:
+    get:
+      responses:
+        default:
+          description:  hello world
+          schema:
+            type: object
+            properties:
+              foo:
+                type: boolean
+                format: falsy             # <--- Unknown boolean format
+              bar:
+                type: integer
+                format: abignumber        # <--- Unknown integer format
+              baz:
+                type: string
+                format: customdateformat  # <--- Unknown string format

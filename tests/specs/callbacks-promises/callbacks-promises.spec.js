@@ -28,7 +28,7 @@ describe('Callback & Promise syntax', function() {
     return function(done) {
       var callbackFn = sinon.spy();
       var thenFn = sinon.spy();
-      var catchFn = sinon.spy();
+      var catchFn = sinon.spy(console.error.bind(console));
 
       SwaggerParser[method](path.rel('specs/callbacks-promises/callbacks-promises.yaml'), callbackFn)
         .then(thenFn)
@@ -72,7 +72,7 @@ describe('Callback & Promise syntax', function() {
     return function(done) {
       var callbackFn = sinon.spy();
       var thenFn = sinon.spy();
-      var catchFn = sinon.spy();
+      var catchFn = sinon.spy(console.error.bind(console));
 
       var parser = new SwaggerParser();
       parser[method](path.rel('specs/callbacks-promises/callbacks-promises.yaml'), callbackFn)
@@ -110,7 +110,7 @@ describe('Callback & Promise syntax', function() {
   function testCallbackAndPromise_Error(method) {
     return function(done) {
       var callbackFn = sinon.spy();
-      var thenFn = sinon.spy();
+      var thenFn = sinon.spy(console.error.bind(console));
       var catchFn = sinon.spy();
 
       var parser = new SwaggerParser();
