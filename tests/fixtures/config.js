@@ -6,7 +6,7 @@
     mocha.setup('bdd');
     mocha.fullTrace();
     mocha.checkLeaks();
-    mocha.globals([]);
+    mocha.globals(['$0', '$1', '$2', '$3', '$4', '$5']);
   }
 
   // Set global settings for all tests

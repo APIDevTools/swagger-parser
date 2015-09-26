@@ -93,7 +93,7 @@
    * Converts Buffer objects to POJOs, so they can be compared using Chai
    */
   helper.convertNodeBuffersToPOJOs = function convertNodeBuffersToPOJOs(value) {
-    if (value && value.constructor && value.constructor.name === 'Buffer') {
+    if (value && (value._isBuffer || (value.constructor && value.constructor.name === 'Buffer'))) {
       // Convert Buffers to POJOs for comparison
       value = value.toJSON();
 
