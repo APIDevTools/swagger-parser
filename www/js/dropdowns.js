@@ -1,4 +1,5 @@
-var form = require('./form');
+var form      = require('./form'),
+    analytics = require('./analytics');
 
 /**
  * Adds all the drop-down menu functionality
@@ -10,12 +11,27 @@ exports.init = function() {
   onChange(form.validate.menu, setValidateLabel);
   onChange(form.cache.menu, setCacheLabel);
 
+  // Track option changes
+  trackCheckbox(form.allow.json);
+  trackCheckbox(form.allow.yaml);
+  trackCheckbox(form.allow.empty);
+  trackCheckbox(form.allow.unknown);
+  trackCheckbox(form.refs.internal);
+  trackCheckbox(form.refs.external);
+  trackCheckbox(form.refs.circular);
+  trackCheckbox(form.validate.schema);
+  trackCheckbox(form.validate.spec);
+  trackTextbox(form.cache.http);
+  trackTextbox(form.cache.https);
+
   // Change the button text whenever a new method is selected
   setButtonLabel(form.method.button.val());
   form.method.menu.find('a').on('click', function(event) {
-    setButtonLabel($(this).data('value'));
     form.method.menu.dropdown('toggle');
     event.stopPropagation();
+    var methodName = $(this).data('value');
+    setButtonLabel(methodName);
+    trackButtonLabel(methodName);
   });
 };
 
@@ -27,6 +43,8 @@ exports.init = function() {
  * @param {function} setLabel
  */
 function onChange(menu, setLabel) {
+  var dropdown = menu.parent('.dropdown');
+
   // Don't auto-close the menu when items are clicked
   menu.find('a').on('click', function(event) {
     event.stopPropagation();
@@ -34,7 +52,12 @@ function onChange(menu, setLabel) {
 
   // Set the label immediately, and again whenever the menu is closed
   setLabel();
-  menu.parent('.dropdown').on('hidden.bs.dropdown', setLabel);
+  dropdown.on('hidden.bs.dropdown', setLabel);
+
+  // Track when a dropdown menu is shown
+  dropdown.on('shown.bs.dropdown', function() {
+    analytics.trackEvent('options', 'shown', menu.attr('id'));
+  });
 }
 
 /**
@@ -129,6 +152,40 @@ function setCacheLabel() {
 function setButtonLabel(methodName) {
   form.method.button.val(methodName.toLowerCase());
   form.method.button.text(methodName[0].toUpperCase() + methodName.substr(1) + ' it!');
+}
+
+/**
+ * Tracks changes to a checkbox option
+ *
+ * @param {jQuery} checkbox
+ */
+function trackCheckbox(checkbox) {
+  checkbox.on('change', function() {
+    var value = checkbox.is(':checked') ? 1 : 0;
+    analytics.trackEvent('options', 'changed', checkbox.attr('name'), value);
+  });
+}
+
+/**
+ * Tracks changes to a numeric textbox option
+ *
+ * @param {jQuery} textbox
+ */
+function trackTextbox(textbox) {
+  textbox.on('blur', function() {
+    var value = form.cache.parse(textbox.val());
+    analytics.trackEvent('options', 'changed', textbox.attr('name'), value);
+  });
+}
+
+/**
+ * Tracks changes to the "Validate!" button
+ *
+ * @param {string} methodName - The method name (e.g. "validate", "dereference", etc.)
+ */
+function trackButtonLabel(methodName) {
+  var value = ['', 'parse', 'resolve', 'bundle', 'dereference', 'validate'].indexOf(methodName);
+  analytics.trackEvent('options', 'changed', 'method', value);
 }
 
 /**

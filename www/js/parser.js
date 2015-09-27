@@ -1,7 +1,9 @@
-var form    = require('./form'),
-    editors = require('./editors'),
-    ono     = require('ono'),
-    parser  = null;
+var form      = require('./form'),
+    editors   = require('./editors'),
+    analytics = require('./analytics'),
+    ono       = require('ono'),
+    parser    = null,
+    counters  = {parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0};
 
 /**
  * Adds event handlers to trigger Swagger Parser methods
@@ -17,6 +19,7 @@ exports.init = function() {
   $('#clear').on('click', function() {
     parser = null;
     editors.clearResults();
+    analytics.trackEvent('cache', 'clear');
   });
 };
 
@@ -46,9 +49,15 @@ function parseSwagger() {
       })
       .catch(function(err) {
         editors.showError(ono(err));
+        analytics.trackError(err);
       });
+
+    // Track the operation
+    counters[method]++;
+    analytics.trackEvent('button', 'click', method, counters[method]);
   }
   catch (err) {
     editors.showError(ono(err));
+    analytics.trackError(err);
   }
 }

@@ -2,7 +2,8 @@ var form        = require('./form'),
     querystring = require('./querystring'),
     dropdowns   = require('./dropdowns'),
     editors     = require('./editors'),
-    parser      = require('./parser');
+    parser      = require('./parser'),
+    analytics   = require('./analytics');
 
 $(function() {
   form.init();
@@ -10,4 +11,5 @@ $(function() {
   dropdowns.init();
   editors.init();
   parser.init();
+  analytics.init();
 });

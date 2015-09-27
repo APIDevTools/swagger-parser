@@ -1017,7 +1017,52 @@ function hasOwnProperty(obj, prop) {
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
 },{"./support/isBuffer":7,"_process":3,"inherits":1}],9:[function(require,module,exports){
-var form = require('./form');
+var debug = location.hostname === 'localhost';
+
+/**
+ * Initializes Google Analytics and sends a "pageview" hit
+ */
+exports.init = function() {
+  if (!debug) {
+    ga('create', 'UA-68102273-1', 'auto');
+    ga('send', 'pageview');
+  }
+}
+
+/**
+ * Tracks an event in Google Analytics
+ *
+ * @param {string} category - the object type (e.g. "button", "menu", "link", etc.)
+ * @param {string} action - the action (e.g. "click", "show", "hide", etc.)
+ * @param {string} [label] - label for categorization
+ * @param {number} [value] - numeric value, such as a counter
+ */
+exports.trackEvent = function(category, action, label, value) {
+  if (debug) {
+    console.log('Reporting an event to Google Analytics: ', category, action, label, value);
+  }
+  else {
+    ga('send', 'event', category, action, label, value);
+  }
+};
+
+/**
+ * Tracks an error in Google Analytics
+ *
+ * @param {Error} err
+ */
+exports.trackError = function(err) {
+  if (debug) {
+    console.error('Reporting an error to Google Analytics: ', err);
+  }
+  else {
+    ga('send', 'exception', {exDescription: err.message});
+  }
+};
+
+},{}],10:[function(require,module,exports){
+var form      = require('./form'),
+    analytics = require('./analytics');
 
 /**
  * Adds all the drop-down menu functionality
@@ -1029,12 +1074,27 @@ exports.init = function() {
   onChange(form.validate.menu, setValidateLabel);
   onChange(form.cache.menu, setCacheLabel);
 
+  // Track option changes
+  trackCheckbox(form.allow.json);
+  trackCheckbox(form.allow.yaml);
+  trackCheckbox(form.allow.empty);
+  trackCheckbox(form.allow.unknown);
+  trackCheckbox(form.refs.internal);
+  trackCheckbox(form.refs.external);
+  trackCheckbox(form.refs.circular);
+  trackCheckbox(form.validate.schema);
+  trackCheckbox(form.validate.spec);
+  trackTextbox(form.cache.http);
+  trackTextbox(form.cache.https);
+
   // Change the button text whenever a new method is selected
   setButtonLabel(form.method.button.val());
   form.method.menu.find('a').on('click', function(event) {
-    setButtonLabel($(this).data('value'));
     form.method.menu.dropdown('toggle');
     event.stopPropagation();
+    var methodName = $(this).data('value');
+    setButtonLabel(methodName);
+    trackButtonLabel(methodName);
   });
 };
 
@@ -1046,6 +1106,8 @@ exports.init = function() {
  * @param {function} setLabel
  */
 function onChange(menu, setLabel) {
+  var dropdown = menu.parent('.dropdown');
+
   // Don't auto-close the menu when items are clicked
   menu.find('a').on('click', function(event) {
     event.stopPropagation();
@@ -1053,7 +1115,12 @@ function onChange(menu, setLabel) {
 
   // Set the label immediately, and again whenever the menu is closed
   setLabel();
-  menu.parent('.dropdown').on('hidden.bs.dropdown', setLabel);
+  dropdown.on('hidden.bs.dropdown', setLabel);
+
+  // Track when a dropdown menu is shown
+  dropdown.on('shown.bs.dropdown', function() {
+    analytics.trackEvent('options', 'shown', menu.attr('id'));
+  });
 }
 
 /**
@@ -1151,6 +1218,40 @@ function setButtonLabel(methodName) {
 }
 
 /**
+ * Tracks changes to a checkbox option
+ *
+ * @param {jQuery} checkbox
+ */
+function trackCheckbox(checkbox) {
+  checkbox.on('change', function() {
+    var value = checkbox.is(':checked') ? 1 : 0;
+    analytics.trackEvent('options', 'changed', checkbox.attr('name'), value);
+  });
+}
+
+/**
+ * Tracks changes to a numeric textbox option
+ *
+ * @param {jQuery} textbox
+ */
+function trackTextbox(textbox) {
+  textbox.on('blur', function() {
+    var value = form.cache.parse(textbox.val());
+    analytics.trackEvent('options', 'changed', textbox.attr('name'), value);
+  });
+}
+
+/**
+ * Tracks changes to the "Validate!" button
+ *
+ * @param {string} methodName - The method name (e.g. "validate", "dereference", etc.)
+ */
+function trackButtonLabel(methodName) {
+  var value = ['', 'parse', 'resolve', 'bundle', 'dereference', 'validate'].indexOf(methodName);
+  analytics.trackEvent('options', 'changed', 'method', value);
+}
+
+/**
  * Examines the given checkboxes, and returns arrays of checked and unchecked values.
  *
  * @param {...jQuery} checkboxes
@@ -1170,7 +1271,7 @@ function getCheckedAndUnchecked(checkboxes) {
   return {checked: checked, unchecked: unchecked};
 }
 
-},{"./form":11}],10:[function(require,module,exports){
+},{"./analytics":9,"./form":12}],11:[function(require,module,exports){
 var form      = require('./form'),
     ACE_THEME = 'ace/theme/terminal';
 
@@ -1301,7 +1402,7 @@ function showResults() {
   });
 }
 
-},{"./form":11}],11:[function(require,module,exports){
+},{"./form":12}],12:[function(require,module,exports){
 /**
  * Finds all form fields and exposes them as properties.
  */
@@ -1414,12 +1515,13 @@ var parseCacheValue = function(val) {
   return (isNaN(val) || !isFinite(val) || val < 1) ? 300 : val;
 };
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var form        = require('./form'),
     querystring = require('./querystring'),
     dropdowns   = require('./dropdowns'),
     editors     = require('./editors'),
-    parser      = require('./parser');
+    parser      = require('./parser'),
+    analytics   = require('./analytics');
 
 $(function() {
   form.init();
@@ -1427,13 +1529,16 @@ $(function() {
   dropdowns.init();
   editors.init();
   parser.init();
+  analytics.init();
 });
 
-},{"./dropdowns":9,"./editors":10,"./form":11,"./parser":13,"./querystring":14}],13:[function(require,module,exports){
-var form    = require('./form'),
-    editors = require('./editors'),
-    ono     = require('ono'),
-    parser  = null;
+},{"./analytics":9,"./dropdowns":10,"./editors":11,"./form":12,"./parser":14,"./querystring":15}],14:[function(require,module,exports){
+var form      = require('./form'),
+    editors   = require('./editors'),
+    analytics = require('./analytics'),
+    ono       = require('ono'),
+    parser    = null,
+    counters  = {parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0};
 
 /**
  * Adds event handlers to trigger Swagger Parser methods
@@ -1449,6 +1554,7 @@ exports.init = function() {
   $('#clear').on('click', function() {
     parser = null;
     editors.clearResults();
+    analytics.trackEvent('cache', 'clear');
   });
 };
 
@@ -1478,14 +1584,20 @@ function parseSwagger() {
       })
       .catch(function(err) {
         editors.showError(ono(err));
+        analytics.trackError(err);
       });
+
+    // Track the operation
+    counters[method]++;
+    analytics.trackEvent('button', 'click', method, counters[method]);
   }
   catch (err) {
     editors.showError(ono(err));
+    analytics.trackError(err);
   }
 }
 
-},{"./editors":10,"./form":11,"ono":2}],14:[function(require,module,exports){
+},{"./analytics":9,"./editors":11,"./form":12,"ono":2}],15:[function(require,module,exports){
 var querystring = require('querystring'),
     form        = require('./form');
 
@@ -1583,5 +1695,5 @@ function setBookmarkURL() {
   form.bookmark.attr('href', bookmark);
 }
 
-},{"./form":11,"querystring":6}]},{},[12])
+},{"./form":12,"querystring":6}]},{},[13])
 //# sourceMappingURL=bundle.js.map
