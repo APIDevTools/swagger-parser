@@ -1,4 +1,5 @@
 var form      = require('./form'),
+    ono       = require('ono'),
     ACE_THEME = 'ace/theme/terminal';
 
 /**
@@ -7,7 +8,9 @@ var form      = require('./form'),
 exports.init = function() {
   this.sampleAPI = form.sampleAPI = ace.edit('sample-api');
   form.sampleAPI.setTheme(ACE_THEME);
-  form.sampleAPI.getSession().setMode('ace/mode/yaml');
+  var session = form.sampleAPI.getSession();
+  session.setMode('ace/mode/yaml');
+  session.setTabSize(2);
 
   this.results = $('#results');
   this.tabs = this.results.find('.nav-tabs');
@@ -42,7 +45,7 @@ exports.showResult = function(title, content) {
  */
 exports.showError = function(err) {
   this.results.removeClass('hidden').addClass('error');
-  this.addResult('Error!', err.message + '\n\n' + err.stack);
+  this.addResult('Error!', err);
   showResults();
 };
 
@@ -75,18 +78,14 @@ exports.addResult = function(title, content) {
   this.tabs.find('#' + titleId).text(shortTitle).attr('title', title);
 
   // Set the <pre> content
-  var isJSON = false;
-  if (typeof(content) === 'object') {
-    content = JSON.stringify(content, null, 2);
-    isJSON = true;
-  }
-  this.panes.find('#' + editorId).text(content);
+  content = toText(content);
+  this.panes.find('#' + editorId).text(content.text);
 
   // Turn the <pre> into an Ace Editor
   var editor = ace.edit(editorId);
   editor.setTheme(ACE_THEME);
   editor.session.setOption('useWorker', false);
-  isJSON && editor.getSession().setMode('ace/mode/json');
+  content.isJSON && editor.getSession().setMode('ace/mode/json');
   editor.setReadOnly(true);
 };
 
@@ -126,4 +125,34 @@ function showResults() {
         results.removeClass('animated');
       });
   });
+}
+
+/**
+ * Converts the given object to text.
+ * If possible, it is converted to JSON; otherwise, plain text.
+ *
+ * @param {object} obj
+ * @returns {object}
+ */
+function toText(obj) {
+  if (obj instanceof Error) {
+    return {
+      isJSON: false,
+      text: obj.message + '\n\n' + obj.stack
+    };
+  }
+  else {
+    try {
+      return {
+        isJSON: true,
+        text: JSON.stringify(obj, null, 2)
+      };
+    }
+    catch (e) {
+      return {
+        isJSON: false,
+        text: 'This API is valid, but it cannot be shown because it contains circular references\n\n' + e.stack
+      };
+    }
+  }
 }

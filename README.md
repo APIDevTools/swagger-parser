@@ -10,7 +10,7 @@ Swagger Parser
 [![Inline docs](http://inch-ci.org/github/BigstickCarpet/swagger-parser.svg?branch=master&style=shields)](http://inch-ci.org/github/BigstickCarpet/swagger-parser)
 
 [![npm](http://img.shields.io/npm/v/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
-[![Bower](http://img.shields.io/bower/v/swagger-parser.svg)](#bower)
+[![Bower](http://img.shields.io/bower/v/swagger-parser.svg)](http://bower.io/)
 [![License](https://img.shields.io/npm/l/swagger-parser.svg)](LICENSE)
 
 [![Browser Compatibility](https://saucelabs.com/browser-matrix/swagger-parser.svg)](https://saucelabs.com/u/swagger-parser)
