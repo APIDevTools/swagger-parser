@@ -1,6 +1,6 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.SwaggerParser = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**!
- * Swagger Parser v3.0.1
+ * Swagger Parser v3.1.0
  *
  * @link https://github.com/BigstickCarpet/swagger-parser
  * @license MIT
@@ -13589,7 +13589,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
 },{"../type":38}],55:[function(require,module,exports){
 /**!
- * JSON Schema $Ref Parser v1.3.0
+ * JSON Schema $Ref Parser v1.3.1
  *
  * @link https://github.com/BigstickCarpet/json-schema-ref-parser
  * @license MIT
@@ -13738,6 +13738,7 @@ function crawl(obj, path, parents, $refs, options) {
     Object.keys(obj).forEach(function(key) {
       var keyPath = Pointer.join(path, key);
       var value = obj[key];
+      var circular = false;
 
       if ($Ref.isAllowed$Ref(value, options)) {
         // We found a $ref, so resolve it
@@ -13746,8 +13747,8 @@ function crawl(obj, path, parents, $refs, options) {
         var pointer = $refs._resolve($refPath, options);
 
         // Check for circular references
-        var circular = pointer.circular || parents.indexOf(pointer.value) !== -1;
-        circular && (isCircular = foundCircularReference(keyPath, $refs, options));
+        circular = pointer.circular || parents.indexOf(pointer.value) !== -1;
+        circular && foundCircularReference(keyPath, $refs, options);
 
         // Dereference the JSON reference
         var dereferencedValue = getDereferencedValue(value, pointer.value);
@@ -13756,7 +13757,6 @@ function crawl(obj, path, parents, $refs, options) {
         if (!circular) {
           // If the `crawl` method returns true, then dereferenced value is circular
           circular = crawl(dereferencedValue, pointer.path, parents, $refs, options);
-          isCircular = isCircular || circular;
         }
 
         // Replace the JSON reference with the dereferenced value
@@ -13766,12 +13766,15 @@ function crawl(obj, path, parents, $refs, options) {
       }
       else {
         if (parents.indexOf(value) === -1) {
-          isCircular = crawl(value, keyPath, parents, $refs, options);
+          circular = crawl(value, keyPath, parents, $refs, options);
         }
         else {
-          isCircular = foundCircularReference(keyPath, $refs, options);
+          circular = foundCircularReference(keyPath, $refs, options);
         }
       }
+
+      // Set the "isCircular" flag if this or any other property is circular
+      isCircular = isCircular || circular;
     });
 
     parents.pop();
