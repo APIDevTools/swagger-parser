@@ -1,11 +1,6 @@
 'use strict';
 
 describe('Callback & Promise syntax', function() {
-  // We need a delay to allow the callback functions to be called asynchronously.
-  function delay(fn) {
-    setTimeout(fn, 200);
-  }
-
   ['parse', 'resolve', 'dereference', 'bundle', 'validate'].forEach(function(method) {
     describe(method + ' method', function() {
       it('should call the callback function and Promise.then() (static)', testCallbackAndPromise_Static(method));
@@ -13,6 +8,11 @@ describe('Callback & Promise syntax', function() {
       it('should call the callback function and Promise.catch()', testCallbackAndPromise_Error(method));
     });
   });
+
+  // We need a delay to allow the callback functions to be called asynchronously.
+  function delay(fn) {
+    setTimeout(fn, slowEnvironment ? 1000 : 200);
+  }
 
   /**
    * Calls the specified SwaggerParser method, and asserts that the callback function

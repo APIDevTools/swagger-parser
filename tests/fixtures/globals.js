@@ -17,6 +17,9 @@
       isNode: false,
       isBrowser: true
     };
+
+    // Flag known slow environments (TravisCI and SauceLabs)
+    global.slowEnvironment = !!window.__karma__;
   }
   else {
     // Expose Node globals
@@ -29,6 +32,9 @@
       isNode: true,
       isBrowser: false
     }
+
+    // Flag known slow environments (TravisCI and SauceLabs)
+    global.slowEnvironment = !!process.env.TRAVIS;
   }
 
 })();
