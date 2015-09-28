@@ -6,31 +6,29 @@ describe('Real-world APIs', function() {
     window.location.hostname !== 'localhost' &&
     window.location.hostname !== '127.0.0.1';
 
-  beforeEach(function() {
-    // Some of these APIs are REALLY big, so we need to allow a large enough timeout
-    // to allow for parsing and for garbage collection between each test.
-    // (this mostly just applies to really slow environments, such as TravisCI and SauceLabs)
-    this.currentTest.timeout(5000);
-    this.currentTest.slow(4000);
-  });
+  // Skip Google AdSense APIs when running on GitHub Pages.
+  // The gh-pages server mistakenly attempts to serve the AdSense script instead of Swagger file.
+  if (isGitHub) {
+    global.realWorldAPIs = realWorldAPIs.filter(function(api) {
+      return api.name !== 'adsense';
+    });
+  }
 
-  path.realWorld.forEach(function(file, index) {
-    it((index + 1) + ') ' + file,
-      function(done) {
-        if (isGitHub && file.indexOf('/adsense/') >= 0) {
-          // Skip Google AdSense tests when running on GitHub Pages.
-          // The gh-pages server mistakenly attempts to serve the AdSense script instead of Swagger file.
-          done();
-          return;
-        }
+  realWorldAPIs.forEach(function(api, index) {
+    // Build a friendly name for the API
+    var name = (index + 1) + ') ' + api.domain;
+    if (api.name) {
+      name += ' (' + api.name + ')';
+    }
+    name += ' v' + api.version;
 
-        SwaggerParser.validate(path.rel(file))
-          .then(function(api) {
-            // The API was successfully parsed and passed validation
-            done();
-          })
-          .catch(helper.shouldNotGetCalled(done))
-      }
-    );
+    it(name, function(done) {
+      // Parse and Validate the API
+      SwaggerParser.validate(api.path)
+        .then(function(api) {
+          done(); // Validated successfully!
+        })
+        .catch(helper.shouldNotGetCalled(done))
+    });
   });
 });

@@ -2,15 +2,9 @@
 
 describe('Callback & Promise syntax', function() {
   // We need a delay to allow the callback functions to be called asynchronously.
-  var delayMS = 200;
-
   function delay(fn) {
-    setTimeout(fn, delayMS);
+    setTimeout(fn, 200);
   }
-
-  beforeEach(function() {
-    this.currentTest.slow(delayMS * 2);
-  });
 
   ['parse', 'resolve', 'dereference', 'bundle', 'validate'].forEach(function(method) {
     describe(method + ' method', function() {
