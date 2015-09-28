@@ -7,6 +7,18 @@ helper.bundled.circularExternal =
     "title": "Circular $Refs"
   },
   "paths": {
+    "/pet": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Returns a pet",
+            "schema": {
+              "$ref": "#/definitions/pet"
+            }
+          }
+        }
+      }
+    },
     "/thing": {
       "get": {
         "responses": {
@@ -45,6 +57,27 @@ helper.bundled.circularExternal =
     }
   },
   "definitions": {
+    "pet": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "species": {
+          "enum": [
+            "cat",
+            "dog",
+            "bird",
+            "fish"
+          ],
+          "type": "string"
+        }
+      },
+      "title": "pet"
+    },
     "thing": {
       "$ref": "#/definitions/thing"
     },

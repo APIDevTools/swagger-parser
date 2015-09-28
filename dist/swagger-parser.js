@@ -12,6 +12,7 @@ var validateSchema = require('./validate-schema'),
     util           = require('./util'),
     Options        = require('./options'),
     ono            = require('ono'),
+    dereference    = require('json-schema-ref-parser/lib/dereference'),
     Promise        = require('json-schema-ref-parser/lib/promise'),
     $RefParser     = require('json-schema-ref-parser');
 
@@ -130,14 +131,39 @@ SwaggerParser.prototype.validate = function(api, options, callback) {
   options = new Options(options);
   var me = this;
 
-  return this.resolve(api, options)
+  // ZSchema doesn't support circular objects, so don't dereference circular $refs yet
+  // (see https://github.com/zaggino/z-schema/issues/137)
+  var circular$RefOption = options.$refs.circular;
+  options.validate.schema && (options.$refs.circular = 'ignore');
+
+  return this.dereference(api, options)
     .then(function() {
+      // Restore the original options, now that we're done dereferencing
+      options.$refs.circular = circular$RefOption;
+
       if (options.validate.schema) {
-        validateSchema(me, options);
+        // Validate the API against the Swagger schema
+        // NOTE: This is safe to do, because we haven't dereferenced circular $refs yet
+        validateSchema(me.api);
+
+        if (me.$refs.circular) {
+          if (circular$RefOption === true) {
+            // The API has circular references,
+            // so we need to do a second-pass to fully-dereference it
+            dereference(me, options);
+          }
+          else if (circular$RefOption === false) {
+            // The API has circular references, and they're not allowed, so throw an error
+            throw ono.reference('The API contains circular references');
+          }
+        }
       }
+
       if (options.validate.spec) {
+        // Validate the API against the Swagger spec
         validateSpec(me.api);
       }
+
       util.doCallback(callback, null, me.schema);
       return me.schema;
     })
@@ -154,7 +180,7 @@ SwaggerParser.prototype.validate = function(api, options, callback) {
  * @typedef {{swagger: string, info: {}, paths: {}}} SwaggerObject
  */
 
-},{"./options":2,"./util":3,"./validate-schema":4,"./validate-spec":5,"json-schema-ref-parser":57,"json-schema-ref-parser/lib/promise":61,"ono":74}],2:[function(require,module,exports){
+},{"./options":2,"./util":3,"./validate-schema":4,"./validate-spec":5,"json-schema-ref-parser":57,"json-schema-ref-parser/lib/dereference":56,"json-schema-ref-parser/lib/promise":61,"ono":74}],2:[function(require,module,exports){
 'use strict';
 
 var $RefParserOptions = require('json-schema-ref-parser/lib/options'),
@@ -206,85 +232,41 @@ exports.swaggerParamRegExp = /\{([^/}]+)}/g;
 },{"debug":12,"json-schema-ref-parser/lib/util":66,"util":104}],4:[function(require,module,exports){
 'use strict';
 
-var Options           = require('./options'),
-    util              = require('./util'),
-    ono               = require('ono'),
-    ZSchema           = require('z-schema'),
-    swaggerSchema     = require('swagger-schema-official/schema'),
-    bundle            = require('json-schema-ref-parser/lib/bundle'),
-    dereference       = require('json-schema-ref-parser/lib/dereference'),
-    schemaInitialized = false;
+var Options       = require('./options'),
+    util          = require('./util'),
+    ono           = require('ono'),
+    swaggerSchema = require('swagger-schema-official/schema'),
+    ZSchema       = require('z-schema');
 
 module.exports = validateSchema;
 
-/**
- * Validates the given Swagger API against the Swagger 2.0 schema.
- *
- * @param {SwaggerParser} parser
- * - A parser containing an API that has been parsed and resolved, but NOT dereferenced.
- * It will be dereferenced during the schema-validation process.
- *
- * @param {ParserOptions} options
- */
-function validateSchema(parser, options) {
-  try {
-    // Z-Schema does not support circular references
-    // (see https://github.com/zaggino/z-schema/issues/137)
-    var newOptions = new Options({$refs: {circular: false}});
-    dereference(parser, newOptions);
-
-    // No error was thrown, so we know the API doesn't have any circular references.
-    // Therefore, it's safe to validate
-    validateJsonSchema(parser.api);
-  }
-  catch (err) {
-    if (err instanceof ReferenceError) {
-      // The API has circular references, so we have to do a three-step process
-      util.debug('Warning! This API contains circular references');
-
-      // 1) Bundle the API (this is safe, since it doesn't produce circular references)
-      bundle(parser, options);
-
-      // 2) Validate the schema
-      validateJsonSchema(parser.api);
-
-      // 3) Dereference the API, now that we're done validating it
-      dereference(parser, options);
-    }
-    else {
-      throw err;
-    }
-  }
-}
+initializeZSchema();
 
 /**
  * Validates the given Swagger API against the Swagger 2.0 schema.
  *
  * @param {SwaggerObject} api
  */
-function validateJsonSchema(api) {
+function validateSchema(api) {
   util.debug('Validating against the Swagger 2.0 schema');
 
-  schemaInitialized || initializeSchema();
-  var validator = new ZSchema();
-  var isValid = validator.validate(api, swaggerSchema);
+  // Validate the API against the Swagger schema
+  var isValid = ZSchema.validate(api, swaggerSchema);
 
   if (isValid) {
     util.debug('    Validated successfully');
   }
   else {
-    var err = validator.getLastError();
+    var err = ZSchema.getLastError();
     var message = 'Swagger schema validation failed. ' + formatZSchemaError(err.details);
     throw ono.syntax(err, message);
   }
 }
 
 /**
- * Performs one-time initialization logic to prepare the Swagger 2.0 JSON Schema for validation.
+ * Performs one-time initialization logic to prepare for Swagger Schema validation.
  */
-function initializeSchema() {
-  schemaInitialized = true;
-
+function initializeZSchema() {
   // Patch the Swagger schema to support "file" in addition to the JSON Schema primitives
   // See https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#response-object
   swaggerSchema.definitions.schema.properties.type = {
@@ -295,6 +277,12 @@ function initializeSchema() {
       }
     ]
   };
+
+  ZSchema = new ZSchema({
+    breakOnFirstError: true,
+    noExtraKeywords: true,
+    ignoreUnknownFormats: false
+  });
 }
 
 /**
@@ -317,7 +305,7 @@ function formatZSchemaError(errors, indent) {
   return message;
 }
 
-},{"./options":2,"./util":3,"json-schema-ref-parser/lib/bundle":55,"json-schema-ref-parser/lib/dereference":56,"ono":74,"swagger-schema-official/schema":100,"z-schema":116}],5:[function(require,module,exports){
+},{"./options":2,"./util":3,"ono":74,"swagger-schema-official/schema":100,"z-schema":116}],5:[function(require,module,exports){
 'use strict';
 
 var util           = require('./util'),
@@ -13601,7 +13589,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
 },{"../type":38}],55:[function(require,module,exports){
 /**!
- * JSON Schema $Ref Parser v1.2.7
+ * JSON Schema $Ref Parser v1.3.0
  *
  * @link https://github.com/BigstickCarpet/json-schema-ref-parser
  * @license MIT
@@ -13739,8 +13727,11 @@ function dereference(parser, options) {
  * @param {object[]} parents - An array of the parent objects that have already been dereferenced
  * @param {$Refs} $refs - The resolved JSON references
  * @param {$RefParserOptions} options
+ * @returns {boolean} - Returns true if a circular reference was found
  */
 function crawl(obj, path, parents, $refs, options) {
+  var isCircular = false;
+
   if (obj && typeof(obj) === 'object') {
     parents.push(obj);
 
@@ -13756,53 +13747,83 @@ function crawl(obj, path, parents, $refs, options) {
 
         // Check for circular references
         var circular = pointer.circular || parents.indexOf(pointer.value) !== -1;
-        $refs.circular = $refs.circular || circular;
-        if ($refs.circular && !options.$refs.circular) {
-          throw ono.reference('Circular $ref pointer found at %s', keyPath);
-        }
+        circular && (isCircular = foundCircularReference(keyPath, $refs, options));
 
         // Dereference the JSON reference
-        value = dereference$Ref(obj, key, pointer.value);
+        var dereferencedValue = getDereferencedValue(value, pointer.value);
 
         // Crawl the dereferenced value (unless it's circular)
         if (!circular) {
-          crawl(value, pointer.path, parents, $refs, options);
+          // If the `crawl` method returns true, then dereferenced value is circular
+          circular = crawl(dereferencedValue, pointer.path, parents, $refs, options);
+          isCircular = isCircular || circular;
+        }
+
+        // Replace the JSON reference with the dereferenced value
+        if (!circular || options.$refs.circular === true) {
+          obj[key] = dereferencedValue;
         }
       }
-      else if (parents.indexOf(value) === -1) {
-        crawl(value, keyPath, parents, $refs, options);
+      else {
+        if (parents.indexOf(value) === -1) {
+          isCircular = crawl(value, keyPath, parents, $refs, options);
+        }
+        else {
+          isCircular = foundCircularReference(keyPath, $refs, options);
+        }
       }
     });
 
     parents.pop();
   }
+  return isCircular;
 }
 
 /**
- * Replaces the specified JSON reference with its resolved value.
+ * Returns the dereferenced value of the given JSON reference.
  *
- * @param {object} obj - The object that contains the JSON reference
- * @param {string} key - The key of the JSON reference within `obj`
- * @param {*} value - The resolved value
- * @returns {*} - Returns the new value of the JSON reference
+ * @param {object} currentValue - the current value, which contains a JSON reference ("$ref" property)
+ * @param {*} resolvedValue - the resolved value, which can be any type
+ * @returns {*} - Returns the dereferenced value
  */
-function dereference$Ref(obj, key, value) {
-  var $refObj = obj[key];
-
-  if (value && typeof(value) === 'object' && Object.keys($refObj).length > 1) {
-    // The JSON reference has additional properties (other than "$ref"),
+function getDereferencedValue(currentValue, resolvedValue) {
+  if (resolvedValue && typeof(resolvedValue) === 'object' && Object.keys(currentValue).length > 1) {
+    // The current value has additional properties (other than "$ref"),
     // so merge the resolved value rather than completely replacing the reference
-    delete $refObj.$ref;
-    Object.keys(value).forEach(function(key) {
-      if (!(key in $refObj)) {
-        $refObj[key] = value[key];
+    var merged = {};
+    Object.keys(currentValue).forEach(function(key) {
+      if (key !== '$ref') {
+        merged[key] = currentValue[key];
       }
     });
+    Object.keys(resolvedValue).forEach(function(key) {
+      if (!(key in merged)) {
+        merged[key] = resolvedValue[key];
+      }
+    });
+    return merged;
   }
   else {
     // Completely replace the original reference with the resolved value
-    return obj[key] = value;
+    return resolvedValue;
   }
+}
+
+/**
+ * Called when a circular reference is found.
+ * It sets the {@link $Refs#circular} flag, and throws an error if options.$refs.circular is false.
+ *
+ * @param {string} keyPath - The JSON Reference path of the circular reference
+ * @param {$Refs} $refs
+ * @param {$RefParserOptions} options
+ * @returns {boolean} - always returns true, to indicate that a circular reference was found
+ */
+function foundCircularReference(keyPath, $refs, options) {
+  $refs.circular = true;
+  if (!options.$refs.circular) {
+    throw ono.reference('Circular $ref pointer found at %s', keyPath);
+  }
+  return true;
 }
 
 },{"./pointer":60,"./ref":63,"./util":66,"ono":74,"url":101}],57:[function(require,module,exports){
@@ -14143,7 +14164,8 @@ function $RefParserOptions(options) {
     /**
      * Allow circular (recursive) JSON references?
      * If false, then a {@link ReferenceError} will be thrown if a circular reference is found.
-     * @type {boolean}
+     * If "ignore", then circular references will not be dereferenced.
+     * @type {boolean|string}
      */
     circular: true
   };
@@ -14481,20 +14503,20 @@ Pointer.join = function(base, tokens) {
 function resolveIf$Ref(pointer, options) {
   // Is the value a JSON reference? (and allowed?)
   if ($Ref.isAllowed$Ref(pointer.value, options)) {
-    // Does the JSON reference have other properties (other than "$ref")?
-    // If so, then don't resolve it, since it represents a new type
-    if (Object.keys(pointer.value).length === 1) {
-      var $refPath = url.resolve(pointer.path, pointer.value.$ref);
+    var $refPath = url.resolve(pointer.path, pointer.value.$ref);
 
-      if ($refPath === pointer.path) {
-        // The value is a reference to itself, so there's nothing to do.
-        pointer.circular = true;
-      }
-      else {
+    if ($refPath === pointer.path) {
+      // The value is a reference to itself, so there's nothing to do.
+      pointer.circular = true;
+    }
+    else {
+      // Does the JSON reference have other properties (other than "$ref")?
+      // If so, then don't resolve it, since it represents a new type
+      if (Object.keys(pointer.value).length === 1) {
         // Resolve the reference
         var resolved = pointer.$ref.$refs._resolve($refPath);
         pointer.$ref = resolved.$ref;
-        pointer.path = resolved.path;    // pointer.path = $refPath ???
+        pointer.path = resolved.path;
         pointer.value = resolved.value;
         return true;
       }

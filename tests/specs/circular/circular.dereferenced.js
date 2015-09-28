@@ -7,6 +7,16 @@ helper.dereferenced.circularExternal =
     "title": "Circular $Refs"
   },
   "paths": {
+    "/pet": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Returns a pet",
+            "schema": null
+          }
+        }
+      }
+    },
     "/thing": {
       "get": {
         "responses": {
@@ -39,6 +49,27 @@ helper.dereferenced.circularExternal =
     }
   },
   "definitions": {
+    "pet": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "species": {
+          "enum": [
+            "cat",
+            "dog",
+            "bird",
+            "fish"
+          ],
+          "type": "string"
+        }
+      },
+      "title": "pet"
+    },
     "thing": {
       "$ref": "circular.yaml#/definitions/thing"
     },
@@ -81,16 +112,19 @@ helper.dereferenced.circularExternal =
   }
 };
 
+helper.dereferenced.circularExternal.paths['/pet'].get.responses['200'].schema =
+  helper.dereferenced.circularExternal.definitions.pet;
+
 helper.dereferenced.circularExternal.paths['/thing'].get.responses['200'].schema =
   helper.dereferenced.circularExternal.definitions.thing;
 
 helper.dereferenced.circularExternal.paths['/person'].get.responses['200'].schema =
   helper.dereferenced.circularExternal.definitions.person.properties.spouse =
-  helper.dereferenced.circularExternal.definitions.person;
+    helper.dereferenced.circularExternal.definitions.person;
 
 helper.dereferenced.circularExternal.definitions.parent.properties.children.items =
   helper.dereferenced.circularExternal.definitions.child;
 
 helper.dereferenced.circularExternal.paths['/parent'].get.responses['200'].schema =
   helper.dereferenced.circularExternal.definitions.child.properties.parents.items =
-  helper.dereferenced.circularExternal.definitions.parent;
+    helper.dereferenced.circularExternal.definitions.parent;

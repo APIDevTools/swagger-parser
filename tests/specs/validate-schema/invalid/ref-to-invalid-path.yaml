@@ -1,0 +1,28 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users:
+    $ref: "#/definitions/users/default"
+  /products:
+    $ref: "#/definitions/products"       # <--- Points to the "products" MODEL, not a Path
+
+definitions:
+  users:
+    default:
+      get:
+        responses:
+          default:
+            description:  hello world
+
+  products:
+    type: object
+    properties:
+      id:
+        type: number
+      name:
+        type: string
+      qtyInStock:
+        type: number

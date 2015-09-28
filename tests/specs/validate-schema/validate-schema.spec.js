@@ -67,6 +67,11 @@ describe('Invalid APIs (Swagger 2.0 schema validation)', function() {
       valid: true,
       file: 'unknown-format.yaml'
     },
+    {
+      name: '$ref to invalid Path object',
+      valid: false,
+      file: 'ref-to-invalid-path.yaml'
+    },
   ];
 
   it('should pass validation if "options.validate.schema" is false', function(done) {

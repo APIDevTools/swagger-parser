@@ -5,6 +5,14 @@ info:
   title: Circular $Refs
 
 paths:
+  /pet:
+    get:
+      responses:
+        200:
+          description: Returns a pet
+          schema:
+            $ref: "#/definitions/pet"
+
   /thing:
     get:
       responses:
@@ -28,14 +36,17 @@ paths:
             $ref: "#/definitions/parent"
 
 definitions:
+  pet:
+    $ref: definitions/pet.yaml                          # <--- not circular
+
   thing:
-    $ref: circular.yaml#/definitions/thing
+    $ref: 'circular.yaml#/definitions/thing'            # <--- circular reference to self
 
   person:
-    $ref: definitions/person.yaml
+    $ref: definitions/person.yaml                       # <--- circular reference to ancestor
 
   parent:
-    $ref: definitions/parent.yaml
+    $ref: definitions/parent.yaml                       # <--- indirect circular reference
 
   child:
-    $ref: definitions/child.yaml
+    $ref: definitions/child.yaml                        # <--- indirect circular reference

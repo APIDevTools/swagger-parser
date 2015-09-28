@@ -1,13 +1,36 @@
 helper.parsed.circularExternal =
 {
   api: {
-    "swagger": "2.0",
     "info": {
       "version": "1.0.0",
       "description": "This API contains circular (recursive) JSON references",
       "title": "Circular $Refs"
     },
     "paths": {
+      "/parent": {
+        "get": {
+          "responses": {
+            "200": {
+              "description": "Returns a parent",
+              "schema": {
+                "$ref": "#/definitions/parent"
+              }
+            }
+          }
+        }
+      },
+      "/pet": {
+        "get": {
+          "responses": {
+            "200": {
+              "description": "Returns a pet",
+              "schema": {
+                "$ref": "#/definitions/pet"
+              }
+            }
+          }
+        }
+      },
       "/thing": {
         "get": {
           "responses": {
@@ -31,21 +54,13 @@ helper.parsed.circularExternal =
             }
           }
         }
-      },
-      "/parent": {
-        "get": {
-          "responses": {
-            "200": {
-              "description": "Returns a parent",
-              "schema": {
-                "$ref": "#/definitions/parent"
-              }
-            }
-          }
-        }
       }
     },
+    "swagger": "2.0",
     "definitions": {
+      "pet": {
+        "$ref": "definitions/pet.yaml"
+      },
       "thing": {
         "$ref": "circular.yaml#/definitions/thing"
       },
@@ -59,6 +74,28 @@ helper.parsed.circularExternal =
         "$ref": "definitions/child.yaml"
       }
     }
+  },
+
+  pet: {
+    "type": "object",
+    "properties": {
+      "age": {
+        "type": "number"
+      },
+      "name": {
+        "type": "string"
+      },
+      "species": {
+        "enum": [
+          "cat",
+          "dog",
+          "bird",
+          "fish"
+        ],
+        "type": "string"
+      }
+    },
+    "title": "pet"
   },
 
   child: {
