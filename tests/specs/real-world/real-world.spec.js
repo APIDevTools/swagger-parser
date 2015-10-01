@@ -22,13 +22,9 @@ describe('Real-world APIs', function() {
     }
     name += ' v' + api.version;
 
-    it(name, function(done) {
+    it(name, function() {
       // Parse and Validate the API
-      SwaggerParser.validate(api.path)
-        .then(function(api) {
-          done(); // Validated successfully!
-        })
-        .catch(helper.shouldNotGetCalled(done))
+      return SwaggerParser.validate(api.path);
     });
   });
 });

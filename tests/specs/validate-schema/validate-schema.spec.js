@@ -74,37 +74,33 @@ describe('Invalid APIs (Swagger 2.0 schema validation)', function() {
     },
   ];
 
-  it('should pass validation if "options.validate.schema" is false', function(done) {
+  it('should pass validation if "options.validate.schema" is false', function() {
     var invalid = tests[0];
     expect(invalid.valid).to.be.false;
 
-    SwaggerParser
+    return SwaggerParser
       .validate(path.rel('specs/validate-schema/invalid/' + invalid.file), {validate: {schema: false}})
       .then(function(api) {
         expect(api).to.be.an('object').and.ok;
-        done();
-      })
-      .catch(helper.shouldNotGetCalled(done));
+      });
   });
 
   tests.forEach(function(test) {
     if (test.valid) {
-      it(test.name, function(done) {
-        SwaggerParser
+      it(test.name, function() {
+        return SwaggerParser
           .validate(path.rel('specs/validate-schema/valid/' + test.file))
           .then(function(api) {
             expect(api).to.be.an('object').and.ok;
-            done();
           })
           .catch(function(err) {
             done(new Error('Validation should have succeeded, but it failed!\n' + err.stack));
-          })
-          .catch(helper.shouldNotGetCalled(done));
+          });
       });
     }
     else {
-      it(test.name, function(done) {
-        SwaggerParser
+      it(test.name, function() {
+        return SwaggerParser
           .validate(path.rel('specs/validate-schema/invalid/' + test.file))
           .then(function(api) {
             done(new Error('Validation should have failed, but it succeeded!'));
@@ -112,9 +108,7 @@ describe('Invalid APIs (Swagger 2.0 schema validation)', function() {
           .catch(function(err) {
             expect(err).to.be.an.instanceOf(SyntaxError);
             expect(err.message).to.match(/^Swagger schema validation failed. \n  \w+/);
-            done();
-          })
-          .catch(helper.shouldNotGetCalled(done));
+          });
       });
     }
   });

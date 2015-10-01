@@ -1,17 +1,15 @@
 'use strict';
 
 describe('API with circular (recursive) $refs', function() {
-  it('should parse successfully', function(done) {
+  it('should parse successfully', function() {
     var parser = new SwaggerParser();
-    parser
+    return parser
       .parse(path.rel('specs/circular/circular.yaml'))
       .then(function(api) {
         expect(api).to.equal(parser.api);
         expect(api).to.deep.equal(helper.parsed.circularExternal.api);
         expect(parser.$refs.paths()).to.deep.equal([path.abs('specs/circular/circular.yaml')]);
-        done();
-      })
-      .catch(helper.shouldNotGetCalled(done));
+      });
   });
 
   it('should resolve successfully', helper.testResolve(
@@ -22,9 +20,9 @@ describe('API with circular (recursive) $refs', function() {
     'specs/circular/definitions/person.yaml', helper.parsed.circularExternal.person
   ));
 
-  it('should dereference successfully', function(done) {
+  it('should dereference successfully', function() {
     var parser = new SwaggerParser();
-    parser
+    return parser
       .dereference(path.rel('specs/circular/circular.yaml'))
       .then(function(api) {
         expect(api).to.equal(parser.api);
@@ -34,15 +32,12 @@ describe('API with circular (recursive) $refs', function() {
         expect(api.definitions.person.properties.spouse).to.equal(api.definitions.person);
         expect(api.definitions.parent.properties.children.items).to.equal(api.definitions.child);
         expect(api.definitions.child.properties.parents.items).to.equal(api.definitions.parent);
-
-        done();
-      })
-      .catch(helper.shouldNotGetCalled(done));
+      });
   });
 
-  it('should validate successfully', function(done) {
+  it('should validate successfully', function() {
     var parser = new SwaggerParser();
-    parser
+    return parser
       .validate(path.rel('specs/circular/circular.yaml'))
       .then(function(api) {
         expect(api).to.equal(parser.api);
@@ -52,15 +47,12 @@ describe('API with circular (recursive) $refs', function() {
         expect(api.definitions.person.properties.spouse).to.equal(api.definitions.person);
         expect(api.definitions.parent.properties.children.items).to.equal(api.definitions.child);
         expect(api.definitions.child.properties.parents.items).to.equal(api.definitions.parent);
-
-        done();
-      })
-      .catch(helper.shouldNotGetCalled(done));
+      });
   });
 
-  it('should not dereference circular $refs if "options.$refs.circular" is "ignore"', function(done) {
+  it('should not dereference circular $refs if "options.$refs.circular" is "ignore"', function() {
     var parser = new SwaggerParser();
-    parser
+    return parser
       .validate(path.rel('specs/circular/circular.yaml'), {$refs: {circular: 'ignore'}})
       .then(function(api) {
         expect(api).to.equal(parser.api);
@@ -68,34 +60,27 @@ describe('API with circular (recursive) $refs', function() {
 
         // Reference equality
         expect(api.paths['/pet'].get.responses['200'].schema).to.equal(api.definitions.pet);
-
-        done();
-      })
-      .catch(helper.shouldNotGetCalled(done));
+      });
   });
 
-  it('should fail validation if "options.$refs.circular" is false', function(done) {
+  it('should fail validation if "options.$refs.circular" is false', function() {
     var parser = new SwaggerParser();
-    parser
+    return parser
       .validate(path.rel('specs/circular/circular.yaml'), {$refs: {circular: false}})
-      .then(helper.shouldNotGetCalled(done))
+      .then(helper.shouldNotGetCalled)
       .catch(function(err) {
         expect(err).to.be.an.instanceOf(ReferenceError);
         expect(err.message).to.equal('The API contains circular references');
-        done();
-      })
-      .catch(helper.shouldNotGetCalled(done));
+      });
   });
 
-  it('should bundle successfully', function(done) {
+  it('should bundle successfully', function() {
     var parser = new SwaggerParser();
-    parser
+    return parser
       .bundle(path.rel('specs/circular/circular.yaml'))
       .then(function(api) {
         expect(api).to.equal(parser.api);
         expect(api).to.deep.equal(helper.bundled.circularExternal);
-        done();
-      })
-      .catch(helper.shouldNotGetCalled(done));
+      });
   });
 });

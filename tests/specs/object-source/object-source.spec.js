@@ -1,9 +1,9 @@
 'use strict';
 
 describe('Object sources (instead of file paths)', function() {
-  it('should dereference an object that references external files', function(done) {
+  it('should dereference an object that references external files', function() {
     var parser = new SwaggerParser();
-    parser
+    return parser
       .dereference(helper.cloneDeep(helper.parsed.objectSource.api))
       .then(function(api) {
         expect(api).to.equal(parser.api);
@@ -27,15 +27,12 @@ describe('Object sources (instead of file paths)', function() {
           .to.equal(api.definitions.name.properties.last)
           .to.equal(api.paths['/people/{name}'].get.responses['200'].schema.properties.first)
           .to.equal(api.paths['/people/{name}'].get.responses['200'].schema.properties.last);
-
-        done();
-      })
-      .catch(helper.shouldNotGetCalled(done));
+      });
   });
 
-  it('should bundle an object that references external files', function(done) {
+  it('should bundle an object that references external files', function() {
     var parser = new SwaggerParser();
-    parser
+    return parser
       .bundle(helper.cloneDeep(helper.parsed.objectSource.api))
       .then(function(api) {
         expect(api).to.equal(parser.api);
@@ -50,15 +47,12 @@ describe('Object sources (instead of file paths)', function() {
         ];
         expect(parser.$refs.paths()).to.have.same.members(expectedPaths);
         expect(parser.$refs.values()).to.have.keys(expectedPaths);
-
-        done();
-      })
-      .catch(helper.shouldNotGetCalled(done));
+      });
   });
 
-  it('should validate an object that references external files', function(done) {
+  it('should validate an object that references external files', function() {
     var parser = new SwaggerParser();
-    parser
+    return parser
       .dereference(helper.cloneDeep(helper.parsed.objectSource.api))
       .then(function(api) {
         expect(api).to.equal(parser.api);
@@ -82,9 +76,6 @@ describe('Object sources (instead of file paths)', function() {
           .to.equal(api.definitions.name.properties.last)
           .to.equal(api.paths['/people/{name}'].get.responses['200'].schema.properties.first)
           .to.equal(api.paths['/people/{name}'].get.responses['200'].schema.properties.last);
-
-        done();
-      })
-      .catch(helper.shouldNotGetCalled(done));
+      });
   });
 });
