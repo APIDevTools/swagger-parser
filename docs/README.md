@@ -54,17 +54,32 @@ The difference is that in the second example you now have a reference to `parser
 
 
 ### Callbacks vs. Promises
-Many people prefer [ES6 Promise syntax](http://javascriptplayground.com/blog/2015/02/promises/) instead of callbacks.  Swagger Parser allows you to use whichever one you prefer.  Every method accepts an optional callback _and_ returns a Promise.  So pick your poison.
+Many people prefer [ES6 Promise syntax](http://javascriptplayground.com/blog/2015/02/promises/) instead of callbacks.  Swagger Parser allows you to use whichever one you prefer.  
+
+If you pass a callback function to any method, then the method will call the callback using the Node.js error-first convention.  If you do _not_ pass a callback function, then the method will return an ES6 Promise.
+
+The following two examples are equivalent:
 
 ```javascript
-SwaggerParser.validate(myAPI, function(err, api) {
-        // Callback (success or error)
-    })
+// Callback syntax
+SwaggerParser.validate(mySchema, function(err, api) {
+    if (err) {
+        // Error
+    }
+    else {
+        // Success
+    }
+});
+```
+
+```javascript
+// ES6 Promise syntax
+SwaggerParser.validate(mySchema)
     .then(function(api) {
-        // Promise (success)
+        // Success
     })
     .catch(function(err) {
-        // Promise (error)
+        // Error
     });
 ```
 
