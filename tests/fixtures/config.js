@@ -14,7 +14,7 @@
   beforeEach(function() {
     // Most of our tests perform multiple AJAX requests,
     // so we need to increase the timeouts to allow for that
-    this.currentTest.timeout(slowEnvironment ? 10000 : 2000);
+    this.currentTest.timeout(slowEnvironment ? 10000 : 3000);
     this.currentTest.slow(500);
   });
 
