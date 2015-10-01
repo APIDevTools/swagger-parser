@@ -72,6 +72,7 @@
   "dependencies": {
     "call-me-maybe": "^1.0.1",
     "debug": "^2.2.0",
+    "es6-promise": "^3.0.2",
     "json-schema-ref-parser": "^1.4.0",
     "ono": "^1.0.22",
     "swagger-methods": "^1.0.0",
