@@ -152,7 +152,7 @@ function configureSauceLabs(config) {
       base: 'SauceLabs',
       platform: 'Windows 7',
       browserName: 'internet explorer',
-      version: '10'
+      version: '9'
     },
     'IE-Edge': {
       base: 'SauceLabs',
