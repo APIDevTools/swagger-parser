@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "description": "Swagger 2.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
@@ -65,7 +65,7 @@
     "chai": "^3.3.0",
     "sinon": "^1.17.1",
     "jscs": "^2.2.1",
-    "eslint": "^1.5.1",
+    "eslint": "^1.6.0",
     "npm-check-updates": "^2.2.4",
     "version-bump-prompt": "^1.5.2"
   },
