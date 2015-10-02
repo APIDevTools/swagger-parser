@@ -69,12 +69,6 @@ describe('Invalid APIs (Swagger 2.0 specification validation)', function() {
       error: 'Validation failed. /paths/users/{username}/{foo}/get is missing path parameter(s) for {username},{foo}'
     },
     {
-      name: 'optional path parameters',
-      valid: false,
-      file: 'optional-path-params.yaml',
-      error: 'Validation failed. Path parameters cannot be optional. Set required=true for the \"img_id\" parameter at /paths/users/{username}/profile/image/{img_id}/get'
-    },
-    {
       name: 'array param without items',
       valid: false,
       file: 'array-no-items.yaml',
@@ -91,12 +85,6 @@ describe('Invalid APIs (Swagger 2.0 specification validation)', function() {
       valid: false,
       file: 'array-response-header-no-items.yaml',
       error: 'Validation failed. /paths/users/get/responses/default/headers/Last-Modified is an array, so it must include an \"items\" schema'
-    },
-    {
-      name: '"file" type used for body param',
-      valid: false,
-      file: 'file-body-param.yaml',
-      error: 'Validation failed. /paths/users/{username}/profile/image/post/parameters/image has an invalid type (file)'
     },
     {
       name: '"file" param without "consumes"',

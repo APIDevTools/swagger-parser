@@ -26,7 +26,8 @@ describe('API with $refs to unknown file types', function() {
         expect(api).to.deep.equal(helper.parsed.unknown.api);
         expect(parser.$refs.paths()).to.deep.equal([path.abs('specs/unknown/unknown.yaml')]);
         done();
-      });
+      })
+      .catch(done);
   });
 
   it('should resolve successfully', function(done) {
@@ -61,7 +62,8 @@ describe('API with $refs to unknown file types', function() {
           helper.convertNodeBuffersToPOJOs(helper.dereferenced.unknown.paths['/files/binary'].get.responses['200'].default);
 
         done();
-      });
+      })
+      .catch(done);
   });
 
   it('should validate successfully', function(done) {
@@ -85,7 +87,8 @@ describe('API with $refs to unknown file types', function() {
           helper.convertNodeBuffersToPOJOs(helper.dereferenced.unknown.paths['/files/binary'].get.responses['200'].default);
 
         done();
-      });
+      })
+      .catch(done);
   });
 
   it('should bundle successfully', function(done) {
@@ -109,6 +112,7 @@ describe('API with $refs to unknown file types', function() {
           helper.convertNodeBuffersToPOJOs(helper.dereferenced.unknown.paths['/files/binary'].get.responses['200'].default);
 
         done();
-      });
+      })
+      .catch(done);
   });
 });

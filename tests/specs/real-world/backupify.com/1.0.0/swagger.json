@@ -178,7 +178,8 @@
       ]
     },
     "blob": {
-      "description": "A Binary Large OBject"
+      "description": "A Binary Large OBject",
+      "type": "object"
     },
     "customer": {
       "properties": {
