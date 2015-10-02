@@ -167,11 +167,4 @@ function configureSauceLabs(config) {
   config.browserDisconnectTimeout = 15000;
   config.browserNoActivityTimeout = 15000;
   // config.logLevel = 'debug';
-
-  // The following tests tend to fail on SauceLabs,
-  // probably due to zero-byte files and special characters in the paths.
-  // So, exclude these tests when running on SauceLabs.
-  config.exclude = [
-    'tests/specs/unknown/**'
-  ];
 }
