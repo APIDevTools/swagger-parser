@@ -13,6 +13,11 @@ describe('Invalid APIs (Swagger 2.0 schema validation)', function() {
       file: 'optional-path-param.yaml'
     },
     {
+      name: 'non-required path param',
+      valid: false,
+      file: 'non-required-path-param.yaml'
+    },
+    {
       name: 'invalid schema type',
       valid: false,
       file: 'invalid-schema-type.yaml'
@@ -36,6 +41,12 @@ describe('Invalid APIs (Swagger 2.0 schema validation)', function() {
       name: '"file" type used for non-formData param',
       valid: false,
       file: 'file-header-param.yaml'
+    },
+    {
+      name: '"file" type used for body param',
+      valid: false,
+      file: 'file-body-param.yaml',
+      error: 'Validation failed. /paths/users/{username}/profile/image/post/parameters/image has an invalid type (file)'
     },
     {
       name: '"multi" header param',
@@ -108,6 +119,14 @@ describe('Invalid APIs (Swagger 2.0 schema validation)', function() {
           .catch(function(err) {
             expect(err).to.be.an.instanceOf(SyntaxError);
             expect(err.message).to.match(/^Swagger schema validation failed. \n  \w+/);
+            expect(err.details).to.be.an('array').with.length.above(0);
+
+            // Make sure the ZSchema error details object is valid
+            var details = err.details[0];
+            expect(details.code).to.be.a('string').and.match(/[A-Z_]+/);
+            expect(details.message).to.be.a('string').and.not.empty;
+            expect(details.path).to.be.an('array').with.length.above(0);
+            expect(details.params).to.be.an('array');
           });
       });
     }

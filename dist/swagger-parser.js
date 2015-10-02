@@ -234,8 +234,8 @@ exports.swaggerParamRegExp = /\{([^/}]+)}/g;
 
 var util          = require('./util'),
     ono           = require('ono'),
-    swaggerSchema = require('swagger-schema-official/schema'),
-    ZSchema       = require('z-schema');
+    ZSchema       = require('z-schema'),
+    swaggerSchema = require('swagger-schema-official/schema');
 
 module.exports = validateSchema;
 
@@ -258,7 +258,7 @@ function validateSchema(api) {
   else {
     var err = ZSchema.getLastError();
     var message = 'Swagger schema validation failed. ' + formatZSchemaError(err.details);
-    throw ono.syntax(err, message);
+    throw ono.syntax(err, {details: err.details}, message);
   }
 }
 
@@ -266,19 +266,11 @@ function validateSchema(api) {
  * Performs one-time initialization logic to prepare for Swagger Schema validation.
  */
 function initializeZSchema() {
-  // Patch the Swagger schema to support "file" in addition to the JSON Schema primitives
-  // See https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#response-object
-  swaggerSchema.definitions.schema.properties.type = {
-    anyOf: [
-      {$ref: 'http://json-schema.org/draft-04/schema#/properties/type'},
-      {enum: ['file']}
-    ]
-  };
-
   ZSchema = new ZSchema({
     breakOnFirstError: true,
     noExtraKeywords: true,
-    ignoreUnknownFormats: false
+    ignoreUnknownFormats: false,
+    reportPathAsArray: true
   });
 }
 
@@ -294,7 +286,7 @@ function formatZSchemaError(errors, indent) {
   indent = indent || '  ';
   var message = '';
   errors.forEach(function(error, index) {
-    message += util.format('\n%s%s at %s', indent, error.message, error.path);
+    message += util.format('\n%s%s at %s', indent, error.message, error.path.join('/'));
     if (error.inner) {
       message += formatZSchemaError(error.inner, indent + '  ');
     }
@@ -19857,9 +19849,8 @@ module.exports={
     },
     "host": {
       "type": "string",
-      "format": "uri",
       "pattern": "^[^{}/ :\\\\]+(?::\\d+)?$",
-      "description": "The fully qualified URI to the host of the API."
+      "description": "The host (name or ip) of the API. Example: 'swagger.io'"
     },
     "basePath": {
       "type": "string",
@@ -19931,7 +19922,7 @@ module.exports={
         },
         "description": {
           "type": "string",
-          "description": "A longer description of the API. Should be different from the title.  Github-flavored markdown is allowed."
+          "description": "A longer description of the API. Should be different from the title.  GitHub Flavored Markdown is allowed."
         },
         "termsOfService": {
           "type": "string",
@@ -19964,6 +19955,11 @@ module.exports={
           "description": "The email address of the contact person/organization.",
           "format": "email"
         }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
       }
     },
     "license": {
@@ -19981,6 +19977,11 @@ module.exports={
           "type": "string",
           "description": "The URL pointing to the license.",
           "format": "uri"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
         }
       }
     },
@@ -20033,14 +20034,16 @@ module.exports={
           "type": "string",
           "format": "uri"
         }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
       }
     },
     "examples": {
       "type": "object",
-      "patternProperties": {
-        "^[a-z0-9-]+/[a-z0-9\\-+]+$": {}
-      },
-      "additionalProperties": false
+      "additionalProperties": true
     },
     "mimeType": {
       "type": "string",
@@ -20071,14 +20074,14 @@ module.exports={
         },
         "description": {
           "type": "string",
-          "description": "A longer description of the operation, github-flavored markdown is allowed."
+          "description": "A longer description of the operation, GitHub Flavored Markdown is allowed."
         },
         "externalDocs": {
           "$ref": "#/definitions/externalDocs"
         },
         "operationId": {
           "type": "string",
-          "description": "A friendly name of the operation"
+          "description": "A unique identifier of the operation."
         },
         "produces": {
           "description": "A list of MIME types the API can produce.",
@@ -20187,7 +20190,14 @@ module.exports={
           "type": "string"
         },
         "schema": {
-          "$ref": "#/definitions/schema"
+          "oneOf": [
+            {
+              "$ref": "#/definitions/schema"
+            },
+            {
+              "$ref": "#/definitions/fileSchema"
+            }
+          ]
         },
         "headers": {
           "$ref": "#/definitions/headers"
@@ -20196,7 +20206,12 @@ module.exports={
           "$ref": "#/definitions/examples"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
     },
     "headers": {
       "type": "object",
@@ -20272,6 +20287,11 @@ module.exports={
         "description": {
           "type": "string"
         }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
       }
     },
     "vendorExtension": {
@@ -20294,7 +20314,7 @@ module.exports={
       "properties": {
         "description": {
           "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
+          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
         },
         "name": {
           "type": "string",
@@ -20340,7 +20360,7 @@ module.exports={
         },
         "description": {
           "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
+          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
         },
         "name": {
           "type": "string",
@@ -20428,7 +20448,7 @@ module.exports={
         },
         "description": {
           "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
+          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
         },
         "name": {
           "type": "string",
@@ -20521,7 +20541,7 @@ module.exports={
         },
         "description": {
           "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
+          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
         },
         "name": {
           "type": "string",
@@ -20600,6 +20620,9 @@ module.exports={
           "$ref": "#/definitions/vendorExtension"
         }
       },
+      "required": [
+        "required"
+      ],
       "properties": {
         "required": {
           "type": "boolean",
@@ -20617,7 +20640,7 @@ module.exports={
         },
         "description": {
           "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  Github-flavored markdown is allowed."
+          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
         },
         "name": {
           "type": "string",
@@ -20785,7 +20808,15 @@ module.exports={
           "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
         },
         "additionalProperties": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/additionalProperties"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/schema"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "default": {}
         },
         "type": {
           "$ref": "http://json-schema.org/draft-04/schema#/properties/type"
@@ -20828,6 +20859,47 @@ module.exports={
         },
         "xml": {
           "$ref": "#/definitions/xml"
+        },
+        "externalDocs": {
+          "$ref": "#/definitions/externalDocs"
+        },
+        "example": {}
+      },
+      "additionalProperties": false
+    },
+    "fileSchema": {
+      "type": "object",
+      "description": "A deterministic version of a JSON Schema object.",
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "format": {
+          "type": "string"
+        },
+        "title": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/title"
+        },
+        "description": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/description"
+        },
+        "default": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/default"
+        },
+        "required": {
+          "$ref": "http://json-schema.org/draft-04/schema#/definitions/stringArray"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "file"
+          ]
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false
         },
         "externalDocs": {
           "$ref": "#/definitions/externalDocs"
@@ -20898,6 +20970,11 @@ module.exports={
         "multipleOf": {
           "$ref": "#/definitions/multipleOf"
         }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
       }
     },
     "security": {
@@ -20937,6 +21014,11 @@ module.exports={
         "wrapped": {
           "type": "boolean",
           "default": false
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
         }
       }
     },
@@ -21314,6 +21396,9 @@ module.exports={
     },
     "jsonReference": {
       "type": "object",
+      "required": [
+        "$ref"
+      ],
       "additionalProperties": false,
       "properties": {
         "$ref": {
