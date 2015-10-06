@@ -120,7 +120,7 @@ describe('Invalid APIs (Swagger 2.0 specification validation)', function() {
             expect(api).to.be.an('object').and.ok;
           })
           .catch(function(err) {
-            done(new Error('Validation should have succeeded, but it failed!\n' + err.stack));
+            throw new Error('Validation should have succeeded, but it failed!\n' + err.stack);
           });
       });
     }
@@ -129,7 +129,7 @@ describe('Invalid APIs (Swagger 2.0 specification validation)', function() {
         return SwaggerParser
           .validate(path.rel('specs/validate-spec/invalid/' + test.file))
           .then(function(api) {
-            done(new Error('Validation should have failed, but it succeeded!'));
+            throw new Error('Validation should have failed, but it succeeded!');
           })
           .catch(function(err) {
             expect(err).to.be.an.instanceOf(SyntaxError);

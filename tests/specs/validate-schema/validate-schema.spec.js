@@ -83,6 +83,21 @@ describe('Invalid APIs (Swagger 2.0 schema validation)', function() {
       valid: false,
       file: 'ref-to-invalid-path.yaml'
     },
+    {
+      name: 'Schema with "allOf"',
+      valid: true,
+      file: 'allof.yaml'
+    },
+    {
+      name: 'Schema with "anyOf"',
+      valid: false,
+      file: 'anyof.yaml'
+    },
+    {
+      name: 'Schema with "oneOf"',
+      valid: false,
+      file: 'oneof.yaml'
+    },
   ];
 
   it('should pass validation if "options.validate.schema" is false', function() {
@@ -105,7 +120,7 @@ describe('Invalid APIs (Swagger 2.0 schema validation)', function() {
             expect(api).to.be.an('object').and.ok;
           })
           .catch(function(err) {
-            done(new Error('Validation should have succeeded, but it failed!\n' + err.stack));
+            throw new Error('Validation should have succeeded, but it failed!\n' + err.stack);
           });
       });
     }
@@ -114,7 +129,7 @@ describe('Invalid APIs (Swagger 2.0 schema validation)', function() {
         return SwaggerParser
           .validate(path.rel('specs/validate-schema/invalid/' + test.file))
           .then(function(api) {
-            done(new Error('Validation should have failed, but it succeeded!'));
+            throw new Error('Validation should have failed, but it succeeded!');
           })
           .catch(function(err) {
             expect(err).to.be.an.instanceOf(SyntaxError);

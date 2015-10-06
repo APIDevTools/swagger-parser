@@ -1,0 +1,24 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users:
+    get:
+      responses:
+        default:
+          description:  hello world
+          schema:
+            allOf:
+              - properties:
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+              - properties:
+                  middleName:
+                    type: string
+              - properties:
+                  age:
+                    type: number
