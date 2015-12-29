@@ -27,7 +27,7 @@
   "scripts": {
     "lint": "eslint lib && jscs lib --verbose",
     "build": "npm run lint && npm run browserify && npm run build-www",
-    "browserify": "simplifyify lib/index.js --outfile dist/swagger-parser.js --standalone SwaggerParser --debug --minify",
+    "browserify": "simplifyify lib/index.js --outfile dist/swagger-parser.js --standalone SwaggerParser --bundle --debug --minify",
     "watch": "npm run browserify -- --watch & npm run browserify-www -- --watch",
     "mocha": "mocha --bail --recursive tests/fixtures tests/specs",
     "istanbul": "istanbul cover _mocha --dir coverage/node -- --bail --recursive tests/fixtures tests/specs",
@@ -37,7 +37,7 @@
     "bump": "bump --prompt --grep lib/index.js dist/* --tag --push --all",
     "release": "npm run upgrade && npm run build-www && npm test && npm run bump && npm publish",
     "build-www": "npm run sass && npm run browserify-www",
-    "browserify-www": "simplifyify www/js/index.js --outfile www/js/bundle.js --debug --minify",
+    "browserify-www": "simplifyify www/js/index.js --outfile www/js/bundle.js --bundle --debug --minify",
     "sass": "node-sass --source-map true --output-style compressed www/css/style.scss www/css/style.min.css"
   },
   "repository": {
@@ -45,28 +45,28 @@
     "url": "https://github.com/BigstickCarpet/swagger-parser.git"
   },
   "devDependencies": {
-    "simplifyify": "^1.4.1",
-    "bower": "^1.5.3",
-    "karma": "^0.13.10",
-    "karma-chrome-launcher": "^0.2.0",
-    "karma-cli": "^0.1.1",
-    "karma-coverage": "^0.5.2",
-    "karma-firefox-launcher": "^0.1.6",
+    "bower": "^1.7.1",
+    "chai": "^3.4.1",
+    "coveralls": "^2.11.6",
+    "eslint": "^1.10.3",
+    "istanbul": "^0.4.1",
+    "jscs": "^2.7.0",
+    "karma": "^0.13.16",
+    "karma-chrome-launcher": "^0.2.2",
+    "karma-cli": "^0.1.2",
+    "karma-coverage": "^0.5.3",
+    "karma-firefox-launcher": "^0.1.7",
     "karma-ie-launcher": "^0.2.0",
-    "karma-mocha": "^0.2.0",
-    "karma-mocha-reporter": "^1.1.1",
-    "karma-phantomjs-launcher": "^0.2.1",
+    "karma-mocha": "^0.2.1",
+    "karma-phantomjs-launcher": "^0.2.2",
     "karma-safari-launcher": "^0.1.1",
-    "karma-sauce-launcher": "^0.2.14",
-    "phantomjs": "^1.9.18",
-    "istanbul": "^0.3.21",
-    "coveralls": "^2.11.4",
-    "mocha": "^2.3.3",
-    "chai": "^3.3.0",
-    "sinon": "^1.17.1",
-    "jscs": "^2.2.1",
-    "eslint": "^1.6.0",
-    "npm-check-updates": "^2.2.4",
+    "karma-sauce-launcher": "^0.3.0",
+    "karma-verbose-reporter": "0.0.3",
+    "mocha": "^2.3.4",
+    "npm-check-updates": "^2.5.5",
+    "phantomjs": "^1.9.19",
+    "simplifyify": "^2.0.1",
+    "sinon": "^1.17.2",
     "version-bump-prompt": "^1.5.2"
   },
   "dependencies": {
@@ -74,9 +74,9 @@
     "debug": "^2.2.0",
     "es6-promise": "^3.0.2",
     "json-schema-ref-parser": "^1.4.0",
-    "ono": "^1.0.22",
+    "ono": "^2.0.1",
     "swagger-methods": "^1.0.0",
     "swagger-schema-official": "2.0.0-d79c205",
-    "z-schema": "^3.15.2"
+    "z-schema": "^3.16.1"
   }
 }
