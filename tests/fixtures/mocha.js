@@ -8,14 +8,6 @@
     mocha.asyncOnly();
     mocha.checkLeaks();
     mocha.globals(['$0', '$1', '$2', '$3', '$4', '$5', 'ga', 'gaplugins', 'gaGlobal']);
-
-    // Output each test's name, for debugging purposes
-    beforeEach(function() {
-      console.log('START ' + this.currentTest.parent.title + ' - ' + this.currentTest.title);
-    });
-    afterEach(function() {
-      console.log('DONE  ' + this.currentTest.parent.title + ' - ' + this.currentTest.title);
-    });
   }
 
   beforeEach(function() {

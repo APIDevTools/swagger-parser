@@ -4,7 +4,7 @@
 
 var baseConfig = {
   frameworks: ['mocha'],
-  reporters: ['mocha'],
+  reporters: ['verbose'],
   files: [
     // Third-Party Libraries
     'www/bower_components/chai/chai.js',
@@ -89,7 +89,7 @@ function configureLocalBrowsers(config) {
       isLinux   = !(isMac || isWindows);
 
   if (isMac) {
-    config.browsers = ['PhantomJS', 'Firefox', 'Chrome', 'Safari'];
+    config.browsers = ['PhantomJS', 'Firefox', 'Chrome']; // 'Safari'];   TEMPORARILY removing Safari, due to this bug: https://github.com/karma-runner/karma/issues/1768
   }
   else if (isLinux) {
     config.browsers = ['PhantomJS', 'Firefox'];
