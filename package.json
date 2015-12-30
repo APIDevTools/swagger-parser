@@ -70,6 +70,7 @@
     "phantomjs": "^1.9.19",
     "simplifyify": "^2.0.1",
     "sinon": "^1.17.2",
+    "superagent": "^1.6.1",
     "version-bump-prompt": "^1.5.2"
   },
   "dependencies": {
@@ -78,7 +79,6 @@
     "es6-promise": "^3.0.2",
     "json-schema-ref-parser": "^1.4.0",
     "ono": "^2.0.1",
-    "superagent": "^1.6.1",
     "swagger-methods": "^1.0.0",
     "swagger-schema-official": "2.0.0-bab6bed",
     "z-schema": "^3.16.1"

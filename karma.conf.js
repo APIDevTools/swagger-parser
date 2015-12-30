@@ -9,6 +9,7 @@ var baseConfig = {
     // Third-Party Libraries
     'www/bower_components/chai/chai.js',
     'www/bower_components/sinon-js/sinon.js',
+    'www/bower_components/superagent-dist/superagent.js',
 
     // Swagger Parser
     'dist/swagger-parser.min.js',
@@ -89,7 +90,7 @@ function configureLocalBrowsers(config) {
       isLinux   = !(isMac || isWindows);
 
   if (isMac) {
-    config.browsers = ['PhantomJS', 'Firefox', 'Chrome']; // 'Safari'];   TEMPORARILY removing Safari, due to this bug: https://github.com/karma-runner/karma/issues/1768
+    config.browsers = ['PhantomJS', 'Firefox', 'Chrome', 'Safari'];
   }
   else if (isLinux) {
     config.browsers = ['PhantomJS', 'Firefox'];
