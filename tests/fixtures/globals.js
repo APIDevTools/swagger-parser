@@ -22,6 +22,7 @@
   else {
     // Expose Node globals
     global.SwaggerParser = require('../../');
+    global.superagent = require('superagent');
     global.expect = require('chai').expect;
     global.sinon = require('sinon');
     global.path = require('path');

@@ -25,7 +25,7 @@ if (typeof Object.create === 'function') {
 
 },{}],2:[function(require,module,exports){
 /**!
- * Ono v1.0.22
+ * Ono v2.0.1
  *
  * @link https://github.com/BigstickCarpet/ono
  * @license MIT
@@ -33,7 +33,11 @@ if (typeof Object.create === 'function') {
 'use strict';
 
 var util  = require('util'),
-    slice = Array.prototype.slice;
+    slice = Array.prototype.slice,
+    vendorSpecificErrorProperties = [
+      'name', 'message', 'description', 'number', 'fileName', 'lineNumber', 'columnNumber',
+      'sourceURL', 'line', 'column', 'stack'
+    ];
 
 module.exports = create(Error);
 module.exports.error = create(Error);
@@ -80,38 +84,78 @@ function create(Klass) {
     }
 
     if (err) {
-      // The inner-error's message and stack will be added to the new error
+      // The inner-error's message will be added to the new message
       formattedMessage += (formattedMessage ? ' \n' : '') + err.message;
-      stack = err.stack;
     }
 
-    var error = new Klass(formattedMessage);
-    extendError(error, stack, props);
-    return error;
+    // Create the new error
+    // NOTE: DON'T move this to a separate function! We don't want to pollute the stack trace
+    var newError = new Klass(formattedMessage);
+
+    // Extend the new error with the additional properties
+    extendError(newError, err);   // Copy properties of the original error
+    extendToJSON(newError);       // Replace the original toJSON method
+    extend(newError, props);      // Copy custom properties, possibly including a custom toJSON method
+
+    return newError;
   };
 }
 
 /**
- * Extends the given Error object with the given values
+ * Extends the targetError with the properties of the source error.
  *
- * @param {Error}   error - The error object to extend
- * @param {?string} stack - The stack trace from the original error
- * @param {?object} props - Properties to add to the error object
+ * @param {Error}   targetError - The error object to extend
+ * @param {?Error}  sourceError - The source error object, if any
  */
-function extendError(error, stack, props) {
-  if (stack) {
-    error.stack += ' \n\n' + stack;
-  }
+function extendError(targetError, sourceError) {
+  if (sourceError) {
+    var stack = sourceError.stack;
+    if (stack) {
+      targetError.stack += ' \n\n' + sourceError.stack;
+    }
 
-  if (props && typeof(props) === 'object') {
-    var keys = Object.keys(props);
+    extend(targetError, sourceError, true);
+  }
+}
+
+/**
+ * JavaScript engines differ in how errors are serialized to JSON - especially when it comes
+ * to custom error properties and stack traces.  So we add our own toJSON method that ALWAYS
+ * outputs every property of the error.
+ */
+function extendToJSON(error) {
+  error.toJSON = errorToJSON;
+
+  // Also add an inspect() method, for compatibility with Node.js' `util.inspect()` method
+  error.inspect = errorToJSON;
+}
+
+/**
+ * Extends the target object with the properties of the source object.
+ *
+ * @param {object}  target - The object to extend
+ * @param {?source} source - The object whose properties are copied
+ * @param {boolean} omitVendorSpecificProperties - Skip vendor-specific Error properties
+ */
+function extend(target, source, omitVendorSpecificProperties) {
+  if (source && typeof(source) === 'object') {
+    var keys = Object.keys(source);
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
-      error[key] = props[key];
+
+      // Don't bother trying to copy read-only vendor-specific Error properties
+      if (omitVendorSpecificProperties && vendorSpecificErrorProperties.indexOf(key) >= 0) {
+        continue;
+      }
+
+      try {
+        target[key] = source[key];
+      }
+      catch (e) {
+        // This property is read-only, so it can't be copied
+      }
     }
   }
-
-  error.toJSON = errorToJSON;
 }
 
 /**
@@ -122,18 +166,13 @@ function extendError(error, stack, props) {
  */
 function errorToJSON() {
   // jshint -W040
+  var json = {};
 
-  // All Errors have "name" and "message"
-  var json = {
-    name: this.name,
-    message: this.message
-  };
-
-  // Append any custom properties that were added
+  // Get all the properties of this error
   var keys = Object.keys(this);
 
-  // Also include any vendor-specific Error properties
-  keys = keys.concat(['description', 'number', 'fileName', 'lineNumber', 'columnNumber', 'stack']);
+  // Also include vendor-specific properties from the prototype
+  keys = keys.concat(vendorSpecificErrorProperties);
 
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];

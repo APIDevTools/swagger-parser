@@ -41,14 +41,14 @@
     "/index.html",
     "/package.json"
   ],
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "ace-builds": "https://github.com/ajaxorg/ace-builds.git#~1.2.0",
     "bootstrap-sass": "~3.3.5",
-    "jquery": "~2.1.4"
-  },
-  "devDependencies": {
+    "jquery": "~2.1.4",
     "chai": "*",
     "mocha": "*",
-    "sinon-js": "*"
+    "sinon-js": "*",
+    "superagent-dist": "*"
   }
 }

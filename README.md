@@ -26,7 +26,7 @@ Features
 - Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
 - Configurable caching of external files and URLs
 - **[Tested](http://bigstickcarpet.github.io/swagger-parser/tests/index.html)** in Node, IO.js, and all modern web browsers on Mac, Windows, Linux, iOS, and Android
-- Tested on **[over 100 real-world APIs](https://github.com/APIs-guru/api-models)** from Google, Instagram, etc.
+- Tested on **[over 100 real-world APIs](https://github.com/APIs-guru/api-models)** from Google, Instagram, Cisco, etc.
 - Supports [circular references](docs/README.md#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
 
@@ -126,6 +126,9 @@ To build/test the project locally on your computer:
 `npm run mocha` (test in Node)<br>
 `npm run karma` (test in web browsers)<br>
 `npm test` (test in Node and browsers, and report code coverage)
+
+5. __Start the local web server__<br>
+`npm start` (then browse to [http://localhost:8080/www/index.html](http://bigstickcarpet.com/swagger-parser/www/index.html) or [http://localhost:8080/tests/index.html](http://bigstickcarpet.com/swagger-parser/tests/index.html))
 
 
 License

@@ -29,7 +29,7 @@
     "build": "npm run lint && npm run browserify && npm run build-www",
     "browserify": "simplifyify lib/index.js --outfile dist/swagger-parser.js --standalone SwaggerParser --bundle --debug --minify",
     "watch": "npm run browserify -- --watch & npm run browserify-www -- --watch",
-    "mocha": "mocha --bail --recursive tests/fixtures tests/specs",
+    "mocha": "mocha --bail --async-only --recursive tests/fixtures tests/specs",
     "istanbul": "istanbul cover _mocha --dir coverage/node -- --bail --recursive tests/fixtures tests/specs",
     "karma": "karma start --single-run",
     "test": "npm run browserify -- --test && npm run istanbul && npm run karma",
@@ -38,7 +38,8 @@
     "release": "npm run upgrade && npm run build-www && npm test && npm run bump && npm publish",
     "build-www": "npm run sass && npm run browserify-www",
     "browserify-www": "simplifyify www/js/index.js --outfile www/js/bundle.js --bundle --debug --minify",
-    "sass": "node-sass --source-map true --output-style compressed www/css/style.scss www/css/style.min.css"
+    "sass": "node-sass --source-map true --output-style compressed www/css/style.scss www/css/style.min.css",
+    "start": "http-server -o -c-1"
   },
   "repository": {
     "type": "git",
@@ -49,6 +50,7 @@
     "chai": "^3.4.1",
     "coveralls": "^2.11.6",
     "eslint": "^1.10.3",
+    "http-server": "^0.8.5",
     "istanbul": "^0.4.1",
     "jscs": "^2.7.0",
     "karma": "^0.13.16",
@@ -63,6 +65,7 @@
     "karma-sauce-launcher": "^0.3.0",
     "karma-verbose-reporter": "0.0.3",
     "mocha": "^2.3.4",
+    "node-sass": "^3.4.2",
     "npm-check-updates": "^2.5.5",
     "phantomjs": "^1.9.19",
     "simplifyify": "^2.0.1",
@@ -75,8 +78,9 @@
     "es6-promise": "^3.0.2",
     "json-schema-ref-parser": "^1.4.0",
     "ono": "^2.0.1",
+    "superagent": "^1.6.1",
     "swagger-methods": "^1.0.0",
-    "swagger-schema-official": "2.0.0-d79c205",
+    "swagger-schema-official": "2.0.0-bab6bed",
     "z-schema": "^3.16.1"
   }
 }
