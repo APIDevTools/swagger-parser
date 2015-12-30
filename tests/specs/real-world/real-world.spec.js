@@ -5,7 +5,7 @@ describe('Real-world APIs', function() {
   var apiIndex = 0;
 
   before(function(done) {
-    // Download a list of over 100 real-world Swagger APIs from apis.guru
+    // Download a list of over 200 real-world Swagger APIs from apis.guru
     superagent.get('http://apis-guru.github.io/api-models/api/v1/list.json')
       .end(function(err, res) {
         if (err || !res.ok) {
