@@ -162,6 +162,15 @@ function configureSauceLabs(config) {
     }
   };
 
+  // Exclude these tests when running on SauceLabs.
+  // For some reason, these tests seem to make SauceLabs unstable,
+  // and it frequently loses connection to the CI server, which causes the build to fail
+  config.exclude = (config.exclude || []).concat([
+    'tests/specs/invalid/*',
+    'tests/specs/unknown/*',
+    'tests/specs/real-world/*'
+  ]);
+
   config.reporters.push('saucelabs');
   config.browsers = Object.keys(config.customLaunchers);
   config.captureTimeout = 120000;

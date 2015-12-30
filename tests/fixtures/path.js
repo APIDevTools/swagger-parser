@@ -18,7 +18,7 @@
   path.rel = function(file) {
     if (userAgent.isNode) {
       // Return the relative path from the project root
-      return file;
+      return _path.normalize(file);
     }
 
     // Encode special characters in paths when running in a browser
