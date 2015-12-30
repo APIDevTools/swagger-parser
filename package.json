@@ -76,7 +76,7 @@
     "json-schema-ref-parser": "^1.4.0",
     "ono": "^1.0.22",
     "swagger-methods": "^1.0.0",
-    "swagger-schema-official": "2.0.0-d79c205",
+    "swagger-schema-official": "2.0.0-bab6bed",
     "z-schema": "^3.15.2"
   }
 }
