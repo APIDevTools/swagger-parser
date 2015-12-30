@@ -16,7 +16,6 @@
     "commit": "166fca00a606908d61cf01d87aeaf1428222bfec"
   },
   "_source": "git://github.com/stephanebachelier/superagent-dist.git",
-  "_target": "~1.6.2",
-  "_originalSource": "superagent-dist",
-  "_direct": true
+  "_target": "*",
+  "_originalSource": "superagent-dist"
 }

@@ -1270,10 +1270,10 @@ var supportedModes = {
     ADA:         ["ada|adb"],
     Apache_Conf: ["^htaccess|^htgroups|^htpasswd|^conf|htaccess|htgroups|htpasswd"],
     AsciiDoc:    ["asciidoc|adoc"],
-    Assembly_x86:["asm"],
+    Assembly_x86:["asm|a"],
     AutoHotKey:  ["ahk"],
     BatchFile:   ["bat|cmd"],
-    C_Cpp:       ["cpp|c|cc|cxx|h|hh|hpp"],
+    C_Cpp:       ["cpp|c|cc|cxx|h|hh|hpp|ino"],
     C9Search:    ["c9search_results"],
     Cirru:       ["cirru|cr"],
     Clojure:     ["clj|cljs"],
@@ -1290,7 +1290,7 @@ var supportedModes = {
     Dot:         ["dot"],
     Dummy:       ["dummy"],
     DummySyntax: ["dummy"],
-    Eiffel:      ["e"],
+    Eiffel:      ["e|ge"],
     EJS:         ["ejs"],
     Elixir:      ["ex|exs"],
     Elm:         ["elm"],
@@ -1309,12 +1309,13 @@ var supportedModes = {
     haXe:        ["hx"],
     HTML:        ["html|htm|xhtml"],
     HTML_Ruby:   ["erb|rhtml|html.erb"],
+    HTML_Elixir: ["eex|html.eex"],
     INI:         ["ini|conf|cfg|prefs"],
     Io:          ["io"],
     Jack:        ["jack"],
     Jade:        ["jade"],
     Java:        ["java"],
-    JavaScript:  ["js|jsm"],
+    JavaScript:  ["js|jsm|jsx"],
     JSON:        ["json"],
     JSONiq:      ["jq"],
     JSP:         ["jsp"],
@@ -1360,7 +1361,7 @@ var supportedModes = {
     SASS:        ["sass"],
     SCAD:        ["scad"],
     Scala:       ["scala"],
-    Scheme:      ["scm|rkt"],
+    Scheme:      ["scm|sm|rkt|oak|scheme"],
     SCSS:        ["scss"],
     SH:          ["sh|bash|^.bashrc"],
     SJS:         ["sjs"],
@@ -1372,12 +1373,13 @@ var supportedModes = {
     SQLServer:   ["sqlserver"],
     Stylus:      ["styl|stylus"],
     SVG:         ["svg"],
+    Swift:       ["swift"],
     Tcl:         ["tcl"],
     Tex:         ["tex"],
     Text:        ["txt"],
     Textile:     ["textile"],
     Toml:        ["toml"],
-    Twig:        ["twig"],
+    Twig:        ["twig|swig"],
     Typescript:  ["ts|typescript|str"],
     Vala:        ["vala"],
     VBScript:    ["vbs|vb"],
@@ -1397,6 +1399,7 @@ var nameOverrides = {
     C_Cpp: "C and C++",
     coffee: "CoffeeScript",
     HTML_Ruby: "HTML (Ruby)",
+    HTML_Elixir: "HTML (Elixir)",
     FTL: "FreeMarker"
 };
 var modesByName = {};
@@ -3071,7 +3074,8 @@ oop.inherits(IncrementalSearchKeyboardHandler, HashHandler);
         var iSearch = this.$iSearch;
         HashHandler.call(this, exports.iSearchCommands, editor.commands.platform);
         this.$commandExecHandler = editor.commands.addEventListener('exec', function(e) {
-            if (!e.command.isIncrementalSearchCommand) return undefined;
+            if (!e.command.isIncrementalSearchCommand)
+                return iSearch.deactivate();
             e.stopPropagation();
             e.preventDefault();
             var scrollTop = editor.session.getScrollTop();
@@ -3098,7 +3102,7 @@ oop.inherits(IncrementalSearchKeyboardHandler, HashHandler);
             var extendCmd = this.commands.extendSearchTerm;
             if (extendCmd) { return {command: extendCmd, args: key}; }
         }
-        return {command: "null", passEvent: hashId == 0 || hashId == 4};
+        return false;
     };
 
 }).call(IncrementalSearchKeyboardHandler.prototype);
@@ -5076,7 +5080,7 @@ dom.importCssString(".normal-mode .ace_cursor{\
         if (command === false) {
           return undefined;
         } else if (command === true) {
-          return function() {};
+          return function() { return true; };
         } else {
           return function() {
             if ((command.operator || command.isEdit) && cm.getOption('readOnly'))
@@ -5861,12 +5865,14 @@ dom.importCssString(".normal-mode .ace_cursor{\
             (line > last && cur.line == last)) {
           return;
         }
-        var fold = cm.ace.session.getFoldAt(line, endCh);
+        var fold = cm.ace.session.getFoldLine(line);
         if (fold) {
-          if (motionArgs.forward)
-            line = fold.end.row + 1;
-          else
-            line = fold.start.row - 1;
+          if (motionArgs.forward) {
+            if (line > fold.start.row)
+              line = fold.end.row + 1;
+          } else {
+            line = fold.start.row;
+          }
         }
         if (motionArgs.toFirstChar){
           endCh=findFirstNonWhiteSpaceCharacter(cm.getLine(line));
@@ -7400,8 +7406,17 @@ dom.importCssString(".normal-mode .ace_cursor{\
         if (any) { return isEmpty(i) != isEmpty(i + dir); }
         return !isEmpty(i) && isEmpty(i + dir);
       }
+      function skipFold(i) {
+          dir = dir > 0 ? 1 : -1;
+          var foldLine = cm.ace.session.getFoldLine(i);
+          if (foldLine) {
+              if (i + dir > foldLine.start.row && i + dir < foldLine.end.row)
+                  dir = (dir > 0 ? foldLine.end.row : foldLine.start.row) - i;
+          }
+      }
       if (dir) {
         while (min <= i && i <= max && repeat > 0) {
+          skipFold(i);
           if (isBoundary(i, dir)) { repeat--; }
           i += dir;
         }
@@ -9161,13 +9176,11 @@ var StatusBar = function(editor, parentNode) {
 
     var statusUpdate = lang.delayedCall(function(){
         this.updateStatus(editor)
-    }.bind(this));
-    editor.on("changeStatus", function() {
-        statusUpdate.schedule(100);
-    });
-    editor.on("changeSelection", function() {
-        statusUpdate.schedule(100);
-    });
+    }.bind(this)).schedule.bind(null, 100);
+    
+    editor.on("changeStatus", statusUpdate);
+    editor.on("changeSelection", statusUpdate);
+    editor.on("keyboardActivity", statusUpdate);
 };
 
 (function(){
@@ -9180,13 +9193,17 @@ var StatusBar = function(editor, parentNode) {
         add(editor.keyBinding.getStatusText(editor));
         if (editor.commands.recording)
             add("REC");
-
-        var c = editor.selection.lead;
-        add(c.row + ":" + c.column, " ");
-        if (!editor.selection.isEmpty()) {
+        
+        var sel = editor.selection;
+        var c = sel.lead;
+        
+        if (!sel.isEmpty()) {
             var r = editor.getSelectionRange();
-            add("(" + (r.end.row - r.start.row) + ":"  +(r.end.column - r.start.column) + ")");
+            add("(" + (r.end.row - r.start.row) + ":"  +(r.end.column - r.start.column) + ")", " ");
         }
+        add(c.row + ":" + c.column, " ");        
+        if (sel.rangeCount)
+            add("[" + sel.rangeCount + "]", " ");
         status.pop();
         this.element.textContent = status.join("");
     };
@@ -9700,7 +9717,10 @@ var SnippetManager = function() {
                     s.guard = "\\b";
                 s.trigger = lang.escapeRegExp(s.tabTrigger);
             }
-
+            
+            if (!s.trigger && !s.guard && !s.endTrigger && !s.endGuard)
+                return;
+            
             s.startRe = guardedRegexp(s.trigger, s.guard, true);
             s.triggerRe = new RegExp(s.trigger, "", true);
 
@@ -10194,7 +10214,7 @@ AceEmmetEditor.prototype = {
         return syntax;
     },
     getProfileName: function() {
-        switch(this.getSyntax()) {
+        switch (this.getSyntax()) {
           case "css": return "css";
           case "xml":
           case "xsl":
@@ -10204,8 +10224,10 @@ AceEmmetEditor.prototype = {
             if (!profile)
                 profile = this.ace.session.getLines(0,2).join("").search(/<!DOCTYPE[^>]+XHTML/i) != -1 ? "xhtml": "html";
             return profile;
+          default:
+            var mode = this.ace.session.$mode;
+            return mode.emmetConfig && mode.emmetConfig.profile || "xhtml";
         }
-        return "xhtml";
     },
     prompt: function(title) {
         return prompt(title);
@@ -10293,11 +10315,9 @@ var keymap = {
 
 var editorProxy = new AceEmmetEditor();
 exports.commands = new HashHandler();
-exports.runEmmetCommand = function(editor) {
+exports.runEmmetCommand = function runEmmetCommand(editor) {
     try {
         editorProxy.setupContext(editor);
-        if (editorProxy.getSyntax() == "php")
-            return false;
         var actions = emmet.require("actions");
     
         if (this.action == "expand_abbreviation_with_tab") {
@@ -10318,6 +10338,10 @@ exports.runEmmetCommand = function(editor) {
         
         var result = actions.run(this.action, editorProxy);
     } catch(e) {
+        if (!emmet) {
+            load(runEmmetCommand.bind(this, editor));
+            return true;
+        }
         editor._signal("changeStatus", typeof e == "string" ? e : e.message);
         console.log(e);
         result = false;
@@ -10343,25 +10367,47 @@ exports.updateCommands = function(editor, enabled) {
     }
 };
 
-exports.isSupportedMode = function(modeId) {
-    return modeId && /css|less|scss|sass|stylus|html|php|twig|ejs|handlebars/.test(modeId);
+exports.isSupportedMode = function(mode) {
+    if (!mode) return false;
+    if (mode.emmetConfig) return true;
+    var id = mode.$id || mode;
+    return /css|less|scss|sass|stylus|html|php|twig|ejs|handlebars/.test(id);
 };
+
+exports.isAvailable = function(editor, command) {
+    if (/(evaluate_math_expression|expand_abbreviation)$/.test(command))
+        return true;
+    var mode = editor.session.$mode;
+    var isSupported = exports.isSupportedMode(mode);
+    if (isSupported && mode.$modes) {
+        try {
+            editorProxy.setupContext(editor);
+            if (/js|php/.test(editorProxy.getSyntax()))
+                isSupported = false;
+        } catch(e) {}
+    }
+    return isSupported;
+}
 
 var onChangeMode = function(e, target) {
     var editor = target;
     if (!editor)
         return;
-    var enabled = exports.isSupportedMode(editor.session.$modeId);
+    var enabled = exports.isSupportedMode(editor.session.$mode);
     if (e.enableEmmet === false)
         enabled = false;
-    if (enabled) {
-        if (typeof emmetPath == "string") {
-            require("ace/config").loadModule(emmetPath, function() {
-                emmetPath = null;
-            });
-        }
-    }
+    if (enabled)
+        load();
     exports.updateCommands(editor, enabled);
+};
+
+var load = function(cb) {
+    if (typeof emmetPath == "string") {
+        require("ace/config").loadModule(emmetPath, function() {
+            emmetPath = null;
+            cb && cb();
+        });
+    }
 };
 
 exports.AceEmmetEditor = AceEmmetEditor;
