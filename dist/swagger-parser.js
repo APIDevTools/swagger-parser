@@ -1,6 +1,6 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.SwaggerParser = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /** !
- * Swagger Parser v3.3.0
+ * Swagger Parser v3.4.0
  *
  * @link https://github.com/BigstickCarpet/swagger-parser
  * @license MIT
@@ -176,7 +176,7 @@ SwaggerParser.prototype.validate = function(api, options, callback) {
  * @typedef {{swagger: string, info: {}, paths: {}}} SwaggerObject
  */
 
-},{"./options":2,"./promise":3,"./util":4,"./validate-schema":5,"./validate-spec":6,"call-me-maybe":13,"json-schema-ref-parser":59,"json-schema-ref-parser/lib/dereference":58,"ono":76}],2:[function(require,module,exports){
+},{"./options":2,"./promise":3,"./util":4,"./validate-schema":5,"./validate-spec":6,"call-me-maybe":13,"json-schema-ref-parser":59,"json-schema-ref-parser/lib/dereference":58,"ono":75}],2:[function(require,module,exports){
 'use strict';
 
 var $RefParserOptions = require('json-schema-ref-parser/lib/options'),
@@ -202,7 +202,7 @@ function ParserOptions(options) {
 
 util.inherits(ParserOptions, $RefParserOptions);
 
-},{"json-schema-ref-parser/lib/options":60,"util":105}],3:[function(require,module,exports){
+},{"json-schema-ref-parser/lib/options":60,"util":104}],3:[function(require,module,exports){
 'use strict';
 
 /** @type {Promise} **/
@@ -229,7 +229,7 @@ exports.debug = debug('swagger:parser');
  */
 exports.swaggerParamRegExp = /\{([^/}]+)}/g;
 
-},{"debug":15,"util":105}],5:[function(require,module,exports){
+},{"debug":15,"util":104}],5:[function(require,module,exports){
 'use strict';
 
 var util          = require('./util'),
@@ -294,7 +294,7 @@ function formatZSchemaError(errors, indent) {
   return message;
 }
 
-},{"./util":4,"ono":76,"swagger-schema-official/schema":100,"z-schema":117}],6:[function(require,module,exports){
+},{"./util":4,"ono":75,"swagger-schema-official/schema":99,"z-schema":116}],6:[function(require,module,exports){
 'use strict';
 
 var util           = require('./util'),
@@ -579,7 +579,7 @@ function validateSchema(schema, schemaId, validTypes) {
   }
 }
 
-},{"./util":4,"ono":76,"swagger-methods":99}],7:[function(require,module,exports){
+},{"./util":4,"ono":75,"swagger-methods":98}],7:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -2355,7 +2355,7 @@ module.exports = function maybe (cb, promise) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":78}],14:[function(require,module,exports){
+},{"_process":77}],14:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -2836,7 +2836,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":75}],17:[function(require,module,exports){
+},{"ms":74}],17:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -3808,7 +3808,7 @@ function coerce(val) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":78}],18:[function(require,module,exports){
+},{"_process":77}],18:[function(require,module,exports){
 /*
   Copyright (c) jQuery Foundation, Inc. and Contributors, All Rights Reserved.
 
@@ -9867,7 +9867,7 @@ https.request = function (params, cb) {
     return http.request.call(this, params, cb);
 }
 
-},{"http":94}],21:[function(require,module,exports){
+},{"http":93}],21:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -14179,7 +14179,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 
 },{"../type":40}],57:[function(require,module,exports){
 /** !
- * JSON Schema $Ref Parser v1.4.0
+ * JSON Schema $Ref Parser v1.4.1
  *
  * @link https://github.com/BigstickCarpet/json-schema-ref-parser
  * @license MIT
@@ -14227,7 +14227,7 @@ function remap($refs, options) {
   // Now APPLY all of the re-mappings
   for (var i = 0; i < remapped.length; i++) {
     var mapping = remapped[i];
-    mapping.old.$ref = mapping.new.$ref;
+    mapping.old$Ref.$ref = mapping.new$Ref.$ref;
   }
 }
 
@@ -14256,8 +14256,8 @@ function crawl(obj, path, $refs, remapped, options) {
         var new$RefPath = pointer.$ref.pathFromRoot + util.path.getHash(pointer.path).substr(1);
         util.debug('    new value: %s', new$RefPath);
         remapped.push({
-          old: value,
-          new: {$ref: new$RefPath}
+          old$Ref: value,
+          new$Ref: {$ref: new$RefPath}  // Note: DON'T name this property `new` (https://github.com/BigstickCarpet/json-schema-ref-parser/issues/3)
         });
       }
       else {
@@ -14285,7 +14285,7 @@ function dereference(basePath, $refs, options) {
   });
 }
 
-},{"./pointer":62,"./ref":65,"./util":68,"url":101}],58:[function(require,module,exports){
+},{"./pointer":62,"./ref":65,"./util":68,"url":100}],58:[function(require,module,exports){
 'use strict';
 
 var $Ref    = require('./ref'),
@@ -14419,7 +14419,7 @@ function foundCircularReference(keyPath, $refs, options) {
   return true;
 }
 
-},{"./pointer":62,"./ref":65,"./util":68,"ono":70,"url":101}],59:[function(require,module,exports){
+},{"./pointer":62,"./ref":65,"./util":68,"ono":75,"url":100}],59:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
@@ -14683,7 +14683,7 @@ function normalizeArgs(args) {
 
 }).call(this,require("buffer").Buffer)
 
-},{"./bundle":57,"./dereference":58,"./options":60,"./promise":63,"./read":64,"./ref":65,"./refs":66,"./resolve":67,"./util":68,"./yaml":69,"buffer":10,"call-me-maybe":13,"ono":70,"url":101}],60:[function(require,module,exports){
+},{"./bundle":57,"./dereference":58,"./options":60,"./promise":63,"./read":64,"./ref":65,"./refs":66,"./resolve":67,"./util":68,"./yaml":69,"buffer":10,"call-me-maybe":13,"ono":75,"url":100}],60:[function(require,module,exports){
 /* eslint lines-around-comment: [2, {beforeBlockComment: false}] */
 'use strict';
 
@@ -14884,7 +14884,7 @@ function isEmpty(value) {
 
 }).call(this,require("buffer").Buffer)
 
-},{"./util":68,"./yaml":69,"buffer":10,"ono":70}],62:[function(require,module,exports){
+},{"./util":68,"./yaml":69,"buffer":10,"ono":75}],62:[function(require,module,exports){
 'use strict';
 
 module.exports = Pointer;
@@ -15135,7 +15135,7 @@ function setValue(pointer, token, value) {
   return value;
 }
 
-},{"./ref":65,"./util":68,"ono":70,"url":101}],63:[function(require,module,exports){
+},{"./ref":65,"./util":68,"ono":75,"url":100}],63:[function(require,module,exports){
 arguments[4][3][0].apply(exports,arguments)
 },{"dup":3,"es6-promise":17}],64:[function(require,module,exports){
 (function (process,Buffer){
@@ -15378,7 +15378,7 @@ function download(protocol, u, options) {
 
 }).call(this,require('_process'),require("buffer").Buffer)
 
-},{"./parse":61,"./promise":63,"./ref":65,"./util":68,"_process":78,"buffer":10,"fs":9,"http":94,"https":20,"ono":70,"url":101}],65:[function(require,module,exports){
+},{"./parse":61,"./promise":63,"./ref":65,"./util":68,"_process":77,"buffer":10,"fs":9,"http":93,"https":20,"ono":75,"url":100}],65:[function(require,module,exports){
 'use strict';
 
 module.exports = $Ref;
@@ -15770,7 +15770,7 @@ function getPaths($refs, types) {
   });
 }
 
-},{"./options":60,"./util":68,"ono":70}],67:[function(require,module,exports){
+},{"./options":60,"./util":68,"ono":75}],67:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./promise'),
@@ -15897,7 +15897,7 @@ function crawl$Ref(path, pathFromRoot, $refs, options) {
     });
 }
 
-},{"./pointer":62,"./promise":63,"./read":64,"./ref":65,"./util":68,"ono":70,"url":101}],68:[function(require,module,exports){
+},{"./pointer":62,"./promise":63,"./read":64,"./ref":65,"./util":68,"ono":75,"url":100}],68:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -16032,11 +16032,12 @@ exports.path.extname = function extname(path) {
 
 }).call(this,require('_process'))
 
-},{"_process":78,"debug":15}],69:[function(require,module,exports){
+},{"_process":77,"debug":15}],69:[function(require,module,exports){
 /* eslint lines-around-comment: [2, {beforeBlockComment: false}] */
 'use strict';
 
-var yaml = require('js-yaml');
+var yaml = require('js-yaml'),
+    ono  = require('ono');
 
 /**
  * Simple YAML parsing functions, similar to {@link JSON.parse} and {@link JSON.stringify}
@@ -16050,7 +16051,18 @@ module.exports = {
    * @returns {*}
    */
   parse: function yamlParse(text, reviver) {
-    return yaml.safeLoad(text);
+    try {
+      return yaml.safeLoad(text);
+    }
+    catch (e) {
+      if (e instanceof Error) {
+        throw e;
+      }
+      else {
+        // https://github.com/nodeca/js-yaml/issues/153
+        throw ono(e, e.message);
+      }
+    }
   },
 
   /**
@@ -16062,135 +16074,23 @@ module.exports = {
    * @returns {string}
    */
   stringify: function yamlStringify(value, replacer, space) {
-    var indent = (typeof space === 'string' ? space.length : space) || 2;
-    return yaml.safeDump(value, {indent: indent});
+    try {
+      var indent = (typeof space === 'string' ? space.length : space) || 2;
+      return yaml.safeDump(value, {indent: indent});
+    }
+    catch (e) {
+      if (e instanceof Error) {
+        throw e;
+      }
+      else {
+        // https://github.com/nodeca/js-yaml/issues/153
+        throw ono(e, e.message);
+      }
+    }
   }
 };
 
-},{"js-yaml":27}],70:[function(require,module,exports){
-/**!
- * Ono v1.0.22
- *
- * @link https://github.com/BigstickCarpet/ono
- * @license MIT
- */
-'use strict';
-
-var util  = require('util'),
-    slice = Array.prototype.slice;
-
-module.exports = create(Error);
-module.exports.error = create(Error);
-module.exports.eval = create(EvalError);
-module.exports.range = create(RangeError);
-module.exports.reference = create(ReferenceError);
-module.exports.syntax = create(SyntaxError);
-module.exports.type = create(TypeError);
-module.exports.uri = create(URIError);
-module.exports.formatter = util.format;
-
-/**
- * Creates a new {@link ono} function that creates the given Error class.
- *
- * @param {Class} Klass - The Error subclass to create
- * @returns {ono}
- */
-function create(Klass) {
-  /**
-   * @param {Error}   [err]     - The original error, if any
-   * @param {object}  [props]   - An object whose properties will be added to the error object
-   * @param {string}  [message] - The error message. May contain {@link util#format} placeholders
-   * @param {...*}    [params]  - Parameters that map to the `message` placeholders
-   * @returns {Error}
-   */
-  return function ono(err, props, message, params) {
-    var formattedMessage, stack;
-    var formatter = module.exports.formatter;
-
-    if (typeof(err) === 'string') {
-      formattedMessage = formatter.apply(null, arguments);
-      err = props = undefined;
-    }
-    else if (typeof(props) === 'string') {
-      formattedMessage = formatter.apply(null, slice.call(arguments, 1));
-    }
-    else {
-      formattedMessage = formatter.apply(null, slice.call(arguments, 2));
-    }
-
-    if (!(err instanceof Error)) {
-      props = err;
-      err = undefined;
-    }
-
-    if (err) {
-      // The inner-error's message and stack will be added to the new error
-      formattedMessage += (formattedMessage ? ' \n' : '') + err.message;
-      stack = err.stack;
-    }
-
-    var error = new Klass(formattedMessage);
-    extendError(error, stack, props);
-    return error;
-  };
-}
-
-/**
- * Extends the given Error object with the given values
- *
- * @param {Error}   error - The error object to extend
- * @param {?string} stack - The stack trace from the original error
- * @param {?object} props - Properties to add to the error object
- */
-function extendError(error, stack, props) {
-  if (stack) {
-    error.stack += ' \n\n' + stack;
-  }
-
-  if (props && typeof(props) === 'object') {
-    var keys = Object.keys(props);
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      error[key] = props[key];
-    }
-  }
-
-  error.toJSON = errorToJSON;
-}
-
-/**
- * Custom JSON serializer for Error objects.
- * Returns all built-in error properties, as well as extended properties.
- *
- * @returns {object}
- */
-function errorToJSON() {
-  // jshint -W040
-
-  // All Errors have "name" and "message"
-  var json = {
-    name: this.name,
-    message: this.message
-  };
-
-  // Append any custom properties that were added
-  var keys = Object.keys(this);
-
-  // Also include any vendor-specific Error properties
-  keys = keys.concat(['description', 'number', 'fileName', 'lineNumber', 'columnNumber', 'stack']);
-
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
-    var value = this[key];
-    if (value !== undefined) {
-      json[key] = value;
-    }
-  }
-
-  return json;
-}
-
-},{"util":105}],71:[function(require,module,exports){
+},{"js-yaml":27,"ono":75}],70:[function(require,module,exports){
 /**
  * lodash 3.7.2 (Custom Build) <https://lodash.com/>
  * Build: `lodash modern modularize exports="npm" -o ./`
@@ -16266,7 +16166,7 @@ function isObject(value) {
 
 module.exports = baseGet;
 
-},{}],72:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 /**
  * lodash 3.8.1 (Custom Build) <https://lodash.com/>
  * Build: `lodash modern modularize exports="npm" -o ./`
@@ -16315,7 +16215,7 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"lodash.isarray":74}],73:[function(require,module,exports){
+},{"lodash.isarray":73}],72:[function(require,module,exports){
 /**
  * lodash 3.7.0 (Custom Build) <https://lodash.com/>
  * Build: `lodash modern modularize exports="npm" -o ./`
@@ -16358,7 +16258,7 @@ function get(object, path, defaultValue) {
 
 module.exports = get;
 
-},{"lodash._baseget":71,"lodash._topath":72}],74:[function(require,module,exports){
+},{"lodash._baseget":70,"lodash._topath":71}],73:[function(require,module,exports){
 /**
  * lodash 3.0.4 (Custom Build) <https://lodash.com/>
  * Build: `lodash modern modularize exports="npm" -o ./`
@@ -16540,7 +16440,7 @@ function isNative(value) {
 
 module.exports = isArray;
 
-},{}],75:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -16667,7 +16567,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],76:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 /**!
  * Ono v2.0.1
  *
@@ -16829,7 +16729,7 @@ function errorToJSON() {
   return json;
 }
 
-},{"util":105}],77:[function(require,module,exports){
+},{"util":104}],76:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -16854,7 +16754,7 @@ function nextTick(fn) {
 
 }).call(this,require('_process'))
 
-},{"_process":78}],78:[function(require,module,exports){
+},{"_process":77}],77:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -16947,7 +16847,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],79:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.4.0 by @mathias */
 ;(function(root) {
@@ -17485,7 +17385,7 @@ process.umask = function() { return 0; };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],80:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -17571,7 +17471,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],81:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -17658,16 +17558,16 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],82:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":80,"./encode":81}],83:[function(require,module,exports){
+},{"./decode":79,"./encode":80}],82:[function(require,module,exports){
 module.exports = require("./lib/_stream_duplex.js")
 
-},{"./lib/_stream_duplex.js":84}],84:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":83}],83:[function(require,module,exports){
 // a duplex stream is just a stream that is both readable and writable.
 // Since JS doesn't have multiple prototypal inheritance, this class
 // prototypally inherits from Readable, and then parasitically from
@@ -17751,7 +17651,7 @@ function forEach (xs, f) {
   }
 }
 
-},{"./_stream_readable":86,"./_stream_writable":88,"core-util-is":14,"inherits":24,"process-nextick-args":77}],85:[function(require,module,exports){
+},{"./_stream_readable":85,"./_stream_writable":87,"core-util-is":14,"inherits":24,"process-nextick-args":76}],84:[function(require,module,exports){
 // a passthrough stream.
 // basically just the most minimal sort of Transform stream.
 // Every written chunk gets output as-is.
@@ -17780,7 +17680,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./_stream_transform":87,"core-util-is":14,"inherits":24}],86:[function(require,module,exports){
+},{"./_stream_transform":86,"core-util-is":14,"inherits":24}],85:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -18760,7 +18660,7 @@ function indexOf (xs, x) {
 
 }).call(this,require('_process'))
 
-},{"./_stream_duplex":84,"_process":78,"buffer":10,"core-util-is":14,"events":19,"inherits":24,"isarray":26,"process-nextick-args":77,"string_decoder/":98,"util":8}],87:[function(require,module,exports){
+},{"./_stream_duplex":83,"_process":77,"buffer":10,"core-util-is":14,"events":19,"inherits":24,"isarray":26,"process-nextick-args":76,"string_decoder/":97,"util":8}],86:[function(require,module,exports){
 // a transform stream is a readable/writable stream where you do
 // something with the data.  Sometimes it's called a "filter",
 // but that's not a great name for it, since that implies a thing where
@@ -18959,7 +18859,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":84,"core-util-is":14,"inherits":24}],88:[function(require,module,exports){
+},{"./_stream_duplex":83,"core-util-is":14,"inherits":24}],87:[function(require,module,exports){
 // A bit simpler than readable streams.
 // Implement an async ._write(chunk, encoding, cb), and it'll handle all
 // the drain event emission and buffering.
@@ -19490,10 +19390,10 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./_stream_duplex":84,"buffer":10,"core-util-is":14,"events":19,"inherits":24,"process-nextick-args":77,"util-deprecate":103}],89:[function(require,module,exports){
+},{"./_stream_duplex":83,"buffer":10,"core-util-is":14,"events":19,"inherits":24,"process-nextick-args":76,"util-deprecate":102}],88:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
-},{"./lib/_stream_passthrough.js":85}],90:[function(require,module,exports){
+},{"./lib/_stream_passthrough.js":84}],89:[function(require,module,exports){
 var Stream = (function (){
   try {
     return require('st' + 'ream'); // hack to fix a circular dependency issue when used with browserify
@@ -19507,13 +19407,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":84,"./lib/_stream_passthrough.js":85,"./lib/_stream_readable.js":86,"./lib/_stream_transform.js":87,"./lib/_stream_writable.js":88}],91:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":83,"./lib/_stream_passthrough.js":84,"./lib/_stream_readable.js":85,"./lib/_stream_transform.js":86,"./lib/_stream_writable.js":87}],90:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":87}],92:[function(require,module,exports){
+},{"./lib/_stream_transform.js":86}],91:[function(require,module,exports){
 module.exports = require("./lib/_stream_writable.js")
 
-},{"./lib/_stream_writable.js":88}],93:[function(require,module,exports){
+},{"./lib/_stream_writable.js":87}],92:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -19642,7 +19542,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":19,"inherits":24,"readable-stream/duplex.js":83,"readable-stream/passthrough.js":89,"readable-stream/readable.js":90,"readable-stream/transform.js":91,"readable-stream/writable.js":92}],94:[function(require,module,exports){
+},{"events":19,"inherits":24,"readable-stream/duplex.js":82,"readable-stream/passthrough.js":88,"readable-stream/readable.js":89,"readable-stream/transform.js":90,"readable-stream/writable.js":91}],93:[function(require,module,exports){
 var ClientRequest = require('./lib/request')
 var extend = require('xtend')
 var statusCodes = require('builtin-status-codes')
@@ -19717,7 +19617,7 @@ http.METHODS = [
 	'UNLOCK',
 	'UNSUBSCRIBE'
 ]
-},{"./lib/request":96,"builtin-status-codes":12,"url":101,"xtend":107}],95:[function(require,module,exports){
+},{"./lib/request":95,"builtin-status-codes":12,"url":100,"xtend":106}],94:[function(require,module,exports){
 (function (global){
 exports.fetch = isFunction(global.fetch) && isFunction(global.ReadableByteStream)
 
@@ -19762,7 +19662,7 @@ xhr = null // Help gc
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],96:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 (function (process,global,Buffer){
 // var Base64 = require('Base64')
 var capability = require('./capability')
@@ -20042,7 +19942,7 @@ var unsafeHeaders = [
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 
-},{"./capability":95,"./response":97,"_process":78,"buffer":10,"inherits":24,"stream":93}],97:[function(require,module,exports){
+},{"./capability":94,"./response":96,"_process":77,"buffer":10,"inherits":24,"stream":92}],96:[function(require,module,exports){
 (function (process,global,Buffer){
 var capability = require('./capability')
 var inherits = require('inherits')
@@ -20219,7 +20119,7 @@ IncomingMessage.prototype._onXHRProgress = function () {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 
-},{"./capability":95,"_process":78,"buffer":10,"inherits":24,"stream":93}],98:[function(require,module,exports){
+},{"./capability":94,"_process":77,"buffer":10,"inherits":24,"stream":92}],97:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20442,10 +20342,10 @@ function base64DetectIncompleteChar(buffer) {
   this.charLength = this.charReceived ? 3 : 0;
 }
 
-},{"buffer":10}],99:[function(require,module,exports){
+},{"buffer":10}],98:[function(require,module,exports){
 module.exports = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch'];
 
-},{}],100:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 module.exports={
   "title": "A JSON Schema for Swagger 2.0 API.",
   "id": "http://swagger.io/v2/schema.json#",
@@ -22037,7 +21937,7 @@ module.exports={
     }
   }
 }
-},{}],101:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22771,7 +22671,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":102,"punycode":79,"querystring":82}],102:[function(require,module,exports){
+},{"./util":101,"punycode":78,"querystring":81}],101:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -22789,7 +22689,7 @@ module.exports = {
   }
 };
 
-},{}],103:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 (function (global){
 
 /**
@@ -22861,14 +22761,14 @@ function config (name) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],104:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],105:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -23459,7 +23359,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":104,"_process":78,"inherits":24}],106:[function(require,module,exports){
+},{"./support/isBuffer":103,"_process":77,"inherits":24}],105:[function(require,module,exports){
 /*!
  * Copyright (c) 2015 Chris O'Hara <cohara87@gmail.com>
  *
@@ -24351,7 +24251,7 @@ function hasOwnProperty(obj, prop) {
 
 });
 
-},{}],107:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 module.exports = extend
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -24372,7 +24272,7 @@ function extend() {
     return target
 }
 
-},{}],108:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -24433,7 +24333,7 @@ module.exports = {
 
 };
 
-},{}],109:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 /*jshint maxlen: false*/
 
 var validator = require("validator");
@@ -24564,7 +24464,7 @@ var FormatValidators = {
 
 module.exports = FormatValidators;
 
-},{"validator":106}],110:[function(require,module,exports){
+},{"validator":105}],109:[function(require,module,exports){
 "use strict";
 
 var FormatValidators  = require("./FormatValidators"),
@@ -25103,7 +25003,7 @@ exports.validate = function (report, schema, json) {
 
 };
 
-},{"./FormatValidators":109,"./Report":112,"./Utils":116}],111:[function(require,module,exports){
+},{"./FormatValidators":108,"./Report":111,"./Utils":115}],110:[function(require,module,exports){
 // Number.isFinite polyfill
 // http://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.isfinite
 if (typeof Number.isFinite !== "function") {
@@ -25121,7 +25021,7 @@ if (typeof Number.isFinite !== "function") {
     };
 }
 
-},{}],112:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -25324,7 +25224,7 @@ module.exports = Report;
 
 }).call(this,require('_process'))
 
-},{"./Errors":108,"./Utils":116,"_process":78,"lodash.get":73}],113:[function(require,module,exports){
+},{"./Errors":107,"./Utils":115,"_process":77,"lodash.get":72}],112:[function(require,module,exports){
 "use strict";
 
 var Report              = require("./Report");
@@ -25479,7 +25379,7 @@ exports.getSchemaByUri = function (report, uri, root) {
 
 exports.getRemotePath = getRemotePath;
 
-},{"./Report":112,"./SchemaCompilation":114,"./SchemaValidation":115,"./Utils":116}],114:[function(require,module,exports){
+},{"./Report":111,"./SchemaCompilation":113,"./SchemaValidation":114,"./Utils":115}],113:[function(require,module,exports){
 "use strict";
 
 var Report      = require("./Report");
@@ -25780,7 +25680,7 @@ exports.compileSchema = function (report, schema) {
 
 };
 
-},{"./Report":112,"./SchemaCache":113,"./Utils":116}],115:[function(require,module,exports){
+},{"./Report":111,"./SchemaCache":112,"./Utils":115}],114:[function(require,module,exports){
 "use strict";
 
 var FormatValidators = require("./FormatValidators"),
@@ -26389,7 +26289,7 @@ exports.validateSchema = function (report, schema) {
     return isValid;
 };
 
-},{"./FormatValidators":109,"./JsonValidation":110,"./Report":112,"./Utils":116}],116:[function(require,module,exports){
+},{"./FormatValidators":108,"./JsonValidation":109,"./Report":111,"./Utils":115}],115:[function(require,module,exports){
 "use strict";
 
 exports.isAbsoluteUri = function (uri) {
@@ -26608,7 +26508,7 @@ exports.ucs2decode = function (string) {
 };
 /*jshint +W016*/
 
-},{}],117:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -26963,7 +26863,7 @@ module.exports = ZSchema;
 
 }).call(this,require('_process'))
 
-},{"./FormatValidators":109,"./JsonValidation":110,"./Polyfills":111,"./Report":112,"./SchemaCache":113,"./SchemaCompilation":114,"./SchemaValidation":115,"./Utils":116,"./schemas/hyper-schema.json":118,"./schemas/schema.json":119,"_process":78,"lodash.get":73}],118:[function(require,module,exports){
+},{"./FormatValidators":108,"./JsonValidation":109,"./Polyfills":110,"./Report":111,"./SchemaCache":112,"./SchemaCompilation":113,"./SchemaValidation":114,"./Utils":115,"./schemas/hyper-schema.json":117,"./schemas/schema.json":118,"_process":77,"lodash.get":72}],117:[function(require,module,exports){
 module.exports={
     "$schema": "http://json-schema.org/draft-04/hyper-schema#",
     "id": "http://json-schema.org/draft-04/hyper-schema#",
@@ -27123,7 +27023,7 @@ module.exports={
 }
 
 
-},{}],119:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 module.exports={
     "id": "http://json-schema.org/draft-04/schema#",
     "$schema": "http://json-schema.org/draft-04/schema#",
