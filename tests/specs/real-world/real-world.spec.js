@@ -1,4 +1,4 @@
-describe.only('Real-world APIs', function() {
+describe('Real-world APIs', function() {
   'use strict';
 
   var realWorldAPIs = [];
