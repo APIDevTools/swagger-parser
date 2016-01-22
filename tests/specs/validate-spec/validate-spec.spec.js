@@ -97,6 +97,12 @@ describe('Invalid APIs (Swagger 2.0 specification validation)', function() {
       valid: false,
       file: 'file-invalid-consumes.yaml',
       error: 'Validation failed. /paths/users/{username}/profile/image/post has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded'
+    },
+    {
+      name: 'array response body without items',
+      valid: false,
+      file: 'array-response-body-no-items.yaml',
+      error: 'Validation failed. /paths/users/get/responses/200/schema is an array, so it must include an \"items\" schema'
     }
   ];
 
