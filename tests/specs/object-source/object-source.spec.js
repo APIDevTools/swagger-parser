@@ -1,6 +1,6 @@
-'use strict';
-
 describe('Object sources (instead of file paths)', function() {
+  'use strict';
+
   it('should dereference an object that references external files', function() {
     var parser = new SwaggerParser();
     return parser

@@ -1,6 +1,6 @@
-'use strict';
-
 describe('Invalid APIs (Swagger 2.0 specification validation)', function() {
+  'use strict';
+
   var tests = [
     {
       name: 'invalid response code',

@@ -1,6 +1,6 @@
-'use strict';
-
 describe('API with $refs to unknown file types', function() {
+  'use strict';
+
   var windowOnError, testDone;
 
   beforeEach(function() {
@@ -9,7 +9,7 @@ describe('API with $refs to unknown file types', function() {
     global.onerror = function() {
       testDone();
       return true;
-    }
+    };
   });
 
   afterEach(function() {

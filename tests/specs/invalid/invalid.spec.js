@@ -1,6 +1,6 @@
-'use strict';
-
 describe('Invalid APIs (can\'t be parsed)', function() {
+  'use strict';
+
   it('not a Swagger API', function() {
     return SwaggerParser
       .parse(path.rel('specs/invalid/not-swagger.yaml'))

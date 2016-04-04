@@ -1,6 +1,6 @@
-'use strict';
-
 describe('API with circular (recursive) $refs', function() {
+  'use strict';
+
   it('should parse successfully', function() {
     var parser = new SwaggerParser();
     return parser

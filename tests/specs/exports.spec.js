@@ -1,6 +1,6 @@
-'use strict';
-
 describe('Exports', function() {
+  'use strict';
+
   it('should export the SwaggerParser class', function(done) {
     expect(SwaggerParser).to.be.a('function');
     done();

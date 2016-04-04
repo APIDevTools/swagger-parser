@@ -1,6 +1,6 @@
-'use strict';
-
 describe('Callback & Promise syntax', function() {
+  'use strict';
+
   ['parse', 'resolve', 'dereference', 'bundle', 'validate'].forEach(function(method) {
     describe(method + ' method', function() {
       it('should call the callback function upon success', testCallbackSuccess(method));
@@ -47,7 +47,7 @@ describe('Callback & Promise syntax', function() {
           done();
         }
         catch (e) {
-          done(e)
+          done(e);
         }
       });
     };
@@ -72,7 +72,7 @@ describe('Callback & Promise syntax', function() {
             expect(result).to.deep.equal(expected);
           }
         });
-    }
+    };
   }
 
   function testPromiseError(method) {
@@ -82,7 +82,7 @@ describe('Callback & Promise syntax', function() {
         .catch(function(err) {
           expect(err).to.be.an.instanceOf(SyntaxError);
         });
-    }
+    };
   }
 
 });

@@ -208,7 +208,7 @@
       "beforeColon":                    false,            // require a space before the colon in a key/value pair
       "afterColon":                     true              // require a space after the colon in a key/value pair
     }],
-    "lines-around-comment":            [2, {              // enforce empty lines around comments
+    "lines-around-comment":            [0, {              // enforce empty lines around comments
       "beforeBlockComment":             true,             // require a blank line before block comments
       "afterBlockComment":              false,            // require a blank line after block comments
       "beforeLineComment":              false,            // require a blank line before line comments

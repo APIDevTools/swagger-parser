@@ -1,6 +1,6 @@
-'use strict';
-
 describe('API with deeply-nested circular $refs', function() {
+  'use strict';
+
   it('should parse successfully', function() {
     var parser = new SwaggerParser();
     return parser
