@@ -1,6 +1,7 @@
 **/*~
 **/._*
 **/.DS_Store
+*.sublime-*
 npm-debug.log
 /.idea
 /coverage

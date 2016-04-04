@@ -16,6 +16,8 @@ matrix:
       env: KARMA=false
     - node_js: 4
       env: KARMA=false
+    - node_js: 5
+      env: KARMA=false
 
     # Local Browsers
     - node_js: 0.12
