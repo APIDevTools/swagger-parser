@@ -20,4 +20,4 @@
     this.currentTest.slow(500);
   });
 
-})();
+}());

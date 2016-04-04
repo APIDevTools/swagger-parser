@@ -26,22 +26,22 @@
   /**
    * Throws an error if called.
    */
-   helper.shouldNotGetCalled = function shouldNotGetCalled(done) {
-     var err = new Error('This function should not have gotten called.');
-     if (typeof done === 'function') {
-       return function(err2) {
-         if (err2 instanceof Error) {
-           done(err2);
-         }
-         else {
-           done(err);
-         }
-       }
-     }
-     else {
-       throw err;
-     }
-   };
+  helper.shouldNotGetCalled = function shouldNotGetCalled(done) {
+    var err = new Error('This function should not have gotten called.');
+    if (typeof done === 'function') {
+      return function(err2) {
+        if (err2 instanceof Error) {
+          done(err2);
+        }
+        else {
+          done(err);
+        }
+      };
+    }
+    else {
+      throw err;
+    }
+  };
 
   /**
    * Tests the {@link SwaggerParser.resolve} method,
@@ -92,7 +92,7 @@
           done();
         })
         .catch(helper.shouldNotGetCalled(done));
-    }
+    };
   };
 
   /**
@@ -116,7 +116,7 @@
    */
   helper.cloneDeep = function cloneDeep(value) {
     var clone = value;
-    if (value && typeof(value) === 'object') {
+    if (value && typeof value === 'object') {
       clone = value instanceof Array ? [] : {};
       var keys = Object.keys(value);
       for (var i = 0; i < keys.length; i++) {
@@ -126,4 +126,4 @@
     return clone;
   };
 
-})();
+}());
