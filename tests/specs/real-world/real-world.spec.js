@@ -19,6 +19,7 @@ describe('Real-world APIs', function() {
         delete apis['motaword.com'];            // invalid (see https://github.com/BigstickCarpet/swagger-parser/issues/26)
         delete apis['uploady.com'];             // invalid (see https://github.com/BigstickCarpet/swagger-parser/issues/26)
         delete apis['watchful.li'];             // invalid (see https://github.com/BigstickCarpet/swagger-parser/issues/26)
+        delete apis['versioneye.com'];          // invalid (same reason as above)
 
         // Transform the list into an array of {name: string, url: string}
         realWorldAPIs = [];
@@ -32,6 +33,14 @@ describe('Real-world APIs', function() {
 
         done();
       });
+  });
+
+  beforeEach(function() {
+    // Some of these APIs are vary large, so we need to increase the timouts
+    // to allow time for them to be downloaded, dereferenced, and validated.
+    // so we need to increase the timeouts to allow for that
+    this.currentTest.timeout(30000);
+    this.currentTest.slow(5000);
   });
 
   // Mocha requires us to create our tests synchronously. But the list of APIs is downloaded asynchronously.
