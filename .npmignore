@@ -1,6 +1,7 @@
 **/*~
 **/._*
 **/.DS_Store
+.vscode
 *.sublime-*
 npm-debug.log
 /.idea
