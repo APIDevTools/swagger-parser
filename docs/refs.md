@@ -12,8 +12,6 @@ This object is a map of JSON References and their resolved values.  It also has 
 ##### Methods
 - [`paths()`](#pathstypes)
 - [`values()`](#valuestypes)
-- [`isExpired()`](#isexpiredref)
-- [`expire()`](#expireref)
 - [`exists()`](#existsref)
 - [`get()`](#getref-options)
 - [`set()`](#setref-value-options)
@@ -39,7 +37,7 @@ parser.dereference("my-api.yaml")
 ### `paths([types])`
 
 - **types** (_optional_) - `string` (one or more)<br>
-Optionally only return certain types of paths ("fs", "http", "https")
+Optionally only return certain types of paths ("file", "http", etc.)
 
 - **Return Value:** `array` of `string`<br>
 Returns the paths/URLs of all the files in your API (including the main api file).
@@ -62,7 +60,7 @@ SwaggerParser.resolve("my-api.yaml")
 ### `values([types])`
 
 - **types** (_optional_) - `string` (one or more)<br>
-Optionally only return values from certain locations ("fs", "http", "https")
+Optionally only return values from certain locations ("file", "http", etc.)
 
 - **Return Value:** `object`<br>
 Returns a map of paths/URLs and their correspond values.
@@ -76,47 +74,6 @@ SwaggerParser.resolve("my-api.yaml")
 
     values["schemas/person.yaml"];
     values["http://company.com/my-api.yaml"];
-  });
-```
-
-
-### `isExpired($ref)`
-
-- **$ref** (_required_) - `string`<br>
-The JSON Reference path, optionally with a JSON Pointer in the hash
-
-- **Return Value:** `boolean`<br>
-Returns `true` if the given JSON reference has expired (or if it doesn't exist); otherwise, returns `false`
-
-```javascript
-SwaggerParser.resolve("my-api.yaml")
-  .then(function($refs) {
-    // Hasn't expired yet
-    $refs.isExpired("schemas/person.yaml");   // => false
-
-    // Check again after 10 minutes
-    setTimeout(function() {
-      $refs.isExpired("schemas/person.yaml"); // => true
-    }, 600000);
-  });
-```
-
-
-### `expire($ref)`
-
-- **$ref** (_required_) - `string`<br>
-The JSON Reference path, optionally with a JSON Pointer in the hash
-
-Immediately expires the given JSON reference, so the next time you call a method such as [`parse`](swagger-parser.md#parseapi-options-callback) or [`dereference`](swagger-parser.md#dereferenceapi-options-callback), the file will be refreshed rather than reusing the cached value.
-
-```javascript
-SwaggerParser.resolve("my-api.yaml")
-  .then(function($refs) {
-    $refs.isExpired("schemas/person.yaml");   // => false
-
-    $refs.expire("schemas/person.yaml");
-
-    $refs.isExpired("schemas/person.yaml");   // => true
   });
 ```
 

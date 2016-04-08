@@ -24,7 +24,6 @@ Features
 - [Resolves](docs/swagger-parser.md#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
 - Can [bundle](docs/swagger-parser.md#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
 - Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
-- Configurable caching of external files and URLs
 - **[Tested](http://bigstickcarpet.github.io/swagger-parser/tests/index.html)** in Node, IO.js, and all modern web browsers on Mac, Windows, Linux, iOS, and Android
 - Tested on **[over 200 real-world APIs](https://github.com/APIs-guru/api-models)** from Google, Instagram, Cisco, etc.
 - Supports [circular references](docs/README.md#circular-refs), nested references, back-references, and cross-references
