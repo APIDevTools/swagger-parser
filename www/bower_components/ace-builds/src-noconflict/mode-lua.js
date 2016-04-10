@@ -40,14 +40,17 @@ var LuaHighlightRules = function() {
 
     var stdLibaries = ("string|package|os|io|math|debug|table|coroutine");
 
+    var futureReserved = "";
+
     var deprecatedIn5152 = ("setn|foreach|foreachi|gcinfo|log10|maxn");
 
     var keywordMapper = this.createKeywordMapper({
         "keyword": keywords,
         "support.function": functions,
-        "keyword.deprecated": deprecatedIn5152,
+        "invalid.deprecated": deprecatedIn5152,
         "constant.library": stdLibaries,
         "constant.language": builtinConstants,
+        "invalid.illegal": futureReserved,
         "variable.language": "self"
     }, "identifier");
 

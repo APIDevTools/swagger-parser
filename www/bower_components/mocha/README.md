@@ -6,7 +6,6 @@
 
 ## Links
 
-  - [Changelog](https://github.com/mochajs/mocha/blob/master/CHANGELOG.md)
   - [Google Group](http://groups.google.com/group/mochajs)
   - [Wiki](https://github.com/mochajs/mocha/wiki)
   - Mocha [Extensions and reporters](https://github.com/mochajs/mocha/wiki)

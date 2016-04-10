@@ -1,21 +1,21 @@
 {
   "name": "superagent-dist",
-  "version": "1.7.2",
+  "version": "1.6.2",
   "main": "superagent.js",
   "dependencies": {},
   "ignore": [
     "build.js",
-    "update.js",
+    "release.js",
     "node_modules"
   ],
   "homepage": "https://github.com/stephanebachelier/superagent-dist",
-  "_release": "1.7.2",
+  "_release": "1.6.2",
   "_resolution": {
     "type": "version",
-    "tag": "1.7.2",
-    "commit": "4e0a8ac29cfb32a17e3e3001d54d6f70e74edacd"
+    "tag": "1.6.2",
+    "commit": "166fca00a606908d61cf01d87aeaf1428222bfec"
   },
-  "_source": "https://github.com/stephanebachelier/superagent-dist.git",
+  "_source": "git://github.com/stephanebachelier/superagent-dist.git",
   "_target": "*",
   "_originalSource": "superagent-dist"
 }
