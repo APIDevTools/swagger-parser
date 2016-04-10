@@ -88,6 +88,8 @@ Swagger APIs can contain [circular $ref pointers](https://gist.github.com/Bigsti
 
 You can disable circular references by setting the [`dereference.circular`](options.md) option to `false`. Then, if a circular reference is found, a `ReferenceError` will be thrown.
 
+Or you can choose to just ignore circular references altogether by setting the [`dereference.circular`](options.md) option to `"ignore"`.  In this case, all non-circular references will still be dereferenced as normal, but any circular references will remain in the schema.
+
 Another option is to use the [`bundle`](swagger-parser.md#bundleapi-options-callback) method rather than the [`dereference`](swagger-parser.md#dereferenceapi-options-callback) method.  Bundling does _not_ result in circular references, because it simply converts _external_ `$ref` pointers to _internal_ ones.
 
 ```javascript
