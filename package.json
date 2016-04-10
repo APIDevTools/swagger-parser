@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "version": "3.4.0",
+  "version": "4.0.0-beta.0",
   "description": "Swagger 2.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
@@ -35,7 +35,7 @@
     "test": "npm run browserify -- --test && npm run istanbul && npm run karma",
     "upgrade": "ncu --upgradeAll && npm update && bower update",
     "bump": "bump --prompt --grep lib/index.js dist/* --tag --push --all",
-    "release": "npm run upgrade && npm run build-www && npm test && npm run bump && npm publish",
+    "release": "npm run upgrade && npm run build-www && npm test && npm run bump && npm publish --tag beta",
     "build-www": "npm run sass && npm run browserify-www",
     "browserify-www": "simplifyify www/js/index.js --outfile www/js/bundle.js --bundle --debug --minify",
     "sass": "node-sass --source-map true --output-style compressed www/css/style.scss www/css/style.min.css",
@@ -46,12 +46,12 @@
     "url": "https://github.com/BigstickCarpet/swagger-parser.git"
   },
   "devDependencies": {
-    "bower": "^1.7.7",
+    "bower": "^1.7.9",
     "chai": "^3.5.0",
     "coveralls": "^2.11.9",
-    "eslint": "^2.6.0",
+    "eslint": "^2.7.0",
     "http-server": "^0.9.0",
-    "istanbul": "^0.4.2",
+    "istanbul": "^0.4.3",
     "jscs": "^2.11.0",
     "karma": "^0.13.22",
     "karma-chrome-launcher": "^0.2.3",
@@ -79,6 +79,6 @@
     "ono": "^2.2.1",
     "swagger-methods": "^1.0.0",
     "swagger-schema-official": "2.0.0-bab6bed",
-    "z-schema": "^3.16.1"
+    "z-schema": "^3.17.0"
   }
 }
