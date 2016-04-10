@@ -1,4 +1,15 @@
-Swagger Parser
+------------------------------------------------
+
+##### NOTICE: Swagger Parser v4.0 _beta_ is now available
+You can install the beta using `npm install swagger-parser@beta`.
+
+- [v4.0 code branch](https://github.com/BigstickCarpet/swagger-parser/tree/releases/4.0.0)
+- [v4.0 documentation](https://github.com/BigstickCarpet/swagger-parser/tree/releases/4.0.0/docs)
+- [v4.0 changelog](https://github.com/BigstickCarpet/swagger-parser/blob/releases/4.0.0/CHANGELOG.md)
+
+------------------------------------------------
+
+Swagger Parser v3.4
 ============================
 #### Swagger 2.0 parser and validator for Node and browsers
 
