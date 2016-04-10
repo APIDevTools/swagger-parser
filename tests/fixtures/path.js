@@ -71,4 +71,4 @@
     return encodeURIComponent(file).split('%2F').join('/');
   }
 
-})();
+}());

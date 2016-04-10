@@ -168,6 +168,7 @@ function configureSauceLabs(config) {
   config.exclude = (config.exclude || []).concat([
     'tests/specs/invalid/*',
     'tests/specs/unknown/*',
+    'tests/specs/validate-schema/*',
     'tests/specs/real-world/*'
   ]);
 

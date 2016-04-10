@@ -9,7 +9,7 @@
 (function() {
   'use strict';
 
-  if (typeof(window) === 'object') {
+  if (typeof window === 'object') {
     // Expose Browser globals
     window.global = window;
     window.expect = chai.expect;
@@ -34,4 +34,4 @@
     };
   }
 
-})();
+}());

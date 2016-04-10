@@ -32,7 +32,7 @@
     "browser":                          true,             // browser global variables.
     "node":                             true,             // Node.js global variables and Node.js-specific rules.
     "amd":                              false,            // defines require() and define() as global variables as per the amd spec.
-    "mocha":                            true,             // adds all of the Mocha testing global variables.
+    "mocha":                            false,            // adds all of the Mocha testing global variables.
     "jasmine":                          false,            // adds all of the Jasmine testing global variables for version 0.3 and 0.0.
     "phantomjs":                        false,            // phantomjs global variables.
     "jquery":                           false,            // jquery global variables.
@@ -75,7 +75,7 @@
     "no-sparse-arrays":                 2,                // disallow sparse arrays
     "no-unreachable":                   2,                // disallow unreachable statements after a return, throw, continue, or break statement
     "use-isnan":                        2,                // disallow comparisons with the value NaN
-    "valid-jsdoc":                     [2, {              // Ensure JSDoc comments are valid (off by default)
+    "valid-jsdoc":                     [1, {              // Ensure JSDoc comments are valid (off by default)
       "requireReturn":                  false,            // require an @returns tag for all functions, even if they don't return anything
       "requireParamDescription":        false,            // require a description for all @param tags
       "requireReturnDescription":       false             // require a description for the @returns tag
@@ -157,7 +157,7 @@
     "no-catch-shadow":                  2,                // disallow the catch clause parameter name being the same as a variable in the outer scope (off by default in the node environment)
     "no-delete-var":                    2,                // disallow deletion of variables
     "no-label-var":                     2,                // disallow labels that share a name with a variable
-    "no-shadow":                        2,                // disallow declaration of variables already declared in the outer scope
+    "no-shadow":                        1,                // disallow declaration of variables already declared in the outer scope
     "no-shadow-restricted-names":       2,                // disallow shadowing of names such as arguments
     "no-undef":                         2,                // disallow use of undeclared variables unless mentioned in a /*global */ block
     "no-undef-init":                    2,                // disallow use of undefined when initializing variables
@@ -236,14 +236,14 @@
     "no-trailing-spaces":               2,                // disallow trailing whitespace at the end of lines
     "no-underscore-dangle":             0,                // disallow dangling underscores in identifiers
     "no-unneeded-ternary":              2,                // disallow the use of ternary operators when a simpler alternative exists
-    "object-curly-spacing":            [2, "never"],      // require or disallow space inside curly brackets
+    "object-curly-spacing":            [0, "never"],      // require or disallow space inside curly brackets
     "one-var":                          0,                // allow just one var statement per function (off by default)
     "operator-assignment":             [2, "always"],     // require assignment operator shorthand where possible or prohibit it entirely (off by default)
     "operator-linebreak":              [2, "after"],      // require linebreaks to be placed before or after operators
-    "padded-blocks":                   [2, "never"],      // enforce padding within blocks (off by default)
+    "padded-blocks":                   [0, "never"],      // enforce padding within blocks (off by default)
     "quote-props":                     [2, "as-needed"],  // require quotes around object literal property names (off by default)
     "quotes":                          [2, "single"],     // specify whether double or single quotes should be used
-    "require-jsdoc":                    2,                // require JSDoc comment
+    "require-jsdoc":                    1,                // require JSDoc comment
     "semi":                            [2, "always"],     // require or disallow use of semicolons instead of ASI
     "semi-spacing":                    [2, {              // enforce spacing before and after semicolons
       "before":                         false,            // require a space before semicolons
