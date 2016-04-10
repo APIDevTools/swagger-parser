@@ -1,6 +1,15 @@
-Swagger Parser
+Swagger Parser v4.0 _beta_
 ============================
 #### Swagger 2.0 parser and validator for Node and browsers
+
+-----------------------------------
+
+### !!! BETA VERSION !!!
+
+Swagger Parser v4.0 is currently in beta, and its API may change slightly before the final release.  See [the changelog](CHANGELOG.md) for details.
+
+-----------------------------------
+
 
 [![Build Status](https://api.travis-ci.org/BigstickCarpet/swagger-parser.svg)](https://travis-ci.org/BigstickCarpet/swagger-parser)
 [![Dependencies](https://david-dm.org/BigstickCarpet/swagger-parser.svg)](https://david-dm.org/BigstickCarpet/swagger-parser)
