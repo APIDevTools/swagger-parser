@@ -25,7 +25,7 @@ if (typeof Object.create === 'function') {
 
 },{}],2:[function(require,module,exports){
 /**!
- * Ono v2.0.1
+ * Ono v2.2.1
  *
  * @link https://github.com/BigstickCarpet/ono
  * @license MIT
@@ -64,7 +64,7 @@ function create(Klass) {
    * @returns {Error}
    */
   return function ono(err, props, message, params) {
-    var formattedMessage, stack;
+    var formattedMessage;
     var formatter = module.exports.formatter;
 
     if (typeof(err) === 'string') {
@@ -109,11 +109,7 @@ function create(Klass) {
  */
 function extendError(targetError, sourceError) {
   if (sourceError) {
-    var stack = sourceError.stack;
-    if (stack) {
-      targetError.stack += ' \n\n' + sourceError.stack;
-    }
-
+    extendStack(targetError, sourceError);
     extend(targetError, sourceError, true);
   }
 }
@@ -127,7 +123,7 @@ function extendToJSON(error) {
   error.toJSON = errorToJSON;
 
   // Also add an inspect() method, for compatibility with Node.js' `util.inspect()` method
-  error.inspect = errorToJSON;
+  error.inspect = errorToString;
 }
 
 /**
@@ -177,12 +173,85 @@ function errorToJSON() {
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];
     var value = this[key];
-    if (value !== undefined) {
+    var type = typeof value;
+    if (type !== 'undefined' && type !== 'function') {
       json[key] = value;
     }
   }
 
   return json;
+}
+
+/**
+ * Serializes Error objects as human-readable JSON strings for debugging/logging purposes.
+ *
+ * @returns {string}
+ */
+function errorToString() {
+  // jshint -W040
+  return JSON.stringify(this, null, 2).replace(/\\n/g, '\n');
+}
+
+/**
+ * Extend the error stack to include its cause
+ */
+function extendStack(targetError, sourceError) {
+  if (hasLazyStack(sourceError)) {
+    extendStackProperty(targetError, sourceError);
+  }
+  else {
+    var stack = sourceError.stack;
+    if (stack) {
+      targetError.stack += ' \n\n' + sourceError.stack;
+    }
+  }
+}
+
+/**
+ * Does a one-time determination of whether this JavaScript engine
+ * supports lazy `Error.stack` properties.
+ */
+var supportsLazyStack = (function() {
+  return !!(
+    // ES5 property descriptors must be supported
+    Object.getOwnPropertyDescriptor && Object.defineProperty &&
+
+    // Chrome on Android doesn't support lazy stacks :(
+    (typeof navigator === 'undefined' || !/Android/.test(navigator.userAgent))
+  );
+})();
+
+/**
+ * Does this error have a lazy stack property?
+ *
+ * @returns {boolean}
+ */
+function hasLazyStack(err) {
+  if (!supportsLazyStack) {
+    return false;
+  }
+  var descriptor = Object.getOwnPropertyDescriptor(err, 'stack');
+  if (!descriptor) {
+    return false;
+  }
+  return typeof descriptor.get === 'function';
+}
+
+/**
+ * Extend the error stack to include its cause, lazily
+ */
+function extendStackProperty(targetError, sourceError) {
+  var sourceStack = Object.getOwnPropertyDescriptor(sourceError, 'stack');
+  if (sourceStack) {
+    var targetStack = Object.getOwnPropertyDescriptor(targetError, 'stack');
+    Object.defineProperty(targetError, 'stack', {
+      get: function() {
+        return targetStack.get.apply(targetError) + ' \n\n' + sourceError.stack;
+      },
+      enumerable: false,
+      configurable: true
+    });
+  }
 }
 
 },{"util":8}],3:[function(require,module,exports){
