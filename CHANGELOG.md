@@ -3,6 +3,19 @@ All notable changes will be documented in this file.
 Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [v4.0.0-beta.2](https://github.com/BigstickCarpet/swagger-parser/tree/v4.0.0-beta.2) (2016-04-25)
+
+#### Just one small fix
+Fixed [issue #13](https://github.com/BigstickCarpet/json-schema-ref-parser/issues/13).  You can now pass a URL _and_ an object to any method.
+
+```javascript
+SwaggerParser.validate("http://example.com/my-schema.json", mySchemaObject, {})
+```
+
+> **NOTE:** As shown in the example above, you _must_ also pass an options object (even an empty object will work), otherwise, the method signature looks like you're just passing a URL and options.
+
+[Full Changelog](https://github.com/BigstickCarpet/swagger-parser/compare/v4.4.0-beta.1...v4.0.0-beta.2)
+
 ## [v4.0.0-beta.1](https://github.com/BigstickCarpet/swagger-parser/tree/v4.0.0-beta.1) (2016-04-10)
 
 #### Plug-ins !!!
