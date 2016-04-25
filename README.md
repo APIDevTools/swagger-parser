@@ -33,7 +33,7 @@ Features
 - [Resolves](docs/swagger-parser.md#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
 - Can [bundle](docs/swagger-parser.md#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
 - Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
-- **[Tested](http://bigstickcarpet.github.io/swagger-parser/tests/index.html)** in Node, IO.js, and all modern web browsers on Mac, Windows, Linux, iOS, and Android
+- **[Tested](http://bigstickcarpet.github.io/swagger-parser/test/index.html)** in Node, IO.js, and all modern web browsers on Mac, Windows, Linux, iOS, and Android
 - Tested on **[over 200 real-world APIs](https://github.com/APIs-guru/api-models)** from Google, Instagram, Cisco, etc.
 - Supports [circular references](docs/README.md#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
@@ -136,7 +136,7 @@ To build/test the project locally on your computer:
 `npm test` (test in Node and browsers, and report code coverage)
 
 5. __Start the local web server__<br>
-`npm start` (then browse to [http://localhost:8080/www/index.html](http://bigstickcarpet.com/swagger-parser/www/index.html) or [http://localhost:8080/tests/index.html](http://bigstickcarpet.com/swagger-parser/tests/index.html))
+`npm start` (then browse to [http://localhost:8080/www/index.html](http://bigstickcarpet.com/swagger-parser/www/index.html) or [http://localhost:8080/test/index.html](http://bigstickcarpet.com/swagger-parser/test/index.html))
 
 
 License

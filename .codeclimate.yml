@@ -3,7 +3,7 @@ languages:
 exclude_paths:
 - "dist/*"
 - "node_modules/*"
-- "tests/*"
+- "test/*"
 - "coverage/*"
 - "karma.conf.js"
 - "www/*"

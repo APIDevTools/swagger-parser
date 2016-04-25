@@ -25,7 +25,7 @@
     file = encodeFile(file);
 
     if (window.location.href.indexOf(_testsDir) === 0) {
-      // Return the relative path from "/tests/index.html"
+      // Return the relative path from "/test/index.html"
       return file;
     }
 

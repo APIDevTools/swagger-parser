@@ -9,7 +9,7 @@ npm-debug.log
 /dist/*.test.js
 /docs
 karma.conf.js
-/tests
+/test
 /www
 bower.json
 index.html
