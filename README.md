@@ -19,6 +19,7 @@ Swagger Parser v3.4
 [![Code Climate Score](https://codeclimate.com/github/BigstickCarpet/swagger-parser/badges/gpa.svg)](https://codeclimate.com/github/BigstickCarpet/swagger-parser)
 [![Codacy Score](https://www.codacy.com/project/badge/6d686f916836433b9c013379fbe1052c)](https://www.codacy.com/public/jamesmessinger/swagger-parser)
 [![Inline docs](http://inch-ci.org/github/BigstickCarpet/swagger-parser.svg?branch=master&style=shields)](http://inch-ci.org/github/BigstickCarpet/swagger-parser)
+[![Tested on APIs.guru](https://api.apis.guru/badges/tested_on.svg)](https://APIs.guru)
 
 [![npm](http://img.shields.io/npm/v/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
 [![Bower](http://img.shields.io/bower/v/swagger-parser.svg)](http://bower.io/)
