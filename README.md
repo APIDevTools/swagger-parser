@@ -19,6 +19,7 @@ Swagger Parser v3.4
 [![Code Climate Score](https://codeclimate.com/github/BigstickCarpet/swagger-parser/badges/gpa.svg)](https://codeclimate.com/github/BigstickCarpet/swagger-parser)
 [![Codacy Score](https://www.codacy.com/project/badge/6d686f916836433b9c013379fbe1052c)](https://www.codacy.com/public/jamesmessinger/swagger-parser)
 [![Inline docs](http://inch-ci.org/github/BigstickCarpet/swagger-parser.svg?branch=master&style=shields)](http://inch-ci.org/github/BigstickCarpet/swagger-parser)
+[![Tested on APIs.guru](https://api.apis.guru/badges/tested_on.svg)](https://APIs.guru)
 
 [![npm](http://img.shields.io/npm/v/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
 [![Bower](http://img.shields.io/bower/v/swagger-parser.svg)](http://bower.io/)
@@ -37,7 +38,7 @@ Features
 - Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
 - Configurable caching of external files and URLs
 - **[Tested](http://bigstickcarpet.github.io/swagger-parser/tests/index.html)** in Node, IO.js, and all modern web browsers on Mac, Windows, Linux, iOS, and Android
-- Tested on **[over 200 real-world APIs](https://github.com/APIs-guru/api-models)** from Google, Instagram, Cisco, etc.
+- Tested on **[over 200 real-world APIs](https://apis.guru)** from Google, Instagram, Cisco, etc.
 - Supports [circular references](docs/README.md#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
 
