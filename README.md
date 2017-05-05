@@ -130,7 +130,7 @@ To build/test the project locally on your computer:
 3. __Run the build script__<br>
 `npm run build`
 
-4. __Run the unit tests__<br>
+4. __Run the tests__<br>
 `npm run mocha` (test in Node)<br>
 `npm run karma` (test in web browsers)<br>
 `npm test` (test in Node and browsers, and report code coverage)
