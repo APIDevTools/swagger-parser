@@ -6,7 +6,7 @@ describe('Real-world APIs', function() {
 
   before(function(done) {
     // Download a list of over 200 real-world Swagger APIs from apis.guru
-    superagent.get('https://s3.amazonaws.com/api.apis.guru/v2/list.json')
+    superagent.get('https://api.apis.guru/v2/list.json')
       .end(function(err, res) {
         if (err || !res.ok) {
           return done(err || new Error('Unable to downlaod real-world APIs from apis.guru'));
@@ -16,10 +16,8 @@ describe('Real-world APIs', function() {
         var apis = res.body;
         delete apis['citrixonline.com:scim'];   // special characters in the URL cause problems
         delete apis['googleapis.com:adsense'];  // GitHub's CORS policy blocks this
-        delete apis['motaword.com'];            // invalid (see https://github.com/BigstickCarpet/swagger-parser/issues/26)
-        delete apis['uploady.com'];             // invalid (see https://github.com/BigstickCarpet/swagger-parser/issues/26)
-        delete apis['watchful.li'];             // invalid (see https://github.com/BigstickCarpet/swagger-parser/issues/26)
-        delete apis['versioneye.com'];          // invalid (same reason as above)
+        delete apis['versioneye.com'];          // Fails validation due to incorrect content type
+        delete apis['clarify.io'];              // Contains an invalid $ref
 
         // Transform the list into an array of {name: string, url: string}
         realWorldAPIs = [];
@@ -44,25 +42,27 @@ describe('Real-world APIs', function() {
   });
 
   // Mocha requires us to create our tests synchronously. But the list of APIs is downloaded asynchronously.
-  // So, we just create 200 placeholder tests, and then rename them later to reflect which API they're testing.
-  for (var i = 1; i <= 300; i++) {
+  // So, we just create 600 placeholder tests, and then rename them later to reflect which API they're testing.
+  for (var i = 1; i <= 600; i++) {
     it(i + ') ', function(done) {
       // Get the next API to test
       var api = realWorldAPIs[apiIndex++];
 
-      if (!api) {
+      if (api) {
+        this.test.title += api.name;
+
+        // Validate this API
+        SwaggerParser.validate(api.url)
+          .then(function() {
+            done();
+          })
+          .catch(done);
+      }
+      else {
         // There are no more APIs to test
         this.test.title += 'more APIs coming soon...';
-        return done();
+        done();
       }
-
-      // Validate this API
-      this.test.title += api.name;
-      SwaggerParser.validate(api.url)
-        .then(function() {
-          done();
-        })
-        .catch(done);
     });
   }
 });
