@@ -31,15 +31,17 @@
   },
   "ignore": [
     "/bower_components",
+    "/dist/*.test.js",
     "/docs",
     "/lib",
-    "/www",
-    "/dist/*.test.js",
     "/tests",
-    "/karma.conf.js",
+    "/www",
     "/.*",
-    "/index.html",
-    "/package.json"
+    "/*.js",
+    "/*.json",
+    "/*.html",
+    "/*.txt",
+    "/*.yml"
   ],
   "dependencies": {},
   "devDependencies": {
