@@ -5,7 +5,7 @@ The next major release of Swagger Parser will include support for [OpenAPI v3.0]
 
 ------------------------------------------------
 
-Swagger Parser v3.4
+Swagger Parser
 ============================
 #### Swagger 2.0 parser and validator for Node and browsers
 
