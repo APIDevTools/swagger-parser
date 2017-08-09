@@ -10,7 +10,6 @@ matrix:
     - node_js: 5
     - node_js: 6
     - node_js: 7
-    - node_js: 8
 
     # Local Browsers
     - node_js: 8
@@ -32,6 +31,5 @@ before_script:
 
 after_success:
   - cat coverage/*/lcov.info > coveralls.txt                    # concatenate all code-coverage data into a single file
-  - cat coveralls.txt                                           # output the file contents (for debugging)
   - ls -R1 coverage/*/lcov.info                                 # list the files (for debugging)
   - cat coveralls.txt | node_modules/coveralls/bin/coveralls.js # send code-coverage data to Coveralls
