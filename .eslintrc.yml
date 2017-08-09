@@ -1,0 +1,12 @@
+# ESLint config
+# http://eslint.org/docs/user-guide/configuring
+# https://github.com/BigstickCarpet/eslint-config-modular
+
+root: true
+
+extends:
+  - modular/best-practices
+  - modular/style
+  - modular/browser
+  - modular/node
+  - modular/es5

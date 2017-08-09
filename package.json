@@ -50,6 +50,7 @@
     "chai": "^4.1.1",
     "coveralls": "^2.11.6",
     "eslint": "^4.4.1",
+    "eslint-config-modular": "^4.0.0",
     "http-server": "^0.10.0",
     "istanbul": "^0.4.1",
     "karma": "^1.7.0",
