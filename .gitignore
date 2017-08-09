@@ -1,12 +1,41 @@
-# Specifies intentionally untracked files to ignore when using Git
-# http://git-scm.com/docs/gitignore
+# Git ignore
+# https://git-scm.com/docs/gitignore
 
-**/*~
-**/._*
-**/.DS_Store
-*.sublime-*
-npm-debug.log
-/.idea
+# Miscellaneous
+*~
+*#
+.DS_STORE
+Thumbs.db
+.netbeans
+nbproject
+.node_history
+
+# IDEs & Text Editors
+.idea
+.sublime-*
+.vscode
+.netbeans
+nbproject
+
+# Temporary files
+.tmp
+.temp
+.grunt
+.lock-wscript
+
+# Logs
+/logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Dependencies
+node_modules
+
+# Test output
+lib-cov
 /coverage
 /dist/*.test.js
-/node_modules
