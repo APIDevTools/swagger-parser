@@ -1,11 +1,7 @@
 ------------------------------------------------
 
-##### NOTICE: Swagger Parser v4.0 _beta_ is now available
-You can install the beta using `npm install swagger-parser@beta`.
-
-- [v4.0 code branch](https://github.com/BigstickCarpet/swagger-parser/tree/releases/4.0.0)
-- [v4.0 documentation](https://github.com/BigstickCarpet/swagger-parser/tree/releases/4.0.0/docs)
-- [v4.0 changelog](https://github.com/BigstickCarpet/swagger-parser/blob/releases/4.0.0/CHANGELOG.md)
+### OpenAPI v3.0 support coming soon!
+The next major release of Swagger Parser will include support for [OpenAPI v3.0](https://www.openapis.org/blog/2017/07/26/the-oai-announces-the-openapi-specification-3-0-0).  Swagger v2.0 will still be supported as well.  More details and an alpha version will be released soon.
 
 ------------------------------------------------
 
