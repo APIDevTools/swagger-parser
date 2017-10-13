@@ -10,3 +10,10 @@ extends:
   - modular/browser
   - modular/node
   - modular/es5
+
+globals:
+  Promise: false
+
+rules:
+  # This rule erroneously flags functions that use the `arguments` object
+  no-unused-vars: off
