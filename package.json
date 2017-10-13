@@ -34,7 +34,7 @@
     "karma": "karma start --single-run",
     "test": "npm run browserify -- --test && npm run istanbul && npm run karma",
     "upgrade": "ncu --upgradeAll && npm update && bower update",
-    "bump": "bump --prompt --grep lib/index.js dist/* --tag --push --all",
+    "bump": "bump --prompt --grep dist/* --tag --push --all",
     "release": "npm run upgrade && npm run build-www && npm test && npm run bump && npm publish",
     "build-www": "npm run sass && npm run browserify-www",
     "browserify-www": "simplifyify www/js/index.js --outfile www/js/bundle.js --bundle --debug --minify",
