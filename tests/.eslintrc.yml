@@ -1,0 +1,16 @@
+# ESLint config
+# http://eslint.org/docs/user-guide/configuring
+# https://github.com/BigstickCarpet/eslint-config-modular
+
+extends:
+  - modular/test
+  - modular/browser
+
+globals:
+  SwaggerParser: true
+  helper: true
+  userAgent: true
+  superagent: true
+  path: true
+  chai: true
+  expect: true
