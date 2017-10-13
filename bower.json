@@ -50,7 +50,6 @@
     "jquery": "~2.1.4",
     "chai": "*",
     "mocha": "*",
-    "sinon-js": "*",
     "superagent-dist": "*"
   }
 }

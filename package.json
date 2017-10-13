@@ -67,7 +67,6 @@
     "node-sass": "^4.5.3",
     "npm-check-updates": "^2.5.6",
     "simplifyify": "3.2.1",
-    "sinon": "^3.1.0",
     "superagent": "^3.5.2",
     "version-bump-prompt": "^3.1.2"
   },
