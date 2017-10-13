@@ -99,18 +99,7 @@ function configureLocalBrowsers (config) {
     config.browsers = ['Firefox'];
   }
   else if (isWindows) {
-    config.browsers = ['Firefox', 'Chrome', 'Safari', 'IE9', 'IE10', 'IE'];
-    config.customLaunchers = {
-      // NOTE: IE 6, 7, 8 are not supported by Chai
-      IE9: {
-        base: 'IE',
-        'x-ua-compatible': 'IE=EmulateIE9'
-      },
-      IE10: {
-        base: 'IE',
-        'x-ua-compatible': 'IE=EmulateIE10'
-      }
-    };
+    config.browsers = ['Firefox', 'Chrome', 'Safari', 'IE'];
   }
 }
 
@@ -147,11 +136,10 @@ function configureSauceLabs (config) {
       platform: 'OS X 10.10',
       browserName: 'safari'
     },
-    'IE-9': {
+    'IE-11': {
       base: 'SauceLabs',
       platform: 'Windows 7',
-      browserName: 'internet explorer',
-      version: '9'
+      browserName: 'internet explorer'
     },
     'IE-Edge': {
       base: 'SauceLabs',
