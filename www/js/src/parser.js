@@ -17,11 +17,11 @@ exports.init = function () {
     parseSwagger();
   });
 
-  // When the "x" button is clicked, discard the results and clear the cache
+  // When the "x" button is clicked, discard the results
   $('#clear').on('click', function () {
     parser = null;
     editors.clearResults();
-    analytics.trackEvent('cache', 'clear');
+    analytics.trackEvent('results', 'clear');
   });
 };
 

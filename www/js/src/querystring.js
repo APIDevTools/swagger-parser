@@ -20,16 +20,13 @@ function setFormFields () {
 
   setCheckbox(form.allow.json, query['allow-json']);
   setCheckbox(form.allow.yaml, query['allow-yaml']);
+  setCheckbox(form.allow.text, query['allow-text']);
   setCheckbox(form.allow.empty, query['allow-empty']);
   setCheckbox(form.allow.unknown, query['allow-unknown']);
-  setCheckbox(form.refs.internal, query['refs-internal']);
   setCheckbox(form.refs.external, query['refs-external']);
   setCheckbox(form.refs.circular, query['refs-circular']);
   setCheckbox(form.validate.schema, query['validate-schema']);
   setCheckbox(form.validate.spec, query['validate-spec']);
-
-  setNumber(form.cache.http, query['cache-http']);
-  setNumber(form.cache.https, query['cache-https']);
 
   // If a custom URL is specified, then show the "Your API" tab
   if (query.url) {
@@ -60,32 +57,20 @@ function setCheckbox (input, value) {
 }
 
 /**
- * Sets the value of a number field, based on the given value.
- *
- * @param {jQuery} input
- * @param {*} value
- */
-function setNumber (input, value) {
-  input.val(form.cache.parse(value));
-}
-
-/**
  * Sets the href of the bookmark link, based on the values of each form field
  */
 function setBookmarkURL () {
   var query = {};
   var options = form.getOptions();
-  options.allow.json || (query['allow-json'] = 'no');
-  options.allow.yaml || (query['allow-yaml'] = 'no');
-  options.allow.empty || (query['allow-empty'] = 'no');
-  options.allow.unknown || (query['allow-unknown'] = 'no');
-  options.$refs.internal || (query['refs-internal'] = 'no');
-  options.$refs.external || (query['refs-external'] = 'no');
-  options.$refs.circular || (query['refs-circular'] = 'no');
+  options.parse.json || (query['allow-json'] = 'no');
+  options.parse.yaml || (query['allow-yaml'] = 'no');
+  options.parse.text || (query['allow-text'] = 'no');
+  options.parse.json.allowEmpty || (query['allow-empty'] = 'no');
+  options.parse.binary || (query['allow-unknown'] = 'no');
+  options.resolve.external || (query['refs-external'] = 'no');
+  options.dereference.circular || (query['refs-circular'] = 'no');
   options.validate.schema || (query['validate-schema'] = 'no');
   options.validate.spec || (query['validate-spec'] = 'no');
-  options.cache.http === 300 || (query['cache-http'] = options.cache.http);
-  options.cache.https === 300 || (query['cache-https'] = options.cache.https);
 
   var method = form.method.button.val();
   method === 'validate' || (query.method = method);

@@ -60,6 +60,9 @@
                     <li><a id="allow-yaml" class="checkbox"><label>
                       <input type="checkbox" name="allow-yaml" value="yes" data-value="YAML" checked autocomplete="off"> Allow YAML
                     </label></a></li>
+                    <li><a id="allow-text" class="checkbox"><label>
+                      <input type="checkbox" name="allow-text" value="yes" data-value="text" checked autocomplete="off"> Allow plain text
+                    </label></a></li>
                     <li><a id="allow-empty" class="checkbox"><label>
                       <input type="checkbox" name="allow-empty" value="yes" data-value="empty" checked autocomplete="off"> Allow empty files
                     </label></a></li>
@@ -75,7 +78,7 @@
                   </a>
                   <ul id="refs-menu" class="dropdown-menu">
                     <li><a id="refs-internal" class="checkbox"><label>
-                      <input type="checkbox" name="refs-internal" value="yes" data-value="internal" checked autocomplete="off"> Follow internal $refs
+                      <input type="checkbox" name="refs-internal" value="yes" data-value="internal" checked disabled autocomplete="off"> Follow internal $refs
                     </label></a></li>
                     <li><a id="refs-external" class="checkbox"><label>
                       <input type="checkbox" name="refs-external" value="yes" data-value="external" checked autocomplete="off"> Follow external $refs
@@ -98,20 +101,6 @@
                     </label></a></li>
                     <li><a id="validate-spec" class="checkbox"><label>
                       <input type="checkbox" name="validate-spec" value="yes" data-value="spec" checked autocomplete="off"> Validate against Swagger 2.0 spec
-                    </label></a></li>
-                  </ul>
-                </div>
-
-                <div class="dropdown">
-                  <a id="cache-dropdown-toggle" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span id="cache-label">Cache for 5 minutes</span> <span class="caret"></span>
-                  </a>
-                  <ul id="cache-menu" class="dropdown-menu dropdown-menu-right">
-                    <li><a id="cache-http" class="checkbox"><label>
-                      <input type="number" name="cache-http" autocomplete="off" value="300" min="1" max="999" step="1"> secs for HTTP
-                    </label></a></li>
-                    <li><a id="cache-https" class="checkbox"><label>
-                      <input type="number" name="cache-https" autocomplete="off" value="300" min="1" max="999" step="1"> secs for HTTPS
                     </label></a></li>
                   </ul>
                 </div>
@@ -229,7 +218,7 @@ definitions:
           </form>
 
           <div id="results" class="hidden">
-            <button id="clear" type="button" class="close" title="Discard these results (and clear the cache)"><span aria-hidden="true">&times;</span></button>
+            <button id="clear" type="button" class="close" title="Discard these results"><span aria-hidden="true">&times;</span></button>
             <ul class="nav nav-tabs" role="tablist"></ul>
             <div class="tab-content"></div>
           </div>

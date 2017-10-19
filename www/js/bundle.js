@@ -587,20 +587,17 @@ exports.init = function () {
   onChange(form.allow.menu, setAllowLabel);
   onChange(form.refs.menu, setRefsLabel);
   onChange(form.validate.menu, setValidateLabel);
-  onChange(form.cache.menu, setCacheLabel);
 
   // Track option changes
   trackCheckbox(form.allow.json);
   trackCheckbox(form.allow.yaml);
+  trackCheckbox(form.allow.text);
   trackCheckbox(form.allow.empty);
   trackCheckbox(form.allow.unknown);
-  trackCheckbox(form.refs.internal);
   trackCheckbox(form.refs.external);
   trackCheckbox(form.refs.circular);
   trackCheckbox(form.validate.schema);
   trackCheckbox(form.validate.spec);
-  trackTextbox(form.cache.http);
-  trackTextbox(form.cache.https);
 
   // Change the button text whenever a new method is selected
   setButtonLabel(form.method.button.val());
@@ -643,7 +640,7 @@ function onChange (menu, setLabel) {
  */
 function setAllowLabel () {
   var values = getCheckedAndUnchecked(
-    form.allow.json, form.allow.yaml, form.allow.empty, form.allow.unknown);
+    form.allow.json, form.allow.yaml, form.allow.text, form.allow.empty, form.allow.unknown);
 
   switch (values.checked.length) {
     case 0:
@@ -653,12 +650,15 @@ function setAllowLabel () {
       form.allow.label.text('Only allow ' + values.checked[0] + ' files');
       break;
     case 2:
-      form.allow.label.text('Allow ' + values.checked[0] + ' and ' + values.checked[1]);
+      form.allow.label.text('Only allow ' + values.checked[0] + ' and ' + values.checked[1]);
       break;
     case 3:
-      form.allow.label.text('Don\'t allow ' + values.unchecked[0] + ' files');
+      form.allow.label.text('Don\'t allow ' + values.unchecked[0] + ' or ' + values.unchecked[1]);
       break;
     case 4:
+      form.allow.label.text('Don\'t allow ' + values.unchecked[0] + ' files');
+      break;
+    case 5:
       form.allow.label.text('Allow all file types');
   }
 }
@@ -667,19 +667,16 @@ function setAllowLabel () {
  * Sets the "refs" label, based on which options are selected
  */
 function setRefsLabel () {
-  var values = getCheckedAndUnchecked(form.refs.internal, form.refs.external, form.refs.circular);
+  var values = getCheckedAndUnchecked(form.refs.external, form.refs.circular);
 
   switch (values.checked.length) {
     case 0:
-      form.refs.label.text('No $refs allowed');
+      form.refs.label.text('Only follow internal $refs');
       break;
     case 1:
-      form.refs.label.text('Only follow ' + values.checked[0] + ' $refs');
-      break;
-    case 2:
       form.refs.label.text('Don\'t follow ' + values.unchecked[0] + ' $refs');
       break;
-    case 3:
+    case 2:
       form.refs.label.text('Follow all $refs');
   }
 }
@@ -695,30 +692,10 @@ function setValidateLabel () {
       form.validate.label.text('Don\'t validate anything');
       break;
     case 1:
-      form.validate.label.text('Don\'t validate Swagger ' + values.checked[0]);
+      form.validate.label.text('Don\'t validate Swagger ' + values.unchecked[0]);
       break;
     case 2:
       form.validate.label.text('Validate everything');
-  }
-}
-
-/**
- * Sets the "cache" label, based on which values are entered
- */
-function setCacheLabel () {
-  var http = form.cache.parse(form.cache.http.val());
-  var https = form.cache.parse(form.cache.https.val());
-
-  if (http === https) {
-    if (http % 60) {
-      form.cache.label.text('Cache for ' + http + ' seconds');
-    }
-    else {
-      form.cache.label.text('Cache for ' + (http / 60) + ' minutes');
-    }
-  }
-  else {
-    form.cache.label.text('Customized caching');
   }
 }
 
@@ -741,18 +718,6 @@ function trackCheckbox (checkbox) {
   checkbox.on('change', function () {
     var value = checkbox.is(':checked') ? 1 : 0;
     analytics.trackEvent('options', 'changed', checkbox.attr('name'), value);
-  });
-}
-
-/**
- * Tracks changes to a numeric textbox option
- *
- * @param {jQuery} textbox
- */
-function trackTextbox (textbox) {
-  textbox.on('blur', function () {
-    var value = form.cache.parse(textbox.val());
-    analytics.trackEvent('options', 'changed', textbox.attr('name'), value);
   });
 }
 
@@ -962,6 +927,7 @@ exports.init = function () {
     menu: this.form.find('#allow-menu'),
     json: this.form.find('input[name=allow-json]'),
     yaml: this.form.find('input[name=allow-yaml]'),
+    text: this.form.find('input[name=allow-text]'),
     empty: this.form.find('input[name=allow-empty]'),
     unknown: this.form.find('input[name=allow-unknown]')
   };
@@ -969,7 +935,6 @@ exports.init = function () {
   this.refs = {
     label: this.form.find('#refs-label'),
     menu: this.form.find('#refs-menu'),
-    internal: this.form.find('input[name=refs-internal]'),
     external: this.form.find('input[name=refs-external]'),
     circular: this.form.find('input[name=refs-circular]')
   };
@@ -979,14 +944,6 @@ exports.init = function () {
     menu: this.form.find('#validate-menu'),
     schema: this.form.find('input[name=validate-schema]'),
     spec: this.form.find('input[name=validate-spec]')
-  };
-
-  this.cache = {
-    label: this.form.find('#cache-label'),
-    menu: this.form.find('#cache-menu'),
-    http: this.form.find('input[name=cache-http]'),
-    https: this.form.find('input[name=cache-https]'),
-    parse: parseCacheValue
   };
 
   this.tabs = {
@@ -1009,25 +966,30 @@ exports.init = function () {
  */
 exports.getOptions = function () {
   return {
-    allow: {
-      json: this.allow.json.is(':checked'),
-      yaml: this.allow.yaml.is(':checked'),
-      empty: this.allow.empty.is(':checked'),
-      unknown: this.allow.unknown.is(':checked')
+    parse: {
+      json: this.allow.json.is(':checked') ? {
+        allowEmpty: this.allow.empty.is(':checked'),
+      } : false,
+      yaml: this.allow.yaml.is(':checked') ? {
+        allowEmpty: this.allow.empty.is(':checked'),
+      } : false,
+      text: this.allow.text.is(':checked') ? {
+        allowEmpty: this.allow.empty.is(':checked'),
+      } : false,
+      binary: this.allow.unknown.is(':checked') ? {
+        allowEmpty: this.allow.empty.is(':checked'),
+      } : false,
     },
-    $refs: {
-      internal: this.refs.internal.is(':checked'),
+    resolve: {
       external: this.refs.external.is(':checked'),
-      circular: this.refs.circular.is(':checked')
+    },
+    dereference: {
+      circular: this.refs.circular.is(':checked'),
     },
     validate: {
       schema: this.validate.schema.is(':checked'),
-      spec: this.validate.spec.is(':checked')
+      spec: this.validate.spec.is(':checked'),
     },
-    cache: {
-      http: parseCacheValue(this.cache.http.val()),
-      https: parseCacheValue(this.cache.https.val())
-    }
   };
 };
 
@@ -1051,17 +1013,6 @@ exports.getAPI = function () {
     throw new SyntaxError('Unable to parse the API. Neither YAML nor JSON are allowed.');
   }
 };
-
-/**
- * Helper function for validating cache values.
- *
- * @param {string} val
- * @returns {number}
- */
-function parseCacheValue (val) {
-  val = parseInt(val);
-  return (isNaN(val) || !isFinite(val) || val < 1) ? 300 : val;
-}
 
 },{}],10:[function(require,module,exports){
 'use strict';
@@ -1102,11 +1053,11 @@ exports.init = function () {
     parseSwagger();
   });
 
-  // When the "x" button is clicked, discard the results and clear the cache
+  // When the "x" button is clicked, discard the results
   $('#clear').on('click', function () {
     parser = null;
     editors.clearResults();
-    analytics.trackEvent('cache', 'clear');
+    analytics.trackEvent('results', 'clear');
   });
 };
 
@@ -1172,16 +1123,13 @@ function setFormFields () {
 
   setCheckbox(form.allow.json, query['allow-json']);
   setCheckbox(form.allow.yaml, query['allow-yaml']);
+  setCheckbox(form.allow.text, query['allow-text']);
   setCheckbox(form.allow.empty, query['allow-empty']);
   setCheckbox(form.allow.unknown, query['allow-unknown']);
-  setCheckbox(form.refs.internal, query['refs-internal']);
   setCheckbox(form.refs.external, query['refs-external']);
   setCheckbox(form.refs.circular, query['refs-circular']);
   setCheckbox(form.validate.schema, query['validate-schema']);
   setCheckbox(form.validate.spec, query['validate-spec']);
-
-  setNumber(form.cache.http, query['cache-http']);
-  setNumber(form.cache.https, query['cache-https']);
 
   // If a custom URL is specified, then show the "Your API" tab
   if (query.url) {
@@ -1212,32 +1160,20 @@ function setCheckbox (input, value) {
 }
 
 /**
- * Sets the value of a number field, based on the given value.
- *
- * @param {jQuery} input
- * @param {*} value
- */
-function setNumber (input, value) {
-  input.val(form.cache.parse(value));
-}
-
-/**
  * Sets the href of the bookmark link, based on the values of each form field
  */
 function setBookmarkURL () {
   var query = {};
   var options = form.getOptions();
-  options.allow.json || (query['allow-json'] = 'no');
-  options.allow.yaml || (query['allow-yaml'] = 'no');
-  options.allow.empty || (query['allow-empty'] = 'no');
-  options.allow.unknown || (query['allow-unknown'] = 'no');
-  options.$refs.internal || (query['refs-internal'] = 'no');
-  options.$refs.external || (query['refs-external'] = 'no');
-  options.$refs.circular || (query['refs-circular'] = 'no');
+  options.parse.json || (query['allow-json'] = 'no');
+  options.parse.yaml || (query['allow-yaml'] = 'no');
+  options.parse.text || (query['allow-text'] = 'no');
+  options.parse.json.allowEmpty || (query['allow-empty'] = 'no');
+  options.parse.binary || (query['allow-unknown'] = 'no');
+  options.resolve.external || (query['refs-external'] = 'no');
+  options.dereference.circular || (query['refs-circular'] = 'no');
   options.validate.schema || (query['validate-schema'] = 'no');
   options.validate.spec || (query['validate-spec'] = 'no');
-  options.cache.http === 300 || (query['cache-http'] = options.cache.http);
-  options.cache.https === 300 || (query['cache-https'] = options.cache.https);
 
   var method = form.method.button.val();
   method === 'validate' || (query.method = method);

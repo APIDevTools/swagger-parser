@@ -11,6 +11,7 @@ exports.init = function () {
     menu: this.form.find('#allow-menu'),
     json: this.form.find('input[name=allow-json]'),
     yaml: this.form.find('input[name=allow-yaml]'),
+    text: this.form.find('input[name=allow-text]'),
     empty: this.form.find('input[name=allow-empty]'),
     unknown: this.form.find('input[name=allow-unknown]')
   };
@@ -18,7 +19,6 @@ exports.init = function () {
   this.refs = {
     label: this.form.find('#refs-label'),
     menu: this.form.find('#refs-menu'),
-    internal: this.form.find('input[name=refs-internal]'),
     external: this.form.find('input[name=refs-external]'),
     circular: this.form.find('input[name=refs-circular]')
   };
@@ -28,14 +28,6 @@ exports.init = function () {
     menu: this.form.find('#validate-menu'),
     schema: this.form.find('input[name=validate-schema]'),
     spec: this.form.find('input[name=validate-spec]')
-  };
-
-  this.cache = {
-    label: this.form.find('#cache-label'),
-    menu: this.form.find('#cache-menu'),
-    http: this.form.find('input[name=cache-http]'),
-    https: this.form.find('input[name=cache-https]'),
-    parse: parseCacheValue
   };
 
   this.tabs = {
@@ -58,25 +50,30 @@ exports.init = function () {
  */
 exports.getOptions = function () {
   return {
-    allow: {
-      json: this.allow.json.is(':checked'),
-      yaml: this.allow.yaml.is(':checked'),
-      empty: this.allow.empty.is(':checked'),
-      unknown: this.allow.unknown.is(':checked')
+    parse: {
+      json: this.allow.json.is(':checked') ? {
+        allowEmpty: this.allow.empty.is(':checked'),
+      } : false,
+      yaml: this.allow.yaml.is(':checked') ? {
+        allowEmpty: this.allow.empty.is(':checked'),
+      } : false,
+      text: this.allow.text.is(':checked') ? {
+        allowEmpty: this.allow.empty.is(':checked'),
+      } : false,
+      binary: this.allow.unknown.is(':checked') ? {
+        allowEmpty: this.allow.empty.is(':checked'),
+      } : false,
     },
-    $refs: {
-      internal: this.refs.internal.is(':checked'),
+    resolve: {
       external: this.refs.external.is(':checked'),
-      circular: this.refs.circular.is(':checked')
+    },
+    dereference: {
+      circular: this.refs.circular.is(':checked'),
     },
     validate: {
       schema: this.validate.schema.is(':checked'),
-      spec: this.validate.spec.is(':checked')
+      spec: this.validate.spec.is(':checked'),
     },
-    cache: {
-      http: parseCacheValue(this.cache.http.val()),
-      https: parseCacheValue(this.cache.https.val())
-    }
   };
 };
 
@@ -100,14 +97,3 @@ exports.getAPI = function () {
     throw new SyntaxError('Unable to parse the API. Neither YAML nor JSON are allowed.');
   }
 };
-
-/**
- * Helper function for validating cache values.
- *
- * @param {string} val
- * @returns {number}
- */
-function parseCacheValue (val) {
-  val = parseInt(val);
-  return (isNaN(val) || !isFinite(val) || val < 1) ? 300 : val;
-}
