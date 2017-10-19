@@ -9,12 +9,12 @@ describe('Object sources (instead of file paths)', function () {
         expect(api).to.equal(parser.api);
         expect(api).to.deep.equal(helper.dereferenced.objectSource);
 
-        // The API path should be blank, and all other paths should be relative (not absolute)
+        // The API path should be the current directory, and all other paths should be absolute
         var expectedPaths = [
-          '',
-          path.rel('specs/object-source/definitions/definitions.json'),
-          path.rel('specs/object-source/definitions/name.yaml'),
-          path.rel('specs/object-source/definitions/required-string.yaml')
+          encodeURI(path.cwd()),
+          path.abs('specs/object-source/definitions/definitions.json'),
+          path.abs('specs/object-source/definitions/name.yaml'),
+          path.abs('specs/object-source/definitions/required-string.yaml')
         ];
         expect(parser.$refs.paths()).to.have.same.members(expectedPaths);
         expect(parser.$refs.values()).to.have.keys(expectedPaths);
@@ -38,12 +38,12 @@ describe('Object sources (instead of file paths)', function () {
         expect(api).to.equal(parser.api);
         expect(api).to.deep.equal(helper.bundled.objectSource);
 
-        // The API path should be blank, and all other paths should be relative (not absolute)
+        // The API path should be the current directory, and all other paths should be absolute
         var expectedPaths = [
-          '',
-          path.rel('specs/object-source/definitions/definitions.json'),
-          path.rel('specs/object-source/definitions/name.yaml'),
-          path.rel('specs/object-source/definitions/required-string.yaml')
+          encodeURI(path.cwd()),
+          path.abs('specs/object-source/definitions/definitions.json'),
+          path.abs('specs/object-source/definitions/name.yaml'),
+          path.abs('specs/object-source/definitions/required-string.yaml')
         ];
         expect(parser.$refs.paths()).to.have.same.members(expectedPaths);
         expect(parser.$refs.values()).to.have.keys(expectedPaths);
@@ -58,12 +58,12 @@ describe('Object sources (instead of file paths)', function () {
         expect(api).to.equal(parser.api);
         expect(api).to.deep.equal(helper.dereferenced.objectSource);
 
-        // The API path should be blank, and all other paths should be relative (not absolute)
+        // The API path should be the current directory, and all other paths should be absolute
         var expectedPaths = [
-          '',
-          path.rel('specs/object-source/definitions/definitions.json'),
-          path.rel('specs/object-source/definitions/name.yaml'),
-          path.rel('specs/object-source/definitions/required-string.yaml')
+          encodeURI(path.cwd()),
+          path.abs('specs/object-source/definitions/definitions.json'),
+          path.abs('specs/object-source/definitions/name.yaml'),
+          path.abs('specs/object-source/definitions/required-string.yaml')
         ];
         expect(parser.$refs.paths()).to.have.same.members(expectedPaths);
         expect(parser.$refs.values()).to.have.keys(expectedPaths);
