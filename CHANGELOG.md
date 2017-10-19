@@ -3,6 +3,21 @@ All notable changes will be documented in this file.
 Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [v4.0.0](https://github.com/BigstickCarpet/swagger-parser/tree/v4.0.0) (2017-10-19)
+
+#### Breaking Changes
+
+- Update the [Swagger 2.0 JSON schema](https://www.npmjs.com/package/swagger-schema-official), so it's possible that an API that previously passed validation may no longer pass due to changes in the Swagger schema
+
+- To reduce the size of this library, it no longer includes polyfills for [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) and [TypedArrays](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray), which are natively supported in the latest versions of Node and web browsers.  If you need to support older browsers (such as IE9), then just use [this `Promise` polyfill](https://github.com/stefanpenner/es6-promise) and [this `TypedArray` polyfill](https://github.com/inexorabletash/polyfill/blob/master/typedarray.js).
+
+#### Minor Changes
+
+- [PR #74](https://github.com/BigstickCarpet/swagger-parser/pull/74) - Fixes [an edge-case bug](https://github.com/BigstickCarpet/swagger-parser/issues/73) with the `validate()` method and `x-` vendor extensions
+
+[Full Changelog](https://github.com/BigstickCarpet/swagger-parser/compare/v4.0.0-beta.2...v4.0.0)
+
+
 ## [v4.0.0-beta.2](https://github.com/BigstickCarpet/swagger-parser/tree/v4.0.0-beta.2) (2016-04-25)
 
 #### Just one small fix
