@@ -42,8 +42,8 @@ describe('Real-world APIs', function () {
   });
 
   // Mocha requires us to create our tests synchronously. But the list of APIs is downloaded asynchronously.
-  // So, we just create 600 placeholder tests, and then rename them later to reflect which API they're testing.
-  for (var i = 1; i <= 600; i++) {
+  // So, we just create 700 placeholder tests, and then rename them later to reflect which API they're testing.
+  for (var i = 1; i <= 700; i++) {
     it(i + ') ', testNextAPI);
   }
 
