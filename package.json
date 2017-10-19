@@ -25,7 +25,7 @@
   "homepage": "https://bigstickcarpet.github.io/swagger-parser",
   "main": "lib/index.js",
   "scripts": {
-    "lint": "eslint lib test --fix",
+    "lint": "eslint lib test www/js/src --fix",
     "build": "npm run lint && npm run browserify && npm run build-www",
     "browserify": "simplifyify lib/index.js --outfile dist/swagger-parser.js --standalone SwaggerParser --bundle --debug --minify",
     "watch": "npm run browserify -- --watch & npm run browserify-www -- --watch",
@@ -37,7 +37,7 @@
     "bump": "bump --prompt --grep dist/* --tag --push --all",
     "release": "npm run upgrade && npm run build-www && npm test && npm run bump && npm publish",
     "build-www": "npm run sass && npm run browserify-www",
-    "browserify-www": "simplifyify www/js/index.js --outfile www/js/bundle.js --bundle --debug --minify",
+    "browserify-www": "simplifyify www/js/src/index.js --outfile www/js/bundle.js --bundle --debug --minify",
     "sass": "node-sass --source-map true --output-style compressed www/css/style.scss www/css/style.min.css",
     "start": "http-server -o -c-1"
   },

@@ -1,43 +1,60 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-},{}],2:[function(require,module,exports){
-/**!
- * Ono v2.2.1
- *
- * @link https://github.com/BigstickCarpet/ono
+/*!
+ * Swagger Parser v4.0.0-beta.2 (October 19th 2017)
+ * 
+ * https://bigstickcarpet.github.io/swagger-parser
+ * 
+ * @author  James Messinger (http://jamesmessinger.com)
  * @license MIT
  */
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+function format(fmt) {
+  var re = /(%?)(%([jds]))/g
+    , args = Array.prototype.slice.call(arguments, 1);
+  if(args.length) {
+    fmt = fmt.replace(re, function(match, escaped, ptn, flag) {
+      var arg = args.shift();
+      switch(flag) {
+        case 's':
+          arg = '' + arg;
+          break;
+        case 'd':
+          arg = Number(arg);
+          break;
+        case 'j':
+          arg = JSON.stringify(arg);
+          break;
+      }
+      if(!escaped) {
+        return arg; 
+      }
+      args.unshift(arg);
+      return match;
+    })
+  }
+
+  // arguments remain after formatting
+  if(args.length) {
+    fmt += ' ' + args.join(' ');
+  }
+
+  // update escaped %% values
+  fmt = fmt.replace(/%{2,2}/g, '%');
+
+  return '' + fmt;
+}
+
+module.exports = format;
+
+},{}],2:[function(require,module,exports){
 'use strict';
 
-var util  = require('util'),
-    slice = Array.prototype.slice,
-    vendorSpecificErrorProperties = [
-      'name', 'message', 'description', 'number', 'fileName', 'lineNumber', 'columnNumber',
-      'sourceURL', 'line', 'column', 'stack'
-    ];
+var format = require('format-util');
+var slice = Array.prototype.slice;
+var protectedProperties = ['name', 'message', 'stack'];
+var errorPrototypeProperties = [
+  'name', 'message', 'description', 'number', 'code', 'fileName', 'lineNumber', 'columnNumber',
+  'sourceURL', 'line', 'column', 'stack'
+];
 
 module.exports = create(Error);
 module.exports.error = create(Error);
@@ -47,7 +64,7 @@ module.exports.reference = create(ReferenceError);
 module.exports.syntax = create(SyntaxError);
 module.exports.type = create(TypeError);
 module.exports.uri = create(URIError);
-module.exports.formatter = util.format;
+module.exports.formatter = format;
 
 /**
  * Creates a new {@link ono} function that creates the given Error class.
@@ -55,7 +72,7 @@ module.exports.formatter = util.format;
  * @param {Class} Klass - The Error subclass to create
  * @returns {ono}
  */
-function create(Klass) {
+function create (Klass) {
   /**
    * @param {Error}   [err]     - The original error, if any
    * @param {object}  [props]   - An object whose properties will be added to the error object
@@ -63,27 +80,29 @@ function create(Klass) {
    * @param {...*}    [params]  - Parameters that map to the `message` placeholders
    * @returns {Error}
    */
-  return function ono(err, props, message, params) {
-    var formattedMessage;
-    var formatter = module.exports.formatter;
+  return function onoFactory (err, props, message, params) {   // eslint-disable-line no-unused-vars
+    var formatArgs = [];
+    var formattedMessage = '';
 
-    if (typeof(err) === 'string') {
-      formattedMessage = formatter.apply(null, arguments);
+    // Determine which arguments were actually specified
+    if (typeof err === 'string') {
+      formatArgs = slice.call(arguments);
       err = props = undefined;
     }
-    else if (typeof(props) === 'string') {
-      formattedMessage = formatter.apply(null, slice.call(arguments, 1));
+    else if (typeof props === 'string') {
+      formatArgs = slice.call(arguments, 1);
+      props = undefined;
     }
-    else {
-      formattedMessage = formatter.apply(null, slice.call(arguments, 2));
-    }
-
-    if (!(err instanceof Error)) {
-      props = err;
-      err = undefined;
+    else if (typeof message === 'string') {
+      formatArgs = slice.call(arguments, 2);
     }
 
-    if (err) {
+    // If there are any format arguments, then format the error message
+    if (formatArgs.length > 0) {
+      formattedMessage = module.exports.formatter.apply(null, formatArgs);
+    }
+
+    if (err && err.message) {
       // The inner-error's message will be added to the new message
       formattedMessage += (formattedMessage ? ' \n' : '') + err.message;
     }
@@ -107,11 +126,9 @@ function create(Klass) {
  * @param {Error}   targetError - The error object to extend
  * @param {?Error}  sourceError - The source error object, if any
  */
-function extendError(targetError, sourceError) {
-  if (sourceError) {
-    extendStack(targetError, sourceError);
-    extend(targetError, sourceError, true);
-  }
+function extendError (targetError, sourceError) {
+  extendStack(targetError, sourceError);
+  extend(targetError, sourceError);
 }
 
 /**
@@ -119,7 +136,7 @@ function extendError(targetError, sourceError) {
  * to custom error properties and stack traces.  So we add our own toJSON method that ALWAYS
  * outputs every property of the error.
  */
-function extendToJSON(error) {
+function extendToJSON (error) {
   error.toJSON = errorToJSON;
 
   // Also add an inspect() method, for compatibility with Node.js' `util.inspect()` method
@@ -131,16 +148,16 @@ function extendToJSON(error) {
  *
  * @param {object}  target - The object to extend
  * @param {?source} source - The object whose properties are copied
- * @param {boolean} omitVendorSpecificProperties - Skip vendor-specific Error properties
  */
-function extend(target, source, omitVendorSpecificProperties) {
-  if (source && typeof(source) === 'object') {
+function extend (target, source) {
+  if (source && typeof source === 'object') {
     var keys = Object.keys(source);
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
 
-      // Don't bother trying to copy read-only vendor-specific Error properties
-      if (omitVendorSpecificProperties && vendorSpecificErrorProperties.indexOf(key) >= 0) {
+      // Don't copy "protected" properties, since they have special meaning/behavior
+      // and are set by the onoFactory function
+      if (protectedProperties.indexOf(key) >= 0) {
         continue;
       }
 
@@ -160,15 +177,14 @@ function extend(target, source, omitVendorSpecificProperties) {
  *
  * @returns {object}
  */
-function errorToJSON() {
-  // jshint -W040
+function errorToJSON () {
   var json = {};
 
   // Get all the properties of this error
   var keys = Object.keys(this);
 
-  // Also include vendor-specific properties from the prototype
-  keys = keys.concat(vendorSpecificErrorProperties);
+  // Also include properties from the Error prototype
+  keys = keys.concat(errorPrototypeProperties);
 
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];
@@ -187,23 +203,81 @@ function errorToJSON() {
  *
  * @returns {string}
  */
-function errorToString() {
-  // jshint -W040
+function errorToString () {
   return JSON.stringify(this, null, 2).replace(/\\n/g, '\n');
 }
 
 /**
  * Extend the error stack to include its cause
+ *
+ * @param {Error} targetError
+ * @param {Error} sourceError
  */
-function extendStack(targetError, sourceError) {
-  if (hasLazyStack(sourceError)) {
-    extendStackProperty(targetError, sourceError);
+function extendStack (targetError, sourceError) {
+  if (hasLazyStack(targetError)) {
+    if (sourceError) {
+      lazyJoinStacks(targetError, sourceError);
+    }
+    else {
+      lazyPopStack(targetError);
+    }
   }
   else {
-    var stack = sourceError.stack;
-    if (stack) {
-      targetError.stack += ' \n\n' + sourceError.stack;
+    if (sourceError) {
+      targetError.stack = joinStacks(targetError.stack, sourceError.stack);
     }
+    else {
+      targetError.stack = popStack(targetError.stack);
+    }
+  }
+}
+
+/**
+ * Appends the original {@link Error#stack} property to the new Error's stack.
+ *
+ * @param {string} newStack
+ * @param {string} originalStack
+ * @returns {string}
+ */
+function joinStacks (newStack, originalStack) {
+  newStack = popStack(newStack);
+
+  if (newStack && originalStack) {
+    return newStack + '\n\n' + originalStack;
+  }
+  else {
+    return newStack || originalStack;
+  }
+}
+
+/**
+ * Removes Ono from the stack, so that the stack starts at the original error location
+ *
+ * @param {string} stack
+ * @returns {string}
+ */
+function popStack (stack) {
+  if (stack) {
+    var lines = stack.split('\n');
+
+    if (lines.length < 2) {
+      // The stack only has one line, so there's nothing we can remove
+      return stack;
+    }
+
+    // Find the `onoFactory` call in the stack, and remove it
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      if (line.indexOf('onoFactory') >= 0) {
+        lines.splice(i, 1);
+        return lines.join('\n');
+      }
+    }
+
+    // If we get here, then the stack doesn't contain a call to `onoFactory`.
+    // This may be due to minification or some optimization of the JS engine.
+    // So just return the stack as-is.
+    return stack;
   }
 }
 
@@ -211,7 +285,7 @@ function extendStack(targetError, sourceError) {
  * Does a one-time determination of whether this JavaScript engine
  * supports lazy `Error.stack` properties.
  */
-var supportsLazyStack = (function() {
+var supportsLazyStack = (function () {
   return !!(
     // ES5 property descriptors must be supported
     Object.getOwnPropertyDescriptor && Object.defineProperty &&
@@ -219,17 +293,19 @@ var supportsLazyStack = (function() {
     // Chrome on Android doesn't support lazy stacks :(
     (typeof navigator === 'undefined' || !/Android/.test(navigator.userAgent))
   );
-})();
+}());
 
 /**
  * Does this error have a lazy stack property?
  *
+ * @param {Error} err
  * @returns {boolean}
  */
-function hasLazyStack(err) {
+function hasLazyStack (err) {
   if (!supportsLazyStack) {
     return false;
   }
+
   var descriptor = Object.getOwnPropertyDescriptor(err, 'stack');
   if (!descriptor) {
     return false;
@@ -238,116 +314,41 @@ function hasLazyStack(err) {
 }
 
 /**
- * Extend the error stack to include its cause, lazily
+ * Calls {@link joinStacks} lazily, when the {@link Error#stack} property is accessed.
+ *
+ * @param {Error} targetError
+ * @param {Error} sourceError
  */
-function extendStackProperty(targetError, sourceError) {
-  var sourceStack = Object.getOwnPropertyDescriptor(sourceError, 'stack');
-  if (sourceStack) {
-    var targetStack = Object.getOwnPropertyDescriptor(targetError, 'stack');
-    Object.defineProperty(targetError, 'stack', {
-      get: function() {
-        return targetStack.get.apply(targetError) + ' \n\n' + sourceError.stack;
-      },
-      enumerable: false,
-      configurable: true
-    });
-  }
+function lazyJoinStacks (targetError, sourceError) {
+  var targetStack = Object.getOwnPropertyDescriptor(targetError, 'stack');
+
+  Object.defineProperty(targetError, 'stack', {
+    get: function () {
+      return joinStacks(targetStack.get.apply(targetError), sourceError.stack);
+    },
+    enumerable: false,
+    configurable: true
+  });
 }
 
-},{"util":8}],3:[function(require,module,exports){
-// shim for using process in browser
+/**
+ * Calls {@link popStack} lazily, when the {@link Error#stack} property is accessed.
+ *
+ * @param {Error} error
+ */
+function lazyPopStack (error) {
+  var targetStack = Object.getOwnPropertyDescriptor(error, 'stack');
 
-var process = module.exports = {};
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
+  Object.defineProperty(error, 'stack', {
+    get: function () {
+      return popStack(targetStack.get.apply(error));
+    },
+    enumerable: false,
+    configurable: true
+  });
 }
 
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = setTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    clearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],4:[function(require,module,exports){
+},{"format-util":1}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -433,7 +434,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -520,622 +521,26 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":4,"./encode":5}],7:[function(require,module,exports){
-module.exports = function isBuffer(arg) {
-  return arg && typeof arg === 'object'
-    && typeof arg.copy === 'function'
-    && typeof arg.fill === 'function'
-    && typeof arg.readUInt8 === 'function';
-}
-},{}],8:[function(require,module,exports){
-(function (process,global){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
+},{"./decode":3,"./encode":4}],6:[function(require,module,exports){
+'use strict';
 
-var formatRegExp = /%[sdj%]/g;
-exports.format = function(f) {
-  if (!isString(f)) {
-    var objects = [];
-    for (var i = 0; i < arguments.length; i++) {
-      objects.push(inspect(arguments[i]));
-    }
-    return objects.join(' ');
-  }
-
-  var i = 1;
-  var args = arguments;
-  var len = args.length;
-  var str = String(f).replace(formatRegExp, function(x) {
-    if (x === '%%') return '%';
-    if (i >= len) return x;
-    switch (x) {
-      case '%s': return String(args[i++]);
-      case '%d': return Number(args[i++]);
-      case '%j':
-        try {
-          return JSON.stringify(args[i++]);
-        } catch (_) {
-          return '[Circular]';
-        }
-      default:
-        return x;
-    }
-  });
-  for (var x = args[i]; i < len; x = args[++i]) {
-    if (isNull(x) || !isObject(x)) {
-      str += ' ' + x;
-    } else {
-      str += ' ' + inspect(x);
-    }
-  }
-  return str;
-};
-
-
-// Mark that a method should not be used.
-// Returns a modified function which warns once by default.
-// If --no-deprecation is set, then it is a no-op.
-exports.deprecate = function(fn, msg) {
-  // Allow for deprecating things in the process of starting up.
-  if (isUndefined(global.process)) {
-    return function() {
-      return exports.deprecate(fn, msg).apply(this, arguments);
-    };
-  }
-
-  if (process.noDeprecation === true) {
-    return fn;
-  }
-
-  var warned = false;
-  function deprecated() {
-    if (!warned) {
-      if (process.throwDeprecation) {
-        throw new Error(msg);
-      } else if (process.traceDeprecation) {
-        console.trace(msg);
-      } else {
-        console.error(msg);
-      }
-      warned = true;
-    }
-    return fn.apply(this, arguments);
-  }
-
-  return deprecated;
-};
-
-
-var debugs = {};
-var debugEnviron;
-exports.debuglog = function(set) {
-  if (isUndefined(debugEnviron))
-    debugEnviron = process.env.NODE_DEBUG || '';
-  set = set.toUpperCase();
-  if (!debugs[set]) {
-    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-      var pid = process.pid;
-      debugs[set] = function() {
-        var msg = exports.format.apply(exports, arguments);
-        console.error('%s %d: %s', set, pid, msg);
-      };
-    } else {
-      debugs[set] = function() {};
-    }
-  }
-  return debugs[set];
-};
-
-
-/**
- * Echos the value of a value. Trys to print the value out
- * in the best way possible given the different types.
- *
- * @param {Object} obj The object to print out.
- * @param {Object} opts Optional options object that alters the output.
- */
-/* legacy: obj, showHidden, depth, colors*/
-function inspect(obj, opts) {
-  // default options
-  var ctx = {
-    seen: [],
-    stylize: stylizeNoColor
-  };
-  // legacy...
-  if (arguments.length >= 3) ctx.depth = arguments[2];
-  if (arguments.length >= 4) ctx.colors = arguments[3];
-  if (isBoolean(opts)) {
-    // legacy...
-    ctx.showHidden = opts;
-  } else if (opts) {
-    // got an "options" object
-    exports._extend(ctx, opts);
-  }
-  // set default options
-  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-  if (isUndefined(ctx.depth)) ctx.depth = 2;
-  if (isUndefined(ctx.colors)) ctx.colors = false;
-  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-  if (ctx.colors) ctx.stylize = stylizeWithColor;
-  return formatValue(ctx, obj, ctx.depth);
-}
-exports.inspect = inspect;
-
-
-// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-inspect.colors = {
-  'bold' : [1, 22],
-  'italic' : [3, 23],
-  'underline' : [4, 24],
-  'inverse' : [7, 27],
-  'white' : [37, 39],
-  'grey' : [90, 39],
-  'black' : [30, 39],
-  'blue' : [34, 39],
-  'cyan' : [36, 39],
-  'green' : [32, 39],
-  'magenta' : [35, 39],
-  'red' : [31, 39],
-  'yellow' : [33, 39]
-};
-
-// Don't use 'blue' not visible on cmd.exe
-inspect.styles = {
-  'special': 'cyan',
-  'number': 'yellow',
-  'boolean': 'yellow',
-  'undefined': 'grey',
-  'null': 'bold',
-  'string': 'green',
-  'date': 'magenta',
-  // "name": intentionally not styling
-  'regexp': 'red'
-};
-
-
-function stylizeWithColor(str, styleType) {
-  var style = inspect.styles[styleType];
-
-  if (style) {
-    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
-           '\u001b[' + inspect.colors[style][1] + 'm';
-  } else {
-    return str;
-  }
-}
-
-
-function stylizeNoColor(str, styleType) {
-  return str;
-}
-
-
-function arrayToHash(array) {
-  var hash = {};
-
-  array.forEach(function(val, idx) {
-    hash[val] = true;
-  });
-
-  return hash;
-}
-
-
-function formatValue(ctx, value, recurseTimes) {
-  // Provide a hook for user-specified inspect functions.
-  // Check that value is an object with an inspect function on it
-  if (ctx.customInspect &&
-      value &&
-      isFunction(value.inspect) &&
-      // Filter out the util module, it's inspect function is special
-      value.inspect !== exports.inspect &&
-      // Also filter out any prototype objects using the circular check.
-      !(value.constructor && value.constructor.prototype === value)) {
-    var ret = value.inspect(recurseTimes, ctx);
-    if (!isString(ret)) {
-      ret = formatValue(ctx, ret, recurseTimes);
-    }
-    return ret;
-  }
-
-  // Primitive types cannot have properties
-  var primitive = formatPrimitive(ctx, value);
-  if (primitive) {
-    return primitive;
-  }
-
-  // Look up the keys of the object.
-  var keys = Object.keys(value);
-  var visibleKeys = arrayToHash(keys);
-
-  if (ctx.showHidden) {
-    keys = Object.getOwnPropertyNames(value);
-  }
-
-  // IE doesn't make error fields non-enumerable
-  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-  if (isError(value)
-      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-    return formatError(value);
-  }
-
-  // Some type of object without properties can be shortcutted.
-  if (keys.length === 0) {
-    if (isFunction(value)) {
-      var name = value.name ? ': ' + value.name : '';
-      return ctx.stylize('[Function' + name + ']', 'special');
-    }
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    }
-    if (isDate(value)) {
-      return ctx.stylize(Date.prototype.toString.call(value), 'date');
-    }
-    if (isError(value)) {
-      return formatError(value);
-    }
-  }
-
-  var base = '', array = false, braces = ['{', '}'];
-
-  // Make Array say that they are Array
-  if (isArray(value)) {
-    array = true;
-    braces = ['[', ']'];
-  }
-
-  // Make functions say that they are functions
-  if (isFunction(value)) {
-    var n = value.name ? ': ' + value.name : '';
-    base = ' [Function' + n + ']';
-  }
-
-  // Make RegExps say that they are RegExps
-  if (isRegExp(value)) {
-    base = ' ' + RegExp.prototype.toString.call(value);
-  }
-
-  // Make dates with properties first say the date
-  if (isDate(value)) {
-    base = ' ' + Date.prototype.toUTCString.call(value);
-  }
-
-  // Make error with message first say the error
-  if (isError(value)) {
-    base = ' ' + formatError(value);
-  }
-
-  if (keys.length === 0 && (!array || value.length == 0)) {
-    return braces[0] + base + braces[1];
-  }
-
-  if (recurseTimes < 0) {
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    } else {
-      return ctx.stylize('[Object]', 'special');
-    }
-  }
-
-  ctx.seen.push(value);
-
-  var output;
-  if (array) {
-    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-  } else {
-    output = keys.map(function(key) {
-      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-    });
-  }
-
-  ctx.seen.pop();
-
-  return reduceToSingleString(output, base, braces);
-}
-
-
-function formatPrimitive(ctx, value) {
-  if (isUndefined(value))
-    return ctx.stylize('undefined', 'undefined');
-  if (isString(value)) {
-    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-                                             .replace(/'/g, "\\'")
-                                             .replace(/\\"/g, '"') + '\'';
-    return ctx.stylize(simple, 'string');
-  }
-  if (isNumber(value))
-    return ctx.stylize('' + value, 'number');
-  if (isBoolean(value))
-    return ctx.stylize('' + value, 'boolean');
-  // For some reason typeof null is "object", so special case here.
-  if (isNull(value))
-    return ctx.stylize('null', 'null');
-}
-
-
-function formatError(value) {
-  return '[' + Error.prototype.toString.call(value) + ']';
-}
-
-
-function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  for (var i = 0, l = value.length; i < l; ++i) {
-    if (hasOwnProperty(value, String(i))) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          String(i), true));
-    } else {
-      output.push('');
-    }
-  }
-  keys.forEach(function(key) {
-    if (!key.match(/^\d+$/)) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          key, true));
-    }
-  });
-  return output;
-}
-
-
-function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-  var name, str, desc;
-  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-  if (desc.get) {
-    if (desc.set) {
-      str = ctx.stylize('[Getter/Setter]', 'special');
-    } else {
-      str = ctx.stylize('[Getter]', 'special');
-    }
-  } else {
-    if (desc.set) {
-      str = ctx.stylize('[Setter]', 'special');
-    }
-  }
-  if (!hasOwnProperty(visibleKeys, key)) {
-    name = '[' + key + ']';
-  }
-  if (!str) {
-    if (ctx.seen.indexOf(desc.value) < 0) {
-      if (isNull(recurseTimes)) {
-        str = formatValue(ctx, desc.value, null);
-      } else {
-        str = formatValue(ctx, desc.value, recurseTimes - 1);
-      }
-      if (str.indexOf('\n') > -1) {
-        if (array) {
-          str = str.split('\n').map(function(line) {
-            return '  ' + line;
-          }).join('\n').substr(2);
-        } else {
-          str = '\n' + str.split('\n').map(function(line) {
-            return '   ' + line;
-          }).join('\n');
-        }
-      }
-    } else {
-      str = ctx.stylize('[Circular]', 'special');
-    }
-  }
-  if (isUndefined(name)) {
-    if (array && key.match(/^\d+$/)) {
-      return str;
-    }
-    name = JSON.stringify('' + key);
-    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-      name = name.substr(1, name.length - 2);
-      name = ctx.stylize(name, 'name');
-    } else {
-      name = name.replace(/'/g, "\\'")
-                 .replace(/\\"/g, '"')
-                 .replace(/(^"|"$)/g, "'");
-      name = ctx.stylize(name, 'string');
-    }
-  }
-
-  return name + ': ' + str;
-}
-
-
-function reduceToSingleString(output, base, braces) {
-  var numLinesEst = 0;
-  var length = output.reduce(function(prev, cur) {
-    numLinesEst++;
-    if (cur.indexOf('\n') >= 0) numLinesEst++;
-    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-  }, 0);
-
-  if (length > 60) {
-    return braces[0] +
-           (base === '' ? '' : base + '\n ') +
-           ' ' +
-           output.join(',\n  ') +
-           ' ' +
-           braces[1];
-  }
-
-  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
-}
-
-
-// NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-function isArray(ar) {
-  return Array.isArray(ar);
-}
-exports.isArray = isArray;
-
-function isBoolean(arg) {
-  return typeof arg === 'boolean';
-}
-exports.isBoolean = isBoolean;
-
-function isNull(arg) {
-  return arg === null;
-}
-exports.isNull = isNull;
-
-function isNullOrUndefined(arg) {
-  return arg == null;
-}
-exports.isNullOrUndefined = isNullOrUndefined;
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-exports.isNumber = isNumber;
-
-function isString(arg) {
-  return typeof arg === 'string';
-}
-exports.isString = isString;
-
-function isSymbol(arg) {
-  return typeof arg === 'symbol';
-}
-exports.isSymbol = isSymbol;
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-exports.isUndefined = isUndefined;
-
-function isRegExp(re) {
-  return isObject(re) && objectToString(re) === '[object RegExp]';
-}
-exports.isRegExp = isRegExp;
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-exports.isObject = isObject;
-
-function isDate(d) {
-  return isObject(d) && objectToString(d) === '[object Date]';
-}
-exports.isDate = isDate;
-
-function isError(e) {
-  return isObject(e) &&
-      (objectToString(e) === '[object Error]' || e instanceof Error);
-}
-exports.isError = isError;
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-exports.isFunction = isFunction;
-
-function isPrimitive(arg) {
-  return arg === null ||
-         typeof arg === 'boolean' ||
-         typeof arg === 'number' ||
-         typeof arg === 'string' ||
-         typeof arg === 'symbol' ||  // ES6 symbol
-         typeof arg === 'undefined';
-}
-exports.isPrimitive = isPrimitive;
-
-exports.isBuffer = require('./support/isBuffer');
-
-function objectToString(o) {
-  return Object.prototype.toString.call(o);
-}
-
-
-function pad(n) {
-  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-}
-
-
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-              'Oct', 'Nov', 'Dec'];
-
-// 26 Feb 16:19:34
-function timestamp() {
-  var d = new Date();
-  var time = [pad(d.getHours()),
-              pad(d.getMinutes()),
-              pad(d.getSeconds())].join(':');
-  return [d.getDate(), months[d.getMonth()], time].join(' ');
-}
-
-
-// log is just a thin wrapper to console.log that prepends a timestamp
-exports.log = function() {
-  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-};
-
-
-/**
- * Inherit the prototype methods from one constructor into another.
- *
- * The Function.prototype.inherits from lang.js rewritten as a standalone
- * function (not on Function.prototype). NOTE: If this file is to be loaded
- * during bootstrapping this function needs to be rewritten using some native
- * functions as prototype setup using normal JavaScript does not work as
- * expected during bootstrapping (see mirror.js in r114903).
- *
- * @param {function} ctor Constructor function which needs to inherit the
- *     prototype.
- * @param {function} superCtor Constructor function to inherit prototype from.
- */
-exports.inherits = require('inherits');
-
-exports._extend = function(origin, add) {
-  // Don't do anything if add isn't an object
-  if (!add || !isObject(add)) return origin;
-
-  var keys = Object.keys(add);
-  var i = keys.length;
-  while (i--) {
-    origin[keys[i]] = add[keys[i]];
-  }
-  return origin;
-};
-
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"./support/isBuffer":7,"_process":3,"inherits":1}],9:[function(require,module,exports){
 var debug = location.hostname === 'localhost';
 
 /**
  * Initializes Google Analytics and sends a "pageview" hit
  */
-exports.init = function() {
+exports.init = function () {
   if (!debug) {
     ga('create', 'UA-68102273-1', 'auto');
     ga('send', 'pageview');
   }
-}
+};
 
 /**
  * Tracks an event in Google Analytics
@@ -1145,7 +550,7 @@ exports.init = function() {
  * @param {string} [label] - label for categorization
  * @param {number} [value] - numeric value, such as a counter
  */
-exports.trackEvent = function(category, action, label, value) {
+exports.trackEvent = function (category, action, label, value) {
   if (debug) {
     console.log('Reporting an event to Google Analytics: ', category, action, label, value);
   }
@@ -1159,23 +564,25 @@ exports.trackEvent = function(category, action, label, value) {
  *
  * @param {Error} err
  */
-exports.trackError = function(err) {
+exports.trackError = function (err) {
   if (debug) {
     console.error('Reporting an error to Google Analytics: ', err);
   }
   else {
-    ga('send', 'exception', {exDescription: err.message});
+    ga('send', 'exception', { exDescription: err.message });
   }
 };
 
-},{}],10:[function(require,module,exports){
-var form      = require('./form'),
+},{}],7:[function(require,module,exports){
+'use strict';
+
+var form = require('./form'),
     analytics = require('./analytics');
 
 /**
  * Adds all the drop-down menu functionality
  */
-exports.init = function() {
+exports.init = function () {
   // Update each dropdown's label when its value(s) change
   onChange(form.allow.menu, setAllowLabel);
   onChange(form.refs.menu, setRefsLabel);
@@ -1197,7 +604,7 @@ exports.init = function() {
 
   // Change the button text whenever a new method is selected
   setButtonLabel(form.method.button.val());
-  form.method.menu.find('a').on('click', function(event) {
+  form.method.menu.find('a').on('click', function (event) {
     form.method.menu.dropdown('toggle');
     event.stopPropagation();
     var methodName = $(this).data('value');
@@ -1213,11 +620,11 @@ exports.init = function() {
  * @param {jQuery} menu
  * @param {function} setLabel
  */
-function onChange(menu, setLabel) {
+function onChange (menu, setLabel) {
   var dropdown = menu.parent('.dropdown');
 
   // Don't auto-close the menu when items are clicked
-  menu.find('a').on('click', function(event) {
+  menu.find('a').on('click', function (event) {
     event.stopPropagation();
   });
 
@@ -1226,7 +633,7 @@ function onChange(menu, setLabel) {
   dropdown.on('hidden.bs.dropdown', setLabel);
 
   // Track when a dropdown menu is shown
-  dropdown.on('shown.bs.dropdown', function() {
+  dropdown.on('shown.bs.dropdown', function () {
     analytics.trackEvent('options', 'shown', menu.attr('id'));
   });
 }
@@ -1234,7 +641,7 @@ function onChange(menu, setLabel) {
 /**
  * Sets the "allow" label, based on which options are selected
  */
-function setAllowLabel() {
+function setAllowLabel () {
   var values = getCheckedAndUnchecked(
     form.allow.json, form.allow.yaml, form.allow.empty, form.allow.unknown);
 
@@ -1259,7 +666,7 @@ function setAllowLabel() {
 /**
  * Sets the "refs" label, based on which options are selected
  */
-function setRefsLabel() {
+function setRefsLabel () {
   var values = getCheckedAndUnchecked(form.refs.internal, form.refs.external, form.refs.circular);
 
   switch (values.checked.length) {
@@ -1280,7 +687,7 @@ function setRefsLabel() {
 /**
  * Sets the "validate" label, based on which options are selected
  */
-function setValidateLabel() {
+function setValidateLabel () {
   var values = getCheckedAndUnchecked(form.validate.schema, form.validate.spec);
 
   switch (values.checked.length) {
@@ -1298,7 +705,7 @@ function setValidateLabel() {
 /**
  * Sets the "cache" label, based on which values are entered
  */
-function setCacheLabel() {
+function setCacheLabel () {
   var http = form.cache.parse(form.cache.http.val());
   var https = form.cache.parse(form.cache.https.val());
 
@@ -1320,7 +727,7 @@ function setCacheLabel() {
  *
  * @param {string} methodName - The method name (e.g. "validate", "dereference", etc.)
  */
-function setButtonLabel(methodName) {
+function setButtonLabel (methodName) {
   form.method.button.val(methodName.toLowerCase());
   form.method.button.text(methodName[0].toUpperCase() + methodName.substr(1) + ' it!');
 }
@@ -1330,8 +737,8 @@ function setButtonLabel(methodName) {
  *
  * @param {jQuery} checkbox
  */
-function trackCheckbox(checkbox) {
-  checkbox.on('change', function() {
+function trackCheckbox (checkbox) {
+  checkbox.on('change', function () {
     var value = checkbox.is(':checked') ? 1 : 0;
     analytics.trackEvent('options', 'changed', checkbox.attr('name'), value);
   });
@@ -1342,8 +749,8 @@ function trackCheckbox(checkbox) {
  *
  * @param {jQuery} textbox
  */
-function trackTextbox(textbox) {
-  textbox.on('blur', function() {
+function trackTextbox (textbox) {
+  textbox.on('blur', function () {
     var value = form.cache.parse(textbox.val());
     analytics.trackEvent('options', 'changed', textbox.attr('name'), value);
   });
@@ -1354,7 +761,7 @@ function trackTextbox(textbox) {
  *
  * @param {string} methodName - The method name (e.g. "validate", "dereference", etc.)
  */
-function trackButtonLabel(methodName) {
+function trackButtonLabel (methodName) {
   var value = ['', 'parse', 'resolve', 'bundle', 'dereference', 'validate'].indexOf(methodName);
   analytics.trackEvent('options', 'changed', 'method', value);
 }
@@ -1365,7 +772,7 @@ function trackButtonLabel(methodName) {
  * @param {...jQuery} checkboxes
  * @returns {{checked: string[], unchecked: string[]}}
  */
-function getCheckedAndUnchecked(checkboxes) {
+function getCheckedAndUnchecked (checkboxes) {
   var checked = [], unchecked = [];
   for (var i = 0; i < arguments.length; i++) {
     var checkbox = arguments[i];
@@ -1376,18 +783,20 @@ function getCheckedAndUnchecked(checkboxes) {
       unchecked.push(checkbox.data('value'));
     }
   }
-  return {checked: checked, unchecked: unchecked};
+  return { checked: checked, unchecked: unchecked };
 }
 
-},{"./analytics":9,"./form":12}],11:[function(require,module,exports){
-var form      = require('./form'),
-    ono       = require('ono'),
+},{"./analytics":6,"./form":9}],8:[function(require,module,exports){
+'use strict';
+
+var form = require('./form'),
+    ono = require('ono'),
     ACE_THEME = 'ace/theme/terminal';
 
 /**
  * Initializes the ACE text editors
  */
-exports.init = function() {
+exports.init = function () {
   this.sampleAPI = form.sampleAPI = ace.edit('sample-api');
   form.sampleAPI.setTheme(ACE_THEME);
   var session = form.sampleAPI.getSession();
@@ -1402,7 +811,7 @@ exports.init = function() {
 /**
  * Removes all results tabs and editors
  */
-exports.clearResults = function() {
+exports.clearResults = function () {
   this.results.removeClass('error animated').addClass('hidden');
   this.tabs.children().remove();
   this.panes.children().remove();
@@ -1414,7 +823,7 @@ exports.clearResults = function() {
  * @param {string} title - The title of the tab
  * @param {object|string} content - An object that will be displayed as JSON in the editor
  */
-exports.showResult = function(title, content) {
+exports.showResult = function (title, content) {
   this.results.removeClass('hidden');
   this.addResult(title || 'Sample API', content);
   showResults();
@@ -1425,7 +834,7 @@ exports.showResult = function(title, content) {
  *
  * @param {Error} err
  */
-exports.showError = function(err) {
+exports.showError = function (err) {
   this.results.removeClass('hidden').addClass('error');
   this.addResult('Error!', err);
   showResults();
@@ -1437,7 +846,7 @@ exports.showError = function(err) {
  * @param {string} title - The title of the tab
  * @param {object|string} content - An object that will be displayed as JSON in the editor
  */
-exports.addResult = function(title, content) {
+exports.addResult = function (title, content) {
   var index = this.tabs.children().length;
   var titleId = 'results-tab-' + index + '-title';
   var editorId = 'results-' + index;
@@ -1477,7 +886,7 @@ exports.addResult = function(title, content) {
  * @param {string} title
  * @returns {string}
  */
-function getShortTitle(title) {
+function getShortTitle (title) {
   // Get just the file name
   var lastSlash = title.lastIndexOf('/');
   if (lastSlash !== -1) {
@@ -1495,13 +904,13 @@ function getShortTitle(title) {
 /**
  * Ensures that the results are visible, and plays an animation to get the user's attention.
  */
-function showResults() {
+function showResults () {
   var results = exports.results;
 
-  setTimeout(function() {
+  setTimeout(function () {
     results[0].scrollIntoView();
     results.addClass('animated')
-      .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function() {
+      .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () {
         // Remove the "animated" class when the animation ends,
         // so we can replay the animation again next time
         results.removeClass('animated');
@@ -1516,7 +925,7 @@ function showResults() {
  * @param {object} obj
  * @returns {object}
  */
-function toText(obj) {
+function toText (obj) {
   if (obj instanceof Error) {
     return {
       isJSON: false,
@@ -1539,11 +948,13 @@ function toText(obj) {
   }
 }
 
-},{"./form":12,"ono":2}],12:[function(require,module,exports){
+},{"./form":9,"ono":2}],9:[function(require,module,exports){
+'use strict';
+
 /**
  * Finds all form fields and exposes them as properties.
  */
-exports.init = function() {
+exports.init = function () {
   this.form = $('#swagger-parser-form');
 
   this.allow = {
@@ -1596,7 +1007,7 @@ exports.init = function() {
  * Returns a Swagger Parser options object,
  * set to the current values of all the form fields.
  */
-exports.getOptions = function() {
+exports.getOptions = function () {
   return {
     allow: {
       json: this.allow.json.is(':checked'),
@@ -1623,7 +1034,7 @@ exports.getOptions = function() {
 /**
  * Returns the Swagger API or URL, depending on the current form fields.
  */
-exports.getAPI = function() {
+exports.getAPI = function () {
   var url = this.url.val();
   if (url) {
     return url;
@@ -1647,20 +1058,22 @@ exports.getAPI = function() {
  * @param {string} val
  * @returns {number}
  */
-var parseCacheValue = function(val) {
+function parseCacheValue (val) {
   val = parseInt(val);
   return (isNaN(val) || !isFinite(val) || val < 1) ? 300 : val;
-};
+}
 
-},{}],13:[function(require,module,exports){
-var form        = require('./form'),
+},{}],10:[function(require,module,exports){
+'use strict';
+
+var form = require('./form'),
     querystring = require('./querystring'),
-    dropdowns   = require('./dropdowns'),
-    editors     = require('./editors'),
-    parser      = require('./parser'),
-    analytics   = require('./analytics');
+    dropdowns = require('./dropdowns'),
+    editors = require('./editors'),
+    parser = require('./parser'),
+    analytics = require('./analytics');
 
-$(function() {
+$(function () {
   form.init();
   querystring.init();
   dropdowns.init();
@@ -1669,26 +1082,28 @@ $(function() {
   analytics.init();
 });
 
-},{"./analytics":9,"./dropdowns":10,"./editors":11,"./form":12,"./parser":14,"./querystring":15}],14:[function(require,module,exports){
-var form      = require('./form'),
-    editors   = require('./editors'),
+},{"./analytics":6,"./dropdowns":7,"./editors":8,"./form":9,"./parser":11,"./querystring":12}],11:[function(require,module,exports){
+'use strict';
+
+var form = require('./form'),
+    editors = require('./editors'),
     analytics = require('./analytics'),
-    ono       = require('ono'),
-    parser    = null,
-    counters  = {parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0};
+    ono = require('ono'),
+    parser = null,
+    counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
 
 /**
  * Adds event handlers to trigger Swagger Parser methods
  */
-exports.init = function() {
+exports.init = function () {
   // When the form is submitted, parse the Swagger API
-  form.form.on('submit', function(event) {
+  form.form.on('submit', function (event) {
     event.preventDefault();
     parseSwagger();
   });
 
   // When the "x" button is clicked, discard the results and clear the cache
-  $('#clear').on('click', function() {
+  $('#clear').on('click', function () {
     parser = null;
     editors.clearResults();
     analytics.trackEvent('cache', 'clear');
@@ -1699,7 +1114,7 @@ exports.init = function() {
  * This function is called when the "Validate it!" button is clicked.
  * It calls Swagger Parser, passing it all the options selected on the form.
  */
-function parseSwagger() {
+function parseSwagger () {
   try {
     // Clear any previous results
     editors.clearResults();
@@ -1712,14 +1127,14 @@ function parseSwagger() {
 
     // Call Swagger Parser
     parser[method](api, options)
-      .then(function() {
+      .then(function () {
         // Show the results
         var results = parser.$refs.values();
-        Object.keys(results).forEach(function(key) {
+        Object.keys(results).forEach(function (key) {
           editors.showResult(key, results[key]);
         });
       })
-      .catch(function(err) {
+      .catch(function (err) {
         editors.showError(ono(err));
         analytics.trackError(err);
       });
@@ -1734,14 +1149,16 @@ function parseSwagger() {
   }
 }
 
-},{"./analytics":9,"./editors":11,"./form":12,"ono":2}],15:[function(require,module,exports){
+},{"./analytics":6,"./editors":8,"./form":9,"ono":2}],12:[function(require,module,exports){
+'use strict';
+
 var querystring = require('querystring'),
-    form        = require('./form');
+    form = require('./form');
 
 /**
  * Initializes the UI, based on the query-string in the URL
  */
-exports.init = function() {
+exports.init = function () {
   setFormFields();
   setBookmarkURL();
   form.bookmark.on('click focus mouseenter', setBookmarkURL);
@@ -1750,7 +1167,7 @@ exports.init = function() {
 /**
  * Populates all form fields based on the query-string in the URL
  */
-function setFormFields() {
+function setFormFields () {
   var query = querystring.parse(window.location.search.substr(1));
 
   setCheckbox(form.allow.json, query['allow-json']);
@@ -1779,7 +1196,7 @@ function setFormFields() {
       form.method.button.val(query.method);
     }
   }
-};
+}
 
 /**
  * Checks or unchecks the given checkbox, based on the given value.
@@ -1787,7 +1204,7 @@ function setFormFields() {
  * @param {jQuery} input
  * @param {*} value
  */
-function setCheckbox(input, value) {
+function setCheckbox (input, value) {
   if (!value || value === 'true' || value === 'on') {
     value = 'yes';
   }
@@ -1800,14 +1217,14 @@ function setCheckbox(input, value) {
  * @param {jQuery} input
  * @param {*} value
  */
-function setNumber(input, value) {
+function setNumber (input, value) {
   input.val(form.cache.parse(value));
 }
 
 /**
  * Sets the href of the bookmark link, based on the values of each form field
  */
-function setBookmarkURL() {
+function setBookmarkURL () {
   var query = {};
   var options = form.getOptions();
   options.allow.json || (query['allow-json'] = 'no');
@@ -1823,14 +1240,14 @@ function setBookmarkURL() {
   options.cache.https === 300 || (query['cache-https'] = options.cache.https);
 
   var method = form.method.button.val();
-  method === 'validate' || (query['method'] = method);
+  method === 'validate' || (query.method = method);
 
   var url = form.url.val();
-  url === '' || (query['url'] = url);
+  url === '' || (query.url = url);
 
   var bookmark = '?' + querystring.stringify(query);
   form.bookmark.attr('href', bookmark);
 }
 
-},{"./form":12,"querystring":6}]},{},[13])
+},{"./form":9,"querystring":5}]},{},[10])
 //# sourceMappingURL=bundle.js.map

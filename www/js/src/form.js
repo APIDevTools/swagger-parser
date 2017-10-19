@@ -1,7 +1,9 @@
+'use strict';
+
 /**
  * Finds all form fields and exposes them as properties.
  */
-exports.init = function() {
+exports.init = function () {
   this.form = $('#swagger-parser-form');
 
   this.allow = {
@@ -54,7 +56,7 @@ exports.init = function() {
  * Returns a Swagger Parser options object,
  * set to the current values of all the form fields.
  */
-exports.getOptions = function() {
+exports.getOptions = function () {
   return {
     allow: {
       json: this.allow.json.is(':checked'),
@@ -81,7 +83,7 @@ exports.getOptions = function() {
 /**
  * Returns the Swagger API or URL, depending on the current form fields.
  */
-exports.getAPI = function() {
+exports.getAPI = function () {
   var url = this.url.val();
   if (url) {
     return url;
@@ -105,7 +107,7 @@ exports.getAPI = function() {
  * @param {string} val
  * @returns {number}
  */
-var parseCacheValue = function(val) {
+function parseCacheValue (val) {
   val = parseInt(val);
   return (isNaN(val) || !isFinite(val) || val < 1) ? 300 : val;
-};
+}

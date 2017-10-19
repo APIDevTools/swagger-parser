@@ -1,14 +1,16 @@
+'use strict';
+
 var debug = location.hostname === 'localhost';
 
 /**
  * Initializes Google Analytics and sends a "pageview" hit
  */
-exports.init = function() {
+exports.init = function () {
   if (!debug) {
     ga('create', 'UA-68102273-1', 'auto');
     ga('send', 'pageview');
   }
-}
+};
 
 /**
  * Tracks an event in Google Analytics
@@ -18,7 +20,7 @@ exports.init = function() {
  * @param {string} [label] - label for categorization
  * @param {number} [value] - numeric value, such as a counter
  */
-exports.trackEvent = function(category, action, label, value) {
+exports.trackEvent = function (category, action, label, value) {
   if (debug) {
     console.log('Reporting an event to Google Analytics: ', category, action, label, value);
   }
@@ -32,11 +34,11 @@ exports.trackEvent = function(category, action, label, value) {
  *
  * @param {Error} err
  */
-exports.trackError = function(err) {
+exports.trackError = function (err) {
   if (debug) {
     console.error('Reporting an error to Google Analytics: ', err);
   }
   else {
-    ga('send', 'exception', {exDescription: err.message});
+    ga('send', 'exception', { exDescription: err.message });
   }
 };

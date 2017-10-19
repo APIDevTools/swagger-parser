@@ -1,10 +1,12 @@
+'use strict';
+
 var querystring = require('querystring'),
-    form        = require('./form');
+    form = require('./form');
 
 /**
  * Initializes the UI, based on the query-string in the URL
  */
-exports.init = function() {
+exports.init = function () {
   setFormFields();
   setBookmarkURL();
   form.bookmark.on('click focus mouseenter', setBookmarkURL);
@@ -13,7 +15,7 @@ exports.init = function() {
 /**
  * Populates all form fields based on the query-string in the URL
  */
-function setFormFields() {
+function setFormFields () {
   var query = querystring.parse(window.location.search.substr(1));
 
   setCheckbox(form.allow.json, query['allow-json']);
@@ -42,7 +44,7 @@ function setFormFields() {
       form.method.button.val(query.method);
     }
   }
-};
+}
 
 /**
  * Checks or unchecks the given checkbox, based on the given value.
@@ -50,7 +52,7 @@ function setFormFields() {
  * @param {jQuery} input
  * @param {*} value
  */
-function setCheckbox(input, value) {
+function setCheckbox (input, value) {
   if (!value || value === 'true' || value === 'on') {
     value = 'yes';
   }
@@ -63,14 +65,14 @@ function setCheckbox(input, value) {
  * @param {jQuery} input
  * @param {*} value
  */
-function setNumber(input, value) {
+function setNumber (input, value) {
   input.val(form.cache.parse(value));
 }
 
 /**
  * Sets the href of the bookmark link, based on the values of each form field
  */
-function setBookmarkURL() {
+function setBookmarkURL () {
   var query = {};
   var options = form.getOptions();
   options.allow.json || (query['allow-json'] = 'no');
@@ -86,10 +88,10 @@ function setBookmarkURL() {
   options.cache.https === 300 || (query['cache-https'] = options.cache.https);
 
   var method = form.method.button.val();
-  method === 'validate' || (query['method'] = method);
+  method === 'validate' || (query.method = method);
 
   var url = form.url.val();
-  url === '' || (query['url'] = url);
+  url === '' || (query.url = url);
 
   var bookmark = '?' + querystring.stringify(query);
   form.bookmark.attr('href', bookmark);

@@ -1,11 +1,13 @@
-var form      = require('./form'),
-    ono       = require('ono'),
+'use strict';
+
+var form = require('./form'),
+    ono = require('ono'),
     ACE_THEME = 'ace/theme/terminal';
 
 /**
  * Initializes the ACE text editors
  */
-exports.init = function() {
+exports.init = function () {
   this.sampleAPI = form.sampleAPI = ace.edit('sample-api');
   form.sampleAPI.setTheme(ACE_THEME);
   var session = form.sampleAPI.getSession();
@@ -20,7 +22,7 @@ exports.init = function() {
 /**
  * Removes all results tabs and editors
  */
-exports.clearResults = function() {
+exports.clearResults = function () {
   this.results.removeClass('error animated').addClass('hidden');
   this.tabs.children().remove();
   this.panes.children().remove();
@@ -32,7 +34,7 @@ exports.clearResults = function() {
  * @param {string} title - The title of the tab
  * @param {object|string} content - An object that will be displayed as JSON in the editor
  */
-exports.showResult = function(title, content) {
+exports.showResult = function (title, content) {
   this.results.removeClass('hidden');
   this.addResult(title || 'Sample API', content);
   showResults();
@@ -43,7 +45,7 @@ exports.showResult = function(title, content) {
  *
  * @param {Error} err
  */
-exports.showError = function(err) {
+exports.showError = function (err) {
   this.results.removeClass('hidden').addClass('error');
   this.addResult('Error!', err);
   showResults();
@@ -55,7 +57,7 @@ exports.showError = function(err) {
  * @param {string} title - The title of the tab
  * @param {object|string} content - An object that will be displayed as JSON in the editor
  */
-exports.addResult = function(title, content) {
+exports.addResult = function (title, content) {
   var index = this.tabs.children().length;
   var titleId = 'results-tab-' + index + '-title';
   var editorId = 'results-' + index;
@@ -95,7 +97,7 @@ exports.addResult = function(title, content) {
  * @param {string} title
  * @returns {string}
  */
-function getShortTitle(title) {
+function getShortTitle (title) {
   // Get just the file name
   var lastSlash = title.lastIndexOf('/');
   if (lastSlash !== -1) {
@@ -113,13 +115,13 @@ function getShortTitle(title) {
 /**
  * Ensures that the results are visible, and plays an animation to get the user's attention.
  */
-function showResults() {
+function showResults () {
   var results = exports.results;
 
-  setTimeout(function() {
+  setTimeout(function () {
     results[0].scrollIntoView();
     results.addClass('animated')
-      .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function() {
+      .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () {
         // Remove the "animated" class when the animation ends,
         // so we can replay the animation again next time
         results.removeClass('animated');
@@ -134,7 +136,7 @@ function showResults() {
  * @param {object} obj
  * @returns {object}
  */
-function toText(obj) {
+function toText (obj) {
   if (obj instanceof Error) {
     return {
       isJSON: false,
