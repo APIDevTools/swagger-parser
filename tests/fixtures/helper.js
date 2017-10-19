@@ -1,4 +1,4 @@
-(function() {
+(function () {
   'use strict';
 
   global.helper = {};
@@ -26,10 +26,10 @@
   /**
    * Throws an error if called.
    */
-  helper.shouldNotGetCalled = function shouldNotGetCalled(done) {
+  helper.shouldNotGetCalled = function shouldNotGetCalled (done) {
     var err = new Error('This function should not have gotten called.');
     if (typeof done === 'function') {
-      return function(err2) {
+      return function (err2) {
         if (err2 instanceof Error) {
           done(err2);
         }
@@ -52,7 +52,7 @@
    * @param {...*} [params] - Additional file paths and resolved values
    * @returns {Function}
    */
-  helper.testResolve = function testResolve(filePath, resolvedValue, params) {
+  helper.testResolve = function testResolve (filePath, resolvedValue, params) {
     var schemaFile = path.rel(arguments[0]);
     var parsedSchema = arguments[1];
     var expectedFiles = [], expectedValues = [];
@@ -61,11 +61,11 @@
       expectedValues.push(arguments[++i]);
     }
 
-    return function(done) {
+    return function (done) {
       var parser = new SwaggerParser();
       parser
         .resolve(schemaFile)
-        .then(function($refs) {
+        .then(function ($refs) {
           expect(parser.api).to.deep.equal(parsedSchema);
           expect(parser.$refs).to.equal($refs);
 
@@ -83,7 +83,7 @@
           // Resolved values
           var values = $refs.values();
           expect(values).to.have.keys(expectedFiles);
-          expectedFiles.forEach(function(file, i) {
+          expectedFiles.forEach(function (file, i) {
             var actual = helper.convertNodeBuffersToPOJOs(values[file]);
             var expected = expectedValues[i];
             expect(actual).to.deep.equal(expected, file);
@@ -98,14 +98,14 @@
   /**
    * Converts Buffer objects to POJOs, so they can be compared using Chai
    */
-  helper.convertNodeBuffersToPOJOs = function convertNodeBuffersToPOJOs(value) {
+  helper.convertNodeBuffersToPOJOs = function convertNodeBuffersToPOJOs (value) {
     if (value && (value._isBuffer || (value.constructor && value.constructor.name === 'Buffer'))) {
       // Convert Buffers to POJOs for comparison
       value = value.toJSON();
 
       if (userAgent.isNode && /v0\.10/.test(process.version)) {
         // Node v0.10 serializes buffers differently
-        value = {type: 'Buffer', data: value};
+        value = { type: 'Buffer', data: value };
       }
     }
     return value;
@@ -114,7 +114,7 @@
   /**
    * Creates a deep clone of the given value.
    */
-  helper.cloneDeep = function cloneDeep(value) {
+  helper.cloneDeep = function cloneDeep (value) {
     var clone = value;
     if (value && typeof value === 'object') {
       clone = value instanceof Array ? [] : {};

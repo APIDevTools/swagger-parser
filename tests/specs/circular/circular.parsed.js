@@ -1,145 +1,145 @@
 helper.parsed.circularExternal =
 {
   api: {
-    "info": {
-      "version": "1.0.0",
-      "description": "This API contains circular (recursive) JSON references",
-      "title": "Circular $Refs"
+    info: {
+      version: '1.0.0',
+      description: 'This API contains circular (recursive) JSON references',
+      title: 'Circular $Refs'
     },
-    "paths": {
-      "/parent": {
-        "get": {
-          "responses": {
-            "200": {
-              "description": "Returns a parent",
-              "schema": {
-                "$ref": "#/definitions/parent"
+    paths: {
+      '/parent': {
+        get: {
+          responses: {
+            200: {
+              description: 'Returns a parent',
+              schema: {
+                $ref: '#/definitions/parent'
               }
             }
           }
         }
       },
-      "/pet": {
-        "get": {
-          "responses": {
-            "200": {
-              "description": "Returns a pet",
-              "schema": {
-                "$ref": "#/definitions/pet"
+      '/pet': {
+        get: {
+          responses: {
+            200: {
+              description: 'Returns a pet',
+              schema: {
+                $ref: '#/definitions/pet'
               }
             }
           }
         }
       },
-      "/thing": {
-        "get": {
-          "responses": {
-            "200": {
-              "description": "Returns a thing",
-              "schema": {
-                "$ref": "#/definitions/thing"
+      '/thing': {
+        get: {
+          responses: {
+            200: {
+              description: 'Returns a thing',
+              schema: {
+                $ref: '#/definitions/thing'
               }
             }
           }
         }
       },
-      "/person": {
-        "get": {
-          "responses": {
-            "200": {
-              "description": "Returns a person",
-              "schema": {
-                "$ref": "#/definitions/person"
+      '/person': {
+        get: {
+          responses: {
+            200: {
+              description: 'Returns a person',
+              schema: {
+                $ref: '#/definitions/person'
               }
             }
           }
         }
       }
     },
-    "swagger": "2.0",
-    "definitions": {
-      "pet": {
-        "$ref": "definitions/pet.yaml"
+    swagger: '2.0',
+    definitions: {
+      pet: {
+        $ref: 'definitions/pet.yaml'
       },
-      "thing": {
-        "$ref": "circular.yaml#/definitions/thing"
+      thing: {
+        $ref: 'circular.yaml#/definitions/thing'
       },
-      "person": {
-        "$ref": "definitions/person.yaml"
+      person: {
+        $ref: 'definitions/person.yaml'
       },
-      "parent": {
-        "$ref": "definitions/parent.yaml"
+      parent: {
+        $ref: 'definitions/parent.yaml'
       },
-      "child": {
-        "$ref": "definitions/child.yaml"
+      child: {
+        $ref: 'definitions/child.yaml'
       }
     }
   },
 
   pet: {
-    "type": "object",
-    "properties": {
-      "age": {
-        "type": "number"
+    type: 'object',
+    properties: {
+      age: {
+        type: 'number'
       },
-      "name": {
-        "type": "string"
+      name: {
+        type: 'string'
       },
-      "species": {
-        "enum": [
-          "cat",
-          "dog",
-          "bird",
-          "fish"
+      species: {
+        enum: [
+          'cat',
+          'dog',
+          'bird',
+          'fish'
         ],
-        "type": "string"
+        type: 'string'
       }
     },
-    "title": "pet"
+    title: 'pet'
   },
 
   child: {
-    "type": "object",
-    "properties": {
-      "parents": {
-        "items": {
-          "$ref": "parent.yaml"
+    type: 'object',
+    properties: {
+      parents: {
+        items: {
+          $ref: 'parent.yaml'
         },
-        "type": "array"
+        type: 'array'
       },
-      "name": {
-        "type": "string"
+      name: {
+        type: 'string'
       }
     },
-    "title": "child"
+    title: 'child'
   },
 
   parent: {
-    "type": "object",
-    "properties": {
-      "name": {
-        "type": "string"
+    type: 'object',
+    properties: {
+      name: {
+        type: 'string'
       },
-      "children": {
-        "items": {
-          "$ref": "child.yaml"
+      children: {
+        items: {
+          $ref: 'child.yaml'
         },
-        "type": "array"
+        type: 'array'
       }
     },
-    "title": "parent"
+    title: 'parent'
   },
 
   person: {
-    "type": "object",
-    "properties": {
-      "spouse": {
-        "$ref": "person.yaml"
+    type: 'object',
+    properties: {
+      spouse: {
+        $ref: 'person.yaml'
       },
-      "name": {
-        "type": "string"
+      name: {
+        type: 'string'
       }
     },
-    "title": "person"
+    title: 'person'
   }
 };

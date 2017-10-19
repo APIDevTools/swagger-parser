@@ -1,5 +1,5 @@
 // Mocha configuration
-(function() {
+(function () {
   'use strict';
 
   if (userAgent.isBrowser) {
@@ -10,7 +10,7 @@
     mocha.globals(['$0', '$1', '$2', '$3', '$4', '$5', 'ga', 'gaplugins', 'gaGlobal']);
   }
 
-  beforeEach(function() {
+  beforeEach(function () {
     // Flag TravisCI and SauceLabs as being very slow environments
     var isSlowEnvironment = userAgent.isTravisCI || userAgent.isKarma;
 

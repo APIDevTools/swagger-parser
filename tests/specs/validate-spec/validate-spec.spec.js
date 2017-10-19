@@ -1,6 +1,6 @@
-'use strict';
+describe('Invalid APIs (Swagger 2.0 specification validation)', function () {
+  'use strict';
 
-describe('Invalid APIs (Swagger 2.0 specification validation)', function() {
   var tests = [
     {
       name: 'invalid response code',
@@ -100,38 +100,38 @@ describe('Invalid APIs (Swagger 2.0 specification validation)', function() {
     }
   ];
 
-  it('should pass validation if "options.validate.spec" is false', function() {
+  it('should pass validation if "options.validate.spec" is false', function () {
     var invalid = tests[0];
     expect(invalid.valid).to.be.false;
 
     return SwaggerParser
-      .validate(path.rel('specs/validate-spec/invalid/' + invalid.file), {validate: {spec: false}})
-      .then(function(api) {
+      .validate(path.rel('specs/validate-spec/invalid/' + invalid.file), { validate: { spec: false }})
+      .then(function (api) {
         expect(api).to.be.an('object').and.ok;
       });
   });
 
-  tests.forEach(function(test) {
+  tests.forEach(function (test) {
     if (test.valid) {
-      it(test.name, function() {
+      it(test.name, function () {
         return SwaggerParser
           .validate(path.rel('specs/validate-spec/valid/' + test.file))
-          .then(function(api) {
+          .then(function (api) {
             expect(api).to.be.an('object').and.ok;
           })
-          .catch(function(err) {
+          .catch(function (err) {
             throw new Error('Validation should have succeeded, but it failed!\n' + err.stack);
           });
       });
     }
     else {
-      it(test.name, function() {
+      it(test.name, function () {
         return SwaggerParser
           .validate(path.rel('specs/validate-spec/invalid/' + test.file))
-          .then(function(api) {
+          .then(function (api) {
             throw new Error('Validation should have failed, but it succeeded!');
           })
-          .catch(function(err) {
+          .catch(function (err) {
             expect(err).to.be.an.instanceOf(SyntaxError);
             expect(err.message).to.equal(test.error);
             expect(err.message).to.match(/^Validation failed. \S+/);

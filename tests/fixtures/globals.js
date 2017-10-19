@@ -6,7 +6,7 @@
  *  - Some of our devDependencies have separate packages packages for Node vs. Browser (e.g. Mocha, Sinon)
  *  - This reduces redundant boilerplate code in the .spec files
  */
-(function() {
+(function () {
   'use strict';
 
   if (typeof window === 'object') {

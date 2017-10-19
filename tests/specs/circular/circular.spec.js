@@ -1,11 +1,11 @@
-'use strict';
+describe('API with circular (recursive) $refs', function () {
+  'use strict';
 
-describe('API with circular (recursive) $refs', function() {
-  it('should parse successfully', function() {
+  it('should parse successfully', function () {
     var parser = new SwaggerParser();
     return parser
       .parse(path.rel('specs/circular/circular.yaml'))
-      .then(function(api) {
+      .then(function (api) {
         expect(api).to.equal(parser.api);
         expect(api).to.deep.equal(helper.parsed.circularExternal.api);
         expect(parser.$refs.paths()).to.deep.equal([path.abs('specs/circular/circular.yaml')]);
@@ -20,11 +20,11 @@ describe('API with circular (recursive) $refs', function() {
     'specs/circular/definitions/person.yaml', helper.parsed.circularExternal.person
   ));
 
-  it('should dereference successfully', function() {
+  it('should dereference successfully', function () {
     var parser = new SwaggerParser();
     return parser
       .dereference(path.rel('specs/circular/circular.yaml'))
-      .then(function(api) {
+      .then(function (api) {
         expect(api).to.equal(parser.api);
         expect(api).to.deep.equal(helper.dereferenced.circularExternal);
 
@@ -35,11 +35,11 @@ describe('API with circular (recursive) $refs', function() {
       });
   });
 
-  it('should validate successfully', function() {
+  it('should validate successfully', function () {
     var parser = new SwaggerParser();
     return parser
       .validate(path.rel('specs/circular/circular.yaml'))
-      .then(function(api) {
+      .then(function (api) {
         expect(api).to.equal(parser.api);
         expect(api).to.deep.equal(helper.validated.circularExternal.fullyDereferenced);
 
@@ -50,11 +50,11 @@ describe('API with circular (recursive) $refs', function() {
       });
   });
 
-  it('should not dereference circular $refs if "options.$refs.circular" is "ignore"', function() {
+  it('should not dereference circular $refs if "options.$refs.circular" is "ignore"', function () {
     var parser = new SwaggerParser();
     return parser
-      .validate(path.rel('specs/circular/circular.yaml'), {$refs: {circular: 'ignore'}})
-      .then(function(api) {
+      .validate(path.rel('specs/circular/circular.yaml'), { $refs: { circular: 'ignore' }})
+      .then(function (api) {
         expect(api).to.equal(parser.api);
         expect(api).to.deep.equal(helper.validated.circularExternal.ignoreCircular$Refs);
 
@@ -63,22 +63,22 @@ describe('API with circular (recursive) $refs', function() {
       });
   });
 
-  it('should fail validation if "options.$refs.circular" is false', function() {
+  it('should fail validation if "options.$refs.circular" is false', function () {
     var parser = new SwaggerParser();
     return parser
-      .validate(path.rel('specs/circular/circular.yaml'), {$refs: {circular: false}})
+      .validate(path.rel('specs/circular/circular.yaml'), { $refs: { circular: false }})
       .then(helper.shouldNotGetCalled)
-      .catch(function(err) {
+      .catch(function (err) {
         expect(err).to.be.an.instanceOf(ReferenceError);
         expect(err.message).to.equal('The API contains circular references');
       });
   });
 
-  it('should bundle successfully', function() {
+  it('should bundle successfully', function () {
     var parser = new SwaggerParser();
     return parser
       .bundle(path.rel('specs/circular/circular.yaml'))
-      .then(function(api) {
+      .then(function (api) {
         expect(api).to.equal(parser.api);
         expect(api).to.deep.equal(helper.bundled.circularExternal);
       });

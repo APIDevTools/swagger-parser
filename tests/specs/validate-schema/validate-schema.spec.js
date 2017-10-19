@@ -1,6 +1,6 @@
-'use strict';
+describe('Invalid APIs (Swagger 2.0 schema validation)', function () {
+  'use strict';
 
-describe('Invalid APIs (Swagger 2.0 schema validation)', function() {
   var tests = [
     {
       name: 'invalid response code',
@@ -100,38 +100,38 @@ describe('Invalid APIs (Swagger 2.0 schema validation)', function() {
     },
   ];
 
-  it('should pass validation if "options.validate.schema" is false', function() {
+  it('should pass validation if "options.validate.schema" is false', function () {
     var invalid = tests[0];
     expect(invalid.valid).to.be.false;
 
     return SwaggerParser
-      .validate(path.rel('specs/validate-schema/invalid/' + invalid.file), {validate: {schema: false}})
-      .then(function(api) {
+      .validate(path.rel('specs/validate-schema/invalid/' + invalid.file), { validate: { schema: false }})
+      .then(function (api) {
         expect(api).to.be.an('object').and.ok;
       });
   });
 
-  tests.forEach(function(test) {
+  tests.forEach(function (test) {
     if (test.valid) {
-      it(test.name, function() {
+      it(test.name, function () {
         return SwaggerParser
           .validate(path.rel('specs/validate-schema/valid/' + test.file))
-          .then(function(api) {
+          .then(function (api) {
             expect(api).to.be.an('object').and.ok;
           })
-          .catch(function(err) {
+          .catch(function (err) {
             throw new Error('Validation should have succeeded, but it failed!\n' + err.stack);
           });
       });
     }
     else {
-      it(test.name, function() {
+      it(test.name, function () {
         return SwaggerParser
           .validate(path.rel('specs/validate-schema/invalid/' + test.file))
-          .then(function(api) {
+          .then(function (api) {
             throw new Error('Validation should have failed, but it succeeded!');
           })
-          .catch(function(err) {
+          .catch(function (err) {
             expect(err).to.be.an.instanceOf(SyntaxError);
             expect(err.message).to.match(/^Swagger schema validation failed. \n  \w+/);
             expect(err.details).to.be.an('array').with.length.above(0);
