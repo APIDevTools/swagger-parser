@@ -1,7 +1,7 @@
 `SwaggerParser` class
 ==========================
 
-This is the default export of Swagger Parser.  You can creates instances of this class using `new SwaggerParser()`, or you can just call its [static methods](README.md#class-methods-vs-instance-methods).
+This is the default export of Swagger Parser.  You can create instances of this class using `new SwaggerParser()`, or you can just call its [static methods](README.md#class-methods-vs-instance-methods).
 
 ##### Properties
 - [`api`](#api)
