@@ -1,17 +1,19 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.SwaggerParser = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/** !
- * Swagger Parser v3.4.0
- *
- * @link https://github.com/BigstickCarpet/swagger-parser
+/*!
+ * Swagger Parser v4.0.0-beta.2 (October 19th 2017)
+ * 
+ * https://bigstickcarpet.github.io/swagger-parser
+ * 
+ * @author  James Messinger (http://jamesmessinger.com)
  * @license MIT
  */
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.SwaggerParser = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
-var validateSchema = require('./validate-schema'),
-    validateSpec = require('./validate-spec'),
+var validateSchema = require('./validators/schema'),
+    validateSpec = require('./validators/spec'),
+    normalizeArgs = require('json-schema-ref-parser/lib/normalize-args'),
     util = require('./util'),
     Options = require('./options'),
-    Promise = require('./promise'),
     maybe = require('call-me-maybe'),
     ono = require('ono'),
     $RefParser = require('json-schema-ref-parser'),
@@ -53,27 +55,23 @@ Object.defineProperty(SwaggerParser.prototype, 'api', {
  * This method does not resolve any JSON references.
  * It just reads a single file in JSON or YAML format, and parse it as a JavaScript object.
  *
- * @param {string|object} api - The file path or URL of the Swagger API. Or a Swagger object.
+ * @param {string} [path] - The file path or URL of the JSON schema
+ * @param {object} [api] - The Swagger API object. This object will be used instead of reading from `path`.
  * @param {ParserOptions} [options] - Options that determine how the API is parsed
  * @param {function} [callback] - An error-first callback. The second parameter is the parsed API object.
  * @returns {Promise} - The returned promise resolves with the parsed API object.
  */
-SwaggerParser.prototype.parse = function (api, options, callback) {
-  if (typeof options === 'function') {
-    callback = options;
-    options = undefined;
-  }
+SwaggerParser.prototype.parse = function (path, api, options, callback) {
+  var args = normalizeArgs(arguments);
+  args.options = new Options(args.options);
 
-  options = new Options(options);
-  var apiParam = api;
-
-  return $RefParser.prototype.parse.call(this, api, options)
+  return $RefParser.prototype.parse.call(this, args.path, args.schema, args.options)
     .then(function (schema) {
       var supportedSwaggerVersions = ['2.0'];
 
       // Verify that the parsed object is a Swagger API
       if (schema.swagger === undefined || schema.info === undefined || schema.paths === undefined) {
-        throw ono.syntax('%s is not a valid Swagger API definition', apiParam);
+        throw ono.syntax('%s is not a valid Swagger API definition', args.path || args.schema);
       }
       else if (typeof schema.swagger === 'number') {
         // This is a very common mistake, so give a helpful error message
@@ -90,10 +88,10 @@ SwaggerParser.prototype.parse = function (api, options, callback) {
       }
 
       // Looks good!
-      return maybe(callback, Promise.resolve(schema));
+      return maybe(args.callback, Promise.resolve(schema));
     })
     .catch(function (err) {
-      return maybe(callback, Promise.reject(err));
+      return maybe(args.callback, Promise.reject(err));
     });
 };
 
@@ -101,45 +99,44 @@ SwaggerParser.prototype.parse = function (api, options, callback) {
  * Parses, dereferences, and validates the given Swagger API.
  * Depending on the options, validation can include JSON Schema validation and/or Swagger Spec validation.
  *
- * @param {string|object} api - The file path or URL of the Swagger API. Or a Swagger object.
+ * @param {string} [path] - The file path or URL of the JSON schema
+ * @param {object} [api] - The Swagger API object. This object will be used instead of reading from `path`.
  * @param {ParserOptions} [options] - Options that determine how the API is parsed, dereferenced, and validated
  * @param {function} [callback] - An error-first callback. The second parameter is the parsed API object.
  * @returns {Promise} - The returned promise resolves with the parsed API object.
  */
-SwaggerParser.validate = function (api, options, callback) {
+SwaggerParser.validate = function (path, api, options, callback) {
   var Class = this; // eslint-disable-line consistent-this
-  return new Class().validate(api, options, callback);
+  var instance = new Class();
+  return instance.validate.apply(instance, arguments);
 };
 
 /**
  * Parses, dereferences, and validates the given Swagger API.
  * Depending on the options, validation can include JSON Schema validation and/or Swagger Spec validation.
  *
- * @param {string|object} api - The file path or URL of the Swagger API. Or a Swagger object.
+ * @param {string} [path] - The file path or URL of the JSON schema
+ * @param {object} [api] - The Swagger API object. This object will be used instead of reading from `path`.
  * @param {ParserOptions} [options] - Options that determine how the API is parsed, dereferenced, and validated
  * @param {function} [callback] - An error-first callback. The second parameter is the parsed API object.
  * @returns {Promise} - The returned promise resolves with the parsed API object.
  */
-SwaggerParser.prototype.validate = function (api, options, callback) {
-  if (typeof options === 'function') {
-    callback = options;
-    options = undefined;
-  }
-
-  options = new Options(options);
+SwaggerParser.prototype.validate = function (path, api, options, callback) {
   var me = this;
+  var args = normalizeArgs(arguments);
+  args.options = new Options(args.options);
 
   // ZSchema doesn't support circular objects, so don't dereference circular $refs yet
   // (see https://github.com/zaggino/z-schema/issues/137)
-  var circular$RefOption = options.$refs.circular;
-  options.validate.schema && (options.$refs.circular = 'ignore');
+  var circular$RefOption = args.options.dereference.circular;
+  args.options.validate.schema && (args.options.dereference.circular = 'ignore');
 
-  return this.dereference(api, options)
+  return this.dereference(args.path, args.schema, args.options)
     .then(function () {
       // Restore the original options, now that we're done dereferencing
-      options.$refs.circular = circular$RefOption;
+      args.options.dereference.circular = circular$RefOption;
 
-      if (options.validate.schema) {
+      if (args.options.validate.schema) {
         // Validate the API against the Swagger schema
         // NOTE: This is safe to do, because we haven't dereferenced circular $refs yet
         validateSchema(me.api);
@@ -148,7 +145,7 @@ SwaggerParser.prototype.validate = function (api, options, callback) {
           if (circular$RefOption === true) {
             // The API has circular references,
             // so we need to do a second-pass to fully-dereference it
-            dereference(me, options);
+            dereference(me, args.options);
           }
           else if (circular$RefOption === false) {
             // The API has circular references, and they're not allowed, so throw an error
@@ -157,15 +154,15 @@ SwaggerParser.prototype.validate = function (api, options, callback) {
         }
       }
 
-      if (options.validate.spec) {
+      if (args.options.validate.spec) {
         // Validate the API against the Swagger spec
         validateSpec(me.api);
       }
 
-      return maybe(callback, Promise.resolve(me.schema));
+      return maybe(args.callback, Promise.resolve(me.schema));
     })
     .catch(function (err) {
-      return maybe(callback, Promise.reject(err));
+      return maybe(args.callback, Promise.reject(err));
     });
 };
 
@@ -176,39 +173,44 @@ SwaggerParser.prototype.validate = function (api, options, callback) {
  * @typedef {{swagger: string, info: {}, paths: {}}} SwaggerObject
  */
 
-},{"./options":2,"./promise":3,"./util":4,"./validate-schema":5,"./validate-spec":6,"call-me-maybe":12,"json-schema-ref-parser":56,"json-schema-ref-parser/lib/dereference":55,"ono":74}],2:[function(require,module,exports){
+},{"./options":2,"./util":3,"./validators/schema":4,"./validators/spec":5,"call-me-maybe":10,"json-schema-ref-parser":53,"json-schema-ref-parser/lib/dereference":52,"json-schema-ref-parser/lib/normalize-args":54,"ono":75}],2:[function(require,module,exports){
 'use strict';
 
 var $RefParserOptions = require('json-schema-ref-parser/lib/options'),
+    schemaValidator = require('./validators/schema'),
+    specValidator = require('./validators/spec'),
     util = require('util');
 
 module.exports = ParserOptions;
 
 /**
- * Options that determine how Swagger APIs are parsed, dereferenced, cached, and validated.
+ * Options that determine how Swagger APIs are parsed, resolved, dereferenced, and validated.
  *
  * @param {object|ParserOptions} [options] - Overridden options
  * @constructor
  * @extends $RefParserOptions
  */
 function ParserOptions (options) {
-  this.validate = {
-    schema: true,
-    spec: true
-  };
-
+  $RefParserOptions.call(this, ParserOptions.defaults);
   $RefParserOptions.apply(this, arguments);
 }
 
+ParserOptions.defaults = {
+  /**
+   * Determines how the API definition will be validated.
+   *
+   * You can add additional validators of your own, replace an existing one with
+   * your own implemenation, or disable any validator by setting it to false.
+   */
+  validate: {
+    schema: schemaValidator,
+    spec: specValidator,
+  },
+};
+
 util.inherits(ParserOptions, $RefParserOptions);
 
-},{"json-schema-ref-parser/lib/options":57,"util":104}],3:[function(require,module,exports){
-'use strict';
-
-/** @type {Promise} **/
-module.exports = typeof Promise === 'function' ? Promise : require('es6-promise').Promise;
-
-},{"es6-promise":16}],4:[function(require,module,exports){
+},{"./validators/schema":4,"./validators/spec":5,"json-schema-ref-parser/lib/options":55,"util":105}],3:[function(require,module,exports){
 'use strict';
 
 var debug = require('debug'),
@@ -229,10 +231,10 @@ exports.debug = debug('swagger:parser');
  */
 exports.swaggerParamRegExp = /\{([^/}]+)}/g;
 
-},{"debug":14,"util":104}],5:[function(require,module,exports){
+},{"debug":12,"util":105}],4:[function(require,module,exports){
 'use strict';
 
-var util = require('./util'),
+var util = require('../util'),
     ono = require('ono'),
     ZSchema = require('z-schema'),
     swaggerSchema = require('swagger-schema-official/schema.json');
@@ -294,10 +296,10 @@ function formatZSchemaError (errors, indent) {
   return message;
 }
 
-},{"./util":4,"ono":74,"swagger-schema-official/schema.json":97,"z-schema":180}],6:[function(require,module,exports){
+},{"../util":3,"ono":75,"swagger-schema-official/schema.json":98,"z-schema":184}],5:[function(require,module,exports){
 'use strict';
 
-var util = require('./util'),
+var util = require('../util'),
     ono = require('ono'),
     swaggerMethods = require('swagger-methods'),
     primitiveTypes = ['array', 'boolean', 'integer', 'number', 'string'],
@@ -345,7 +347,7 @@ function validatePath (api, path, pathId) {
       responses.forEach(function (responseName) {
         var response = operation.responses[responseName];
         var responseId = operationId + '/responses/' + responseName;
-        validateResponse(responseName, response, responseId);
+        validateResponse(responseName, (response || {}), responseId);
       });
     }
   });
@@ -579,7 +581,7 @@ function validateSchema (schema, schemaId, validTypes) {
   }
 }
 
-},{"./util":4,"ono":74,"swagger-methods":96}],7:[function(require,module,exports){
+},{"../util":3,"ono":75,"swagger-methods":97}],6:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -695,16 +697,13 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
-},{}],9:[function(require,module,exports){
-arguments[4][8][0].apply(exports,arguments)
-},{"dup":8}],10:[function(require,module,exports){
-(function (global){
+},{}],8:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
- * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @author   Feross Aboukhadijeh <https://feross.org>
  * @license  MIT
  */
 /* eslint-disable no-proto */
@@ -713,80 +712,57 @@ arguments[4][8][0].apply(exports,arguments)
 
 var base64 = require('base64-js')
 var ieee754 = require('ieee754')
-var isArray = require('isarray')
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
 exports.INSPECT_MAX_BYTES = 50
 
+var K_MAX_LENGTH = 0x7fffffff
+exports.kMaxLength = K_MAX_LENGTH
+
 /**
  * If `Buffer.TYPED_ARRAY_SUPPORT`:
  *   === true    Use Uint8Array implementation (fastest)
- *   === false   Use Object implementation (most compatible, even IE6)
+ *   === false   Print warning and recommend using `buffer` v4.x which has an Object
+ *               implementation (most compatible, even IE6)
  *
  * Browsers that support typed arrays are IE 10+, Firefox 4+, Chrome 7+, Safari 5.1+,
  * Opera 11.6+, iOS 4.2+.
  *
- * Due to various browser bugs, sometimes the Object implementation will be used even
- * when the browser supports typed arrays.
- *
- * Note:
- *
- *   - Firefox 4-29 lacks support for adding new properties to `Uint8Array` instances,
- *     See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438.
- *
- *   - Chrome 9-10 is missing the `TypedArray.prototype.subarray` function.
- *
- *   - IE10 has a broken `TypedArray.prototype.subarray` function which returns arrays of
- *     incorrect length in some situations.
-
- * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
- * get the Object implementation, which is slower but behaves correctly.
+ * We report that the browser does not support typed arrays if the are not subclassable
+ * using __proto__. Firefox 4-29 lacks support for adding new properties to `Uint8Array`
+ * (See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438). IE 10 lacks support
+ * for __proto__ and has a buggy typed array implementation.
  */
-Buffer.TYPED_ARRAY_SUPPORT = global.TYPED_ARRAY_SUPPORT !== undefined
-  ? global.TYPED_ARRAY_SUPPORT
-  : typedArraySupport()
+Buffer.TYPED_ARRAY_SUPPORT = typedArraySupport()
 
-/*
- * Export kMaxLength after typed array support is determined.
- */
-exports.kMaxLength = kMaxLength()
+if (!Buffer.TYPED_ARRAY_SUPPORT && typeof console !== 'undefined' &&
+    typeof console.error === 'function') {
+  console.error(
+    'This browser lacks typed array (Uint8Array) support which is required by ' +
+    '`buffer` v5.x. Use `buffer` v4.x if you require old browser support.'
+  )
+}
 
 function typedArraySupport () {
+  // Can typed array instances can be augmented?
   try {
     var arr = new Uint8Array(1)
     arr.__proto__ = {__proto__: Uint8Array.prototype, foo: function () { return 42 }}
-    return arr.foo() === 42 && // typed array instances can be augmented
-        typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
-        arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
+    return arr.foo() === 42
   } catch (e) {
     return false
   }
 }
 
-function kMaxLength () {
-  return Buffer.TYPED_ARRAY_SUPPORT
-    ? 0x7fffffff
-    : 0x3fffffff
-}
-
-function createBuffer (that, length) {
-  if (kMaxLength() < length) {
+function createBuffer (length) {
+  if (length > K_MAX_LENGTH) {
     throw new RangeError('Invalid typed array length')
   }
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    // Return an augmented `Uint8Array` instance, for best performance
-    that = new Uint8Array(length)
-    that.__proto__ = Buffer.prototype
-  } else {
-    // Fallback: Return an object instance of the Buffer class
-    if (that === null) {
-      that = new Buffer(length)
-    }
-    that.length = length
-  }
-
-  return that
+  // Return an augmented `Uint8Array` instance
+  var buf = new Uint8Array(length)
+  buf.__proto__ = Buffer.prototype
+  return buf
 }
 
 /**
@@ -800,10 +776,6 @@ function createBuffer (that, length) {
  */
 
 function Buffer (arg, encodingOrOffset, length) {
-  if (!Buffer.TYPED_ARRAY_SUPPORT && !(this instanceof Buffer)) {
-    return new Buffer(arg, encodingOrOffset, length)
-  }
-
   // Common case.
   if (typeof arg === 'number') {
     if (typeof encodingOrOffset === 'string') {
@@ -811,33 +783,38 @@ function Buffer (arg, encodingOrOffset, length) {
         'If encoding is specified then the first argument must be a string'
       )
     }
-    return allocUnsafe(this, arg)
+    return allocUnsafe(arg)
   }
-  return from(this, arg, encodingOrOffset, length)
+  return from(arg, encodingOrOffset, length)
+}
+
+// Fix subarray() in ES2016. See: https://github.com/feross/buffer/pull/97
+if (typeof Symbol !== 'undefined' && Symbol.species &&
+    Buffer[Symbol.species] === Buffer) {
+  Object.defineProperty(Buffer, Symbol.species, {
+    value: null,
+    configurable: true,
+    enumerable: false,
+    writable: false
+  })
 }
 
 Buffer.poolSize = 8192 // not used by this implementation
 
-// TODO: Legacy, not needed anymore. Remove in next major version.
-Buffer._augment = function (arr) {
-  arr.__proto__ = Buffer.prototype
-  return arr
-}
-
-function from (that, value, encodingOrOffset, length) {
+function from (value, encodingOrOffset, length) {
   if (typeof value === 'number') {
     throw new TypeError('"value" argument must not be a number')
   }
 
-  if (typeof ArrayBuffer !== 'undefined' && value instanceof ArrayBuffer) {
-    return fromArrayBuffer(that, value, encodingOrOffset, length)
+  if (isArrayBuffer(value)) {
+    return fromArrayBuffer(value, encodingOrOffset, length)
   }
 
   if (typeof value === 'string') {
-    return fromString(that, value, encodingOrOffset)
+    return fromString(value, encodingOrOffset)
   }
 
-  return fromObject(that, value)
+  return fromObject(value)
 }
 
 /**
@@ -849,21 +826,13 @@ function from (that, value, encodingOrOffset, length) {
  * Buffer.from(arrayBuffer[, byteOffset[, length]])
  **/
 Buffer.from = function (value, encodingOrOffset, length) {
-  return from(null, value, encodingOrOffset, length)
+  return from(value, encodingOrOffset, length)
 }
 
-if (Buffer.TYPED_ARRAY_SUPPORT) {
-  Buffer.prototype.__proto__ = Uint8Array.prototype
-  Buffer.__proto__ = Uint8Array
-  if (typeof Symbol !== 'undefined' && Symbol.species &&
-      Buffer[Symbol.species] === Buffer) {
-    // Fix subarray() in ES2016. See: https://github.com/feross/buffer/pull/97
-    Object.defineProperty(Buffer, Symbol.species, {
-      value: null,
-      configurable: true
-    })
-  }
-}
+// Note: Change prototype *after* Buffer.from is defined to workaround Chrome bug:
+// https://github.com/feross/buffer/pull/148
+Buffer.prototype.__proto__ = Uint8Array.prototype
+Buffer.__proto__ = Uint8Array
 
 function assertSize (size) {
   if (typeof size !== 'number') {
@@ -873,20 +842,20 @@ function assertSize (size) {
   }
 }
 
-function alloc (that, size, fill, encoding) {
+function alloc (size, fill, encoding) {
   assertSize(size)
   if (size <= 0) {
-    return createBuffer(that, size)
+    return createBuffer(size)
   }
   if (fill !== undefined) {
     // Only pay attention to encoding if it's a string. This
     // prevents accidentally sending in a number that would
     // be interpretted as a start offset.
     return typeof encoding === 'string'
-      ? createBuffer(that, size).fill(fill, encoding)
-      : createBuffer(that, size).fill(fill)
+      ? createBuffer(size).fill(fill, encoding)
+      : createBuffer(size).fill(fill)
   }
-  return createBuffer(that, size)
+  return createBuffer(size)
 }
 
 /**
@@ -894,34 +863,28 @@ function alloc (that, size, fill, encoding) {
  * alloc(size[, fill[, encoding]])
  **/
 Buffer.alloc = function (size, fill, encoding) {
-  return alloc(null, size, fill, encoding)
+  return alloc(size, fill, encoding)
 }
 
-function allocUnsafe (that, size) {
+function allocUnsafe (size) {
   assertSize(size)
-  that = createBuffer(that, size < 0 ? 0 : checked(size) | 0)
-  if (!Buffer.TYPED_ARRAY_SUPPORT) {
-    for (var i = 0; i < size; ++i) {
-      that[i] = 0
-    }
-  }
-  return that
+  return createBuffer(size < 0 ? 0 : checked(size) | 0)
 }
 
 /**
  * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
  * */
 Buffer.allocUnsafe = function (size) {
-  return allocUnsafe(null, size)
+  return allocUnsafe(size)
 }
 /**
  * Equivalent to SlowBuffer(num), by default creates a non-zero-filled Buffer instance.
  */
 Buffer.allocUnsafeSlow = function (size) {
-  return allocUnsafe(null, size)
+  return allocUnsafe(size)
 }
 
-function fromString (that, string, encoding) {
+function fromString (string, encoding) {
   if (typeof encoding !== 'string' || encoding === '') {
     encoding = 'utf8'
   }
@@ -931,32 +894,30 @@ function fromString (that, string, encoding) {
   }
 
   var length = byteLength(string, encoding) | 0
-  that = createBuffer(that, length)
+  var buf = createBuffer(length)
 
-  var actual = that.write(string, encoding)
+  var actual = buf.write(string, encoding)
 
   if (actual !== length) {
     // Writing a hex string, for example, that contains invalid characters will
     // cause everything after the first invalid character to be ignored. (e.g.
     // 'abxxcd' will be treated as 'ab')
-    that = that.slice(0, actual)
+    buf = buf.slice(0, actual)
   }
 
-  return that
+  return buf
 }
 
-function fromArrayLike (that, array) {
+function fromArrayLike (array) {
   var length = array.length < 0 ? 0 : checked(array.length) | 0
-  that = createBuffer(that, length)
+  var buf = createBuffer(length)
   for (var i = 0; i < length; i += 1) {
-    that[i] = array[i] & 255
+    buf[i] = array[i] & 255
   }
-  return that
+  return buf
 }
 
-function fromArrayBuffer (that, array, byteOffset, length) {
-  array.byteLength // this throws if `array` is not a valid ArrayBuffer
-
+function fromArrayBuffer (array, byteOffset, length) {
   if (byteOffset < 0 || array.byteLength < byteOffset) {
     throw new RangeError('\'offset\' is out of bounds')
   }
@@ -965,49 +926,43 @@ function fromArrayBuffer (that, array, byteOffset, length) {
     throw new RangeError('\'length\' is out of bounds')
   }
 
+  var buf
   if (byteOffset === undefined && length === undefined) {
-    array = new Uint8Array(array)
+    buf = new Uint8Array(array)
   } else if (length === undefined) {
-    array = new Uint8Array(array, byteOffset)
+    buf = new Uint8Array(array, byteOffset)
   } else {
-    array = new Uint8Array(array, byteOffset, length)
+    buf = new Uint8Array(array, byteOffset, length)
   }
 
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    // Return an augmented `Uint8Array` instance, for best performance
-    that = array
-    that.__proto__ = Buffer.prototype
-  } else {
-    // Fallback: Return an object instance of the Buffer class
-    that = fromArrayLike(that, array)
-  }
-  return that
+  // Return an augmented `Uint8Array` instance
+  buf.__proto__ = Buffer.prototype
+  return buf
 }
 
-function fromObject (that, obj) {
+function fromObject (obj) {
   if (Buffer.isBuffer(obj)) {
     var len = checked(obj.length) | 0
-    that = createBuffer(that, len)
+    var buf = createBuffer(len)
 
-    if (that.length === 0) {
-      return that
+    if (buf.length === 0) {
+      return buf
     }
 
-    obj.copy(that, 0, 0, len)
-    return that
+    obj.copy(buf, 0, 0, len)
+    return buf
   }
 
   if (obj) {
-    if ((typeof ArrayBuffer !== 'undefined' &&
-        obj.buffer instanceof ArrayBuffer) || 'length' in obj) {
-      if (typeof obj.length !== 'number' || isnan(obj.length)) {
-        return createBuffer(that, 0)
+    if (isArrayBufferView(obj) || 'length' in obj) {
+      if (typeof obj.length !== 'number' || numberIsNaN(obj.length)) {
+        return createBuffer(0)
       }
-      return fromArrayLike(that, obj)
+      return fromArrayLike(obj)
     }
 
-    if (obj.type === 'Buffer' && isArray(obj.data)) {
-      return fromArrayLike(that, obj.data)
+    if (obj.type === 'Buffer' && Array.isArray(obj.data)) {
+      return fromArrayLike(obj.data)
     }
   }
 
@@ -1015,11 +970,11 @@ function fromObject (that, obj) {
 }
 
 function checked (length) {
-  // Note: cannot use `length < kMaxLength()` here because that fails when
+  // Note: cannot use `length < K_MAX_LENGTH` here because that fails when
   // length is NaN (which is otherwise coerced to zero.)
-  if (length >= kMaxLength()) {
+  if (length >= K_MAX_LENGTH) {
     throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
-                         'size: 0x' + kMaxLength().toString(16) + ' bytes')
+                         'size: 0x' + K_MAX_LENGTH.toString(16) + ' bytes')
   }
   return length | 0
 }
@@ -1032,7 +987,7 @@ function SlowBuffer (length) {
 }
 
 Buffer.isBuffer = function isBuffer (b) {
-  return !!(b != null && b._isBuffer)
+  return b != null && b._isBuffer === true
 }
 
 Buffer.compare = function compare (a, b) {
@@ -1078,7 +1033,7 @@ Buffer.isEncoding = function isEncoding (encoding) {
 }
 
 Buffer.concat = function concat (list, length) {
-  if (!isArray(list)) {
+  if (!Array.isArray(list)) {
     throw new TypeError('"list" argument must be an Array of Buffers')
   }
 
@@ -1111,8 +1066,7 @@ function byteLength (string, encoding) {
   if (Buffer.isBuffer(string)) {
     return string.length
   }
-  if (typeof ArrayBuffer !== 'undefined' && typeof ArrayBuffer.isView === 'function' &&
-      (ArrayBuffer.isView(string) || string instanceof ArrayBuffer)) {
+  if (isArrayBufferView(string) || isArrayBuffer(string)) {
     return string.byteLength
   }
   if (typeof string !== 'string') {
@@ -1222,8 +1176,12 @@ function slowToString (encoding, start, end) {
   }
 }
 
-// The property is used by `Buffer.isBuffer` and `is-buffer` (in Safari 5-7) to detect
-// Buffer instances.
+// This property is used by `Buffer.isBuffer` (and the `is-buffer` npm package)
+// to detect a Buffer instance. It's not possible to use `instanceof Buffer`
+// reliably in a browserify context because there could be multiple different
+// copies of the 'buffer' package in use. This method works even for Buffer
+// instances that were created from another copy of the `buffer` package.
+// See: https://github.com/feross/buffer/issues/154
 Buffer.prototype._isBuffer = true
 
 function swap (b, n, m) {
@@ -1270,7 +1228,7 @@ Buffer.prototype.swap64 = function swap64 () {
 }
 
 Buffer.prototype.toString = function toString () {
-  var length = this.length | 0
+  var length = this.length
   if (length === 0) return ''
   if (arguments.length === 0) return utf8Slice(this, 0, length)
   return slowToString.apply(this, arguments)
@@ -1374,7 +1332,7 @@ function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
     byteOffset = -0x80000000
   }
   byteOffset = +byteOffset  // Coerce to Number.
-  if (isNaN(byteOffset)) {
+  if (numberIsNaN(byteOffset)) {
     // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
     byteOffset = dir ? 0 : (buffer.length - 1)
   }
@@ -1403,8 +1361,7 @@ function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
     return arrayIndexOf(buffer, val, byteOffset, encoding, dir)
   } else if (typeof val === 'number') {
     val = val & 0xFF // Search for a byte value [0-255]
-    if (Buffer.TYPED_ARRAY_SUPPORT &&
-        typeof Uint8Array.prototype.indexOf === 'function') {
+    if (typeof Uint8Array.prototype.indexOf === 'function') {
       if (dir) {
         return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset)
       } else {
@@ -1506,7 +1463,7 @@ function hexWrite (buf, string, offset, length) {
   }
   for (var i = 0; i < length; ++i) {
     var parsed = parseInt(string.substr(i * 2, 2), 16)
-    if (isNaN(parsed)) return i
+    if (numberIsNaN(parsed)) return i
     buf[offset + i] = parsed
   }
   return i
@@ -1545,15 +1502,14 @@ Buffer.prototype.write = function write (string, offset, length, encoding) {
     offset = 0
   // Buffer#write(string, offset[, length][, encoding])
   } else if (isFinite(offset)) {
-    offset = offset | 0
+    offset = offset >>> 0
     if (isFinite(length)) {
-      length = length | 0
+      length = length >>> 0
       if (encoding === undefined) encoding = 'utf8'
     } else {
       encoding = length
       length = undefined
     }
-  // legacy write(string, encoding, offset, length) - remove in v0.13
   } else {
     throw new Error(
       'Buffer.write(string, encoding, offset[, length]) is no longer supported'
@@ -1752,7 +1708,7 @@ function utf16leSlice (buf, start, end) {
   var bytes = buf.slice(start, end)
   var res = ''
   for (var i = 0; i < bytes.length; i += 2) {
-    res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256)
+    res += String.fromCharCode(bytes[i] + (bytes[i + 1] * 256))
   }
   return res
 }
@@ -1778,18 +1734,9 @@ Buffer.prototype.slice = function slice (start, end) {
 
   if (end < start) end = start
 
-  var newBuf
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    newBuf = this.subarray(start, end)
-    newBuf.__proto__ = Buffer.prototype
-  } else {
-    var sliceLen = end - start
-    newBuf = new Buffer(sliceLen, undefined)
-    for (var i = 0; i < sliceLen; ++i) {
-      newBuf[i] = this[i + start]
-    }
-  }
-
+  var newBuf = this.subarray(start, end)
+  // Return an augmented `Uint8Array` instance
+  newBuf.__proto__ = Buffer.prototype
   return newBuf
 }
 
@@ -1802,8 +1749,8 @@ function checkOffset (offset, ext, length) {
 }
 
 Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
   if (!noAssert) checkOffset(offset, byteLength, this.length)
 
   var val = this[offset]
@@ -1817,8 +1764,8 @@ Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert)
 }
 
 Buffer.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
   if (!noAssert) {
     checkOffset(offset, byteLength, this.length)
   }
@@ -1833,21 +1780,25 @@ Buffer.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert)
 }
 
 Buffer.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 1, this.length)
   return this[offset]
 }
 
 Buffer.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 2, this.length)
   return this[offset] | (this[offset + 1] << 8)
 }
 
 Buffer.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 2, this.length)
   return (this[offset] << 8) | this[offset + 1]
 }
 
 Buffer.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 4, this.length)
 
   return ((this[offset]) |
@@ -1857,6 +1808,7 @@ Buffer.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
 }
 
 Buffer.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 4, this.length)
 
   return (this[offset] * 0x1000000) +
@@ -1866,8 +1818,8 @@ Buffer.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
 }
 
 Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
   if (!noAssert) checkOffset(offset, byteLength, this.length)
 
   var val = this[offset]
@@ -1884,8 +1836,8 @@ Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
 }
 
 Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
   if (!noAssert) checkOffset(offset, byteLength, this.length)
 
   var i = byteLength
@@ -1902,24 +1854,28 @@ Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
 }
 
 Buffer.prototype.readInt8 = function readInt8 (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 1, this.length)
   if (!(this[offset] & 0x80)) return (this[offset])
   return ((0xff - this[offset] + 1) * -1)
 }
 
 Buffer.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 2, this.length)
   var val = this[offset] | (this[offset + 1] << 8)
   return (val & 0x8000) ? val | 0xFFFF0000 : val
 }
 
 Buffer.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 2, this.length)
   var val = this[offset + 1] | (this[offset] << 8)
   return (val & 0x8000) ? val | 0xFFFF0000 : val
 }
 
 Buffer.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 4, this.length)
 
   return (this[offset]) |
@@ -1929,6 +1885,7 @@ Buffer.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
 }
 
 Buffer.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 4, this.length)
 
   return (this[offset] << 24) |
@@ -1938,21 +1895,25 @@ Buffer.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
 }
 
 Buffer.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 4, this.length)
   return ieee754.read(this, offset, true, 23, 4)
 }
 
 Buffer.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 4, this.length)
   return ieee754.read(this, offset, false, 23, 4)
 }
 
 Buffer.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 8, this.length)
   return ieee754.read(this, offset, true, 52, 8)
 }
 
 Buffer.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
+  offset = offset >>> 0
   if (!noAssert) checkOffset(offset, 8, this.length)
   return ieee754.read(this, offset, false, 52, 8)
 }
@@ -1965,8 +1926,8 @@ function checkInt (buf, value, offset, ext, max, min) {
 
 Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
   value = +value
-  offset = offset | 0
-  byteLength = byteLength | 0
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
   if (!noAssert) {
     var maxBytes = Math.pow(2, 8 * byteLength) - 1
     checkInt(this, value, offset, byteLength, maxBytes, 0)
@@ -1984,8 +1945,8 @@ Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, 
 
 Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
   value = +value
-  offset = offset | 0
-  byteLength = byteLength | 0
+  offset = offset >>> 0
+  byteLength = byteLength >>> 0
   if (!noAssert) {
     var maxBytes = Math.pow(2, 8 * byteLength) - 1
     checkInt(this, value, offset, byteLength, maxBytes, 0)
@@ -2003,89 +1964,57 @@ Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, 
 
 Buffer.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0)
-  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
   this[offset] = (value & 0xff)
   return offset + 1
 }
 
-function objectWriteUInt16 (buf, value, offset, littleEndian) {
-  if (value < 0) value = 0xffff + value + 1
-  for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; ++i) {
-    buf[offset + i] = (value & (0xff << (8 * (littleEndian ? i : 1 - i)))) >>>
-      (littleEndian ? i : 1 - i) * 8
-  }
-}
-
 Buffer.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value & 0xff)
-    this[offset + 1] = (value >>> 8)
-  } else {
-    objectWriteUInt16(this, value, offset, true)
-  }
+  this[offset] = (value & 0xff)
+  this[offset + 1] = (value >>> 8)
   return offset + 2
 }
 
 Buffer.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 8)
-    this[offset + 1] = (value & 0xff)
-  } else {
-    objectWriteUInt16(this, value, offset, false)
-  }
+  this[offset] = (value >>> 8)
+  this[offset + 1] = (value & 0xff)
   return offset + 2
-}
-
-function objectWriteUInt32 (buf, value, offset, littleEndian) {
-  if (value < 0) value = 0xffffffff + value + 1
-  for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; ++i) {
-    buf[offset + i] = (value >>> (littleEndian ? i : 3 - i) * 8) & 0xff
-  }
 }
 
 Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset + 3] = (value >>> 24)
-    this[offset + 2] = (value >>> 16)
-    this[offset + 1] = (value >>> 8)
-    this[offset] = (value & 0xff)
-  } else {
-    objectWriteUInt32(this, value, offset, true)
-  }
+  this[offset + 3] = (value >>> 24)
+  this[offset + 2] = (value >>> 16)
+  this[offset + 1] = (value >>> 8)
+  this[offset] = (value & 0xff)
   return offset + 4
 }
 
 Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 24)
-    this[offset + 1] = (value >>> 16)
-    this[offset + 2] = (value >>> 8)
-    this[offset + 3] = (value & 0xff)
-  } else {
-    objectWriteUInt32(this, value, offset, false)
-  }
+  this[offset] = (value >>> 24)
+  this[offset + 1] = (value >>> 16)
+  this[offset + 2] = (value >>> 8)
+  this[offset + 3] = (value & 0xff)
   return offset + 4
 }
 
 Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) {
-    var limit = Math.pow(2, 8 * byteLength - 1)
+    var limit = Math.pow(2, (8 * byteLength) - 1)
 
     checkInt(this, value, offset, byteLength, limit - 1, -limit)
   }
@@ -2106,9 +2035,9 @@ Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, no
 
 Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) {
-    var limit = Math.pow(2, 8 * byteLength - 1)
+    var limit = Math.pow(2, (8 * byteLength) - 1)
 
     checkInt(this, value, offset, byteLength, limit - 1, -limit)
   }
@@ -2129,9 +2058,8 @@ Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, no
 
 Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80)
-  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
   if (value < 0) value = 0xff + value + 1
   this[offset] = (value & 0xff)
   return offset + 1
@@ -2139,58 +2067,42 @@ Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
 
 Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value & 0xff)
-    this[offset + 1] = (value >>> 8)
-  } else {
-    objectWriteUInt16(this, value, offset, true)
-  }
+  this[offset] = (value & 0xff)
+  this[offset + 1] = (value >>> 8)
   return offset + 2
 }
 
 Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 8)
-    this[offset + 1] = (value & 0xff)
-  } else {
-    objectWriteUInt16(this, value, offset, false)
-  }
+  this[offset] = (value >>> 8)
+  this[offset + 1] = (value & 0xff)
   return offset + 2
 }
 
 Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value & 0xff)
-    this[offset + 1] = (value >>> 8)
-    this[offset + 2] = (value >>> 16)
-    this[offset + 3] = (value >>> 24)
-  } else {
-    objectWriteUInt32(this, value, offset, true)
-  }
+  this[offset] = (value & 0xff)
+  this[offset + 1] = (value >>> 8)
+  this[offset + 2] = (value >>> 16)
+  this[offset + 3] = (value >>> 24)
   return offset + 4
 }
 
 Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
   value = +value
-  offset = offset | 0
+  offset = offset >>> 0
   if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
   if (value < 0) value = 0xffffffff + value + 1
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 24)
-    this[offset + 1] = (value >>> 16)
-    this[offset + 2] = (value >>> 8)
-    this[offset + 3] = (value & 0xff)
-  } else {
-    objectWriteUInt32(this, value, offset, false)
-  }
+  this[offset] = (value >>> 24)
+  this[offset + 1] = (value >>> 16)
+  this[offset + 2] = (value >>> 8)
+  this[offset + 3] = (value & 0xff)
   return offset + 4
 }
 
@@ -2200,6 +2112,8 @@ function checkIEEE754 (buf, value, offset, ext, max, min) {
 }
 
 function writeFloat (buf, value, offset, littleEndian, noAssert) {
+  value = +value
+  offset = offset >>> 0
   if (!noAssert) {
     checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -3.4028234663852886e+38)
   }
@@ -2216,6 +2130,8 @@ Buffer.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) 
 }
 
 function writeDouble (buf, value, offset, littleEndian, noAssert) {
+  value = +value
+  offset = offset >>> 0
   if (!noAssert) {
     checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -1.7976931348623157E+308)
   }
@@ -2264,7 +2180,7 @@ Buffer.prototype.copy = function copy (target, targetStart, start, end) {
     for (i = len - 1; i >= 0; --i) {
       target[i + targetStart] = this[i + start]
     }
-  } else if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
+  } else if (len < 1000) {
     // ascending copy from start
     for (i = 0; i < len; ++i) {
       target[i + targetStart] = this[i + start]
@@ -2333,7 +2249,7 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
   } else {
     var bytes = Buffer.isBuffer(val)
       ? val
-      : utf8ToBytes(new Buffer(val, encoding).toString())
+      : new Buffer(val, encoding)
     var len = bytes.length
     for (i = 0; i < end - start; ++i) {
       this[i + start] = bytes[i % len]
@@ -2346,11 +2262,11 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
 // HELPER FUNCTIONS
 // ================
 
-var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g
+var INVALID_BASE64_RE = /[^+/0-9A-Za-z-_]/g
 
 function base64clean (str) {
   // Node strips out invalid characters like \n and \t from the string, base64-js does not
-  str = stringtrim(str).replace(INVALID_BASE64_RE, '')
+  str = str.trim().replace(INVALID_BASE64_RE, '')
   // Node converts strings with length < 2 to ''
   if (str.length < 2) return ''
   // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
@@ -2358,11 +2274,6 @@ function base64clean (str) {
     str = str + '='
   }
   return str
-}
-
-function stringtrim (str) {
-  if (str.trim) return str.trim()
-  return str.replace(/^\s+|\s+$/g, '')
 }
 
 function toHex (n) {
@@ -2487,13 +2398,24 @@ function blitBuffer (src, dst, offset, length) {
   return i
 }
 
-function isnan (val) {
-  return val !== val // eslint-disable-line no-self-compare
+// ArrayBuffers from another context (i.e. an iframe) do not pass the `instanceof` check
+// but they should be treated as valid. See: https://github.com/feross/buffer/issues/166
+function isArrayBuffer (obj) {
+  return obj instanceof ArrayBuffer ||
+    (obj != null && obj.constructor != null && obj.constructor.name === 'ArrayBuffer' &&
+      typeof obj.byteLength === 'number')
 }
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+// Node 0.10 supports `ArrayBuffer` but lacks `ArrayBuffer.isView`
+function isArrayBufferView (obj) {
+  return (typeof ArrayBuffer.isView === 'function') && ArrayBuffer.isView(obj)
+}
 
-},{"base64-js":7,"ieee754":20,"isarray":23}],11:[function(require,module,exports){
+function numberIsNaN (obj) {
+  return obj !== obj // eslint-disable-line no-self-compare
+}
+
+},{"base64-js":6,"ieee754":17}],9:[function(require,module,exports){
 module.exports = {
   "100": "Continue",
   "101": "Switching Protocols",
@@ -2559,7 +2481,7 @@ module.exports = {
   "511": "Network Authentication Required"
 }
 
-},{}],12:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 (function (process,global){
 "use strict"
 
@@ -2584,7 +2506,7 @@ module.exports = function maybe (cb, promise) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":76}],13:[function(require,module,exports){
+},{"_process":77}],11:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -2696,7 +2618,7 @@ function objectToString(o) {
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
 
-},{"../../is-buffer/index.js":22}],14:[function(require,module,exports){
+},{"../../is-buffer/index.js":19}],12:[function(require,module,exports){
 (function (process){
 /**
  * This is the web browser implementation of `debug()`.
@@ -2747,6 +2669,11 @@ function useColors() {
   // explicitly
   if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
     return true;
+  }
+
+  // Internet Explorer and Edge do not support colors.
+  if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
+    return false;
   }
 
   // is webkit? http://stackoverflow.com/a/16459606/376773
@@ -2891,7 +2818,7 @@ function localstorage() {
 
 }).call(this,require('_process'))
 
-},{"./debug":15,"_process":76}],15:[function(require,module,exports){
+},{"./debug":13,"_process":77}],13:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -3118,1169 +3045,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":73}],16:[function(require,module,exports){
-(function (process,global){
-/*!
- * @overview es6-promise - a tiny implementation of Promises/A+.
- * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
- * @license   Licensed under MIT license
- *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
- * @version   4.1.1
- */
-
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.ES6Promise = factory());
-}(this, (function () { 'use strict';
-
-function objectOrFunction(x) {
-  var type = typeof x;
-  return x !== null && (type === 'object' || type === 'function');
-}
-
-function isFunction(x) {
-  return typeof x === 'function';
-}
-
-var _isArray = undefined;
-if (Array.isArray) {
-  _isArray = Array.isArray;
-} else {
-  _isArray = function (x) {
-    return Object.prototype.toString.call(x) === '[object Array]';
-  };
-}
-
-var isArray = _isArray;
-
-var len = 0;
-var vertxNext = undefined;
-var customSchedulerFn = undefined;
-
-var asap = function asap(callback, arg) {
-  queue[len] = callback;
-  queue[len + 1] = arg;
-  len += 2;
-  if (len === 2) {
-    // If len is 2, that means that we need to schedule an async flush.
-    // If additional callbacks are queued before the queue is flushed, they
-    // will be processed by this flush that we are scheduling.
-    if (customSchedulerFn) {
-      customSchedulerFn(flush);
-    } else {
-      scheduleFlush();
-    }
-  }
-};
-
-function setScheduler(scheduleFn) {
-  customSchedulerFn = scheduleFn;
-}
-
-function setAsap(asapFn) {
-  asap = asapFn;
-}
-
-var browserWindow = typeof window !== 'undefined' ? window : undefined;
-var browserGlobal = browserWindow || {};
-var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
-var isNode = typeof self === 'undefined' && typeof process !== 'undefined' && ({}).toString.call(process) === '[object process]';
-
-// test for web worker but not in IE10
-var isWorker = typeof Uint8ClampedArray !== 'undefined' && typeof importScripts !== 'undefined' && typeof MessageChannel !== 'undefined';
-
-// node
-function useNextTick() {
-  // node version 0.10.x displays a deprecation warning when nextTick is used recursively
-  // see https://github.com/cujojs/when/issues/410 for details
-  return function () {
-    return process.nextTick(flush);
-  };
-}
-
-// vertx
-function useVertxTimer() {
-  if (typeof vertxNext !== 'undefined') {
-    return function () {
-      vertxNext(flush);
-    };
-  }
-
-  return useSetTimeout();
-}
-
-function useMutationObserver() {
-  var iterations = 0;
-  var observer = new BrowserMutationObserver(flush);
-  var node = document.createTextNode('');
-  observer.observe(node, { characterData: true });
-
-  return function () {
-    node.data = iterations = ++iterations % 2;
-  };
-}
-
-// web worker
-function useMessageChannel() {
-  var channel = new MessageChannel();
-  channel.port1.onmessage = flush;
-  return function () {
-    return channel.port2.postMessage(0);
-  };
-}
-
-function useSetTimeout() {
-  // Store setTimeout reference so es6-promise will be unaffected by
-  // other code modifying setTimeout (like sinon.useFakeTimers())
-  var globalSetTimeout = setTimeout;
-  return function () {
-    return globalSetTimeout(flush, 1);
-  };
-}
-
-var queue = new Array(1000);
-function flush() {
-  for (var i = 0; i < len; i += 2) {
-    var callback = queue[i];
-    var arg = queue[i + 1];
-
-    callback(arg);
-
-    queue[i] = undefined;
-    queue[i + 1] = undefined;
-  }
-
-  len = 0;
-}
-
-function attemptVertx() {
-  try {
-    var r = require;
-    var vertx = r('vertx');
-    vertxNext = vertx.runOnLoop || vertx.runOnContext;
-    return useVertxTimer();
-  } catch (e) {
-    return useSetTimeout();
-  }
-}
-
-var scheduleFlush = undefined;
-// Decide what async method to use to triggering processing of queued callbacks:
-if (isNode) {
-  scheduleFlush = useNextTick();
-} else if (BrowserMutationObserver) {
-  scheduleFlush = useMutationObserver();
-} else if (isWorker) {
-  scheduleFlush = useMessageChannel();
-} else if (browserWindow === undefined && typeof require === 'function') {
-  scheduleFlush = attemptVertx();
-} else {
-  scheduleFlush = useSetTimeout();
-}
-
-function then(onFulfillment, onRejection) {
-  var _arguments = arguments;
-
-  var parent = this;
-
-  var child = new this.constructor(noop);
-
-  if (child[PROMISE_ID] === undefined) {
-    makePromise(child);
-  }
-
-  var _state = parent._state;
-
-  if (_state) {
-    (function () {
-      var callback = _arguments[_state - 1];
-      asap(function () {
-        return invokeCallback(_state, child, callback, parent._result);
-      });
-    })();
-  } else {
-    subscribe(parent, child, onFulfillment, onRejection);
-  }
-
-  return child;
-}
-
-/**
-  `Promise.resolve` returns a promise that will become resolved with the
-  passed `value`. It is shorthand for the following:
-
-  ```javascript
-  let promise = new Promise(function(resolve, reject){
-    resolve(1);
-  });
-
-  promise.then(function(value){
-    // value === 1
-  });
-  ```
-
-  Instead of writing the above, your code now simply becomes the following:
-
-  ```javascript
-  let promise = Promise.resolve(1);
-
-  promise.then(function(value){
-    // value === 1
-  });
-  ```
-
-  @method resolve
-  @static
-  @param {Any} value value that the returned promise will be resolved with
-  Useful for tooling.
-  @return {Promise} a promise that will become fulfilled with the given
-  `value`
-*/
-function resolve$1(object) {
-  /*jshint validthis:true */
-  var Constructor = this;
-
-  if (object && typeof object === 'object' && object.constructor === Constructor) {
-    return object;
-  }
-
-  var promise = new Constructor(noop);
-  resolve(promise, object);
-  return promise;
-}
-
-var PROMISE_ID = Math.random().toString(36).substring(16);
-
-function noop() {}
-
-var PENDING = void 0;
-var FULFILLED = 1;
-var REJECTED = 2;
-
-var GET_THEN_ERROR = new ErrorObject();
-
-function selfFulfillment() {
-  return new TypeError("You cannot resolve a promise with itself");
-}
-
-function cannotReturnOwn() {
-  return new TypeError('A promises callback cannot return that same promise.');
-}
-
-function getThen(promise) {
-  try {
-    return promise.then;
-  } catch (error) {
-    GET_THEN_ERROR.error = error;
-    return GET_THEN_ERROR;
-  }
-}
-
-function tryThen(then$$1, value, fulfillmentHandler, rejectionHandler) {
-  try {
-    then$$1.call(value, fulfillmentHandler, rejectionHandler);
-  } catch (e) {
-    return e;
-  }
-}
-
-function handleForeignThenable(promise, thenable, then$$1) {
-  asap(function (promise) {
-    var sealed = false;
-    var error = tryThen(then$$1, thenable, function (value) {
-      if (sealed) {
-        return;
-      }
-      sealed = true;
-      if (thenable !== value) {
-        resolve(promise, value);
-      } else {
-        fulfill(promise, value);
-      }
-    }, function (reason) {
-      if (sealed) {
-        return;
-      }
-      sealed = true;
-
-      reject(promise, reason);
-    }, 'Settle: ' + (promise._label || ' unknown promise'));
-
-    if (!sealed && error) {
-      sealed = true;
-      reject(promise, error);
-    }
-  }, promise);
-}
-
-function handleOwnThenable(promise, thenable) {
-  if (thenable._state === FULFILLED) {
-    fulfill(promise, thenable._result);
-  } else if (thenable._state === REJECTED) {
-    reject(promise, thenable._result);
-  } else {
-    subscribe(thenable, undefined, function (value) {
-      return resolve(promise, value);
-    }, function (reason) {
-      return reject(promise, reason);
-    });
-  }
-}
-
-function handleMaybeThenable(promise, maybeThenable, then$$1) {
-  if (maybeThenable.constructor === promise.constructor && then$$1 === then && maybeThenable.constructor.resolve === resolve$1) {
-    handleOwnThenable(promise, maybeThenable);
-  } else {
-    if (then$$1 === GET_THEN_ERROR) {
-      reject(promise, GET_THEN_ERROR.error);
-      GET_THEN_ERROR.error = null;
-    } else if (then$$1 === undefined) {
-      fulfill(promise, maybeThenable);
-    } else if (isFunction(then$$1)) {
-      handleForeignThenable(promise, maybeThenable, then$$1);
-    } else {
-      fulfill(promise, maybeThenable);
-    }
-  }
-}
-
-function resolve(promise, value) {
-  if (promise === value) {
-    reject(promise, selfFulfillment());
-  } else if (objectOrFunction(value)) {
-    handleMaybeThenable(promise, value, getThen(value));
-  } else {
-    fulfill(promise, value);
-  }
-}
-
-function publishRejection(promise) {
-  if (promise._onerror) {
-    promise._onerror(promise._result);
-  }
-
-  publish(promise);
-}
-
-function fulfill(promise, value) {
-  if (promise._state !== PENDING) {
-    return;
-  }
-
-  promise._result = value;
-  promise._state = FULFILLED;
-
-  if (promise._subscribers.length !== 0) {
-    asap(publish, promise);
-  }
-}
-
-function reject(promise, reason) {
-  if (promise._state !== PENDING) {
-    return;
-  }
-  promise._state = REJECTED;
-  promise._result = reason;
-
-  asap(publishRejection, promise);
-}
-
-function subscribe(parent, child, onFulfillment, onRejection) {
-  var _subscribers = parent._subscribers;
-  var length = _subscribers.length;
-
-  parent._onerror = null;
-
-  _subscribers[length] = child;
-  _subscribers[length + FULFILLED] = onFulfillment;
-  _subscribers[length + REJECTED] = onRejection;
-
-  if (length === 0 && parent._state) {
-    asap(publish, parent);
-  }
-}
-
-function publish(promise) {
-  var subscribers = promise._subscribers;
-  var settled = promise._state;
-
-  if (subscribers.length === 0) {
-    return;
-  }
-
-  var child = undefined,
-      callback = undefined,
-      detail = promise._result;
-
-  for (var i = 0; i < subscribers.length; i += 3) {
-    child = subscribers[i];
-    callback = subscribers[i + settled];
-
-    if (child) {
-      invokeCallback(settled, child, callback, detail);
-    } else {
-      callback(detail);
-    }
-  }
-
-  promise._subscribers.length = 0;
-}
-
-function ErrorObject() {
-  this.error = null;
-}
-
-var TRY_CATCH_ERROR = new ErrorObject();
-
-function tryCatch(callback, detail) {
-  try {
-    return callback(detail);
-  } catch (e) {
-    TRY_CATCH_ERROR.error = e;
-    return TRY_CATCH_ERROR;
-  }
-}
-
-function invokeCallback(settled, promise, callback, detail) {
-  var hasCallback = isFunction(callback),
-      value = undefined,
-      error = undefined,
-      succeeded = undefined,
-      failed = undefined;
-
-  if (hasCallback) {
-    value = tryCatch(callback, detail);
-
-    if (value === TRY_CATCH_ERROR) {
-      failed = true;
-      error = value.error;
-      value.error = null;
-    } else {
-      succeeded = true;
-    }
-
-    if (promise === value) {
-      reject(promise, cannotReturnOwn());
-      return;
-    }
-  } else {
-    value = detail;
-    succeeded = true;
-  }
-
-  if (promise._state !== PENDING) {
-    // noop
-  } else if (hasCallback && succeeded) {
-      resolve(promise, value);
-    } else if (failed) {
-      reject(promise, error);
-    } else if (settled === FULFILLED) {
-      fulfill(promise, value);
-    } else if (settled === REJECTED) {
-      reject(promise, value);
-    }
-}
-
-function initializePromise(promise, resolver) {
-  try {
-    resolver(function resolvePromise(value) {
-      resolve(promise, value);
-    }, function rejectPromise(reason) {
-      reject(promise, reason);
-    });
-  } catch (e) {
-    reject(promise, e);
-  }
-}
-
-var id = 0;
-function nextId() {
-  return id++;
-}
-
-function makePromise(promise) {
-  promise[PROMISE_ID] = id++;
-  promise._state = undefined;
-  promise._result = undefined;
-  promise._subscribers = [];
-}
-
-function Enumerator$1(Constructor, input) {
-  this._instanceConstructor = Constructor;
-  this.promise = new Constructor(noop);
-
-  if (!this.promise[PROMISE_ID]) {
-    makePromise(this.promise);
-  }
-
-  if (isArray(input)) {
-    this.length = input.length;
-    this._remaining = input.length;
-
-    this._result = new Array(this.length);
-
-    if (this.length === 0) {
-      fulfill(this.promise, this._result);
-    } else {
-      this.length = this.length || 0;
-      this._enumerate(input);
-      if (this._remaining === 0) {
-        fulfill(this.promise, this._result);
-      }
-    }
-  } else {
-    reject(this.promise, validationError());
-  }
-}
-
-function validationError() {
-  return new Error('Array Methods must be provided an Array');
-}
-
-Enumerator$1.prototype._enumerate = function (input) {
-  for (var i = 0; this._state === PENDING && i < input.length; i++) {
-    this._eachEntry(input[i], i);
-  }
-};
-
-Enumerator$1.prototype._eachEntry = function (entry, i) {
-  var c = this._instanceConstructor;
-  var resolve$$1 = c.resolve;
-
-  if (resolve$$1 === resolve$1) {
-    var _then = getThen(entry);
-
-    if (_then === then && entry._state !== PENDING) {
-      this._settledAt(entry._state, i, entry._result);
-    } else if (typeof _then !== 'function') {
-      this._remaining--;
-      this._result[i] = entry;
-    } else if (c === Promise$2) {
-      var promise = new c(noop);
-      handleMaybeThenable(promise, entry, _then);
-      this._willSettleAt(promise, i);
-    } else {
-      this._willSettleAt(new c(function (resolve$$1) {
-        return resolve$$1(entry);
-      }), i);
-    }
-  } else {
-    this._willSettleAt(resolve$$1(entry), i);
-  }
-};
-
-Enumerator$1.prototype._settledAt = function (state, i, value) {
-  var promise = this.promise;
-
-  if (promise._state === PENDING) {
-    this._remaining--;
-
-    if (state === REJECTED) {
-      reject(promise, value);
-    } else {
-      this._result[i] = value;
-    }
-  }
-
-  if (this._remaining === 0) {
-    fulfill(promise, this._result);
-  }
-};
-
-Enumerator$1.prototype._willSettleAt = function (promise, i) {
-  var enumerator = this;
-
-  subscribe(promise, undefined, function (value) {
-    return enumerator._settledAt(FULFILLED, i, value);
-  }, function (reason) {
-    return enumerator._settledAt(REJECTED, i, reason);
-  });
-};
-
-/**
-  `Promise.all` accepts an array of promises, and returns a new promise which
-  is fulfilled with an array of fulfillment values for the passed promises, or
-  rejected with the reason of the first passed promise to be rejected. It casts all
-  elements of the passed iterable to promises as it runs this algorithm.
-
-  Example:
-
-  ```javascript
-  let promise1 = resolve(1);
-  let promise2 = resolve(2);
-  let promise3 = resolve(3);
-  let promises = [ promise1, promise2, promise3 ];
-
-  Promise.all(promises).then(function(array){
-    // The array here would be [ 1, 2, 3 ];
-  });
-  ```
-
-  If any of the `promises` given to `all` are rejected, the first promise
-  that is rejected will be given as an argument to the returned promises's
-  rejection handler. For example:
-
-  Example:
-
-  ```javascript
-  let promise1 = resolve(1);
-  let promise2 = reject(new Error("2"));
-  let promise3 = reject(new Error("3"));
-  let promises = [ promise1, promise2, promise3 ];
-
-  Promise.all(promises).then(function(array){
-    // Code here never runs because there are rejected promises!
-  }, function(error) {
-    // error.message === "2"
-  });
-  ```
-
-  @method all
-  @static
-  @param {Array} entries array of promises
-  @param {String} label optional string for labeling the promise.
-  Useful for tooling.
-  @return {Promise} promise that is fulfilled when all `promises` have been
-  fulfilled, or rejected if any of them become rejected.
-  @static
-*/
-function all$1(entries) {
-  return new Enumerator$1(this, entries).promise;
-}
-
-/**
-  `Promise.race` returns a new promise which is settled in the same way as the
-  first passed promise to settle.
-
-  Example:
-
-  ```javascript
-  let promise1 = new Promise(function(resolve, reject){
-    setTimeout(function(){
-      resolve('promise 1');
-    }, 200);
-  });
-
-  let promise2 = new Promise(function(resolve, reject){
-    setTimeout(function(){
-      resolve('promise 2');
-    }, 100);
-  });
-
-  Promise.race([promise1, promise2]).then(function(result){
-    // result === 'promise 2' because it was resolved before promise1
-    // was resolved.
-  });
-  ```
-
-  `Promise.race` is deterministic in that only the state of the first
-  settled promise matters. For example, even if other promises given to the
-  `promises` array argument are resolved, but the first settled promise has
-  become rejected before the other promises became fulfilled, the returned
-  promise will become rejected:
-
-  ```javascript
-  let promise1 = new Promise(function(resolve, reject){
-    setTimeout(function(){
-      resolve('promise 1');
-    }, 200);
-  });
-
-  let promise2 = new Promise(function(resolve, reject){
-    setTimeout(function(){
-      reject(new Error('promise 2'));
-    }, 100);
-  });
-
-  Promise.race([promise1, promise2]).then(function(result){
-    // Code here never runs
-  }, function(reason){
-    // reason.message === 'promise 2' because promise 2 became rejected before
-    // promise 1 became fulfilled
-  });
-  ```
-
-  An example real-world use case is implementing timeouts:
-
-  ```javascript
-  Promise.race([ajax('foo.json'), timeout(5000)])
-  ```
-
-  @method race
-  @static
-  @param {Array} promises array of promises to observe
-  Useful for tooling.
-  @return {Promise} a promise which settles in the same way as the first passed
-  promise to settle.
-*/
-function race$1(entries) {
-  /*jshint validthis:true */
-  var Constructor = this;
-
-  if (!isArray(entries)) {
-    return new Constructor(function (_, reject) {
-      return reject(new TypeError('You must pass an array to race.'));
-    });
-  } else {
-    return new Constructor(function (resolve, reject) {
-      var length = entries.length;
-      for (var i = 0; i < length; i++) {
-        Constructor.resolve(entries[i]).then(resolve, reject);
-      }
-    });
-  }
-}
-
-/**
-  `Promise.reject` returns a promise rejected with the passed `reason`.
-  It is shorthand for the following:
-
-  ```javascript
-  let promise = new Promise(function(resolve, reject){
-    reject(new Error('WHOOPS'));
-  });
-
-  promise.then(function(value){
-    // Code here doesn't run because the promise is rejected!
-  }, function(reason){
-    // reason.message === 'WHOOPS'
-  });
-  ```
-
-  Instead of writing the above, your code now simply becomes the following:
-
-  ```javascript
-  let promise = Promise.reject(new Error('WHOOPS'));
-
-  promise.then(function(value){
-    // Code here doesn't run because the promise is rejected!
-  }, function(reason){
-    // reason.message === 'WHOOPS'
-  });
-  ```
-
-  @method reject
-  @static
-  @param {Any} reason value that the returned promise will be rejected with.
-  Useful for tooling.
-  @return {Promise} a promise rejected with the given `reason`.
-*/
-function reject$1(reason) {
-  /*jshint validthis:true */
-  var Constructor = this;
-  var promise = new Constructor(noop);
-  reject(promise, reason);
-  return promise;
-}
-
-function needsResolver() {
-  throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
-}
-
-function needsNew() {
-  throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
-}
-
-/**
-  Promise objects represent the eventual result of an asynchronous operation. The
-  primary way of interacting with a promise is through its `then` method, which
-  registers callbacks to receive either a promise's eventual value or the reason
-  why the promise cannot be fulfilled.
-
-  Terminology
-  -----------
-
-  - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
-  - `thenable` is an object or function that defines a `then` method.
-  - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
-  - `exception` is a value that is thrown using the throw statement.
-  - `reason` is a value that indicates why a promise was rejected.
-  - `settled` the final resting state of a promise, fulfilled or rejected.
-
-  A promise can be in one of three states: pending, fulfilled, or rejected.
-
-  Promises that are fulfilled have a fulfillment value and are in the fulfilled
-  state.  Promises that are rejected have a rejection reason and are in the
-  rejected state.  A fulfillment value is never a thenable.
-
-  Promises can also be said to *resolve* a value.  If this value is also a
-  promise, then the original promise's settled state will match the value's
-  settled state.  So a promise that *resolves* a promise that rejects will
-  itself reject, and a promise that *resolves* a promise that fulfills will
-  itself fulfill.
-
-
-  Basic Usage:
-  ------------
-
-  ```js
-  let promise = new Promise(function(resolve, reject) {
-    // on success
-    resolve(value);
-
-    // on failure
-    reject(reason);
-  });
-
-  promise.then(function(value) {
-    // on fulfillment
-  }, function(reason) {
-    // on rejection
-  });
-  ```
-
-  Advanced Usage:
-  ---------------
-
-  Promises shine when abstracting away asynchronous interactions such as
-  `XMLHttpRequest`s.
-
-  ```js
-  function getJSON(url) {
-    return new Promise(function(resolve, reject){
-      let xhr = new XMLHttpRequest();
-
-      xhr.open('GET', url);
-      xhr.onreadystatechange = handler;
-      xhr.responseType = 'json';
-      xhr.setRequestHeader('Accept', 'application/json');
-      xhr.send();
-
-      function handler() {
-        if (this.readyState === this.DONE) {
-          if (this.status === 200) {
-            resolve(this.response);
-          } else {
-            reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
-          }
-        }
-      };
-    });
-  }
-
-  getJSON('/posts.json').then(function(json) {
-    // on fulfillment
-  }, function(reason) {
-    // on rejection
-  });
-  ```
-
-  Unlike callbacks, promises are great composable primitives.
-
-  ```js
-  Promise.all([
-    getJSON('/posts'),
-    getJSON('/comments')
-  ]).then(function(values){
-    values[0] // => postsJSON
-    values[1] // => commentsJSON
-
-    return values;
-  });
-  ```
-
-  @class Promise
-  @param {function} resolver
-  Useful for tooling.
-  @constructor
-*/
-function Promise$2(resolver) {
-  this[PROMISE_ID] = nextId();
-  this._result = this._state = undefined;
-  this._subscribers = [];
-
-  if (noop !== resolver) {
-    typeof resolver !== 'function' && needsResolver();
-    this instanceof Promise$2 ? initializePromise(this, resolver) : needsNew();
-  }
-}
-
-Promise$2.all = all$1;
-Promise$2.race = race$1;
-Promise$2.resolve = resolve$1;
-Promise$2.reject = reject$1;
-Promise$2._setScheduler = setScheduler;
-Promise$2._setAsap = setAsap;
-Promise$2._asap = asap;
-
-Promise$2.prototype = {
-  constructor: Promise$2,
-
-  /**
-    The primary way of interacting with a promise is through its `then` method,
-    which registers callbacks to receive either a promise's eventual value or the
-    reason why the promise cannot be fulfilled.
-  
-    ```js
-    findUser().then(function(user){
-      // user is available
-    }, function(reason){
-      // user is unavailable, and you are given the reason why
-    });
-    ```
-  
-    Chaining
-    --------
-  
-    The return value of `then` is itself a promise.  This second, 'downstream'
-    promise is resolved with the return value of the first promise's fulfillment
-    or rejection handler, or rejected if the handler throws an exception.
-  
-    ```js
-    findUser().then(function (user) {
-      return user.name;
-    }, function (reason) {
-      return 'default name';
-    }).then(function (userName) {
-      // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
-      // will be `'default name'`
-    });
-  
-    findUser().then(function (user) {
-      throw new Error('Found user, but still unhappy');
-    }, function (reason) {
-      throw new Error('`findUser` rejected and we're unhappy');
-    }).then(function (value) {
-      // never reached
-    }, function (reason) {
-      // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
-      // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
-    });
-    ```
-    If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
-  
-    ```js
-    findUser().then(function (user) {
-      throw new PedagogicalException('Upstream error');
-    }).then(function (value) {
-      // never reached
-    }).then(function (value) {
-      // never reached
-    }, function (reason) {
-      // The `PedgagocialException` is propagated all the way down to here
-    });
-    ```
-  
-    Assimilation
-    ------------
-  
-    Sometimes the value you want to propagate to a downstream promise can only be
-    retrieved asynchronously. This can be achieved by returning a promise in the
-    fulfillment or rejection handler. The downstream promise will then be pending
-    until the returned promise is settled. This is called *assimilation*.
-  
-    ```js
-    findUser().then(function (user) {
-      return findCommentsByAuthor(user);
-    }).then(function (comments) {
-      // The user's comments are now available
-    });
-    ```
-  
-    If the assimliated promise rejects, then the downstream promise will also reject.
-  
-    ```js
-    findUser().then(function (user) {
-      return findCommentsByAuthor(user);
-    }).then(function (comments) {
-      // If `findCommentsByAuthor` fulfills, we'll have the value here
-    }, function (reason) {
-      // If `findCommentsByAuthor` rejects, we'll have the reason here
-    });
-    ```
-  
-    Simple Example
-    --------------
-  
-    Synchronous Example
-  
-    ```javascript
-    let result;
-  
-    try {
-      result = findResult();
-      // success
-    } catch(reason) {
-      // failure
-    }
-    ```
-  
-    Errback Example
-  
-    ```js
-    findResult(function(result, err){
-      if (err) {
-        // failure
-      } else {
-        // success
-      }
-    });
-    ```
-  
-    Promise Example;
-  
-    ```javascript
-    findResult().then(function(result){
-      // success
-    }, function(reason){
-      // failure
-    });
-    ```
-  
-    Advanced Example
-    --------------
-  
-    Synchronous Example
-  
-    ```javascript
-    let author, books;
-  
-    try {
-      author = findAuthor();
-      books  = findBooksByAuthor(author);
-      // success
-    } catch(reason) {
-      // failure
-    }
-    ```
-  
-    Errback Example
-  
-    ```js
-  
-    function foundBooks(books) {
-  
-    }
-  
-    function failure(reason) {
-  
-    }
-  
-    findAuthor(function(author, err){
-      if (err) {
-        failure(err);
-        // failure
-      } else {
-        try {
-          findBoooksByAuthor(author, function(books, err) {
-            if (err) {
-              failure(err);
-            } else {
-              try {
-                foundBooks(books);
-              } catch(reason) {
-                failure(reason);
-              }
-            }
-          });
-        } catch(error) {
-          failure(err);
-        }
-        // success
-      }
-    });
-    ```
-  
-    Promise Example;
-  
-    ```javascript
-    findAuthor().
-      then(findBooksByAuthor).
-      then(function(books){
-        // found books
-    }).catch(function(reason){
-      // something went wrong
-    });
-    ```
-  
-    @method then
-    @param {Function} onFulfilled
-    @param {Function} onRejected
-    Useful for tooling.
-    @return {Promise}
-  */
-  then: then,
-
-  /**
-    `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
-    as the catch block of a try/catch statement.
-  
-    ```js
-    function findAuthor(){
-      throw new Error('couldn't find that author');
-    }
-  
-    // synchronous
-    try {
-      findAuthor();
-    } catch(reason) {
-      // something went wrong
-    }
-  
-    // async with promises
-    findAuthor().catch(function(reason){
-      // something went wrong
-    });
-    ```
-  
-    @method catch
-    @param {Function} onRejection
-    Useful for tooling.
-    @return {Promise}
-  */
-  'catch': function _catch(onRejection) {
-    return this.then(null, onRejection);
-  }
-};
-
-/*global self*/
-function polyfill$1() {
-    var local = undefined;
-
-    if (typeof global !== 'undefined') {
-        local = global;
-    } else if (typeof self !== 'undefined') {
-        local = self;
-    } else {
-        try {
-            local = Function('return this')();
-        } catch (e) {
-            throw new Error('polyfill failed because global object is unavailable in this environment');
-        }
-    }
-
-    var P = local.Promise;
-
-    if (P) {
-        var promiseToString = null;
-        try {
-            promiseToString = Object.prototype.toString.call(P.resolve());
-        } catch (e) {
-            // silently ignored
-        }
-
-        if (promiseToString === '[object Promise]' && !P.cast) {
-            return;
-        }
-    }
-
-    local.Promise = Promise$2;
-}
-
-// Strange compat..
-Promise$2.polyfill = polyfill$1;
-Promise$2.Promise = Promise$2;
-
-return Promise$2;
-
-})));
-
-
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"_process":76}],17:[function(require,module,exports){
+},{"ms":74}],14:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4584,7 +3349,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],18:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 function format(fmt) {
   var re = /(%?)(%([jds]))/g
     , args = Array.prototype.slice.call(arguments, 1);
@@ -4623,23 +3388,40 @@ function format(fmt) {
 
 module.exports = format;
 
-},{}],19:[function(require,module,exports){
-var http = require('http');
+},{}],16:[function(require,module,exports){
+var http = require('http')
+var url = require('url')
 
-var https = module.exports;
+var https = module.exports
 
 for (var key in http) {
-    if (http.hasOwnProperty(key)) https[key] = http[key];
-};
-
-https.request = function (params, cb) {
-    if (!params) params = {};
-    params.scheme = 'https';
-    params.protocol = 'https:';
-    return http.request.call(this, params, cb);
+  if (http.hasOwnProperty(key)) https[key] = http[key]
 }
 
-},{"http":91}],20:[function(require,module,exports){
+https.request = function (params, cb) {
+  params = validateParams(params)
+  return http.request.call(this, params, cb)
+}
+
+https.get = function (params, cb) {
+  params = validateParams(params)
+  return http.get.call(this, params, cb)
+}
+
+function validateParams (params) {
+  if (typeof params === 'string') {
+    params = url.parse(params)
+  }
+  if (!params.protocol) {
+    params.protocol = 'https:'
+  }
+  if (params.protocol !== 'https:') {
+    throw new Error('Protocol "' + params.protocol + '" not supported. Expected "https:"')
+  }
+  return params
+}
+
+},{"http":92,"url":100}],17:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -4725,7 +3507,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],21:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -4750,7 +3532,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],22:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -4773,14 +3555,14 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],23:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],24:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 
@@ -4789,7 +3571,7 @@ var yaml = require('./lib/js-yaml.js');
 
 module.exports = yaml;
 
-},{"./lib/js-yaml.js":25}],25:[function(require,module,exports){
+},{"./lib/js-yaml.js":22}],22:[function(require,module,exports){
 'use strict';
 
 
@@ -4830,7 +3612,7 @@ module.exports.parse          = deprecated('parse');
 module.exports.compose        = deprecated('compose');
 module.exports.addConstructor = deprecated('addConstructor');
 
-},{"./js-yaml/dumper":27,"./js-yaml/exception":28,"./js-yaml/loader":29,"./js-yaml/schema":31,"./js-yaml/schema/core":32,"./js-yaml/schema/default_full":33,"./js-yaml/schema/default_safe":34,"./js-yaml/schema/failsafe":35,"./js-yaml/schema/json":36,"./js-yaml/type":37}],26:[function(require,module,exports){
+},{"./js-yaml/dumper":24,"./js-yaml/exception":25,"./js-yaml/loader":26,"./js-yaml/schema":28,"./js-yaml/schema/core":29,"./js-yaml/schema/default_full":30,"./js-yaml/schema/default_safe":31,"./js-yaml/schema/failsafe":32,"./js-yaml/schema/json":33,"./js-yaml/type":34}],23:[function(require,module,exports){
 'use strict';
 
 
@@ -4891,7 +3673,7 @@ module.exports.repeat         = repeat;
 module.exports.isNegativeZero = isNegativeZero;
 module.exports.extend         = extend;
 
-},{}],27:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable no-use-before-define*/
@@ -5355,11 +4137,21 @@ function foldLine(line, width) {
 // Escapes a double-quoted string.
 function escapeString(string) {
   var result = '';
-  var char;
+  var char, nextChar;
   var escapeSeq;
 
   for (var i = 0; i < string.length; i++) {
     char = string.charCodeAt(i);
+    // Check for surrogate pairs (reference Unicode 3.0 section "3.7 Surrogates").
+    if (char >= 0xD800 && char <= 0xDBFF/* high surrogate */) {
+      nextChar = string.charCodeAt(i + 1);
+      if (nextChar >= 0xDC00 && nextChar <= 0xDFFF/* low surrogate */) {
+        // Combine the surrogate pair and store it escaped.
+        result += encodeHex((char - 0xD800) * 0x400 + nextChar - 0xDC00 + 0x10000);
+        // Advance index one extra since we already used that char here.
+        i++; continue;
+      }
+    }
     escapeSeq = ESCAPE_SEQUENCES[char];
     result += !escapeSeq && isPrintable(char)
       ? string[i]
@@ -5425,7 +4217,7 @@ function writeFlowMapping(state, level, object) {
       pairBuffer;
 
   for (index = 0, length = objectKeyList.length; index < length; index += 1) {
-    pairBuffer = '';
+    pairBuffer = state.condenseFlow ? '"' : '';
 
     if (index !== 0) pairBuffer += ', ';
 
@@ -5438,7 +4230,7 @@ function writeFlowMapping(state, level, object) {
 
     if (state.dump.length > 1024) pairBuffer += '? ';
 
-    pairBuffer += state.dump + ':' + (state.condenseFlow ? '' : ' ');
+    pairBuffer += state.dump + (state.condenseFlow ? '"' : '') + ':' + (state.condenseFlow ? '' : ' ');
 
     if (!writeNode(state, level, objectValue, false, false)) {
       continue; // Skip this pair because of invalid value.
@@ -5702,7 +4494,7 @@ function safeDump(input, options) {
 module.exports.dump     = dump;
 module.exports.safeDump = safeDump;
 
-},{"./common":26,"./exception":28,"./schema/default_full":33,"./schema/default_safe":34}],28:[function(require,module,exports){
+},{"./common":23,"./exception":25,"./schema/default_full":30,"./schema/default_safe":31}],25:[function(require,module,exports){
 // YAML error class. http://stackoverflow.com/questions/8458984
 //
 'use strict';
@@ -5747,7 +4539,7 @@ YAMLException.prototype.toString = function toString(compact) {
 
 module.exports = YAMLException;
 
-},{}],29:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable max-len,no-use-before-define*/
@@ -6747,7 +5539,7 @@ function readBlockMapping(state, nodeIndent, flowIndent) {
         allowCompact = true;
 
       } else {
-        throwError(state, 'incomplete explicit mapping pair; a key node is missed');
+        throwError(state, 'incomplete explicit mapping pair; a key node is missed; or followed by a non-tabulated empty line');
       }
 
       state.position += 1;
@@ -7347,7 +6139,7 @@ module.exports.load        = load;
 module.exports.safeLoadAll = safeLoadAll;
 module.exports.safeLoad    = safeLoad;
 
-},{"./common":26,"./exception":28,"./mark":30,"./schema/default_full":33,"./schema/default_safe":34}],30:[function(require,module,exports){
+},{"./common":23,"./exception":25,"./mark":27,"./schema/default_full":30,"./schema/default_safe":31}],27:[function(require,module,exports){
 'use strict';
 
 
@@ -7425,7 +6217,7 @@ Mark.prototype.toString = function toString(compact) {
 
 module.exports = Mark;
 
-},{"./common":26}],31:[function(require,module,exports){
+},{"./common":23}],28:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable max-len*/
@@ -7535,7 +6327,7 @@ Schema.create = function createSchema() {
 
 module.exports = Schema;
 
-},{"./common":26,"./exception":28,"./type":37}],32:[function(require,module,exports){
+},{"./common":23,"./exception":25,"./type":34}],29:[function(require,module,exports){
 // Standard YAML's Core schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2804923
 //
@@ -7555,7 +6347,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":31,"./json":36}],33:[function(require,module,exports){
+},{"../schema":28,"./json":33}],30:[function(require,module,exports){
 // JS-YAML's default schema for `load` function.
 // It is not described in the YAML specification.
 //
@@ -7582,7 +6374,7 @@ module.exports = Schema.DEFAULT = new Schema({
   ]
 });
 
-},{"../schema":31,"../type/js/function":42,"../type/js/regexp":43,"../type/js/undefined":44,"./default_safe":34}],34:[function(require,module,exports){
+},{"../schema":28,"../type/js/function":39,"../type/js/regexp":40,"../type/js/undefined":41,"./default_safe":31}],31:[function(require,module,exports){
 // JS-YAML's default schema for `safeLoad` function.
 // It is not described in the YAML specification.
 //
@@ -7612,7 +6404,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":31,"../type/binary":38,"../type/merge":46,"../type/omap":48,"../type/pairs":49,"../type/set":51,"../type/timestamp":53,"./core":32}],35:[function(require,module,exports){
+},{"../schema":28,"../type/binary":35,"../type/merge":43,"../type/omap":45,"../type/pairs":46,"../type/set":48,"../type/timestamp":50,"./core":29}],32:[function(require,module,exports){
 // Standard YAML's Failsafe schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2802346
 
@@ -7631,7 +6423,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":31,"../type/map":45,"../type/seq":50,"../type/str":52}],36:[function(require,module,exports){
+},{"../schema":28,"../type/map":42,"../type/seq":47,"../type/str":49}],33:[function(require,module,exports){
 // Standard YAML's JSON schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2803231
 //
@@ -7658,7 +6450,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":31,"../type/bool":39,"../type/float":40,"../type/int":41,"../type/null":47,"./failsafe":35}],37:[function(require,module,exports){
+},{"../schema":28,"../type/bool":36,"../type/float":37,"../type/int":38,"../type/null":44,"./failsafe":32}],34:[function(require,module,exports){
 'use strict';
 
 var YAMLException = require('./exception');
@@ -7721,7 +6513,7 @@ function Type(tag, options) {
 
 module.exports = Type;
 
-},{"./exception":28}],38:[function(require,module,exports){
+},{"./exception":25}],35:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable no-bitwise*/
@@ -7861,7 +6653,7 @@ module.exports = new Type('tag:yaml.org,2002:binary', {
   represent: representYamlBinary
 });
 
-},{"../type":37}],39:[function(require,module,exports){
+},{"../type":34}],36:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -7898,7 +6690,7 @@ module.exports = new Type('tag:yaml.org,2002:bool', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":37}],40:[function(require,module,exports){
+},{"../type":34}],37:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -8016,7 +6808,7 @@ module.exports = new Type('tag:yaml.org,2002:float', {
   defaultStyle: 'lowercase'
 });
 
-},{"../common":26,"../type":37}],41:[function(require,module,exports){
+},{"../common":23,"../type":34}],38:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -8190,7 +6982,7 @@ module.exports = new Type('tag:yaml.org,2002:int', {
   }
 });
 
-},{"../common":26,"../type":37}],42:[function(require,module,exports){
+},{"../common":23,"../type":34}],39:[function(require,module,exports){
 'use strict';
 
 var esprima;
@@ -8276,7 +7068,7 @@ module.exports = new Type('tag:yaml.org,2002:js/function', {
   represent: representJavascriptFunction
 });
 
-},{"../../type":37}],43:[function(require,module,exports){
+},{"../../type":34}],40:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -8338,7 +7130,7 @@ module.exports = new Type('tag:yaml.org,2002:js/regexp', {
   represent: representJavascriptRegExp
 });
 
-},{"../../type":37}],44:[function(require,module,exports){
+},{"../../type":34}],41:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -8368,7 +7160,7 @@ module.exports = new Type('tag:yaml.org,2002:js/undefined', {
   represent: representJavascriptUndefined
 });
 
-},{"../../type":37}],45:[function(require,module,exports){
+},{"../../type":34}],42:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -8378,7 +7170,7 @@ module.exports = new Type('tag:yaml.org,2002:map', {
   construct: function (data) { return data !== null ? data : {}; }
 });
 
-},{"../type":37}],46:[function(require,module,exports){
+},{"../type":34}],43:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -8392,7 +7184,7 @@ module.exports = new Type('tag:yaml.org,2002:merge', {
   resolve: resolveYamlMerge
 });
 
-},{"../type":37}],47:[function(require,module,exports){
+},{"../type":34}],44:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -8428,7 +7220,7 @@ module.exports = new Type('tag:yaml.org,2002:null', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":37}],48:[function(require,module,exports){
+},{"../type":34}],45:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -8474,7 +7266,7 @@ module.exports = new Type('tag:yaml.org,2002:omap', {
   construct: constructYamlOmap
 });
 
-},{"../type":37}],49:[function(require,module,exports){
+},{"../type":34}],46:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -8529,7 +7321,7 @@ module.exports = new Type('tag:yaml.org,2002:pairs', {
   construct: constructYamlPairs
 });
 
-},{"../type":37}],50:[function(require,module,exports){
+},{"../type":34}],47:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -8539,7 +7331,7 @@ module.exports = new Type('tag:yaml.org,2002:seq', {
   construct: function (data) { return data !== null ? data : []; }
 });
 
-},{"../type":37}],51:[function(require,module,exports){
+},{"../type":34}],48:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -8570,7 +7362,7 @@ module.exports = new Type('tag:yaml.org,2002:set', {
   construct: constructYamlSet
 });
 
-},{"../type":37}],52:[function(require,module,exports){
+},{"../type":34}],49:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -8580,7 +7372,7 @@ module.exports = new Type('tag:yaml.org,2002:str', {
   construct: function (data) { return data !== null ? data : ''; }
 });
 
-},{"../type":37}],53:[function(require,module,exports){
+},{"../type":34}],50:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -8670,19 +7462,13 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
   represent: representYamlTimestamp
 });
 
-},{"../type":37}],54:[function(require,module,exports){
-/** !
- * JSON Schema $Ref Parser v1.4.1
- *
- * @link https://github.com/BigstickCarpet/json-schema-ref-parser
- * @license MIT
- */
+},{"../type":34}],51:[function(require,module,exports){
 'use strict';
 
-var $Ref    = require('./ref'),
+var $Ref = require('./ref'),
     Pointer = require('./pointer'),
-    util    = require('./util'),
-    url     = require('url');
+    debug = require('./util/debug'),
+    url = require('./util/url');
 
 module.exports = bundle;
 
@@ -8694,98 +7480,197 @@ module.exports = bundle;
  * @param {$RefParser} parser
  * @param {$RefParserOptions} options
  */
-function bundle(parser, options) {
-  util.debug('Bundling $ref pointers in %s', parser._basePath);
+function bundle (parser, options) {
+  debug('Bundling $ref pointers in %s', parser.$refs._root$Ref.path);
 
-  remap(parser.$refs, options);
-  dereference(parser._basePath, parser.$refs, options);
+  // Build an inventory of all $ref pointers in the JSON Schema
+  var inventory = [];
+  crawl(parser, 'schema', parser.$refs._root$Ref.path + '#', '#', inventory, parser.$refs, options);
+
+  // Remap all $ref pointers
+  remap(inventory);
 }
 
 /**
- * Re-maps all $ref pointers in the schema, so that they are relative to the root of the schema.
+ * Recursively crawls the given value, and inventories all JSON references.
  *
+ * @param {object} parent - The object containing the value to crawl. If the value is not an object or array, it will be ignored.
+ * @param {string} key - The property key of `parent` to be crawled
+ * @param {string} path - The full path of the property being crawled, possibly with a JSON Pointer in the hash
+ * @param {string} pathFromRoot - The path of the property being crawled, from the schema root
+ * @param {object[]} inventory - An array of already-inventoried $ref pointers
  * @param {$Refs} $refs
  * @param {$RefParserOptions} options
  */
-function remap($refs, options) {
-  var remapped = [];
+function crawl (parent, key, path, pathFromRoot, inventory, $refs, options) {
+  var obj = key === null ? parent : parent[key];
 
-  // Crawl the schema and determine the re-mapped values for all $ref pointers.
-  // NOTE: We don't actually APPLY the re-mappings them yet, since that can affect other re-mappings
-  Object.keys($refs._$refs).forEach(function(key) {
-    var $ref = $refs._$refs[key];
-    crawl($ref.value, $ref.path + '#', $refs, remapped, options);
+  if (obj && typeof obj === 'object') {
+    if ($Ref.isAllowed$Ref(obj)) {
+      inventory$Ref(parent, key, path, pathFromRoot, inventory, $refs, options);
+    }
+    else {
+      var keys = Object.keys(obj);
+
+      // Most people will expect references to be bundled into the the "definitions" property,
+      // so we always crawl that property first, if it exists.
+      var defs = keys.indexOf('definitions');
+      if (defs > 0) {
+        keys.splice(0, 0, keys.splice(defs, 1)[0]);
+      }
+
+      keys.forEach(function (key) {
+        var keyPath = Pointer.join(path, key);
+        var keyPathFromRoot = Pointer.join(pathFromRoot, key);
+        var value = obj[key];
+
+        if ($Ref.isAllowed$Ref(value)) {
+          inventory$Ref(obj, key, path, keyPathFromRoot, inventory, $refs, options);
+        }
+        else {
+          crawl(obj, key, keyPath, keyPathFromRoot, inventory, $refs, options);
+        }
+      });
+    }
+  }
+}
+
+/**
+ * Inventories the given JSON Reference (i.e. records detailed information about it so we can
+ * optimize all $refs in the schema), and then crawls the resolved value.
+ *
+ * @param {object} $refParent - The object that contains a JSON Reference as one of its keys
+ * @param {string} $refKey - The key in `$refParent` that is a JSON Reference
+ * @param {string} path - The full path of the JSON Reference at `$refKey`, possibly with a JSON Pointer in the hash
+ * @param {string} pathFromRoot - The path of the JSON Reference at `$refKey`, from the schema root
+ * @param {object[]} inventory - An array of already-inventoried $ref pointers
+ * @param {$Refs} $refs
+ * @param {$RefParserOptions} options
+ */
+function inventory$Ref ($refParent, $refKey, path, pathFromRoot, inventory, $refs, options) {
+  if (inventory.some(function (i) { return i.parent === $refParent && i.key === $refKey; })) {
+    // This $Ref has already been inventoried, so we don't need to process it again
+    return;
+  }
+
+  var $ref = $refKey === null ? $refParent : $refParent[$refKey];
+  var $refPath = url.resolve(path, $ref.$ref);
+  var pointer = $refs._resolve($refPath, options);
+  var depth = Pointer.parse(pathFromRoot).length;
+  var file = url.stripHash(pointer.path);
+  var hash = url.getHash(pointer.path);
+  var external = file !== $refs._root$Ref.path;
+  var extended = $Ref.isExtended$Ref($ref);
+
+  inventory.push({
+    $ref: $ref,                   // The JSON Reference (e.g. {$ref: string})
+    parent: $refParent,           // The object that contains this $ref pointer
+    key: $refKey,                 // The key in `parent` that is the $ref pointer
+    pathFromRoot: pathFromRoot,   // The path to the $ref pointer, from the JSON Schema root
+    depth: depth,                 // How far from the JSON Schema root is this $ref pointer?
+    file: file,                   // The file that the $ref pointer resolves to
+    hash: hash,                   // The hash within `file` that the $ref pointer resolves to
+    value: pointer.value,         // The resolved value of the $ref pointer
+    circular: pointer.circular,   // Is this $ref pointer DIRECTLY circular? (i.e. it references itself)
+    extended: extended,           // Does this $ref extend its resolved value? (i.e. it has extra properties, in addition to "$ref")
+    external: external            // Does this $ref pointer point to a file other than the main JSON Schema file?
   });
 
-  // Now APPLY all of the re-mappings
-  for (var i = 0; i < remapped.length; i++) {
-    var mapping = remapped[i];
-    mapping.old$Ref.$ref = mapping.new$Ref.$ref;
-  }
+  // Recursively crawl the resolved value
+  crawl(pointer.value, null, pointer.path, pathFromRoot, inventory, $refs, options);
 }
 
 /**
- * Recursively crawls the given value, and re-maps any JSON references.
+ * Re-maps every $ref pointer, so that they're all relative to the root of the JSON Schema.
+ * Each referenced value is dereferenced EXACTLY ONCE.  All subsequent references to the same
+ * value are re-mapped to point to the first reference.
  *
- * @param {*} obj - The value to crawl. If it's not an object or array, it will be ignored.
- * @param {string} path - The path to use for resolving relative JSON references
- * @param {$Refs} $refs - The resolved JSON references
- * @param {object[]} remapped - An array of the re-mapped JSON references
- * @param {$RefParserOptions} options
- */
-function crawl(obj, path, $refs, remapped, options) {
-  if (obj && typeof obj === 'object') {
-    Object.keys(obj).forEach(function(key) {
-      var keyPath = Pointer.join(path, key);
-      var value = obj[key];
-
-      if ($Ref.is$Ref(value)) {
-        // We found a $ref, so resolve it
-        util.debug('Re-mapping $ref pointer "%s" at %s', value.$ref, keyPath);
-        var $refPath = url.resolve(path, value.$ref);
-        var pointer = $refs._resolve($refPath, options);
-
-        // Re-map the value
-        var new$RefPath = pointer.$ref.pathFromRoot + util.path.getHash(pointer.path).substr(1);
-        util.debug('    new value: %s', new$RefPath);
-        remapped.push({
-          old$Ref: value,
-          new$Ref: {$ref: new$RefPath}  // Note: DON'T name this property `new` (https://github.com/BigstickCarpet/json-schema-ref-parser/issues/3)
-        });
-      }
-      else {
-        crawl(value, keyPath, $refs, remapped, options);
-      }
-    });
-  }
-}
-
-/**
- * Dereferences each external $ref pointer exactly ONCE.
+ * @example:
+ *  {
+ *    first: { $ref: somefile.json#/some/part },
+ *    second: { $ref: somefile.json#/another/part },
+ *    third: { $ref: somefile.json },
+ *    fourth: { $ref: somefile.json#/some/part/sub/part }
+ *  }
  *
- * @param {string} basePath
- * @param {$Refs} $refs
- * @param {$RefParserOptions} options
+ * In this example, there are four references to the same file, but since the third reference points
+ * to the ENTIRE file, that's the only one we need to dereference.  The other three can just be
+ * remapped to point inside the third one.
+ *
+ * On the other hand, if the third reference DIDN'T exist, then the first and second would both need
+ * to be dereferenced, since they point to different parts of the file. The fourth reference does NOT
+ * need to be dereferenced, because it can be remapped to point inside the first one.
+ *
+ * @param {object[]} inventory
  */
-function dereference(basePath, $refs, options) {
-  basePath = util.path.stripHash(basePath);
-
-  Object.keys($refs._$refs).forEach(function(key) {
-    var $ref = $refs._$refs[key];
-    if ($ref.pathFromRoot !== '#') {
-      $refs.set(basePath + $ref.pathFromRoot, $ref.value, options);
+function remap (inventory) {
+  // Group & sort all the $ref pointers, so they're in the order that we need to dereference/remap them
+  inventory.sort(function (a, b) {
+    if (a.file !== b.file) {
+      return a.file < b.file ? -1 : +1;   // Group all the $refs that point to the same file
+    }
+    else if (a.hash !== b.hash) {
+      return a.hash < b.hash ? -1 : +1;   // Group all the $refs that point to the same part of the file
+    }
+    else if (a.circular !== b.circular) {
+      return a.circular ? -1 : +1;        // If the $ref points to itself, then sort it higher than other $refs that point to this $ref
+    }
+    else if (a.extended !== b.extended) {
+      return a.extended ? +1 : -1;        // If the $ref extends the resolved value, then sort it lower than other $refs that don't extend the value
+    }
+    else if (a.depth !== b.depth) {
+      return a.depth - b.depth;           // Sort $refs by how close they are to the JSON Schema root
+    }
+    else {
+      // If all else is equal, use the $ref that's in the "definitions" property
+      return b.pathFromRoot.lastIndexOf('/definitions') - a.pathFromRoot.lastIndexOf('/definitions');
     }
   });
+
+  var file, hash, pathFromRoot;
+  inventory.forEach(function (i) {
+    debug('Re-mapping $ref pointer "%s" at %s', i.$ref.$ref, i.pathFromRoot);
+
+    if (!i.external) {
+      // This $ref already resolves to the main JSON Schema file
+      i.$ref.$ref = i.hash;
+    }
+    else if (i.file === file && i.hash === hash) {
+      // This $ref points to the same value as the prevous $ref, so remap it to the same path
+      i.$ref.$ref = pathFromRoot;
+    }
+    else if (i.file === file && i.hash.indexOf(hash + '/') === 0) {
+      // This $ref points to the a sub-value as the prevous $ref, so remap it beneath that path
+      i.$ref.$ref = Pointer.join(pathFromRoot, Pointer.parse(i.hash));
+    }
+    else {
+      // We've moved to a new file or new hash
+      file = i.file;
+      hash = i.hash;
+      pathFromRoot = i.pathFromRoot;
+
+      // This is the first $ref to point to this value, so dereference the value.
+      // Any other $refs that point to the same value will point to this $ref instead
+      i.$ref = i.parent[i.key] = $Ref.dereference(i.$ref, i.value);
+
+      if (i.circular) {
+        // This $ref points to itself
+        i.$ref.$ref = i.pathFromRoot;
+      }
+    }
+
+    debug('    new value: %s', (i.$ref && i.$ref.$ref) ? i.$ref.$ref : '[object Object]');
+  });
 }
 
-},{"./pointer":59,"./ref":62,"./util":65,"url":99}],55:[function(require,module,exports){
+},{"./pointer":61,"./ref":62,"./util/debug":67,"./util/url":69}],52:[function(require,module,exports){
 'use strict';
 
-var $Ref    = require('./ref'),
+var $Ref = require('./ref'),
     Pointer = require('./pointer'),
-    util    = require('./util'),
-    ono     = require('ono'),
-    url     = require('url');
+    ono = require('ono'),
+    debug = require('./util/debug'),
+    url = require('./util/url');
 
 module.exports = dereference;
 
@@ -8796,141 +7681,157 @@ module.exports = dereference;
  * @param {$RefParser} parser
  * @param {$RefParserOptions} options
  */
-function dereference(parser, options) {
-  util.debug('Dereferencing $ref pointers in %s', parser._basePath);
-  parser.$refs.circular = false;
-  crawl(parser.schema, parser._basePath, [], parser.$refs, options);
+function dereference (parser, options) {
+  debug('Dereferencing $ref pointers in %s', parser.$refs._root$Ref.path);
+  var dereferenced = crawl(parser.schema, parser.$refs._root$Ref.path, '#', [], parser.$refs, options);
+  parser.$refs.circular = dereferenced.circular;
+  parser.schema = dereferenced.value;
 }
 
 /**
  * Recursively crawls the given value, and dereferences any JSON references.
  *
  * @param {*} obj - The value to crawl. If it's not an object or array, it will be ignored.
- * @param {string} path - The path to use for resolving relative JSON references
+ * @param {string} path - The full path of `obj`, possibly with a JSON Pointer in the hash
+ * @param {string} pathFromRoot - The path of `obj` from the schema root
  * @param {object[]} parents - An array of the parent objects that have already been dereferenced
- * @param {$Refs} $refs - The resolved JSON references
+ * @param {$Refs} $refs
  * @param {$RefParserOptions} options
- * @returns {boolean} - Returns true if a circular reference was found
+ * @returns {{value: object, circular: boolean}}
  */
-function crawl(obj, path, parents, $refs, options) {
-  var isCircular = false;
+function crawl (obj, path, pathFromRoot, parents, $refs, options) {
+  var dereferenced;
+  var result = {
+    value: obj,
+    circular: false
+  };
 
   if (obj && typeof obj === 'object') {
     parents.push(obj);
 
-    Object.keys(obj).forEach(function(key) {
-      var keyPath = Pointer.join(path, key);
-      var value = obj[key];
-      var circular = false;
+    if ($Ref.isAllowed$Ref(obj, options)) {
+      dereferenced = dereference$Ref(obj, path, pathFromRoot, parents, $refs, options);
+      result.circular = dereferenced.circular;
+      result.value = dereferenced.value;
+    }
+    else {
+      Object.keys(obj).forEach(function (key) {
+        var keyPath = Pointer.join(path, key);
+        var keyPathFromRoot = Pointer.join(pathFromRoot, key);
+        var value = obj[key];
+        var circular = false;
 
-      if ($Ref.isAllowed$Ref(value, options)) {
-        // We found a $ref, so resolve it
-        util.debug('Dereferencing $ref pointer "%s" at %s', value.$ref, keyPath);
-        var $refPath = url.resolve(path, value.$ref);
-        var pointer = $refs._resolve($refPath, options);
-
-        // Check for circular references
-        circular = pointer.circular || parents.indexOf(pointer.value) !== -1;
-        circular && foundCircularReference(keyPath, $refs, options);
-
-        // Dereference the JSON reference
-        var dereferencedValue = getDereferencedValue(value, pointer.value);
-
-        // Crawl the dereferenced value (unless it's circular)
-        if (!circular) {
-          // If the `crawl` method returns true, then dereferenced value is circular
-          circular = crawl(dereferencedValue, pointer.path, parents, $refs, options);
-        }
-
-        // Replace the JSON reference with the dereferenced value
-        if (!circular || options.$refs.circular === true) {
-          obj[key] = dereferencedValue;
-        }
-      }
-      else {
-        if (parents.indexOf(value) === -1) {
-          circular = crawl(value, keyPath, parents, $refs, options);
+        if ($Ref.isAllowed$Ref(value, options)) {
+          dereferenced = dereference$Ref(value, keyPath, keyPathFromRoot, parents, $refs, options);
+          circular = dereferenced.circular;
+          obj[key] = dereferenced.value;
         }
         else {
-          circular = foundCircularReference(keyPath, $refs, options);
+          if (parents.indexOf(value) === -1) {
+            dereferenced = crawl(value, keyPath, keyPathFromRoot, parents, $refs, options);
+            circular = dereferenced.circular;
+            obj[key] = dereferenced.value;
+          }
+          else {
+            circular = foundCircularReference(keyPath, $refs, options);
+          }
         }
-      }
 
-      // Set the "isCircular" flag if this or any other property is circular
-      isCircular = isCircular || circular;
-    });
+        // Set the "isCircular" flag if this or any other property is circular
+        result.circular = result.circular || circular;
+      });
+    }
 
     parents.pop();
   }
-  return isCircular;
+
+  return result;
 }
 
 /**
- * Returns the dereferenced value of the given JSON reference.
+ * Dereferences the given JSON Reference, and then crawls the resulting value.
  *
- * @param {object} currentValue - the current value, which contains a JSON reference ("$ref" property)
- * @param {*} resolvedValue - the resolved value, which can be any type
- * @returns {*} - Returns the dereferenced value
+ * @param {{$ref: string}} $ref - The JSON Reference to resolve
+ * @param {string} path - The full path of `$ref`, possibly with a JSON Pointer in the hash
+ * @param {string} pathFromRoot - The path of `$ref` from the schema root
+ * @param {object[]} parents - An array of the parent objects that have already been dereferenced
+ * @param {$Refs} $refs
+ * @param {$RefParserOptions} options
+ * @returns {{value: object, circular: boolean}}
  */
-function getDereferencedValue(currentValue, resolvedValue) {
-  if (resolvedValue && typeof resolvedValue === 'object' && Object.keys(currentValue).length > 1) {
-    // The current value has additional properties (other than "$ref"),
-    // so merge the resolved value rather than completely replacing the reference
-    var merged = {};
-    Object.keys(currentValue).forEach(function(key) {
-      if (key !== '$ref') {
-        merged[key] = currentValue[key];
-      }
-    });
-    Object.keys(resolvedValue).forEach(function(key) {
-      if (!(key in merged)) {
-        merged[key] = resolvedValue[key];
-      }
-    });
-    return merged;
+function dereference$Ref ($ref, path, pathFromRoot, parents, $refs, options) {
+  debug('Dereferencing $ref pointer "%s" at %s', $ref.$ref, path);
+
+  var $refPath = url.resolve(path, $ref.$ref);
+  var pointer = $refs._resolve($refPath, options);
+
+  // Check for circular references
+  var directCircular = pointer.circular;
+  var circular = directCircular || parents.indexOf(pointer.value) !== -1;
+  circular && foundCircularReference(path, $refs, options);
+
+  // Dereference the JSON reference
+  var dereferencedValue = $Ref.dereference($ref, pointer.value);
+
+  // Crawl the dereferenced value (unless it's circular)
+  if (!circular) {
+    // Determine if the dereferenced value is circular
+    var dereferenced = crawl(dereferencedValue, pointer.path, pathFromRoot, parents, $refs, options);
+    circular = dereferenced.circular;
+    dereferencedValue = dereferenced.value;
   }
-  else {
-    // Completely replace the original reference with the resolved value
-    return resolvedValue;
+
+  if (circular && !directCircular && options.dereference.circular === 'ignore') {
+    // The user has chosen to "ignore" circular references, so don't change the value
+    dereferencedValue = $ref;
   }
+
+  if (directCircular) {
+    // The pointer is a DIRECT circular reference (i.e. it references itself).
+    // So replace the $ref path with the absolute path from the JSON Schema root
+    dereferencedValue.$ref = pathFromRoot;
+  }
+
+  return {
+    circular: circular,
+    value: dereferencedValue
+  };
 }
 
 /**
  * Called when a circular reference is found.
- * It sets the {@link $Refs#circular} flag, and throws an error if options.$refs.circular is false.
+ * It sets the {@link $Refs#circular} flag, and throws an error if options.dereference.circular is false.
  *
  * @param {string} keyPath - The JSON Reference path of the circular reference
  * @param {$Refs} $refs
  * @param {$RefParserOptions} options
  * @returns {boolean} - always returns true, to indicate that a circular reference was found
  */
-function foundCircularReference(keyPath, $refs, options) {
+function foundCircularReference (keyPath, $refs, options) {
   $refs.circular = true;
-  if (!options.$refs.circular) {
+  if (!options.dereference.circular) {
     throw ono.reference('Circular $ref pointer found at %s', keyPath);
   }
   return true;
 }
 
-},{"./pointer":59,"./ref":62,"./util":65,"ono":70,"url":99}],56:[function(require,module,exports){
+},{"./pointer":61,"./ref":62,"./util/debug":67,"./util/url":69,"ono":75}],53:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
-var Promise     = require('./promise'),
-    Options     = require('./options'),
-    $Refs       = require('./refs'),
-    $Ref        = require('./ref'),
-    read        = require('./read'),
-    resolve     = require('./resolve'),
-    bundle      = require('./bundle'),
+var Options = require('./options'),
+    $Refs = require('./refs'),
+    parse = require('./parse'),
+    normalizeArgs = require('./normalize-args'),
+    resolveExternal = require('./resolve-external'),
+    bundle = require('./bundle'),
     dereference = require('./dereference'),
-    util        = require('./util'),
-    url         = require('url'),
-    maybe       = require('call-me-maybe'),
-    ono         = require('ono');
+    url = require('./util/url'),
+    maybe = require('call-me-maybe'),
+    ono = require('ono');
 
 module.exports = $RefParser;
-module.exports.YAML = require('./yaml');
+module.exports.YAML = require('./util/yaml');
 
 /**
  * This class parses a JSON schema, builds a map of its JSON references and their resolved values,
@@ -8938,7 +7839,7 @@ module.exports.YAML = require('./yaml');
  *
  * @constructor
  */
-function $RefParser() {
+function $RefParser () {
   /**
    * The parsed (and possibly dereferenced) JSON schema object
    *
@@ -8951,17 +7852,9 @@ function $RefParser() {
    * The resolved JSON references
    *
    * @type {$Refs}
+   * @readonly
    */
   this.$refs = new $Refs();
-
-  /**
-   * The file path or URL of the main JSON schema file.
-   * This will be empty if the schema was passed as an object rather than a path.
-   *
-   * @type {string}
-   * @protected
-   */
-  this._basePath = '';
 }
 
 /**
@@ -8974,9 +7867,10 @@ function $RefParser() {
  * @param {function} [callback] - An error-first callback. The second parameter is the parsed JSON schema object.
  * @returns {Promise} - The returned promise resolves with the parsed JSON schema object.
  */
-$RefParser.parse = function(schema, options, callback) {
+$RefParser.parse = function (schema, options, callback) {
   var Class = this; // eslint-disable-line consistent-this
-  return new Class().parse(schema, options, callback);
+  var instance = new Class();
+  return instance.parse.apply(instance, arguments);
 };
 
 /**
@@ -8989,44 +7883,55 @@ $RefParser.parse = function(schema, options, callback) {
  * @param {function} [callback] - An error-first callback. The second parameter is the parsed JSON schema object.
  * @returns {Promise} - The returned promise resolves with the parsed JSON schema object.
  */
-$RefParser.prototype.parse = function(schema, options, callback) {
+$RefParser.prototype.parse = function (schema, options, callback) {
   var args = normalizeArgs(arguments);
+  var promise;
 
-  if (args.schema && typeof args.schema === 'object') {
-    // The schema is an object, not a path/url
-    this.schema = args.schema;
-    this._basePath = '';
-    var $ref = new $Ref(this.$refs, this._basePath);
-    $ref.setValue(this.schema, args.options);
-
-    return maybe(args.callback, Promise.resolve(this.schema));
-  }
-
-  if (!args.schema || typeof args.schema !== 'string') {
-    var err = ono('Expected a file path, URL, or object. Got %s', args.schema);
+  if (!args.path && !args.schema) {
+    var err = ono('Expected a file path, URL, or object. Got %s', args.path || args.schema);
     return maybe(args.callback, Promise.reject(err));
   }
 
-  var me = this;
+  // Reset everything
+  this.schema = null;
+  this.$refs = new $Refs();
+
+  // If the path is a filesystem path, then convert it to a URL.
+  // NOTE: According to the JSON Reference spec, these should already be URLs,
+  // but, in practice, many people use local filesystem paths instead.
+  // So we're being generous here and doing the conversion automatically.
+  // This is not intended to be a 100% bulletproof solution.
+  // If it doesn't work for your use-case, then use a URL instead.
+  if (url.isFileSystemPath(args.path)) {
+    args.path = url.fromFileSystemPath(args.path);
+  }
 
   // Resolve the absolute path of the schema
-  args.schema = util.path.localPathToUrl(args.schema);
-  args.schema = url.resolve(util.path.cwd(), args.schema);
-  this._basePath = util.path.stripHash(args.schema);
+  args.path = url.resolve(url.cwd(), args.path);
 
-  // Read the schema file/url
-  return read(args.schema, this.$refs, args.options)
-    .then(function(cached$Ref) {
-      var value = cached$Ref.$ref.value;
-      if (!value || typeof value !== 'object' || value instanceof Buffer) {
-        throw ono.syntax('"%s" is not a valid JSON Schema', me._basePath);
+  if (args.schema && typeof args.schema === 'object') {
+    // A schema object was passed-in.
+    // So immediately add a new $Ref with the schema object as its value
+    this.$refs._add(args.path, args.schema);
+    promise = Promise.resolve(args.schema);
+  }
+  else {
+    // Parse the schema file/url
+    promise = parse(args.path, this.$refs, args.options);
+  }
+
+  var me = this;
+  return promise
+    .then(function (result) {
+      if (!result || typeof result !== 'object' || Buffer.isBuffer(result)) {
+        throw ono.syntax('"%s" is not a valid JSON Schema', me.$refs._root$Ref.path || result);
       }
       else {
-        me.schema = value;
+        me.schema = result;
         return maybe(args.callback, Promise.resolve(me.schema));
       }
     })
-    .catch(function(e) {
+    .catch(function (e) {
       return maybe(args.callback, Promise.reject(e));
     });
 };
@@ -9043,9 +7948,10 @@ $RefParser.prototype.parse = function(schema, options, callback) {
  * @returns {Promise}
  * The returned promise resolves with a {@link $Refs} object containing the resolved JSON references
  */
-$RefParser.resolve = function(schema, options, callback) {
+$RefParser.resolve = function (schema, options, callback) {
   var Class = this; // eslint-disable-line consistent-this
-  return new Class().resolve(schema, options, callback);
+  var instance = new Class();
+  return instance.resolve.apply(instance, arguments);
 };
 
 /**
@@ -9060,18 +7966,18 @@ $RefParser.resolve = function(schema, options, callback) {
  * @returns {Promise}
  * The returned promise resolves with a {@link $Refs} object containing the resolved JSON references
  */
-$RefParser.prototype.resolve = function(schema, options, callback) {
+$RefParser.prototype.resolve = function (schema, options, callback) {
   var me = this;
   var args = normalizeArgs(arguments);
 
-  return this.parse(args.schema, args.options)
-    .then(function() {
-      return resolve(me, args.options);
+  return this.parse(args.path, args.schema, args.options)
+    .then(function () {
+      return resolveExternal(me, args.options);
     })
-    .then(function() {
+    .then(function () {
       return maybe(args.callback, Promise.resolve(me.$refs));
     })
-    .catch(function(err) {
+    .catch(function (err) {
       return maybe(args.callback, Promise.reject(err));
     });
 };
@@ -9086,9 +7992,10 @@ $RefParser.prototype.resolve = function(schema, options, callback) {
  * @param {function} [callback] - An error-first callback. The second parameter is the bundled JSON schema object
  * @returns {Promise} - The returned promise resolves with the bundled JSON schema object.
  */
-$RefParser.bundle = function(schema, options, callback) {
+$RefParser.bundle = function (schema, options, callback) {
   var Class = this; // eslint-disable-line consistent-this
-  return new Class().bundle(schema, options, callback);
+  var instance = new Class();
+  return instance.bundle.apply(instance, arguments);
 };
 
 /**
@@ -9101,16 +8008,16 @@ $RefParser.bundle = function(schema, options, callback) {
  * @param {function} [callback] - An error-first callback. The second parameter is the bundled JSON schema object
  * @returns {Promise} - The returned promise resolves with the bundled JSON schema object.
  */
-$RefParser.prototype.bundle = function(schema, options, callback) {
+$RefParser.prototype.bundle = function (schema, options, callback) {
   var me = this;
   var args = normalizeArgs(arguments);
 
-  return this.resolve(args.schema, args.options)
-    .then(function() {
+  return this.resolve(args.path, args.schema, args.options)
+    .then(function () {
       bundle(me, args.options);
       return maybe(args.callback, Promise.resolve(me.schema));
     })
-    .catch(function(err) {
+    .catch(function (err) {
       return maybe(args.callback, Promise.reject(err));
     });
 };
@@ -9124,9 +8031,10 @@ $RefParser.prototype.bundle = function(schema, options, callback) {
  * @param {function} [callback] - An error-first callback. The second parameter is the dereferenced JSON schema object
  * @returns {Promise} - The returned promise resolves with the dereferenced JSON schema object.
  */
-$RefParser.dereference = function(schema, options, callback) {
+$RefParser.dereference = function (schema, options, callback) {
   var Class = this; // eslint-disable-line consistent-this
-  return new Class().dereference(schema, options, callback);
+  var instance = new Class();
+  return instance.dereference.apply(instance, arguments);
 };
 
 /**
@@ -9138,19 +8046,28 @@ $RefParser.dereference = function(schema, options, callback) {
  * @param {function} [callback] - An error-first callback. The second parameter is the dereferenced JSON schema object
  * @returns {Promise} - The returned promise resolves with the dereferenced JSON schema object.
  */
-$RefParser.prototype.dereference = function(schema, options, callback) {
+$RefParser.prototype.dereference = function (schema, options, callback) {
   var me = this;
   var args = normalizeArgs(arguments);
 
-  return this.resolve(args.schema, args.options)
-    .then(function() {
+  return this.resolve(args.path, args.schema, args.options)
+    .then(function () {
       dereference(me, args.options);
       return maybe(args.callback, Promise.resolve(me.schema));
     })
-    .catch(function(err) {
+    .catch(function (err) {
       return maybe(args.callback, Promise.reject(err));
     });
 };
+
+}).call(this,{"isBuffer":require("../../is-buffer/index.js")})
+
+},{"../../is-buffer/index.js":19,"./bundle":51,"./dereference":52,"./normalize-args":54,"./options":55,"./parse":56,"./refs":63,"./resolve-external":64,"./util/url":69,"./util/yaml":70,"call-me-maybe":10,"ono":75}],54:[function(require,module,exports){
+'use strict';
+
+var Options = require('./options');
+
+module.exports = normalizeArgs;
 
 /**
  * Normalizes the given arguments, accounting for optional args.
@@ -9158,208 +8075,309 @@ $RefParser.prototype.dereference = function(schema, options, callback) {
  * @param {Arguments} args
  * @returns {object}
  */
-function normalizeArgs(args) {
-  var options = args[1], callback = args[2];
-  if (typeof options === 'function') {
-    callback = options;
-    options = undefined;
+function normalizeArgs (args) {
+  var path, schema, options, callback;
+  args = Array.prototype.slice.call(args);
+
+  if (typeof args[args.length - 1] === 'function') {
+    // The last parameter is a callback function
+    callback = args.pop();
   }
+
+  if (typeof args[0] === 'string') {
+    // The first parameter is the path
+    path = args[0];
+    if (typeof args[2] === 'object') {
+      // The second parameter is the schema, and the third parameter is the options
+      schema = args[1];
+      options = args[2];
+    }
+    else {
+      // The second parameter is the options
+      schema = undefined;
+      options = args[1];
+    }
+  }
+  else {
+    // The first parameter is the schema
+    path = '';
+    schema = args[0];
+    options = args[1];
+  }
+
   if (!(options instanceof Options)) {
     options = new Options(options);
   }
+
   return {
-    schema: args[0],
+    path: path,
+    schema: schema,
     options: options,
     callback: callback
   };
 }
 
-}).call(this,require("buffer").Buffer)
-
-},{"./bundle":54,"./dereference":55,"./options":57,"./promise":60,"./read":61,"./ref":62,"./refs":63,"./resolve":64,"./util":65,"./yaml":66,"buffer":10,"call-me-maybe":12,"ono":70,"url":99}],57:[function(require,module,exports){
+},{"./options":55}],55:[function(require,module,exports){
 /* eslint lines-around-comment: [2, {beforeBlockComment: false}] */
 'use strict';
+
+var jsonParser = require('./parsers/json'),
+    yamlParser = require('./parsers/yaml'),
+    textParser = require('./parsers/text'),
+    binaryParser = require('./parsers/binary'),
+    fileResolver = require('./resolvers/file'),
+    httpResolver = require('./resolvers/http'),
+    zschemaValidator = require('./validators/z-schema');
 
 module.exports = $RefParserOptions;
 
 /**
- * Options that determine how JSON schemas are parsed, dereferenced, and cached.
+ * Options that determine how JSON schemas are parsed, resolved, dereferenced, and validated.
  *
  * @param {object|$RefParserOptions} [options] - Overridden options
  * @constructor
  */
-function $RefParserOptions(options) {
+function $RefParserOptions (options) {
+  merge(this, $RefParserOptions.defaults);
+  merge(this, options);
+}
+
+$RefParserOptions.defaults = {
   /**
-   * Determines what types of files can be parsed
+   * Determines how different types of files will be parsed.
+   *
+   * You can add additional parsers of your own, replace an existing one with
+   * your own implemenation, or disable any parser by setting it to false.
    */
-  this.allow = {
-    /**
-     * Are JSON files allowed?
-     * If false, then all schemas must be in YAML format.
-     * @type {boolean}
-     */
-    json: true,
+  parse: {
+    json: jsonParser,
+    yaml: yamlParser,
+    text: textParser,
+    binary: binaryParser,
+  },
+
+  /**
+   * Determines how JSON References will be resolved.
+   *
+   * You can add additional resolvers of your own, replace an existing one with
+   * your own implemenation, or disable any resolver by setting it to false.
+   */
+  resolve: {
+    file: fileResolver,
+    http: httpResolver,
 
     /**
-     * Are YAML files allowed?
-     * If false, then all schemas must be in JSON format.
+     * Determines whether external $ref pointers will be resolved.
+     * If this option is disabled, then none of above resolvers will be called.
+     * Instead, external $ref pointers will simply be ignored.
+     *
      * @type {boolean}
      */
-    yaml: true,
-
-    /**
-     * Are zero-byte files allowed?
-     * If false, then an error will be thrown if a file is empty.
-     * @type {boolean}
-     */
-    empty: true,
-
-    /**
-     * Can unknown file types be $referenced?
-     * If true, then they will be parsed as Buffers (byte arrays).
-     * If false, then an error will be thrown.
-     * @type {boolean}
-     */
-    unknown: true
-  };
+    external: true,
+  },
 
   /**
    * Determines the types of JSON references that are allowed.
    */
-  this.$refs = {
+  dereference: {
     /**
-     * Allow JSON references to other parts of the same file?
-     * @type {boolean}
-     */
-    internal: true,
-
-    /**
-     * Allow JSON references to external files/URLs?
-     * @type {boolean}
-     */
-    external: true,
-
-    /**
-     * Allow circular (recursive) JSON references?
+     * Dereference circular (recursive) JSON references?
      * If false, then a {@link ReferenceError} will be thrown if a circular reference is found.
      * If "ignore", then circular references will not be dereferenced.
+     *
      * @type {boolean|string}
      */
     circular: true
-  };
+  },
 
   /**
-   * How long to cache files (in seconds).
+   * Validator plug-ins that can be used to validate the schema.
    */
-  this.cache = {
-    /**
-     * How long to cache local files, in seconds.
-     * @type {number}
-     */
-    fs: 60, // 1 minute
-
-    /**
-     * How long to cache files downloaded via HTTP, in seconds.
-     * @type {number}
-     */
-    http: 5 * 60, // 5 minutes
-
-    /**
-     * How long to cache files downloaded via HTTPS, in seconds.
-     * @type {number}
-     */
-    https: 5 * 60 // 5 minutes
-  };
-
-  merge(options, this);
-}
+  validate: {
+    zschema: zschemaValidator
+  }
+};
 
 /**
- * Fast, two-level object merge.
+ * Merges the properties of the source object into the target object.
  *
- * @param {?object} src - The object to merge into dest
- * @param {object} dest - The object to be modified
+ * @param {object} target - The object that we're populating
+ * @param {?object} source - The options that are being merged
+ * @returns {object}
  */
-function merge(src, dest) {
-  if (src) {
-    var topKeys = Object.keys(src);
-    for (var i = 0; i < topKeys.length; i++) {
-      var topKey = topKeys[i];
-      var srcChild = src[topKey];
-      if (dest[topKey] === undefined) {
-        dest[topKey] = srcChild;
+function merge (target, source) {
+  if (isMergeable(source)) {
+    var keys = Object.keys(source);
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      var sourceSetting = source[key];
+      var targetSetting = target[key];
+
+      if (isMergeable(sourceSetting)) {
+        // It's a nested object, so merge it recursively
+        target[key] = merge(targetSetting || {}, sourceSetting);
       }
-      else {
-        var childKeys = Object.keys(srcChild);
-        for (var j = 0; j < childKeys.length; j++) {
-          var childKey = childKeys[j];
-          var srcChildValue = srcChild[childKey];
-          if (srcChildValue !== undefined) {
-            dest[topKey][childKey] = srcChildValue;
-          }
-        }
+      else if (sourceSetting !== undefined) {
+        // It's a scalar value, function, or array. No merging necessary. Just overwrite the target value.
+        target[key] = sourceSetting;
       }
     }
   }
+  return target;
 }
 
-},{}],58:[function(require,module,exports){
+/**
+ * Determines whether the given value can be merged,
+ * or if it is a scalar value that should just override the target value.
+ *
+ * @param   {*}  val
+ * @returns {Boolean}
+ */
+function isMergeable (val) {
+  return val &&
+    (typeof val === 'object') &&
+    !Array.isArray(val) &&
+    !(val instanceof RegExp) &&
+    !(val instanceof Date);
+}
+
+},{"./parsers/binary":57,"./parsers/json":58,"./parsers/text":59,"./parsers/yaml":60,"./resolvers/file":65,"./resolvers/http":66,"./validators/z-schema":71}],56:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
-var YAML = require('./yaml'),
-    util = require('./util'),
-    ono  = require('ono');
+var ono = require('ono'),
+    debug = require('./util/debug'),
+    url = require('./util/url'),
+    plugins = require('./util/plugins');
 
 module.exports = parse;
 
 /**
- * Parses the given data as YAML, JSON, or a raw Buffer (byte array), depending on the options.
+ * Reads and parses the specified file path or URL.
  *
- * @param {string|Buffer} data - The data to be parsed
- * @param {string} path - The file path or URL that `data` came from
+ * @param {string} path - This path MUST already be resolved, since `read` doesn't know the resolution context
+ * @param {$Refs} $refs
  * @param {$RefParserOptions} options
  *
- * @returns {string|Buffer|object}
- * If `data` can be parsed as YAML or JSON, then the returned value is a JavaScript object.
- * Otherwise, the returned value is the raw string or Buffer that was passed in.
+ * @returns {Promise}
+ * The promise resolves with the parsed file contents, NOT the raw (Buffer) contents.
  */
-function parse(data, path, options) {
-  var parsed;
-
+function parse (path, $refs, options) {
   try {
-    if (options.allow.yaml) {
-      util.debug('Parsing YAML file: %s', path);
-      parsed = YAML.parse(data.toString());
-      util.debug('    Parsed successfully');
-    }
-    else if (options.allow.json) {
-      util.debug('Parsing JSON file: %s', path);
-      parsed = JSON.parse(data.toString());
-      util.debug('    Parsed successfully');
-    }
-    else {
-      parsed = data;
-    }
+    // Remove the URL fragment, if any
+    path = url.stripHash(path);
+
+    // Add a new $Ref for this file, even though we don't have the value yet.
+    // This ensures that we don't simultaneously read & parse the same file multiple times
+    var $ref = $refs._add(path);
+
+    // This "file object" will be passed to all resolvers and parsers.
+    var file = {
+      url: path,
+      extension: url.getExtension(path),
+    };
+
+    // Read the file and then parse the data
+    return readFile(file, options)
+      .then(function (resolver) {
+        $ref.pathType = resolver.plugin.name;
+        file.data = resolver.result;
+        return parseFile(file, options);
+      })
+      .then(function (parser) {
+        $ref.value = parser.result;
+        return parser.result;
+      });
   }
   catch (e) {
-    var ext = util.path.extname(path);
-    if (options.allow.unknown && ['.json', '.yaml', '.yml'].indexOf(ext) === -1) {
-      // It's not a YAML or JSON file, and unknown formats are allowed,
-      // so ignore the parsing error and just return the raw data
-      util.debug('    Unknown file format. Not parsed.');
-      parsed = data;
-    }
-    else {
-      throw ono.syntax(e, 'Error parsing "%s"', path);
-    }
+    return Promise.reject(e);
   }
+}
 
-  if (isEmpty(parsed) && !options.allow.empty) {
-    throw ono.syntax('Error parsing "%s". \nParsed value is empty', path);
-  }
+/**
+ * Reads the given file, using the configured resolver plugins
+ *
+ * @param {object} file           - An object containing information about the referenced file
+ * @param {string} file.url       - The full URL of the referenced file
+ * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+ * @param {$RefParserOptions} options
+ *
+ * @returns {Promise}
+ * The promise resolves with the raw file contents and the resolver that was used.
+ */
+function readFile (file, options) {
+  return new Promise(function (resolve, reject) {
+    debug('Reading %s', file.url);
 
-  return parsed;
+    // Find the resolvers that can read this file
+    var resolvers = plugins.all(options.resolve);
+    resolvers = plugins.filter(resolvers, 'canRead', file);
+
+    // Run the resolvers, in order, until one of them succeeds
+    plugins.sort(resolvers);
+    plugins.run(resolvers, 'read', file)
+      .then(resolve, onError);
+
+    function onError (err) {
+      // Throw the original error, if it's one of our own (user-friendly) errors.
+      // Otherwise, throw a generic, friendly error.
+      if (err && !(err instanceof SyntaxError)) {
+        reject(err);
+      }
+      else {
+        reject(ono.syntax('Unable to resolve $ref pointer "%s"', file.url));
+      }
+    }
+  });
+}
+
+/**
+ * Parses the given file's contents, using the configured parser plugins.
+ *
+ * @param {object} file           - An object containing information about the referenced file
+ * @param {string} file.url       - The full URL of the referenced file
+ * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+ * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+ * @param {$RefParserOptions} options
+ *
+ * @returns {Promise}
+ * The promise resolves with the parsed file contents and the parser that was used.
+ */
+function parseFile (file, options) {
+  return new Promise(function (resolve, reject) {
+    debug('Parsing %s', file.url);
+
+    // Find the parsers that can read this file type.
+    // If none of the parsers are an exact match for this file, then we'll try ALL of them.
+    // This handles situations where the file IS a supported type, just with an unknown extension.
+    var allParsers = plugins.all(options.parse);
+    var filteredParsers = plugins.filter(allParsers, 'canParse', file);
+    var parsers = filteredParsers.length > 0 ? filteredParsers : allParsers;
+
+    // Run the parsers, in order, until one of them succeeds
+    plugins.sort(parsers);
+    plugins.run(parsers, 'parse', file)
+      .then(onParsed, onError);
+
+    function onParsed (parser) {
+      if (!parser.plugin.allowEmpty && isEmpty(parser.result)) {
+        reject(ono.syntax('Error parsing "%s" as %s. \nParsed value is empty', file.url, parser.plugin.name));
+      }
+      else {
+        resolve(parser);
+      }
+    }
+
+    function onError (err) {
+      if (err) {
+        err = err instanceof Error ? err : new Error(err);
+        reject(ono.syntax(err, 'Error parsing %s', file.url));
+      }
+      else {
+        reject(ono.syntax('Unable to parse %s', file.url));
+      }
+    }
+  });
 }
 
 /**
@@ -9368,26 +8386,277 @@ function parse(data, path, options) {
  * @param {*} value
  * @returns {boolean}
  */
-function isEmpty(value) {
-  return !value ||
+function isEmpty (value) {
+  return value === undefined ||
     (typeof value === 'object' && Object.keys(value).length === 0) ||
     (typeof value === 'string' && value.trim().length === 0) ||
-    (value instanceof Buffer && value.length === 0);
+    (Buffer.isBuffer(value) && value.length === 0);
 }
+
+}).call(this,{"isBuffer":require("../../is-buffer/index.js")})
+
+},{"../../is-buffer/index.js":19,"./util/debug":67,"./util/plugins":68,"./util/url":69,"ono":75}],57:[function(require,module,exports){
+(function (Buffer){
+'use strict';
+
+var BINARY_REGEXP = /\.(jpeg|jpg|gif|png|bmp|ico)$/i;
+
+module.exports = {
+  /**
+   * The order that this parser will run, in relation to other parsers.
+   *
+   * @type {number}
+   */
+  order: 400,
+
+  /**
+   * Whether to allow "empty" files (zero bytes).
+   *
+   * @type {boolean}
+   */
+  allowEmpty: true,
+
+  /**
+   * Determines whether this parser can parse a given file reference.
+   * Parsers that return true will be tried, in order, until one successfully parses the file.
+   * Parsers that return false will be skipped, UNLESS all parsers returned false, in which case
+   * every parser will be tried.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {boolean}
+   */
+  canParse: function isBinary (file) {
+    // Use this parser if the file is a Buffer, and has a known binary extension
+    return Buffer.isBuffer(file.data) && BINARY_REGEXP.test(file.url);
+  },
+
+  /**
+   * Parses the given data as a Buffer (byte array).
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {Promise<Buffer>}
+   */
+  parse: function parseBinary (file) {
+    if (Buffer.isBuffer(file.data)) {
+      return file.data;
+    }
+    else {
+      // This will reject if data is anything other than a string or typed array
+      return new Buffer(file.data);
+    }
+  }
+};
 
 }).call(this,require("buffer").Buffer)
 
-},{"./util":65,"./yaml":66,"buffer":10,"ono":70}],59:[function(require,module,exports){
+},{"buffer":8}],58:[function(require,module,exports){
+(function (Buffer){
+'use strict';
+
+module.exports = {
+  /**
+   * The order that this parser will run, in relation to other parsers.
+   *
+   * @type {number}
+   */
+  order: 100,
+
+  /**
+   * Whether to allow "empty" files. This includes zero-byte files, as well as empty JSON objects.
+   *
+   * @type {boolean}
+   */
+  allowEmpty: true,
+
+  /**
+   * Determines whether this parser can parse a given file reference.
+   * Parsers that match will be tried, in order, until one successfully parses the file.
+   * Parsers that don't match will be skipped, UNLESS none of the parsers match, in which case
+   * every parser will be tried.
+   *
+   * @type {RegExp|string[]|function}
+   */
+  canParse: '.json',
+
+  /**
+   * Parses the given file as JSON
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {Promise}
+   */
+  parse: function parseJSON (file) {
+    return new Promise(function (resolve, reject) {
+      var data = file.data;
+      if (Buffer.isBuffer(data)) {
+        data = data.toString();
+      }
+
+      if (typeof data === 'string') {
+        if (data.trim().length === 0) {
+          resolve(undefined);  // This mirrors the YAML behavior
+        }
+        else {
+          resolve(JSON.parse(data));
+        }
+      }
+      else {
+        // data is already a JavaScript value (object, array, number, null, NaN, etc.)
+        resolve(data);
+      }
+    });
+  }
+};
+
+}).call(this,{"isBuffer":require("../../../is-buffer/index.js")})
+
+},{"../../../is-buffer/index.js":19}],59:[function(require,module,exports){
+(function (Buffer){
+'use strict';
+
+var TEXT_REGEXP = /\.(txt|htm|html|md|xml|js|min|map|css|scss|less|svg)$/i;
+
+module.exports = {
+  /**
+   * The order that this parser will run, in relation to other parsers.
+   *
+   * @type {number}
+   */
+  order: 300,
+
+  /**
+   * Whether to allow "empty" files (zero bytes).
+   *
+   * @type {boolean}
+   */
+  allowEmpty: true,
+
+  /**
+   * The encoding that the text is expected to be in.
+   *
+   * @type {string}
+   */
+  encoding: 'utf8',
+
+  /**
+   * Determines whether this parser can parse a given file reference.
+   * Parsers that return true will be tried, in order, until one successfully parses the file.
+   * Parsers that return false will be skipped, UNLESS all parsers returned false, in which case
+   * every parser will be tried.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {boolean}
+   */
+  canParse: function isText (file) {
+    // Use this parser if the file is a string or Buffer, and has a known text-based extension
+    return (typeof file.data === 'string' || Buffer.isBuffer(file.data)) && TEXT_REGEXP.test(file.url);
+  },
+
+  /**
+   * Parses the given file as text
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {Promise<string>}
+   */
+  parse: function parseText (file) {
+    if (typeof file.data === 'string') {
+      return file.data;
+    }
+    else if (Buffer.isBuffer(file.data)) {
+      return file.data.toString(this.encoding);
+    }
+    else {
+      throw new Error('data is not text');
+    }
+  }
+};
+
+}).call(this,{"isBuffer":require("../../../is-buffer/index.js")})
+
+},{"../../../is-buffer/index.js":19}],60:[function(require,module,exports){
+(function (Buffer){
+'use strict';
+
+var YAML = require('../util/yaml');
+
+module.exports = {
+  /**
+   * The order that this parser will run, in relation to other parsers.
+   *
+   * @type {number}
+   */
+  order: 200,
+
+  /**
+   * Whether to allow "empty" files. This includes zero-byte files, as well as empty JSON objects.
+   *
+   * @type {boolean}
+   */
+  allowEmpty: true,
+
+  /**
+   * Determines whether this parser can parse a given file reference.
+   * Parsers that match will be tried, in order, until one successfully parses the file.
+   * Parsers that don't match will be skipped, UNLESS none of the parsers match, in which case
+   * every parser will be tried.
+   *
+   * @type {RegExp|string[]|function}
+   */
+  canParse: ['.yaml', '.yml', '.json'],  // JSON is valid YAML
+
+  /**
+   * Parses the given file as YAML
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {Promise}
+   */
+  parse: function parseYAML (file) {
+    return new Promise(function (resolve, reject) {
+      var data = file.data;
+      if (Buffer.isBuffer(data)) {
+        data = data.toString();
+      }
+
+      if (typeof data === 'string') {
+        resolve(YAML.parse(data));
+      }
+      else {
+        // data is already a JavaScript value (object, array, number, null, NaN, etc.)
+        resolve(data);
+      }
+    });
+  }
+};
+
+}).call(this,{"isBuffer":require("../../../is-buffer/index.js")})
+
+},{"../../../is-buffer/index.js":19,"../util/yaml":70}],61:[function(require,module,exports){
 'use strict';
 
 module.exports = Pointer;
 
-var $Ref         = require('./ref'),
-    util         = require('./util'),
-    url          = require('url'),
-    ono          = require('ono'),
-    slashes      = /\//g,
-    tildes       = /~/g,
+var $Ref = require('./ref'),
+    url = require('./util/url'),
+    ono = require('ono'),
+    slashes = /\//g,
+    tildes = /~/g,
     escapedSlash = /~1/g,
     escapedTilde = /~0/g;
 
@@ -9398,7 +8667,7 @@ var $Ref         = require('./ref'),
  * @param {string} path
  * @constructor
  */
-function Pointer($ref, path) {
+function Pointer ($ref, path) {
   /**
    * The {@link $Ref} object that contains this {@link Pointer} object.
    * @type {$Ref}
@@ -9420,7 +8689,7 @@ function Pointer($ref, path) {
   this.value = undefined;
 
   /**
-   * Indicates whether the pointer is references itself.
+   * Indicates whether the pointer references itself.
    * @type {boolean}
    */
   this.circular = false;
@@ -9430,7 +8699,7 @@ function Pointer($ref, path) {
  * Resolves the value of a nested property within the given object.
  *
  * @param {*} obj - The object that will be crawled
- * @param {$RefParserOptions} [options]
+ * @param {$RefParserOptions} options
  *
  * @returns {Pointer}
  * Returns a JSON pointer whose {@link Pointer#value} is the resolved value.
@@ -9438,7 +8707,7 @@ function Pointer($ref, path) {
  * the {@link Pointer#$ref} and {@link Pointer#path} will reflect the resolution path
  * of the resolved value.
  */
-Pointer.prototype.resolve = function(obj, options) {
+Pointer.prototype.resolve = function (obj, options) {
   var tokens = Pointer.parse(this.path);
 
   // Crawl the object, one token at a time
@@ -9468,12 +8737,12 @@ Pointer.prototype.resolve = function(obj, options) {
  *
  * @param {*} obj - The object that will be crawled
  * @param {*} value - the value to assign
- * @param {$RefParserOptions} [options]
+ * @param {$RefParserOptions} options
  *
  * @returns {*}
  * Returns the modified object, or an entirely new object if the entire object is overwritten.
  */
-Pointer.prototype.set = function(obj, value, options) {
+Pointer.prototype.set = function (obj, value, options) {
   var tokens = Pointer.parse(this.path);
   var token;
 
@@ -9519,9 +8788,9 @@ Pointer.prototype.set = function(obj, value, options) {
  * @param {string} path
  * @returns {string[]}
  */
-Pointer.parse = function(path) {
+Pointer.parse = function (path) {
   // Get the JSON pointer from the path's hash
-  var pointer = util.path.getHash(path).substr(1);
+  var pointer = url.getHash(path).substr(1);
 
   // If there's no pointer, then there are no tokens,
   // so return an empty array
@@ -9551,7 +8820,7 @@ Pointer.parse = function(path) {
  * @param {string|string[]} tokens - The token(s) to append (e.g. ["name", "first"])
  * @returns {string}
  */
-Pointer.join = function(base, tokens) {
+Pointer.join = function (base, tokens) {
   // Ensure that the base path contains a hash
   if (base.indexOf('#') === -1) {
     base += '#';
@@ -9575,11 +8844,12 @@ Pointer.join = function(base, tokens) {
  * resolution path of the new value.
  *
  * @param {Pointer} pointer
- * @param {$RefParserOptions} [options]
+ * @param {$RefParserOptions} options
  * @returns {boolean} - Returns `true` if the resolution path changed
  */
-function resolveIf$Ref(pointer, options) {
+function resolveIf$Ref (pointer, options) {
   // Is the value a JSON reference? (and allowed?)
+
   if ($Ref.isAllowed$Ref(pointer.value, options)) {
     var $refPath = url.resolve(pointer.path, pointer.value.$ref);
 
@@ -9588,16 +8858,22 @@ function resolveIf$Ref(pointer, options) {
       pointer.circular = true;
     }
     else {
-      // Does the JSON reference have other properties (other than "$ref")?
-      // If so, then don't resolve it, since it represents a new type
-      if (Object.keys(pointer.value).length === 1) {
+      var resolved = pointer.$ref.$refs._resolve($refPath, options);
+
+      if ($Ref.isExtended$Ref(pointer.value)) {
+        // This JSON reference "extends" the resolved value, rather than simply pointing to it.
+        // So the resolved path does NOT change.  Just the value does.
+        pointer.value = $Ref.dereference(pointer.value, resolved.value);
+        return false;
+      }
+      else {
         // Resolve the reference
-        var resolved = pointer.$ref.$refs._resolve($refPath);
         pointer.$ref = resolved.$ref;
         pointer.path = resolved.path;
         pointer.value = resolved.value;
-        return true;
       }
+
+      return true;
     }
   }
 }
@@ -9613,7 +8889,7 @@ function resolveIf$Ref(pointer, options) {
  * @param {*} value - The value to assign
  * @returns {*} - Returns the assigned value
  */
-function setValue(pointer, token, value) {
+function setValue (pointer, token, value) {
   if (pointer.value && typeof pointer.value === 'object') {
     if (token === '-' && Array.isArray(pointer.value)) {
       pointer.value.push(value);
@@ -9628,276 +8904,19 @@ function setValue(pointer, token, value) {
   return value;
 }
 
-},{"./ref":62,"./util":65,"ono":70,"url":99}],60:[function(require,module,exports){
-arguments[4][3][0].apply(exports,arguments)
-},{"dup":3,"es6-promise":69}],61:[function(require,module,exports){
-(function (process,Buffer){
-'use strict';
-
-var fs      = require('fs'),
-    http    = require('http'),
-    https   = require('https'),
-    parse   = require('./parse'),
-    util    = require('./util'),
-    $Ref    = require('./ref'),
-    Promise = require('./promise'),
-    url     = require('url'),
-    ono     = require('ono');
-
-module.exports = read;
-
-/**
- * Reads the specified file path or URL, possibly from cache.
- *
- * @param {string} path - This path MUST already be resolved, since `read` doesn't know the resolution context
- * @param {$Refs} $refs
- * @param {$RefParserOptions} options
- *
- * @returns {Promise}
- * The promise resolves with an object that contains a {@link $Ref}
- * and a flag indicating whether the {@link $Ref} came from cache or not.
- */
-function read(path, $refs, options) {
-  try {
-    // Remove the URL fragment, if any
-    path = util.path.stripHash(path);
-    util.debug('Reading %s', path);
-
-    // Return from cache, if possible
-    var $ref = $refs._get$Ref(path);
-    if ($ref && !$ref.isExpired()) {
-      util.debug('    cached from %s', $ref.pathType);
-      return Promise.resolve({
-        $ref: $ref,
-        cached: true
-      });
-    }
-
-    // Add a placeholder $ref to the cache, so we don't read this URL multiple times
-    $ref = new $Ref($refs, path);
-
-    // Read and return the $ref
-    return read$Ref($ref, options);
-  }
-  catch (e) {
-    return Promise.reject(e);
-  }
-}
-
-/**
- * Reads the specified file path or URL and updates the given {@link $Ref} accordingly.
- *
- * @param {$Ref} $ref - The {@link $Ref} to read and update
- * @param {$RefParserOptions} options
- *
- * @returns {Promise}
- * The promise resolves with the updated {@link $Ref} object (the same instance that was passed in)
- */
-function read$Ref($ref, options) {
-  try {
-    var promise = options.$refs.external && (read$RefFile($ref, options) || read$RefUrl($ref, options));
-
-    if (promise) {
-      return promise
-        .then(function(data) {
-          // Update the $ref with the parsed file contents
-          var value = parse(data, $ref.path, options);
-          $ref.setValue(value, options);
-
-          return {
-            $ref: $ref,
-            cached: false
-          };
-        });
-    }
-    else {
-      return Promise.reject(ono.syntax('Unable to resolve $ref pointer "%s"', $ref.path));
-    }
-  }
-  catch (e) {
-    return Promise.reject(e);
-  }
-}
-
-/**
- * If the given {@link $Ref#path} is a local file, then the file is read
- * and {@link $Ref#type} is set to "fs".
- *
- * @param {$Ref} $ref - The {@link $Ref} to read and update
- * @param {$RefParserOptions} options
- *
- * @returns {Promise|undefined}
- * Returns a promise if {@link $Ref#path} is a local file.
- * The promise resolves with the raw file contents.
- */
-function read$RefFile($ref, options) {
-  if (process.browser || util.path.isUrl($ref.path)) {
-    return;
-  }
-
-  $ref.pathType = 'fs';
-  return new Promise(function(resolve, reject) {
-    var file;
-    try {
-      file = util.path.urlToLocalPath($ref.path);
-    }
-    catch (err) {
-      reject(ono.uri(err, 'Malformed URI: %s', $ref.path));
-    }
-
-    util.debug('Opening file: %s', file);
-
-    try {
-      fs.readFile(file, function(err, data) {
-        if (err) {
-          reject(ono(err, 'Error opening file "%s"', $ref.path));
-        }
-        else {
-          resolve(data);
-        }
-      });
-    }
-    catch (err) {
-      reject(ono(err, 'Error opening file "%s"', file));
-    }
-  });
-}
-
-/**
- * If the given {@link $Ref#path} is a URL, then the file is downloaded
- * and {@link $Ref#type} is set to "http" or "https".
- *
- * @param {$Ref} $ref - The {@link $Ref} to read and update
- * @param {$RefParserOptions} options
- *
- * @returns {Promise|undefined}
- * Returns a promise if {@link $Ref#path} is a URL.
- * The promise resolves with the raw file contents.
- */
-function read$RefUrl($ref, options) {
-  var u = url.parse($ref.path);
-
-  if (process.browser && !u.protocol) {
-    // Use the protocol of the current page
-    u.protocol = url.parse(location.href).protocol;
-  }
-
-  if (u.protocol === 'http:') {
-    $ref.pathType = 'http';
-    return download(http, u, options);
-  }
-  else if (u.protocol === 'https:') {
-    $ref.pathType = 'https';
-    return download(https, u, options);
-  }
-}
-
-/**
- * Downloads the specified file.
- *
- * @param {http|https} protocol - Download via HTTP or HTTPS
- * @param {Url} u - A parsed {@link Url} object
- * @param {$RefParserOptions} options
- *
- * @returns {Promise}
- * The promise resolves with the raw downloaded data, or rejects if there is an HTTP error.
- */
-function download(protocol, u, options) {
-  return new Promise(function(resolve, reject) {
-    try {
-      util.debug('Downloading file: %s', u);
-
-      var req = protocol.get(
-          {
-            hostname: u.hostname,
-            port: u.port,
-            path: u.path,
-            auth: u.auth
-          },
-          onResponse
-      );
-
-      if (typeof req.setTimeout === 'function') {
-        req.setTimeout(5000);
-      }
-
-      req.on('timeout', function() {
-        req.abort();
-      });
-
-      req.on('error', function(err) {
-        reject(ono(err, 'Error downloading file "%s"', u.href));
-      });
-    }
-    catch (err) {
-      reject(ono(err, 'Error downloading file "%s"', u.href));
-    }
-
-    /**
-     * Handles the response
-     *
-     * @param {Response} res
-     */
-    function onResponse(res) {
-      var body;
-
-      res.on('data', function(data) {
-        if (body) {
-          body = Buffer.concat([new Buffer(body), new Buffer(data)]);
-        }
-        else {
-          body = data;
-        }
-      });
-
-      res.on('end', function() {
-        if (res.statusCode >= 400) {
-          reject(ono('GET %s \nHTTP ERROR %d \n%s', u.href, res.statusCode, body));
-        }
-        else if ((res.statusCode === 204 || !body || !body.length) && !options.allow.empty) {
-          reject(ono('GET %s \nHTTP 204: No Content', u.href));
-        }
-        else {
-          resolve(body || '');
-        }
-      });
-
-      res.on('error', function(err) {
-        reject(ono(err, 'Error downloading file "%s"', u.href));
-      });
-    }
-  });
-}
-
-}).call(this,require('_process'),require("buffer").Buffer)
-
-},{"./parse":58,"./promise":60,"./ref":62,"./util":65,"_process":76,"buffer":10,"fs":9,"http":91,"https":19,"ono":70,"url":99}],62:[function(require,module,exports){
+},{"./ref":62,"./util/url":69,"ono":75}],62:[function(require,module,exports){
 'use strict';
 
 module.exports = $Ref;
 
-var Pointer = require('./pointer'),
-    util    = require('./util');
+var Pointer = require('./pointer');
 
 /**
  * This class represents a single JSON reference and its resolved value.
  *
- * @param {$Refs} $refs
- * @param {string} path
  * @constructor
  */
-function $Ref($refs, path) {
-  path = util.path.stripHash(path);
-
-  // Add this $ref to its parent collection
-  $refs._$refs[path] = this;
-
-  /**
-   * The {@link $Refs} object that contains this {@link $Ref} object.
-   * @type {$Refs}
-   */
-  this.$refs = $refs;
-
+function $Ref () {
   /**
    * The file path or URL of the referenced file.
    * This path is relative to the path of the main JSON schema file.
@@ -9908,24 +8927,7 @@ function $Ref($refs, path) {
    *
    * @type {string}
    */
-  this.path = path;
-
-  /**
-   * Indicates the type of {@link $Ref#path} (e.g. "fs", "http", or "https")
-   * @type {?string}
-   */
-  this.pathType = undefined;
-
-  /**
-   * The path TO this JSON reference from the root of the main JSON schema file.
-   * If the same JSON reference occurs multiple times in the schema, then this is the pointer to the
-   * FIRST occurrence.
-   *
-   * This property is used by the {@link $RefParser.bundle} method to re-map other JSON references.
-   *
-   * @type {string}
-   */
-  this.pathFromRoot = '#';
+  this.path = undefined;
 
   /**
    * The resolved value of the JSON reference.
@@ -9935,54 +8937,28 @@ function $Ref($refs, path) {
   this.value = undefined;
 
   /**
-   * The date/time that the cached value will expire.
-   * @type {?Date}
+   * The {@link $Refs} object that contains this {@link $Ref} object.
+   * @type {$Refs}
    */
-  this.expires = undefined;
+  this.$refs = undefined;
+
+  /**
+   * Indicates the type of {@link $Ref#path} (e.g. "file", "http", etc.)
+   * @type {?string}
+   */
+  this.pathType = undefined;
 }
-
-/**
- * Determines whether the {@link $Ref#value} has expired.
- *
- * @returns {boolean}
- */
-$Ref.prototype.isExpired = function() {
-  return !!(this.expires && this.expires <= new Date());
-};
-
-/**
- * Immediately expires the {@link $Ref#value}.
- */
-$Ref.prototype.expire = function() {
-  this.expires = new Date();
-};
-
-/**
- * Sets the {@link $Ref#value} and renews the cache expiration.
- *
- * @param {*} value
- * @param {$RefParserOptions} options
- */
-$Ref.prototype.setValue = function(value, options) {
-  this.value = value;
-
-  // Extend the cache expiration
-  var cacheDuration = options.cache[this.pathType];
-  if (cacheDuration > 0) {
-    var expires = Date.now() + (cacheDuration * 1000);
-    this.expires = new Date(expires);
-  }
-};
 
 /**
  * Determines whether the given JSON reference exists within this {@link $Ref#value}.
  *
  * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
+ * @param {$RefParserOptions} options
  * @returns {boolean}
  */
-$Ref.prototype.exists = function(path) {
+$Ref.prototype.exists = function (path, options) {
   try {
-    this.resolve(path);
+    this.resolve(path, options);
     return true;
   }
   catch (e) {
@@ -9997,7 +8973,7 @@ $Ref.prototype.exists = function(path) {
  * @param {$RefParserOptions} options
  * @returns {*} - Returns the resolved value
  */
-$Ref.prototype.get = function(path, options) {
+$Ref.prototype.get = function (path, options) {
   return this.resolve(path, options).value;
 };
 
@@ -10008,7 +8984,7 @@ $Ref.prototype.get = function(path, options) {
  * @param {$RefParserOptions} options
  * @returns {Pointer}
  */
-$Ref.prototype.resolve = function(path, options) {
+$Ref.prototype.resolve = function (path, options) {
   var pointer = new Pointer(this, path);
   return pointer.resolve(this.value, options);
 };
@@ -10019,11 +8995,10 @@ $Ref.prototype.resolve = function(path, options) {
  *
  * @param {string} path - The full path of the property to set, optionally with a JSON pointer in the hash
  * @param {*} value - The value to assign
- * @param {$RefParserOptions} options
  */
-$Ref.prototype.set = function(path, value, options) {
+$Ref.prototype.set = function (path, value) {
   var pointer = new Pointer(this, path);
-  this.value = pointer.set(this.value, value, options);
+  this.value = pointer.set(this.value, value);
 };
 
 /**
@@ -10032,7 +9007,7 @@ $Ref.prototype.set = function(path, value, options) {
  * @param {*} value - The value to inspect
  * @returns {boolean}
  */
-$Ref.is$Ref = function(value) {
+$Ref.is$Ref = function (value) {
   return value && typeof value === 'object' && typeof value.$ref === 'string' && value.$ref.length > 0;
 };
 
@@ -10042,44 +9017,139 @@ $Ref.is$Ref = function(value) {
  * @param {*} value - The value to inspect
  * @returns {boolean}
  */
-$Ref.isExternal$Ref = function(value) {
+$Ref.isExternal$Ref = function (value) {
   return $Ref.is$Ref(value) && value.$ref[0] !== '#';
 };
 
 /**
  * Determines whether the given value is a JSON reference, and whether it is allowed by the options.
- * For example, if it references an external file, then options.$refs.external must be true.
+ * For example, if it references an external file, then options.resolve.external must be true.
  *
  * @param {*} value - The value to inspect
  * @param {$RefParserOptions} options
  * @returns {boolean}
  */
-$Ref.isAllowed$Ref = function(value, options) {
+$Ref.isAllowed$Ref = function (value, options) {
   if ($Ref.is$Ref(value)) {
-    if (value.$ref[0] === '#') {
-      if (options.$refs.internal) {
-        return true;
-      }
+    if (value.$ref.substr(0, 2) === '#/' || value.$ref === '#') {
+      // It's a JSON Pointer reference, which is always allowed
+      return true;
     }
-    else if (options.$refs.external) {
+    else if (value.$ref[0] !== '#' && (!options || options.resolve.external)) {
+      // It's an external reference, which is allowed by the options
       return true;
     }
   }
 };
 
-},{"./pointer":59,"./util":65}],63:[function(require,module,exports){
+/**
+ * Determines whether the given value is a JSON reference that "extends" its resolved value.
+ * That is, it has extra properties (in addition to "$ref"), so rather than simply pointing to
+ * an existing value, this $ref actually creates a NEW value that is a shallow copy of the resolved
+ * value, plus the extra properties.
+ *
+ * @example:
+ *  {
+ *    person: {
+ *      properties: {
+ *        firstName: { type: string }
+ *        lastName: { type: string }
+ *      }
+ *    }
+ *    employee: {
+ *      properties: {
+ *        $ref: #/person/properties
+ *        salary: { type: number }
+ *      }
+ *    }
+ *  }
+ *
+ *  In this example, "employee" is an extended $ref, since it extends "person" with an additional
+ *  property (salary).  The result is a NEW value that looks like this:
+ *
+ *  {
+ *    properties: {
+ *      firstName: { type: string }
+ *      lastName: { type: string }
+ *      salary: { type: number }
+ *    }
+ *  }
+ *
+ * @param {*} value - The value to inspect
+ * @returns {boolean}
+ */
+$Ref.isExtended$Ref = function (value) {
+  return $Ref.is$Ref(value) && Object.keys(value).length > 1;
+};
+
+/**
+ * Returns the resolved value of a JSON Reference.
+ * If necessary, the resolved value is merged with the JSON Reference to create a new object
+ *
+ * @example:
+ *  {
+ *    person: {
+ *      properties: {
+ *        firstName: { type: string }
+ *        lastName: { type: string }
+ *      }
+ *    }
+ *    employee: {
+ *      properties: {
+ *        $ref: #/person/properties
+ *        salary: { type: number }
+ *      }
+ *    }
+ *  }
+ *
+ *  When "person" and "employee" are merged, you end up with the following object:
+ *
+ *  {
+ *    properties: {
+ *      firstName: { type: string }
+ *      lastName: { type: string }
+ *      salary: { type: number }
+ *    }
+ *  }
+ *
+ * @param {object} $ref - The JSON reference object (the one with the "$ref" property)
+ * @param {*} resolvedValue - The resolved value, which can be any type
+ * @returns {*} - Returns the dereferenced value
+ */
+$Ref.dereference = function ($ref, resolvedValue) {
+  if (resolvedValue && typeof resolvedValue === 'object' && $Ref.isExtended$Ref($ref)) {
+    var merged = {};
+    Object.keys($ref).forEach(function (key) {
+      if (key !== '$ref') {
+        merged[key] = $ref[key];
+      }
+    });
+    Object.keys(resolvedValue).forEach(function (key) {
+      if (!(key in merged)) {
+        merged[key] = resolvedValue[key];
+      }
+    });
+    return merged;
+  }
+  else {
+    // Completely replace the original reference with the resolved value
+    return resolvedValue;
+  }
+};
+
+},{"./pointer":61}],63:[function(require,module,exports){
 'use strict';
 
-var Options = require('./options'),
-    util    = require('./util'),
-    ono     = require('ono');
+var ono = require('ono'),
+    $Ref = require('./ref'),
+    url = require('./util/url');
 
 module.exports = $Refs;
 
 /**
  * This class is a map of JSON references and their resolved values.
  */
-function $Refs() {
+function $Refs () {
   /**
    * Indicates whether the schema contains any circular references.
    *
@@ -10094,18 +9164,26 @@ function $Refs() {
    * @protected
    */
   this._$refs = {};
+
+  /**
+   * The {@link $Ref} object that is the root of the JSON schema.
+   *
+   * @type {$Ref}
+   * @protected
+   */
+  this._root$Ref = null;
 }
 
 /**
  * Returns the paths of all the files/URLs that are referenced by the JSON schema,
  * including the schema itself.
  *
- * @param {...string|string[]} [types] - Only return paths of the given types ("fs", "http", "https")
+ * @param {...string|string[]} [types] - Only return paths of the given types ("file", "http", etc.)
  * @returns {string[]}
  */
-$Refs.prototype.paths = function(types) {
+$Refs.prototype.paths = function (types) {
   var paths = getPaths(this._$refs, arguments);
-  return paths.map(function(path) {
+  return paths.map(function (path) {
     return path.decoded;
   });
 };
@@ -10113,13 +9191,13 @@ $Refs.prototype.paths = function(types) {
 /**
  * Returns the map of JSON references and their resolved values.
  *
- * @param {...string|string[]} [types] - Only return references of the given types ("fs", "http", "https")
+ * @param {...string|string[]} [types] - Only return references of the given types ("file", "http", etc.)
  * @returns {object}
  */
-$Refs.prototype.values = function(types) {
+$Refs.prototype.values = function (types) {
   var $refs = this._$refs;
   var paths = getPaths($refs, arguments);
-  return paths.reduce(function(obj, path) {
+  return paths.reduce(function (obj, path) {
     obj[path.decoded] = $refs[path.encoded].value;
     return obj;
   }, {});
@@ -10133,39 +9211,15 @@ $Refs.prototype.values = function(types) {
 $Refs.prototype.toJSON = $Refs.prototype.values;
 
 /**
- * Determines whether the given JSON reference has expired.
- * Returns true if the reference does not exist.
- *
- * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
- * @returns {boolean}
- */
-$Refs.prototype.isExpired = function(path) {
-  var $ref = this._get$Ref(path);
-  return $ref === undefined || $ref.isExpired();
-};
-
-/**
- * Immediately expires the given JSON reference.
- * If the reference does not exist, nothing happens.
- *
- * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
- */
-$Refs.prototype.expire = function(path) {
-  var $ref = this._get$Ref(path);
-  if ($ref) {
-    $ref.expire();
-  }
-};
-
-/**
  * Determines whether the given JSON reference exists.
  *
- * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
+ * @param {string} path - The path being resolved, optionally with a JSON pointer in the hash
+ * @param {$RefParserOptions} [options]
  * @returns {boolean}
  */
-$Refs.prototype.exists = function(path) {
+$Refs.prototype.exists = function (path, options) {
   try {
-    this._resolve(path);
+    this._resolve(path, options);
     return true;
   }
   catch (e) {
@@ -10176,11 +9230,11 @@ $Refs.prototype.exists = function(path) {
 /**
  * Resolves the given JSON reference and returns the resolved value.
  *
- * @param {string} path - The full path being resolved, with a JSON pointer in the hash
- * @param {$RefParserOptions} options
+ * @param {string} path - The path being resolved, with a JSON pointer in the hash
+ * @param {$RefParserOptions} [options]
  * @returns {*} - Returns the resolved value
  */
-$Refs.prototype.get = function(path, options) {
+$Refs.prototype.get = function (path, options) {
   return this._resolve(path, options).value;
 };
 
@@ -10188,51 +9242,71 @@ $Refs.prototype.get = function(path, options) {
  * Sets the value of a nested property within this {@link $Ref#value}.
  * If the property, or any of its parents don't exist, they will be created.
  *
- * @param {string} path - The full path of the property to set, optionally with a JSON pointer in the hash
+ * @param {string} path - The path of the property to set, optionally with a JSON pointer in the hash
  * @param {*} value - The value to assign
- * @param {$RefParserOptions} options
  */
-$Refs.prototype.set = function(path, value, options) {
-  var withoutHash = util.path.stripHash(path);
+$Refs.prototype.set = function (path, value) {
+  path = url.resolve(this._root$Ref.path, path);
+  var withoutHash = url.stripHash(path);
   var $ref = this._$refs[withoutHash];
 
   if (!$ref) {
     throw ono('Error resolving $ref pointer "%s". \n"%s" not found.', path, withoutHash);
   }
 
-  options = new Options(options);
-  $ref.set(path, value, options);
+  $ref.set(path, value);
+};
+
+/**
+ * Creates a new {@link $Ref} object and adds it to this {@link $Refs} object.
+ *
+ * @param {string} path  - The file path or URL of the referenced file
+ * @param {*} [value] - Optional. The value of the $ref.
+ */
+$Refs.prototype._add = function (path, value) {
+  var withoutHash = url.stripHash(path);
+
+  var $ref = new $Ref();
+  $ref.path = withoutHash;
+  $ref.value = value;
+  $ref.$refs = this;
+
+  this._$refs[withoutHash] = $ref;
+  this._root$Ref = this._root$Ref || $ref;
+
+  return $ref;
 };
 
 /**
  * Resolves the given JSON reference.
  *
- * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
- * @param {$RefParserOptions} options
+ * @param {string} path - The path being resolved, optionally with a JSON pointer in the hash
+ * @param {$RefParserOptions} [options]
  * @returns {Pointer}
  * @protected
  */
-$Refs.prototype._resolve = function(path, options) {
-  var withoutHash = util.path.stripHash(path);
+$Refs.prototype._resolve = function (path, options) {
+  path = url.resolve(this._root$Ref.path, path);
+  var withoutHash = url.stripHash(path);
   var $ref = this._$refs[withoutHash];
 
   if (!$ref) {
     throw ono('Error resolving $ref pointer "%s". \n"%s" not found.', path, withoutHash);
   }
 
-  options = new Options(options);
   return $ref.resolve(path, options);
 };
 
 /**
  * Returns the specified {@link $Ref} object, or undefined.
  *
- * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
+ * @param {string} path - The path being resolved, optionally with a JSON pointer in the hash
  * @returns {$Ref|undefined}
  * @protected
  */
-$Refs.prototype._get$Ref = function(path) {
-  var withoutHash = util.path.stripHash(path);
+$Refs.prototype._get$Ref = function (path) {
+  path = url.resolve(this._root$Ref.path, path);
+  var withoutHash = url.stripHash(path);
   return this._$refs[withoutHash];
 };
 
@@ -10240,41 +9314,39 @@ $Refs.prototype._get$Ref = function(path) {
  * Returns the encoded and decoded paths keys of the given object.
  *
  * @param {object} $refs - The object whose keys are URL-encoded paths
- * @param {...string|string[]} [types] - Only return paths of the given types ("fs", "http", "https")
+ * @param {...string|string[]} [types] - Only return paths of the given types ("file", "http", etc.)
  * @returns {object[]}
  */
-function getPaths($refs, types) {
+function getPaths ($refs, types) {
   var paths = Object.keys($refs);
 
   // Filter the paths by type
   types = Array.isArray(types[0]) ? types[0] : Array.prototype.slice.call(types);
   if (types.length > 0 && types[0]) {
-    paths = paths.filter(function(key) {
+    paths = paths.filter(function (key) {
       return types.indexOf($refs[key].pathType) !== -1;
     });
   }
 
   // Decode local filesystem paths
-  return paths.map(function(path) {
+  return paths.map(function (path) {
     return {
       encoded: path,
-      decoded: $refs[path].pathType === 'fs' ? util.path.urlToLocalPath(path) : path
+      decoded: $refs[path].pathType === 'file' ? url.toFileSystemPath(path, true) : path
     };
   });
 }
 
-},{"./options":57,"./util":65,"ono":70}],64:[function(require,module,exports){
+},{"./ref":62,"./util/url":69,"ono":75}],64:[function(require,module,exports){
 'use strict';
 
-var Promise = require('./promise'),
-    $Ref    = require('./ref'),
+var $Ref = require('./ref'),
     Pointer = require('./pointer'),
-    read    = require('./read'),
-    util    = require('./util'),
-    url     = require('url'),
-    ono     = require('ono');
+    parse = require('./parse'),
+    debug = require('./util/debug'),
+    url = require('./util/url');
 
-module.exports = resolve;
+module.exports = resolveExternal;
 
 /**
  * Crawls the JSON schema, finds all external JSON references, and resolves their values.
@@ -10289,15 +9361,15 @@ module.exports = resolve;
  * The promise resolves once all JSON references in the schema have been resolved,
  * including nested references that are contained in externally-referenced files.
  */
-function resolve(parser, options) {
-  try {
-    if (!options.$refs.external) {
-      // Nothing to resolve, so exit early
-      return Promise.resolve();
-    }
+function resolveExternal (parser, options) {
+  if (!options.resolve.external) {
+    // Nothing to resolve, so exit early
+    return Promise.resolve();
+  }
 
-    util.debug('Resolving $ref pointers in %s', parser._basePath);
-    var promises = crawl(parser.schema, parser._basePath + '#', '#', parser.$refs, options);
+  try {
+    debug('Resolving $ref pointers in %s', parser.$refs._root$Ref.path);
+    var promises = crawl(parser.schema, parser.$refs._root$Ref.path + '#', parser.$refs, options);
     return Promise.all(promises);
   }
   catch (e) {
@@ -10309,8 +9381,7 @@ function resolve(parser, options) {
  * Recursively crawls the given value, and resolves any external JSON references.
  *
  * @param {*} obj - The value to crawl. If it's not an object or array, it will be ignored.
- * @param {string} path - The file path or URL used to resolve relative JSON references.
- * @param {string} pathFromRoot - The path to this point from the schema root
+ * @param {string} path - The full path of `obj`, possibly with a JSON Pointer in the hash
  * @param {$Refs} $refs
  * @param {$RefParserOptions} options
  *
@@ -10320,51 +9391,36 @@ function resolve(parser, options) {
  * If any of the JSON references point to files that contain additional JSON references,
  * then the corresponding promise will internally reference an array of promises.
  */
-function crawl(obj, path, pathFromRoot, $refs, options) {
+function crawl (obj, path, $refs, options) {
   var promises = [];
 
   if (obj && typeof obj === 'object') {
-    var keys = Object.keys(obj);
-
-    // If there's a "definitions" property, then crawl it FIRST.
-    // This is important when bundling, since the expected behavior
-    // is to bundle everything into definitions if possible.
-    var defs = keys.indexOf('definitions');
-    if (defs > 0) {
-      keys.splice(0, 0, keys.splice(defs, 1)[0]);
+    if ($Ref.isExternal$Ref(obj)) {
+      promises.push(resolve$Ref(obj, path, $refs, options));
     }
+    else {
+      Object.keys(obj).forEach(function (key) {
+        var keyPath = Pointer.join(path, key);
+        var value = obj[key];
 
-    keys.forEach(function(key) {
-      var keyPath = Pointer.join(path, key);
-      var keyPathFromRoot = Pointer.join(pathFromRoot, key);
-      var value = obj[key];
-
-      if ($Ref.isExternal$Ref(value)) {
-        // We found a $ref
-        util.debug('Resolving $ref pointer "%s" at %s', value.$ref, keyPath);
-        var $refPath = url.resolve(path, value.$ref);
-
-        // Crawl the $referenced value
-        var promise = crawl$Ref($refPath, keyPathFromRoot, $refs, options)
-          .catch(function(err) {
-            throw ono.syntax(err, 'Error at %s', keyPath);
-          });
-        promises.push(promise);
-      }
-      else {
-        promises = promises.concat(crawl(value, keyPath, keyPathFromRoot, $refs, options));
-      }
-    });
+        if ($Ref.isExternal$Ref(value)) {
+          promises.push(resolve$Ref(value, keyPath, $refs, options));
+        }
+        else {
+          promises = promises.concat(crawl(value, keyPath, $refs, options));
+        }
+      });
+    }
   }
+
   return promises;
 }
 
 /**
- * Reads the file/URL at the given path, and then crawls the resulting value and resolves
- * any external JSON references.
+ * Resolves the given JSON Reference, and then crawls the resulting value.
  *
- * @param {string} path - The file path or URL to crawl
- * @param {string} pathFromRoot - The path to this point from the schema root
+ * @param {{$ref: string}} $ref - The JSON Reference to resolve
+ * @param {string} path - The full path of `$ref`, possibly with a JSON Pointer in the hash
  * @param {$Refs} $refs
  * @param {$RefParserOptions} options
  *
@@ -10372,32 +9428,457 @@ function crawl(obj, path, pathFromRoot, $refs, options) {
  * The promise resolves once all JSON references in the object have been resolved,
  * including nested references that are contained in externally-referenced files.
  */
-function crawl$Ref(path, pathFromRoot, $refs, options) {
-  return read(path, $refs, options)
-    .then(function(cached$Ref) {
-      // If a cached $ref is returned, then we DON'T need to crawl it
-      if (!cached$Ref.cached) {
-        var $ref = cached$Ref.$ref;
+function resolve$Ref ($ref, path, $refs, options) {
+  debug('Resolving $ref pointer "%s" at %s', $ref.$ref, path);
 
-        // This is a new $ref, so store the path from the root of the JSON schema to this $ref
-        $ref.pathFromRoot = pathFromRoot;
+  var resolvedPath = url.resolve(path, $ref.$ref);
+  var withoutHash = url.stripHash(resolvedPath);
 
-        // Crawl the new $ref
-        util.debug('Resolving $ref pointers in %s', $ref.path);
-        var promises = crawl($ref.value, $ref.path + '#', pathFromRoot, $refs, options);
-        return Promise.all(promises);
-      }
+  // Do we already have this $ref?
+  $ref = $refs._$refs[withoutHash];
+  if ($ref) {
+    // We've already parsed this $ref, so use the existing value
+    return Promise.resolve($ref.value);
+  }
+
+  // Parse the $referenced file/url
+  return parse(resolvedPath, $refs, options)
+    .then(function (result) {
+      // Crawl the parsed value
+      debug('Resolving $ref pointers in %s', withoutHash);
+      var promises = crawl(result, withoutHash + '#', $refs, options);
+      return Promise.all(promises);
     });
 }
 
-},{"./pointer":59,"./promise":60,"./read":61,"./ref":62,"./util":65,"ono":70,"url":99}],65:[function(require,module,exports){
+},{"./parse":56,"./pointer":61,"./ref":62,"./util/debug":67,"./util/url":69}],65:[function(require,module,exports){
+'use strict';
+var fs = require('fs'),
+    ono = require('ono'),
+    url = require('../util/url'),
+    debug = require('../util/debug');
+
+module.exports = {
+  /**
+   * The order that this resolver will run, in relation to other resolvers.
+   *
+   * @type {number}
+   */
+  order: 100,
+
+  /**
+   * Determines whether this resolver can read a given file reference.
+   * Resolvers that return true will be tried, in order, until one successfully resolves the file.
+   * Resolvers that return false will not be given a chance to resolve the file.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @returns {boolean}
+   */
+  canRead: function isFile (file) {
+    return url.isFileSystemPath(file.url);
+  },
+
+  /**
+   * Reads the given file and returns its raw contents as a Buffer.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @returns {Promise<Buffer>}
+   */
+  read: function readFile (file) {
+    return new Promise(function (resolve, reject) {
+      var path;
+      try {
+        path = url.toFileSystemPath(file.url);
+      }
+      catch (err) {
+        reject(ono.uri(err, 'Malformed URI: %s', file.url));
+      }
+
+      debug('Opening file: %s', path);
+
+      try {
+        fs.readFile(path, function (err, data) {
+          if (err) {
+            reject(ono(err, 'Error opening file "%s"', path));
+          }
+          else {
+            resolve(data);
+          }
+        });
+      }
+      catch (err) {
+        reject(ono(err, 'Error opening file "%s"', path));
+      }
+    });
+  }
+};
+
+},{"../util/debug":67,"../util/url":69,"fs":7,"ono":75}],66:[function(require,module,exports){
+(function (process,Buffer){
+'use strict';
+
+var http = require('http'),
+    https = require('https'),
+    ono = require('ono'),
+    url = require('../util/url'),
+    debug = require('../util/debug');
+
+module.exports = {
+  /**
+   * The order that this resolver will run, in relation to other resolvers.
+   *
+   * @type {number}
+   */
+  order: 200,
+
+  /**
+   * HTTP headers to send when downloading files.
+   *
+   * @example:
+   * {
+   *   "User-Agent": "JSON Schema $Ref Parser",
+   *   Accept: "application/json"
+   * }
+   *
+   * @type {object}
+   */
+  headers: null,
+
+  /**
+   * HTTP request timeout (in milliseconds).
+   *
+   * @type {number}
+   */
+  timeout: 5000, // 5 seconds
+
+  /**
+   * The maximum number of HTTP redirects to follow.
+   * To disable automatic following of redirects, set this to zero.
+   *
+   * @type {number}
+   */
+  redirects: 5,
+
+  /**
+   * The `withCredentials` option of XMLHttpRequest.
+   * Set this to `true` if you're downloading files from a CORS-enabled server that requires authentication
+   *
+   * @type {boolean}
+   */
+  withCredentials: false,
+
+  /**
+   * Determines whether this resolver can read a given file reference.
+   * Resolvers that return true will be tried in order, until one successfully resolves the file.
+   * Resolvers that return false will not be given a chance to resolve the file.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @returns {boolean}
+   */
+  canRead: function isHttp (file) {
+    return url.isHttp(file.url);
+  },
+
+  /**
+   * Reads the given URL and returns its raw contents as a Buffer.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @returns {Promise<Buffer>}
+   */
+  read: function readHttp (file) {
+    var u = url.parse(file.url);
+
+    if (process.browser && !u.protocol) {
+      // Use the protocol of the current page
+      u.protocol = url.parse(location.href).protocol;
+    }
+
+    return download(u, this);
+  }
+};
+
+/**
+ * Downloads the given file.
+ *
+ * @param {Url|string} u        - The url to download (can be a parsed {@link Url} object)
+ * @param {object} httpOptions  - The `options.resolve.http` object
+ * @param {number} [redirects]  - The redirect URLs that have already been followed
+ *
+ * @returns {Promise<Buffer>}
+ * The promise resolves with the raw downloaded data, or rejects if there is an HTTP error.
+ */
+function download (u, httpOptions, redirects) {
+  return new Promise(function (resolve, reject) {
+    u = url.parse(u);
+    redirects = redirects || [];
+    redirects.push(u.href);
+
+    get(u, httpOptions)
+      .then(function (res) {
+        if (res.statusCode >= 400) {
+          throw ono({ status: res.statusCode }, 'HTTP ERROR %d', res.statusCode);
+        }
+        else if (res.statusCode >= 300) {
+          if (redirects.length > httpOptions.redirects) {
+            reject(ono({ status: res.statusCode }, 'Error downloading %s. \nToo many redirects: \n  %s',
+              redirects[0], redirects.join(' \n  ')));
+          }
+          else if (!res.headers.location) {
+            throw ono({ status: res.statusCode }, 'HTTP %d redirect with no location header', res.statusCode);
+          }
+          else {
+            debug('HTTP %d redirect %s -> %s', res.statusCode, u.href, res.headers.location);
+            var redirectTo = url.resolve(u, res.headers.location);
+            download(redirectTo, httpOptions, redirects).then(resolve, reject);
+          }
+        }
+        else {
+          resolve(res.body || new Buffer(0));
+        }
+      })
+      .catch(function (err) {
+        reject(ono(err, 'Error downloading', u.href));
+      });
+  });
+}
+
+/**
+ * Sends an HTTP GET request.
+ *
+ * @param {Url} u - A parsed {@link Url} object
+ * @param {object} httpOptions - The `options.resolve.http` object
+ *
+ * @returns {Promise<Response>}
+ * The promise resolves with the HTTP Response object.
+ */
+function get (u, httpOptions) {
+  return new Promise(function (resolve, reject) {
+    debug('GET', u.href);
+
+    var protocol = u.protocol === 'https:' ? https : http;
+    var req = protocol.get({
+      hostname: u.hostname,
+      port: u.port,
+      path: u.path,
+      auth: u.auth,
+      headers: httpOptions.headers || {},
+      withCredentials: httpOptions.withCredentials
+    });
+
+    if (typeof req.setTimeout === 'function') {
+      req.setTimeout(httpOptions.timeout);
+    }
+
+    req.on('timeout', function () {
+      req.abort();
+    });
+
+    req.on('error', reject);
+
+    req.once('response', function (res) {
+      res.body = new Buffer(0);
+
+      res.on('data', function (data) {
+        res.body = Buffer.concat([res.body, new Buffer(data)]);
+      });
+
+      res.on('error', reject);
+
+      res.on('end', function () {
+        resolve(res);
+      });
+    });
+  });
+}
+
+}).call(this,require('_process'),require("buffer").Buffer)
+
+},{"../util/debug":67,"../util/url":69,"_process":77,"buffer":8,"http":92,"https":16,"ono":75}],67:[function(require,module,exports){
+'use strict';
+
+var debug = require('debug');
+
+/**
+ * Writes messages to stdout.
+ * Log messages are suppressed by default, but can be enabled by setting the DEBUG variable.
+ * @type {function}
+ */
+module.exports = debug('json-schema-ref-parser');
+
+},{"debug":12}],68:[function(require,module,exports){
+'use strict';
+
+var debug = require('./debug');
+
+/**
+ * Returns the given plugins as an array, rather than an object map.
+ * All other methods in this module expect an array of plugins rather than an object map.
+ *
+ * @param  {object} plugins - A map of plugin objects
+ * @return {object[]}
+ */
+exports.all = function (plugins) {
+  return Object.keys(plugins)
+    .filter(function (key) {
+      return typeof plugins[key] === 'object';
+    })
+    .map(function (key) {
+      plugins[key].name = key;
+      return plugins[key];
+    });
+};
+
+/**
+ * Filters the given plugins, returning only the ones return `true` for the given method.
+ *
+ * @param  {object[]} plugins - An array of plugin objects
+ * @param  {string}   method  - The name of the filter method to invoke for each plugin
+ * @param  {object}   file    - A file info object, which will be passed to each method
+ * @return {object[]}
+ */
+exports.filter = function (plugins, method, file) {
+  return plugins
+    .filter(function (plugin) {
+      return !!getResult(plugin, method, file);
+    });
+};
+
+/**
+ * Sorts the given plugins, in place, by their `order` property.
+ *
+ * @param {object[]} plugins - An array of plugin objects
+ * @returns {object[]}
+ */
+exports.sort = function (plugins) {
+  plugins.forEach(function (plugin) {
+    plugin.order = plugin.order || Number.MAX_SAFE_INTEGER;
+  });
+
+  return plugins.sort(function (a, b) { return a.order - b.order; });
+};
+
+/**
+ * Runs the specified method of the given plugins, in order, until one of them returns a successful result.
+ * Each method can return a synchronous value, a Promise, or call an error-first callback.
+ * If the promise resolves successfully, or the callback is called without an error, then the result
+ * is immediately returned and no further plugins are called.
+ * If the promise rejects, or the callback is called with an error, then the next plugin is called.
+ * If ALL plugins fail, then the last error is thrown.
+ *
+ * @param {object[]}  plugins - An array of plugin objects
+ * @param {string}    method  - The name of the method to invoke for each plugin
+ * @param {object}    file    - A file info object, which will be passed to each method
+ * @returns {Promise}
+ */
+exports.run = function (plugins, method, file) {
+  var plugin, lastError, index = 0;
+
+  return new Promise(function (resolve, reject) {
+    runNextPlugin();
+
+    function runNextPlugin () {
+      plugin = plugins[index++];
+      if (!plugin) {
+        // There are no more functions, so re-throw the last error
+        return reject(lastError);
+      }
+
+      try {
+        debug('  %s', plugin.name);
+        var result = getResult(plugin, method, file, callback);
+        if (result && typeof result.then === 'function') {
+          // A promise was returned
+          result.then(onSuccess, onError);
+        }
+        else if (result !== undefined) {
+          // A synchronous result was returned
+          onSuccess(result);
+        }
+        // else { the callback will be called }
+      }
+      catch (e) {
+        onError(e);
+      }
+    }
+
+    function callback (err, result) {
+      if (err) {
+        onError(err);
+      }
+      else {
+        onSuccess(result);
+      }
+    }
+
+    function onSuccess (result) {
+      debug('    success');
+      resolve({
+        plugin: plugin,
+        result: result
+      });
+    }
+
+    function onError (err) {
+      debug('    %s', err.message || err);
+      lastError = err;
+      runNextPlugin();
+    }
+  });
+};
+
+/**
+ * Returns the value of the given property.
+ * If the property is a function, then the result of the function is returned.
+ * If the value is a RegExp, then it will be tested against the file URL.
+ * If the value is an aray, then it will be compared against the file extension.
+ *
+ * @param   {object}   obj        - The object whose property/method is called
+ * @param   {string}   prop       - The name of the property/method to invoke
+ * @param   {object}   file       - A file info object, which will be passed to the method
+ * @param   {function} [callback] - A callback function, which will be passed to the method
+ * @returns {*}
+ */
+function getResult (obj, prop, file, callback) {
+  var value = obj[prop];
+
+  if (typeof value === 'function') {
+    return value.apply(obj, [file, callback]);
+  }
+
+  if (!callback) {
+    // The synchronous plugin functions (canParse and canRead)
+    // allow a "shorthand" syntax, where the user can match
+    // files by RegExp or by file extension.
+    if (value instanceof RegExp) {
+      return value.test(file.url);
+    }
+    else if (typeof value === 'string') {
+      return value === file.extension;
+    }
+    else if (Array.isArray(value)) {
+      return value.indexOf(file.extension) !== -1;
+    }
+  }
+
+  return value;
+}
+
+},{"./debug":67}],69:[function(require,module,exports){
 (function (process){
 'use strict';
 
-var debug               = require('debug'),
-    isWindows           = /^win/.test(process.platform),
+var isWindows = /^win/.test(process.platform),
     forwardSlashPattern = /\//g,
-    protocolPattern     = /^[a-z0-9.+-]+:\/\//i;
+    protocolPattern = /^([a-z0-9.+-]+):\/\//i,
+    url = module.exports;
 
 // RegExp patterns to URL-encode special characters in local filesystem paths
 var urlEncodePatterns = [
@@ -10415,84 +9896,59 @@ var urlDecodePatterns = [
   /\%40/g, '@'
 ];
 
-/**
- * Writes messages to stdout.
- * Log messages are suppressed by default, but can be enabled by setting the DEBUG variable.
- * @type {function}
- */
-exports.debug = debug('json-schema-ref-parser');
-
-/**
- * Utility functions for working with paths and URLs.
- */
-exports.path = {};
+exports.parse = require('url').parse;
+exports.resolve = require('url').resolve;
 
 /**
  * Returns the current working directory (in Node) or the current page URL (in browsers).
  *
  * @returns {string}
  */
-exports.path.cwd = function cwd() {
+exports.cwd = function cwd () {
   return process.browser ? location.href : process.cwd() + '/';
 };
 
 /**
- * Determines whether the given path is a URL.
+ * Returns the protocol of the given URL, or `undefined` if it has no protocol.
  *
  * @param   {string} path
- * @returns {boolean}
+ * @returns {?string}
  */
-exports.path.isUrl = function isUrl(path) {
-  return protocolPattern.test(path);
+exports.getProtocol = function getProtocol (path) {
+  var match = protocolPattern.exec(path);
+  if (match) {
+    return match[1].toLowerCase();
+  }
 };
 
 /**
- * If the given path is a local filesystem path, it is converted to a URL.
- *
- * @param {string} path
- * @returns {string}
- */
-exports.path.localPathToUrl = function localPathToUrl(path) {
-  if (!process.browser && !exports.path.isUrl(path)) {
-    // Manually encode characters that are not encoded by `encodeURI`
-    for (var i = 0; i < urlEncodePatterns.length; i += 2) {
-      path = path.replace(urlEncodePatterns[i], urlEncodePatterns[i + 1]);
-    }
-    path = encodeURI(path);
-  }
-  return path;
-};
-
-/**
- * Converts a URL to a local filesystem path
- *
- * @param {string} url
- * @returns {string}
- */
-exports.path.urlToLocalPath = function urlToLocalPath(url) {
-  url = decodeURI(url);
-  // Manually decode characters that are not decoded by `decodeURI`
-  for (var i = 0; i < urlDecodePatterns.length; i += 2) {
-    url = url.replace(urlDecodePatterns[i], urlDecodePatterns[i + 1]);
-  }
-  if (isWindows) {
-    url = url.replace(forwardSlashPattern, '\\');
-  }
-  return url;
-};
-
-/**
- * Returns the hash (URL fragment), if any, of the given path.
+ * Returns the lowercased file extension of the given URL,
+ * or an empty string if it has no extension.
  *
  * @param   {string} path
  * @returns {string}
  */
-exports.path.getHash = function getHash(path) {
+exports.getExtension = function getExtension (path) {
+  var lastDot = path.lastIndexOf('.');
+  if (lastDot >= 0) {
+    return path.substr(lastDot).toLowerCase();
+  }
+  return '';
+};
+
+/**
+ * Returns the hash (URL fragment), of the given path.
+ * If there is no hash, then the root hash ("#") is returned.
+ *
+ * @param   {string} path
+ * @returns {string}
+ */
+exports.getHash = function getHash (path) {
   var hashIndex = path.indexOf('#');
   if (hashIndex >= 0) {
     return path.substr(hashIndex);
   }
-  return '';
+  return '#';
 };
 
 /**
@@ -10501,7 +9957,7 @@ exports.path.getHash = function getHash(path) {
  * @param   {string} path
  * @returns {string}
  */
-exports.path.stripHash = function stripHash(path) {
+exports.stripHash = function stripHash (path) {
   var hashIndex = path.indexOf('#');
   if (hashIndex >= 0) {
     path = path.substr(0, hashIndex);
@@ -10510,27 +9966,134 @@ exports.path.stripHash = function stripHash(path) {
 };
 
 /**
- * Returns the file extension of the given path.
+ * Determines whether the given path is an HTTP(S) URL.
  *
  * @param   {string} path
+ * @returns {boolean}
+ */
+exports.isHttp = function isHttp (path) {
+  var protocol = url.getProtocol(path);
+  if (protocol === 'http' || protocol === 'https') {
+    return true;
+  }
+  else if (protocol === undefined) {
+    // There is no protocol.  If we're running in a browser, then assume it's HTTP.
+    return process.browser;
+  }
+  else {
+    // It's some other protocol, such as "ftp://", "mongodb://", etc.
+    return false;
+  }
+};
+
+/**
+ * Determines whether the given path is a filesystem path.
+ * This includes "file://" URLs.
+ *
+ * @param   {string} path
+ * @returns {boolean}
+ */
+exports.isFileSystemPath = function isFileSystemPath (path) {
+  if (process.browser) {
+    // We're running in a browser, so assume that all paths are URLs.
+    // This way, even relative paths will be treated as URLs rather than as filesystem paths
+    return false;
+  }
+
+  var protocol = url.getProtocol(path);
+  return protocol === undefined || protocol === 'file';
+};
+
+/**
+ * Converts a filesystem path to a properly-encoded URL.
+ *
+ * This is intended to handle situations where JSON Schema $Ref Parser is called
+ * with a filesystem path that contains characters which are not allowed in URLs.
+ *
+ * @example
+ * The following filesystem paths would be converted to the following URLs:
+ *
+ *    <"!@#$%^&*+=?'>.json              ==>   %3C%22!@%23$%25%5E&*+=%3F\'%3E.json
+ *    C:\\My Documents\\File (1).json   ==>   C:/My%20Documents/File%20(1).json
+ *    file://Project #42/file.json      ==>   file://Project%20%2342/file.json
+ *
+ * @param {string} path
  * @returns {string}
  */
-exports.path.extname = function extname(path) {
-  var lastDot = path.lastIndexOf('.');
-  if (lastDot >= 0) {
-    return path.substr(lastDot).toLowerCase();
+exports.fromFileSystemPath = function fromFileSystemPath (path) {
+  // Step 1: Manually encode characters that are not encoded by `encodeURI`.
+  // This includes characters such as "#" and "?", which have special meaning in URLs,
+  // but are just normal characters in a filesystem path.
+  // On Windows, this will also replace backslashes with forward slashes,
+  // rather than encoding them as special characters.
+  for (var i = 0; i < urlEncodePatterns.length; i += 2) {
+    path = path.replace(urlEncodePatterns[i], urlEncodePatterns[i + 1]);
   }
-  return '';
+
+  // Step 2: `encodeURI` will take care of all other characters
+  return encodeURI(path);
+};
+
+/**
+ * Converts a URL to a local filesystem path.
+ *
+ * @param {string}  path
+ * @param {boolean} [keepFileProtocol] - If true, then "file://" will NOT be stripped
+ * @returns {string}
+ */
+exports.toFileSystemPath = function toFileSystemPath (path, keepFileProtocol) {
+  // Step 1: `decodeURI` will decode characters such as Cyrillic characters, spaces, etc.
+  path = decodeURI(path);
+
+  // Step 2: Manually decode characters that are not decoded by `decodeURI`.
+  // This includes characters such as "#" and "?", which have special meaning in URLs,
+  // but are just normal characters in a filesystem path.
+  for (var i = 0; i < urlDecodePatterns.length; i += 2) {
+    path = path.replace(urlDecodePatterns[i], urlDecodePatterns[i + 1]);
+  }
+
+  // Step 3: If it's a "file://" URL, then format it consistently
+  // or convert it to a local filesystem path
+  var isFileUrl = path.substr(0, 7).toLowerCase() === 'file://';
+  if (isFileUrl) {
+    // Strip-off the protocol, and the initial "/", if there is one
+    path = path[7] === '/' ? path.substr(8) : path.substr(7);
+
+    // insert a colon (":") after the drive letter on Windows
+    if (isWindows && path[1] === '/') {
+      path = path[0] + ':' + path.substr(1);
+    }
+
+    if (keepFileProtocol) {
+      // Return the consistently-formatted "file://" URL
+      path = 'file:///' + path;
+    }
+    else {
+      // Convert the "file://" URL to a local filesystem path.
+      // On Windows, it will start with something like "C:/".
+      // On Posix, it will start with "/"
+      isFileUrl = false;
+      path = isWindows ? path : '/' + path;
+    }
+  }
+
+  // Step 4: On Windows, convert backslashes to forward slashes,
+  // unless it's a "file://" URL
+  if (isWindows && !isFileUrl) {
+    path = path.replace(forwardSlashPattern, '\\');
+  }
+
+  return path;
 };
 
 }).call(this,require('_process'))
 
-},{"_process":76,"debug":67}],66:[function(require,module,exports){
+},{"_process":77,"url":100}],70:[function(require,module,exports){
 /* eslint lines-around-comment: [2, {beforeBlockComment: false}] */
 'use strict';
 
 var yaml = require('js-yaml'),
-    ono  = require('ono');
+    ono = require('ono');
 
 /**
  * Simple YAML parsing functions, similar to {@link JSON.parse} and {@link JSON.stringify}
@@ -10543,7 +10106,7 @@ module.exports = {
    * @param {function} [reviver] - Not currently supported. Provided for consistency with {@link JSON.parse}
    * @returns {*}
    */
-  parse: function yamlParse(text, reviver) {
+  parse: function yamlParse (text, reviver) {
     try {
       return yaml.safeLoad(text);
     }
@@ -10566,10 +10129,10 @@ module.exports = {
    * @param   {string|number} space - The number of spaces to use for indentation, or a string containing the number of spaces.
    * @returns {string}
    */
-  stringify: function yamlStringify(value, replacer, space) {
+  stringify: function yamlStringify (value, replacer, space) {
     try {
       var indent = (typeof space === 'string' ? space.length : space) || 2;
-      return yaml.safeDump(value, {indent: indent});
+      return yaml.safeDump(value, { indent: indent });
     }
     catch (e) {
       if (e instanceof Error) {
@@ -10583,1782 +10146,66 @@ module.exports = {
   }
 };
 
-},{"js-yaml":24,"ono":70}],67:[function(require,module,exports){
-(function (process){
-/**
- * This is the web browser implementation of `debug()`.
- *
- * Expose `debug()` as the module.
- */
-
-exports = module.exports = require('./debug');
-exports.log = log;
-exports.formatArgs = formatArgs;
-exports.save = save;
-exports.load = load;
-exports.useColors = useColors;
-exports.storage = 'undefined' != typeof chrome
-               && 'undefined' != typeof chrome.storage
-                  ? chrome.storage.local
-                  : localstorage();
-
-/**
- * Colors.
- */
-
-exports.colors = [
-  'lightseagreen',
-  'forestgreen',
-  'goldenrod',
-  'dodgerblue',
-  'darkorchid',
-  'crimson'
-];
-
-/**
- * Currently only WebKit-based Web Inspectors, Firefox >= v31,
- * and the Firebug extension (any Firefox version) are known
- * to support "%c" CSS customizations.
- *
- * TODO: add a `localStorage` variable to explicitly enable/disable colors
- */
-
-function useColors() {
-  // NB: In an Electron preload script, document will be defined but not fully
-  // initialized. Since we know we're in Chrome, we'll just detect this case
-  // explicitly
-  if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
-    return true;
-  }
-
-  // is webkit? http://stackoverflow.com/a/16459606/376773
-  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-  return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
-    // is firebug? http://stackoverflow.com/a/398120/376773
-    (typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
-    // is firefox >= v31?
-    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
-    // double check webkit in userAgent just in case we are in a worker
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
-}
-
-/**
- * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
- */
-
-exports.formatters.j = function(v) {
-  try {
-    return JSON.stringify(v);
-  } catch (err) {
-    return '[UnexpectedJSONParseError]: ' + err.message;
-  }
-};
-
-
-/**
- * Colorize log arguments if enabled.
- *
- * @api public
- */
-
-function formatArgs(args) {
-  var useColors = this.useColors;
-
-  args[0] = (useColors ? '%c' : '')
-    + this.namespace
-    + (useColors ? ' %c' : ' ')
-    + args[0]
-    + (useColors ? '%c ' : ' ')
-    + '+' + exports.humanize(this.diff);
-
-  if (!useColors) return;
-
-  var c = 'color: ' + this.color;
-  args.splice(1, 0, c, 'color: inherit')
-
-  // the final "%c" is somewhat tricky, because there could be other
-  // arguments passed either before or after the %c, so we need to
-  // figure out the correct index to insert the CSS into
-  var index = 0;
-  var lastC = 0;
-  args[0].replace(/%[a-zA-Z%]/g, function(match) {
-    if ('%%' === match) return;
-    index++;
-    if ('%c' === match) {
-      // we only are interested in the *last* %c
-      // (the user may have provided their own)
-      lastC = index;
-    }
-  });
-
-  args.splice(lastC, 0, c);
-}
-
-/**
- * Invokes `console.log()` when available.
- * No-op when `console.log` is not a "function".
- *
- * @api public
- */
-
-function log() {
-  // this hackery is required for IE8/9, where
-  // the `console.log` function doesn't have 'apply'
-  return 'object' === typeof console
-    && console.log
-    && Function.prototype.apply.call(console.log, console, arguments);
-}
-
-/**
- * Save `namespaces`.
- *
- * @param {String} namespaces
- * @api private
- */
-
-function save(namespaces) {
-  try {
-    if (null == namespaces) {
-      exports.storage.removeItem('debug');
-    } else {
-      exports.storage.debug = namespaces;
-    }
-  } catch(e) {}
-}
-
-/**
- * Load `namespaces`.
- *
- * @return {String} returns the previously persisted debug modes
- * @api private
- */
-
-function load() {
-  var r;
-  try {
-    r = exports.storage.debug;
-  } catch(e) {}
-
-  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
-  if (!r && typeof process !== 'undefined' && 'env' in process) {
-    r = process.env.DEBUG;
-  }
-
-  return r;
-}
-
-/**
- * Enable namespaces listed in `localStorage.debug` initially.
- */
-
-exports.enable(load());
-
-/**
- * Localstorage attempts to return the localstorage.
- *
- * This is necessary because safari throws
- * when a user disables cookies/localstorage
- * and you attempt to access it.
- *
- * @return {LocalStorage}
- * @api private
- */
-
-function localstorage() {
-  try {
-    return window.localStorage;
-  } catch (e) {}
-}
-
-}).call(this,require('_process'))
-
-},{"./debug":68,"_process":76}],68:[function(require,module,exports){
-
-/**
- * This is the common logic for both the Node.js and web browser
- * implementations of `debug()`.
- *
- * Expose `debug()` as the module.
- */
-
-exports = module.exports = createDebug.debug = createDebug['default'] = createDebug;
-exports.coerce = coerce;
-exports.disable = disable;
-exports.enable = enable;
-exports.enabled = enabled;
-exports.humanize = require('ms');
-
-/**
- * The currently active debug mode names, and names to skip.
- */
-
-exports.names = [];
-exports.skips = [];
-
-/**
- * Map of special "%n" handling functions, for the debug "format" argument.
- *
- * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
- */
-
-exports.formatters = {};
-
-/**
- * Previous log timestamp.
- */
-
-var prevTime;
-
-/**
- * Select a color.
- * @param {String} namespace
- * @return {Number}
- * @api private
- */
-
-function selectColor(namespace) {
-  var hash = 0, i;
-
-  for (i in namespace) {
-    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-
-  return exports.colors[Math.abs(hash) % exports.colors.length];
-}
-
-/**
- * Create a debugger with the given `namespace`.
- *
- * @param {String} namespace
- * @return {Function}
- * @api public
- */
-
-function createDebug(namespace) {
-
-  function debug() {
-    // disabled?
-    if (!debug.enabled) return;
-
-    var self = debug;
-
-    // set `diff` timestamp
-    var curr = +new Date();
-    var ms = curr - (prevTime || curr);
-    self.diff = ms;
-    self.prev = prevTime;
-    self.curr = curr;
-    prevTime = curr;
-
-    // turn the `arguments` into a proper Array
-    var args = new Array(arguments.length);
-    for (var i = 0; i < args.length; i++) {
-      args[i] = arguments[i];
-    }
-
-    args[0] = exports.coerce(args[0]);
-
-    if ('string' !== typeof args[0]) {
-      // anything else let's inspect with %O
-      args.unshift('%O');
-    }
-
-    // apply any `formatters` transformations
-    var index = 0;
-    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
-      // if we encounter an escaped % then don't increase the array index
-      if (match === '%%') return match;
-      index++;
-      var formatter = exports.formatters[format];
-      if ('function' === typeof formatter) {
-        var val = args[index];
-        match = formatter.call(self, val);
-
-        // now we need to remove `args[index]` since it's inlined in the `format`
-        args.splice(index, 1);
-        index--;
-      }
-      return match;
-    });
-
-    // apply env-specific formatting (colors, etc.)
-    exports.formatArgs.call(self, args);
-
-    var logFn = debug.log || exports.log || console.log.bind(console);
-    logFn.apply(self, args);
-  }
-
-  debug.namespace = namespace;
-  debug.enabled = exports.enabled(namespace);
-  debug.useColors = exports.useColors();
-  debug.color = selectColor(namespace);
-
-  // env-specific initialization logic for debug instances
-  if ('function' === typeof exports.init) {
-    exports.init(debug);
-  }
-
-  return debug;
-}
-
-/**
- * Enables a debug mode by namespaces. This can include modes
- * separated by a colon and wildcards.
- *
- * @param {String} namespaces
- * @api public
- */
-
-function enable(namespaces) {
-  exports.save(namespaces);
-
-  exports.names = [];
-  exports.skips = [];
-
-  var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
-  var len = split.length;
-
-  for (var i = 0; i < len; i++) {
-    if (!split[i]) continue; // ignore empty strings
-    namespaces = split[i].replace(/\*/g, '.*?');
-    if (namespaces[0] === '-') {
-      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
-    } else {
-      exports.names.push(new RegExp('^' + namespaces + '$'));
-    }
-  }
-}
-
-/**
- * Disable debug output.
- *
- * @api public
- */
-
-function disable() {
-  exports.enable('');
-}
-
-/**
- * Returns true if the given mode name is enabled, false otherwise.
- *
- * @param {String} name
- * @return {Boolean}
- * @api public
- */
-
-function enabled(name) {
-  var i, len;
-  for (i = 0, len = exports.skips.length; i < len; i++) {
-    if (exports.skips[i].test(name)) {
-      return false;
-    }
-  }
-  for (i = 0, len = exports.names.length; i < len; i++) {
-    if (exports.names[i].test(name)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Coerce `val`.
- *
- * @param {Mixed} val
- * @return {Mixed}
- * @api private
- */
-
-function coerce(val) {
-  if (val instanceof Error) return val.stack || val.message;
-  return val;
-}
-
-},{"ms":73}],69:[function(require,module,exports){
-(function (process,global){
-/*!
- * @overview es6-promise - a tiny implementation of Promises/A+.
- * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
- * @license   Licensed under MIT license
- *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
- * @version   3.3.1
- */
-
-(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (global.ES6Promise = factory());
-}(this, (function () { 'use strict';
-
-function objectOrFunction(x) {
-  return typeof x === 'function' || typeof x === 'object' && x !== null;
-}
-
-function isFunction(x) {
-  return typeof x === 'function';
-}
-
-var _isArray = undefined;
-if (!Array.isArray) {
-  _isArray = function (x) {
-    return Object.prototype.toString.call(x) === '[object Array]';
-  };
-} else {
-  _isArray = Array.isArray;
-}
-
-var isArray = _isArray;
-
-var len = 0;
-var vertxNext = undefined;
-var customSchedulerFn = undefined;
-
-var asap = function asap(callback, arg) {
-  queue[len] = callback;
-  queue[len + 1] = arg;
-  len += 2;
-  if (len === 2) {
-    // If len is 2, that means that we need to schedule an async flush.
-    // If additional callbacks are queued before the queue is flushed, they
-    // will be processed by this flush that we are scheduling.
-    if (customSchedulerFn) {
-      customSchedulerFn(flush);
-    } else {
-      scheduleFlush();
-    }
-  }
-};
-
-function setScheduler(scheduleFn) {
-  customSchedulerFn = scheduleFn;
-}
-
-function setAsap(asapFn) {
-  asap = asapFn;
-}
-
-var browserWindow = typeof window !== 'undefined' ? window : undefined;
-var browserGlobal = browserWindow || {};
-var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
-var isNode = typeof self === 'undefined' && typeof process !== 'undefined' && ({}).toString.call(process) === '[object process]';
-
-// test for web worker but not in IE10
-var isWorker = typeof Uint8ClampedArray !== 'undefined' && typeof importScripts !== 'undefined' && typeof MessageChannel !== 'undefined';
-
-// node
-function useNextTick() {
-  // node version 0.10.x displays a deprecation warning when nextTick is used recursively
-  // see https://github.com/cujojs/when/issues/410 for details
-  return function () {
-    return process.nextTick(flush);
-  };
-}
-
-// vertx
-function useVertxTimer() {
-  return function () {
-    vertxNext(flush);
-  };
-}
-
-function useMutationObserver() {
-  var iterations = 0;
-  var observer = new BrowserMutationObserver(flush);
-  var node = document.createTextNode('');
-  observer.observe(node, { characterData: true });
-
-  return function () {
-    node.data = iterations = ++iterations % 2;
-  };
-}
-
-// web worker
-function useMessageChannel() {
-  var channel = new MessageChannel();
-  channel.port1.onmessage = flush;
-  return function () {
-    return channel.port2.postMessage(0);
-  };
-}
-
-function useSetTimeout() {
-  // Store setTimeout reference so es6-promise will be unaffected by
-  // other code modifying setTimeout (like sinon.useFakeTimers())
-  var globalSetTimeout = setTimeout;
-  return function () {
-    return globalSetTimeout(flush, 1);
-  };
-}
-
-var queue = new Array(1000);
-function flush() {
-  for (var i = 0; i < len; i += 2) {
-    var callback = queue[i];
-    var arg = queue[i + 1];
-
-    callback(arg);
-
-    queue[i] = undefined;
-    queue[i + 1] = undefined;
-  }
-
-  len = 0;
-}
-
-function attemptVertx() {
-  try {
-    var r = require;
-    var vertx = r('vertx');
-    vertxNext = vertx.runOnLoop || vertx.runOnContext;
-    return useVertxTimer();
-  } catch (e) {
-    return useSetTimeout();
-  }
-}
-
-var scheduleFlush = undefined;
-// Decide what async method to use to triggering processing of queued callbacks:
-if (isNode) {
-  scheduleFlush = useNextTick();
-} else if (BrowserMutationObserver) {
-  scheduleFlush = useMutationObserver();
-} else if (isWorker) {
-  scheduleFlush = useMessageChannel();
-} else if (browserWindow === undefined && typeof require === 'function') {
-  scheduleFlush = attemptVertx();
-} else {
-  scheduleFlush = useSetTimeout();
-}
-
-function then(onFulfillment, onRejection) {
-  var _arguments = arguments;
-
-  var parent = this;
-
-  var child = new this.constructor(noop);
-
-  if (child[PROMISE_ID] === undefined) {
-    makePromise(child);
-  }
-
-  var _state = parent._state;
-
-  if (_state) {
-    (function () {
-      var callback = _arguments[_state - 1];
-      asap(function () {
-        return invokeCallback(_state, child, callback, parent._result);
-      });
-    })();
-  } else {
-    subscribe(parent, child, onFulfillment, onRejection);
-  }
-
-  return child;
-}
-
-/**
-  `Promise.resolve` returns a promise that will become resolved with the
-  passed `value`. It is shorthand for the following:
-
-  ```javascript
-  let promise = new Promise(function(resolve, reject){
-    resolve(1);
-  });
-
-  promise.then(function(value){
-    // value === 1
-  });
-  ```
-
-  Instead of writing the above, your code now simply becomes the following:
-
-  ```javascript
-  let promise = Promise.resolve(1);
-
-  promise.then(function(value){
-    // value === 1
-  });
-  ```
-
-  @method resolve
-  @static
-  @param {Any} value value that the returned promise will be resolved with
-  Useful for tooling.
-  @return {Promise} a promise that will become fulfilled with the given
-  `value`
-*/
-function resolve(object) {
-  /*jshint validthis:true */
-  var Constructor = this;
-
-  if (object && typeof object === 'object' && object.constructor === Constructor) {
-    return object;
-  }
-
-  var promise = new Constructor(noop);
-  _resolve(promise, object);
-  return promise;
-}
-
-var PROMISE_ID = Math.random().toString(36).substring(16);
-
-function noop() {}
-
-var PENDING = void 0;
-var FULFILLED = 1;
-var REJECTED = 2;
-
-var GET_THEN_ERROR = new ErrorObject();
-
-function selfFulfillment() {
-  return new TypeError("You cannot resolve a promise with itself");
-}
-
-function cannotReturnOwn() {
-  return new TypeError('A promises callback cannot return that same promise.');
-}
-
-function getThen(promise) {
-  try {
-    return promise.then;
-  } catch (error) {
-    GET_THEN_ERROR.error = error;
-    return GET_THEN_ERROR;
-  }
-}
-
-function tryThen(then, value, fulfillmentHandler, rejectionHandler) {
-  try {
-    then.call(value, fulfillmentHandler, rejectionHandler);
-  } catch (e) {
-    return e;
-  }
-}
-
-function handleForeignThenable(promise, thenable, then) {
-  asap(function (promise) {
-    var sealed = false;
-    var error = tryThen(then, thenable, function (value) {
-      if (sealed) {
-        return;
-      }
-      sealed = true;
-      if (thenable !== value) {
-        _resolve(promise, value);
-      } else {
-        fulfill(promise, value);
-      }
-    }, function (reason) {
-      if (sealed) {
-        return;
-      }
-      sealed = true;
-
-      _reject(promise, reason);
-    }, 'Settle: ' + (promise._label || ' unknown promise'));
-
-    if (!sealed && error) {
-      sealed = true;
-      _reject(promise, error);
-    }
-  }, promise);
-}
-
-function handleOwnThenable(promise, thenable) {
-  if (thenable._state === FULFILLED) {
-    fulfill(promise, thenable._result);
-  } else if (thenable._state === REJECTED) {
-    _reject(promise, thenable._result);
-  } else {
-    subscribe(thenable, undefined, function (value) {
-      return _resolve(promise, value);
-    }, function (reason) {
-      return _reject(promise, reason);
-    });
-  }
-}
-
-function handleMaybeThenable(promise, maybeThenable, then$$) {
-  if (maybeThenable.constructor === promise.constructor && then$$ === then && maybeThenable.constructor.resolve === resolve) {
-    handleOwnThenable(promise, maybeThenable);
-  } else {
-    if (then$$ === GET_THEN_ERROR) {
-      _reject(promise, GET_THEN_ERROR.error);
-    } else if (then$$ === undefined) {
-      fulfill(promise, maybeThenable);
-    } else if (isFunction(then$$)) {
-      handleForeignThenable(promise, maybeThenable, then$$);
-    } else {
-      fulfill(promise, maybeThenable);
-    }
-  }
-}
-
-function _resolve(promise, value) {
-  if (promise === value) {
-    _reject(promise, selfFulfillment());
-  } else if (objectOrFunction(value)) {
-    handleMaybeThenable(promise, value, getThen(value));
-  } else {
-    fulfill(promise, value);
-  }
-}
-
-function publishRejection(promise) {
-  if (promise._onerror) {
-    promise._onerror(promise._result);
-  }
-
-  publish(promise);
-}
-
-function fulfill(promise, value) {
-  if (promise._state !== PENDING) {
-    return;
-  }
-
-  promise._result = value;
-  promise._state = FULFILLED;
-
-  if (promise._subscribers.length !== 0) {
-    asap(publish, promise);
-  }
-}
-
-function _reject(promise, reason) {
-  if (promise._state !== PENDING) {
-    return;
-  }
-  promise._state = REJECTED;
-  promise._result = reason;
-
-  asap(publishRejection, promise);
-}
-
-function subscribe(parent, child, onFulfillment, onRejection) {
-  var _subscribers = parent._subscribers;
-  var length = _subscribers.length;
-
-  parent._onerror = null;
-
-  _subscribers[length] = child;
-  _subscribers[length + FULFILLED] = onFulfillment;
-  _subscribers[length + REJECTED] = onRejection;
-
-  if (length === 0 && parent._state) {
-    asap(publish, parent);
-  }
-}
-
-function publish(promise) {
-  var subscribers = promise._subscribers;
-  var settled = promise._state;
-
-  if (subscribers.length === 0) {
-    return;
-  }
-
-  var child = undefined,
-      callback = undefined,
-      detail = promise._result;
-
-  for (var i = 0; i < subscribers.length; i += 3) {
-    child = subscribers[i];
-    callback = subscribers[i + settled];
-
-    if (child) {
-      invokeCallback(settled, child, callback, detail);
-    } else {
-      callback(detail);
-    }
-  }
-
-  promise._subscribers.length = 0;
-}
-
-function ErrorObject() {
-  this.error = null;
-}
-
-var TRY_CATCH_ERROR = new ErrorObject();
-
-function tryCatch(callback, detail) {
-  try {
-    return callback(detail);
-  } catch (e) {
-    TRY_CATCH_ERROR.error = e;
-    return TRY_CATCH_ERROR;
-  }
-}
-
-function invokeCallback(settled, promise, callback, detail) {
-  var hasCallback = isFunction(callback),
-      value = undefined,
-      error = undefined,
-      succeeded = undefined,
-      failed = undefined;
-
-  if (hasCallback) {
-    value = tryCatch(callback, detail);
-
-    if (value === TRY_CATCH_ERROR) {
-      failed = true;
-      error = value.error;
-      value = null;
-    } else {
-      succeeded = true;
-    }
-
-    if (promise === value) {
-      _reject(promise, cannotReturnOwn());
-      return;
-    }
-  } else {
-    value = detail;
-    succeeded = true;
-  }
-
-  if (promise._state !== PENDING) {
-    // noop
-  } else if (hasCallback && succeeded) {
-      _resolve(promise, value);
-    } else if (failed) {
-      _reject(promise, error);
-    } else if (settled === FULFILLED) {
-      fulfill(promise, value);
-    } else if (settled === REJECTED) {
-      _reject(promise, value);
-    }
-}
-
-function initializePromise(promise, resolver) {
-  try {
-    resolver(function resolvePromise(value) {
-      _resolve(promise, value);
-    }, function rejectPromise(reason) {
-      _reject(promise, reason);
-    });
-  } catch (e) {
-    _reject(promise, e);
-  }
-}
-
-var id = 0;
-function nextId() {
-  return id++;
-}
-
-function makePromise(promise) {
-  promise[PROMISE_ID] = id++;
-  promise._state = undefined;
-  promise._result = undefined;
-  promise._subscribers = [];
-}
-
-function Enumerator(Constructor, input) {
-  this._instanceConstructor = Constructor;
-  this.promise = new Constructor(noop);
-
-  if (!this.promise[PROMISE_ID]) {
-    makePromise(this.promise);
-  }
-
-  if (isArray(input)) {
-    this._input = input;
-    this.length = input.length;
-    this._remaining = input.length;
-
-    this._result = new Array(this.length);
-
-    if (this.length === 0) {
-      fulfill(this.promise, this._result);
-    } else {
-      this.length = this.length || 0;
-      this._enumerate();
-      if (this._remaining === 0) {
-        fulfill(this.promise, this._result);
-      }
-    }
-  } else {
-    _reject(this.promise, validationError());
-  }
-}
-
-function validationError() {
-  return new Error('Array Methods must be provided an Array');
-};
-
-Enumerator.prototype._enumerate = function () {
-  var length = this.length;
-  var _input = this._input;
-
-  for (var i = 0; this._state === PENDING && i < length; i++) {
-    this._eachEntry(_input[i], i);
-  }
-};
-
-Enumerator.prototype._eachEntry = function (entry, i) {
-  var c = this._instanceConstructor;
-  var resolve$$ = c.resolve;
-
-  if (resolve$$ === resolve) {
-    var _then = getThen(entry);
-
-    if (_then === then && entry._state !== PENDING) {
-      this._settledAt(entry._state, i, entry._result);
-    } else if (typeof _then !== 'function') {
-      this._remaining--;
-      this._result[i] = entry;
-    } else if (c === Promise) {
-      var promise = new c(noop);
-      handleMaybeThenable(promise, entry, _then);
-      this._willSettleAt(promise, i);
-    } else {
-      this._willSettleAt(new c(function (resolve$$) {
-        return resolve$$(entry);
-      }), i);
-    }
-  } else {
-    this._willSettleAt(resolve$$(entry), i);
-  }
-};
-
-Enumerator.prototype._settledAt = function (state, i, value) {
-  var promise = this.promise;
-
-  if (promise._state === PENDING) {
-    this._remaining--;
-
-    if (state === REJECTED) {
-      _reject(promise, value);
-    } else {
-      this._result[i] = value;
-    }
-  }
-
-  if (this._remaining === 0) {
-    fulfill(promise, this._result);
-  }
-};
-
-Enumerator.prototype._willSettleAt = function (promise, i) {
-  var enumerator = this;
-
-  subscribe(promise, undefined, function (value) {
-    return enumerator._settledAt(FULFILLED, i, value);
-  }, function (reason) {
-    return enumerator._settledAt(REJECTED, i, reason);
-  });
-};
-
-/**
-  `Promise.all` accepts an array of promises, and returns a new promise which
-  is fulfilled with an array of fulfillment values for the passed promises, or
-  rejected with the reason of the first passed promise to be rejected. It casts all
-  elements of the passed iterable to promises as it runs this algorithm.
-
-  Example:
-
-  ```javascript
-  let promise1 = resolve(1);
-  let promise2 = resolve(2);
-  let promise3 = resolve(3);
-  let promises = [ promise1, promise2, promise3 ];
-
-  Promise.all(promises).then(function(array){
-    // The array here would be [ 1, 2, 3 ];
-  });
-  ```
-
-  If any of the `promises` given to `all` are rejected, the first promise
-  that is rejected will be given as an argument to the returned promises's
-  rejection handler. For example:
-
-  Example:
-
-  ```javascript
-  let promise1 = resolve(1);
-  let promise2 = reject(new Error("2"));
-  let promise3 = reject(new Error("3"));
-  let promises = [ promise1, promise2, promise3 ];
-
-  Promise.all(promises).then(function(array){
-    // Code here never runs because there are rejected promises!
-  }, function(error) {
-    // error.message === "2"
-  });
-  ```
-
-  @method all
-  @static
-  @param {Array} entries array of promises
-  @param {String} label optional string for labeling the promise.
-  Useful for tooling.
-  @return {Promise} promise that is fulfilled when all `promises` have been
-  fulfilled, or rejected if any of them become rejected.
-  @static
-*/
-function all(entries) {
-  return new Enumerator(this, entries).promise;
-}
-
-/**
-  `Promise.race` returns a new promise which is settled in the same way as the
-  first passed promise to settle.
-
-  Example:
-
-  ```javascript
-  let promise1 = new Promise(function(resolve, reject){
-    setTimeout(function(){
-      resolve('promise 1');
-    }, 200);
-  });
-
-  let promise2 = new Promise(function(resolve, reject){
-    setTimeout(function(){
-      resolve('promise 2');
-    }, 100);
-  });
-
-  Promise.race([promise1, promise2]).then(function(result){
-    // result === 'promise 2' because it was resolved before promise1
-    // was resolved.
-  });
-  ```
-
-  `Promise.race` is deterministic in that only the state of the first
-  settled promise matters. For example, even if other promises given to the
-  `promises` array argument are resolved, but the first settled promise has
-  become rejected before the other promises became fulfilled, the returned
-  promise will become rejected:
-
-  ```javascript
-  let promise1 = new Promise(function(resolve, reject){
-    setTimeout(function(){
-      resolve('promise 1');
-    }, 200);
-  });
-
-  let promise2 = new Promise(function(resolve, reject){
-    setTimeout(function(){
-      reject(new Error('promise 2'));
-    }, 100);
-  });
-
-  Promise.race([promise1, promise2]).then(function(result){
-    // Code here never runs
-  }, function(reason){
-    // reason.message === 'promise 2' because promise 2 became rejected before
-    // promise 1 became fulfilled
-  });
-  ```
-
-  An example real-world use case is implementing timeouts:
-
-  ```javascript
-  Promise.race([ajax('foo.json'), timeout(5000)])
-  ```
-
-  @method race
-  @static
-  @param {Array} promises array of promises to observe
-  Useful for tooling.
-  @return {Promise} a promise which settles in the same way as the first passed
-  promise to settle.
-*/
-function race(entries) {
-  /*jshint validthis:true */
-  var Constructor = this;
-
-  if (!isArray(entries)) {
-    return new Constructor(function (_, reject) {
-      return reject(new TypeError('You must pass an array to race.'));
-    });
-  } else {
-    return new Constructor(function (resolve, reject) {
-      var length = entries.length;
-      for (var i = 0; i < length; i++) {
-        Constructor.resolve(entries[i]).then(resolve, reject);
-      }
-    });
-  }
-}
-
-/**
-  `Promise.reject` returns a promise rejected with the passed `reason`.
-  It is shorthand for the following:
-
-  ```javascript
-  let promise = new Promise(function(resolve, reject){
-    reject(new Error('WHOOPS'));
-  });
-
-  promise.then(function(value){
-    // Code here doesn't run because the promise is rejected!
-  }, function(reason){
-    // reason.message === 'WHOOPS'
-  });
-  ```
-
-  Instead of writing the above, your code now simply becomes the following:
-
-  ```javascript
-  let promise = Promise.reject(new Error('WHOOPS'));
-
-  promise.then(function(value){
-    // Code here doesn't run because the promise is rejected!
-  }, function(reason){
-    // reason.message === 'WHOOPS'
-  });
-  ```
-
-  @method reject
-  @static
-  @param {Any} reason value that the returned promise will be rejected with.
-  Useful for tooling.
-  @return {Promise} a promise rejected with the given `reason`.
-*/
-function reject(reason) {
-  /*jshint validthis:true */
-  var Constructor = this;
-  var promise = new Constructor(noop);
-  _reject(promise, reason);
-  return promise;
-}
-
-function needsResolver() {
-  throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
-}
-
-function needsNew() {
-  throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
-}
-
-/**
-  Promise objects represent the eventual result of an asynchronous operation. The
-  primary way of interacting with a promise is through its `then` method, which
-  registers callbacks to receive either a promise's eventual value or the reason
-  why the promise cannot be fulfilled.
-
-  Terminology
-  -----------
-
-  - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
-  - `thenable` is an object or function that defines a `then` method.
-  - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
-  - `exception` is a value that is thrown using the throw statement.
-  - `reason` is a value that indicates why a promise was rejected.
-  - `settled` the final resting state of a promise, fulfilled or rejected.
-
-  A promise can be in one of three states: pending, fulfilled, or rejected.
-
-  Promises that are fulfilled have a fulfillment value and are in the fulfilled
-  state.  Promises that are rejected have a rejection reason and are in the
-  rejected state.  A fulfillment value is never a thenable.
-
-  Promises can also be said to *resolve* a value.  If this value is also a
-  promise, then the original promise's settled state will match the value's
-  settled state.  So a promise that *resolves* a promise that rejects will
-  itself reject, and a promise that *resolves* a promise that fulfills will
-  itself fulfill.
-
-
-  Basic Usage:
-  ------------
-
-  ```js
-  let promise = new Promise(function(resolve, reject) {
-    // on success
-    resolve(value);
-
-    // on failure
-    reject(reason);
-  });
-
-  promise.then(function(value) {
-    // on fulfillment
-  }, function(reason) {
-    // on rejection
-  });
-  ```
-
-  Advanced Usage:
-  ---------------
-
-  Promises shine when abstracting away asynchronous interactions such as
-  `XMLHttpRequest`s.
-
-  ```js
-  function getJSON(url) {
-    return new Promise(function(resolve, reject){
-      let xhr = new XMLHttpRequest();
-
-      xhr.open('GET', url);
-      xhr.onreadystatechange = handler;
-      xhr.responseType = 'json';
-      xhr.setRequestHeader('Accept', 'application/json');
-      xhr.send();
-
-      function handler() {
-        if (this.readyState === this.DONE) {
-          if (this.status === 200) {
-            resolve(this.response);
-          } else {
-            reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
-          }
-        }
-      };
-    });
-  }
-
-  getJSON('/posts.json').then(function(json) {
-    // on fulfillment
-  }, function(reason) {
-    // on rejection
-  });
-  ```
-
-  Unlike callbacks, promises are great composable primitives.
-
-  ```js
-  Promise.all([
-    getJSON('/posts'),
-    getJSON('/comments')
-  ]).then(function(values){
-    values[0] // => postsJSON
-    values[1] // => commentsJSON
-
-    return values;
-  });
-  ```
-
-  @class Promise
-  @param {function} resolver
-  Useful for tooling.
-  @constructor
-*/
-function Promise(resolver) {
-  this[PROMISE_ID] = nextId();
-  this._result = this._state = undefined;
-  this._subscribers = [];
-
-  if (noop !== resolver) {
-    typeof resolver !== 'function' && needsResolver();
-    this instanceof Promise ? initializePromise(this, resolver) : needsNew();
-  }
-}
-
-Promise.all = all;
-Promise.race = race;
-Promise.resolve = resolve;
-Promise.reject = reject;
-Promise._setScheduler = setScheduler;
-Promise._setAsap = setAsap;
-Promise._asap = asap;
-
-Promise.prototype = {
-  constructor: Promise,
-
-  /**
-    The primary way of interacting with a promise is through its `then` method,
-    which registers callbacks to receive either a promise's eventual value or the
-    reason why the promise cannot be fulfilled.
-  
-    ```js
-    findUser().then(function(user){
-      // user is available
-    }, function(reason){
-      // user is unavailable, and you are given the reason why
-    });
-    ```
-  
-    Chaining
-    --------
-  
-    The return value of `then` is itself a promise.  This second, 'downstream'
-    promise is resolved with the return value of the first promise's fulfillment
-    or rejection handler, or rejected if the handler throws an exception.
-  
-    ```js
-    findUser().then(function (user) {
-      return user.name;
-    }, function (reason) {
-      return 'default name';
-    }).then(function (userName) {
-      // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
-      // will be `'default name'`
-    });
-  
-    findUser().then(function (user) {
-      throw new Error('Found user, but still unhappy');
-    }, function (reason) {
-      throw new Error('`findUser` rejected and we're unhappy');
-    }).then(function (value) {
-      // never reached
-    }, function (reason) {
-      // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
-      // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
-    });
-    ```
-    If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
-  
-    ```js
-    findUser().then(function (user) {
-      throw new PedagogicalException('Upstream error');
-    }).then(function (value) {
-      // never reached
-    }).then(function (value) {
-      // never reached
-    }, function (reason) {
-      // The `PedgagocialException` is propagated all the way down to here
-    });
-    ```
-  
-    Assimilation
-    ------------
-  
-    Sometimes the value you want to propagate to a downstream promise can only be
-    retrieved asynchronously. This can be achieved by returning a promise in the
-    fulfillment or rejection handler. The downstream promise will then be pending
-    until the returned promise is settled. This is called *assimilation*.
-  
-    ```js
-    findUser().then(function (user) {
-      return findCommentsByAuthor(user);
-    }).then(function (comments) {
-      // The user's comments are now available
-    });
-    ```
-  
-    If the assimliated promise rejects, then the downstream promise will also reject.
-  
-    ```js
-    findUser().then(function (user) {
-      return findCommentsByAuthor(user);
-    }).then(function (comments) {
-      // If `findCommentsByAuthor` fulfills, we'll have the value here
-    }, function (reason) {
-      // If `findCommentsByAuthor` rejects, we'll have the reason here
-    });
-    ```
-  
-    Simple Example
-    --------------
-  
-    Synchronous Example
-  
-    ```javascript
-    let result;
-  
-    try {
-      result = findResult();
-      // success
-    } catch(reason) {
-      // failure
-    }
-    ```
-  
-    Errback Example
-  
-    ```js
-    findResult(function(result, err){
-      if (err) {
-        // failure
-      } else {
-        // success
-      }
-    });
-    ```
-  
-    Promise Example;
-  
-    ```javascript
-    findResult().then(function(result){
-      // success
-    }, function(reason){
-      // failure
-    });
-    ```
-  
-    Advanced Example
-    --------------
-  
-    Synchronous Example
-  
-    ```javascript
-    let author, books;
-  
-    try {
-      author = findAuthor();
-      books  = findBooksByAuthor(author);
-      // success
-    } catch(reason) {
-      // failure
-    }
-    ```
-  
-    Errback Example
-  
-    ```js
-  
-    function foundBooks(books) {
-  
-    }
-  
-    function failure(reason) {
-  
-    }
-  
-    findAuthor(function(author, err){
-      if (err) {
-        failure(err);
-        // failure
-      } else {
-        try {
-          findBoooksByAuthor(author, function(books, err) {
-            if (err) {
-              failure(err);
-            } else {
-              try {
-                foundBooks(books);
-              } catch(reason) {
-                failure(reason);
-              }
-            }
-          });
-        } catch(error) {
-          failure(err);
-        }
-        // success
-      }
-    });
-    ```
-  
-    Promise Example;
-  
-    ```javascript
-    findAuthor().
-      then(findBooksByAuthor).
-      then(function(books){
-        // found books
-    }).catch(function(reason){
-      // something went wrong
-    });
-    ```
-  
-    @method then
-    @param {Function} onFulfilled
-    @param {Function} onRejected
-    Useful for tooling.
-    @return {Promise}
-  */
-  then: then,
-
-  /**
-    `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
-    as the catch block of a try/catch statement.
-  
-    ```js
-    function findAuthor(){
-      throw new Error('couldn't find that author');
-    }
-  
-    // synchronous
-    try {
-      findAuthor();
-    } catch(reason) {
-      // something went wrong
-    }
-  
-    // async with promises
-    findAuthor().catch(function(reason){
-      // something went wrong
-    });
-    ```
-  
-    @method catch
-    @param {Function} onRejection
-    Useful for tooling.
-    @return {Promise}
-  */
-  'catch': function _catch(onRejection) {
-    return this.then(null, onRejection);
-  }
-};
-
-function polyfill() {
-    var local = undefined;
-
-    if (typeof global !== 'undefined') {
-        local = global;
-    } else if (typeof self !== 'undefined') {
-        local = self;
-    } else {
-        try {
-            local = Function('return this')();
-        } catch (e) {
-            throw new Error('polyfill failed because global object is unavailable in this environment');
-        }
-    }
-
-    var P = local.Promise;
-
-    if (P) {
-        var promiseToString = null;
-        try {
-            promiseToString = Object.prototype.toString.call(P.resolve());
-        } catch (e) {
-            // silently ignored
-        }
-
-        if (promiseToString === '[object Promise]' && !P.cast) {
-            return;
-        }
-    }
-
-    local.Promise = Promise;
-}
-
-polyfill();
-// Strange compat..
-Promise.polyfill = polyfill;
-Promise.Promise = Promise;
-
-return Promise;
-
-})));
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"_process":76}],70:[function(require,module,exports){
+},{"js-yaml":21,"ono":75}],71:[function(require,module,exports){
 'use strict';
 
-var util = require('util'),
-    slice = Array.prototype.slice,
-    vendorSpecificErrorProperties = [
-      'name', 'message', 'description', 'number', 'fileName', 'lineNumber', 'columnNumber',
-      'sourceURL', 'line', 'column', 'stack'
-    ];
-
-module.exports = create(Error);
-module.exports.error = create(Error);
-module.exports.eval = create(EvalError);
-module.exports.range = create(RangeError);
-module.exports.reference = create(ReferenceError);
-module.exports.syntax = create(SyntaxError);
-module.exports.type = create(TypeError);
-module.exports.uri = create(URIError);
-module.exports.formatter = util.format;
-
-/**
- * Creates a new {@link ono} function that creates the given Error class.
- *
- * @param {Class} Klass - The Error subclass to create
- * @returns {ono}
- */
-function create (Klass) {
+module.exports = {
   /**
-   * @param {Error}   [err]     - The original error, if any
-   * @param {object}  [props]   - An object whose properties will be added to the error object
-   * @param {string}  [message] - The error message. May contain {@link util#format} placeholders
-   * @param {...*}    [params]  - Parameters that map to the `message` placeholders
-   * @returns {Error}
+   * The order that this validator will run, in relation to other validators.
+   *
+   * @type {number}
    */
-  return function ono (err, props, message, params) {   // eslint-disable-line no-unused-vars
-    var formattedMessage;
-    var formatter = module.exports.formatter;
+  order: 100,
 
-    if (typeof (err) === 'string') {
-      formattedMessage = formatter.apply(null, arguments);
-      err = props = undefined;
-    }
-    else if (typeof (props) === 'string') {
-      formattedMessage = formatter.apply(null, slice.call(arguments, 1));
-    }
-    else {
-      formattedMessage = formatter.apply(null, slice.call(arguments, 2));
-    }
+  /**
+   * Determines whether this validator can parse a given schema file.
+   *
+   * There are three opportunities at which a validator may choose to validate a schema:
+   *
+   *  1 - After the JSON Schema is parsed, but before any of its JSON References are resolved
+   *
+   *  2 - After all JSON References have been resolved (and the $Refs object has been populated),
+   *      but before any references have been dereferenced
+   *
+   *  3 - After all JSON References have been dereferenced
+   *
+   * JSON Schema $Ref Parser's {@link $RefParser.validate} method will only perform as much processing
+   * as is necessary to satisfy all validators. So, if all validators are able to process the
+   * schema after step 1 above, then steps 2 and 3 will not be performed.  If some validators aren't
+   * able to process the schema after step 1, then step 2 will be performed and the remaining validators
+   * will be given a second chance to process the schema. If they all do, then step 3 will not be performed.
+   * If there are still remaining validators, then step 3 will be performed and the remaining validators
+   * will be given a third chance.
+   *
+   * @param {object} file               - An object containing information about the JSON Schema
+   * @param {string} file.url           - The full URL of the schema file
+   * @param {string} file.extension     - The lowercased scheam file extension (e.g. ".json", ".yaml", etc.)
+   * @param {*}      file.data          - The raw file contents. This will be whatever data type was returned by the resolver
+   * @param {object} file.parsed        - The parsed JSON Schema (available in steps 1, 2, and 3)
+   * @param {$Refs}  file.resolved      - The resolved JSON References (available in steps 2 and 3)
+   * @param {object} file.dereferenced  - The dereferenced JSON Schema (only available in step 3)
+   * @returns {boolean}
+   */
+  canValidate: function canValidate (file) {
+    // Z-Schema requires JSON References to already be resolved (but not dereferenced)
+    return !!file.resolved;
+  },
 
-    if (!(err instanceof Error)) {
-      props = err;
-      err = undefined;
-    }
-
-    if (err) {
-      // The inner-error's message will be added to the new message
-      formattedMessage += (formattedMessage ? ' \n' : '') + err.message;
-    }
-
-    // Create the new error
-    // NOTE: DON'T move this to a separate function! We don't want to pollute the stack trace
-    var newError = new Klass(formattedMessage);
-
-    // Extend the new error with the additional properties
-    extendError(newError, err);   // Copy properties of the original error
-    extendToJSON(newError);       // Replace the original toJSON method
-    extend(newError, props);      // Copy custom properties, possibly including a custom toJSON method
-
-    return newError;
-  };
-}
-
-/**
- * Extends the targetError with the properties of the source error.
- *
- * @param {Error}   targetError - The error object to extend
- * @param {?Error}  sourceError - The source error object, if any
- */
-function extendError (targetError, sourceError) {
-  if (sourceError) {
-    extendStack(targetError, sourceError);
-    extend(targetError, sourceError, true);
+  /**
+   * Validates the given JSON Schema
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {Promise<Buffer>}
+   */
+  validate: function validate (file) {
+    // TODO
   }
-}
+};
 
-/**
- * JavaScript engines differ in how errors are serialized to JSON - especially when it comes
- * to custom error properties and stack traces.  So we add our own toJSON method that ALWAYS
- * outputs every property of the error.
- */
-function extendToJSON (error) {
-  error.toJSON = errorToJSON;
-
-  // Also add an inspect() method, for compatibility with Node.js' `util.inspect()` method
-  error.inspect = errorToString;
-}
-
-/**
- * Extends the target object with the properties of the source object.
- *
- * @param {object}  target - The object to extend
- * @param {?source} source - The object whose properties are copied
- * @param {boolean} omitVendorSpecificProperties - Skip vendor-specific Error properties
- */
-function extend (target, source, omitVendorSpecificProperties) {
-  if (source && typeof (source) === 'object') {
-    var keys = Object.keys(source);
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-
-      // Don't bother trying to copy read-only vendor-specific Error properties
-      if (omitVendorSpecificProperties && vendorSpecificErrorProperties.indexOf(key) >= 0) {
-        continue;
-      }
-
-      try {
-        target[key] = source[key];
-      }
-      catch (e) {
-        // This property is read-only, so it can't be copied
-      }
-    }
-  }
-}
-
-/**
- * Custom JSON serializer for Error objects.
- * Returns all built-in error properties, as well as extended properties.
- *
- * @returns {object}
- */
-function errorToJSON () {
-  var json = {};
-
-  // Get all the properties of this error
-  var keys = Object.keys(this);
-
-  // Also include vendor-specific properties from the prototype
-  keys = keys.concat(vendorSpecificErrorProperties);
-
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
-    var value = this[key];
-    var type = typeof value;
-    if (type !== 'undefined' && type !== 'function') {
-      json[key] = value;
-    }
-  }
-
-  return json;
-}
-
-/**
- * Serializes Error objects as human-readable JSON strings for debugging/logging purposes.
- *
- * @returns {string}
- */
-function errorToString () {
-  return JSON.stringify(this, null, 2).replace(/\\n/g, '\n');
-}
-
-/**
- * Extend the error stack to include its cause
- */
-function extendStack (targetError, sourceError) {
-  if (hasLazyStack(sourceError)) {
-    extendStackProperty(targetError, sourceError);
-  }
-  else {
-    var stack = sourceError.stack;
-    if (stack) {
-      targetError.stack += ' \n\n' + sourceError.stack;
-    }
-  }
-}
-
-/**
- * Does a one-time determination of whether this JavaScript engine
- * supports lazy `Error.stack` properties.
- */
-var supportsLazyStack = (function () {
-  return !!(
-    // ES5 property descriptors must be supported
-    Object.getOwnPropertyDescriptor && Object.defineProperty &&
-
-    // Chrome on Android doesn't support lazy stacks :(
-    (typeof navigator === 'undefined' || !/Android/.test(navigator.userAgent))
-  );
-}());
-
-/**
- * Does this error have a lazy stack property?
- *
- * @returns {boolean}
- */
-function hasLazyStack (err) {
-  if (!supportsLazyStack) {
-    return false;
-  }
-  var descriptor = Object.getOwnPropertyDescriptor(err, 'stack');
-  if (!descriptor) {
-    return false;
-  }
-  return typeof descriptor.get === 'function';
-}
-
-/**
- * Extend the error stack to include its cause, lazily
- */
-function extendStackProperty (targetError, sourceError) {
-  var sourceStack = Object.getOwnPropertyDescriptor(sourceError, 'stack');
-  if (sourceStack) {
-    var targetStack = Object.getOwnPropertyDescriptor(targetError, 'stack');
-    Object.defineProperty(targetError, 'stack', {
-      get: function () {
-        return targetStack.get.apply(targetError) + ' \n\n' + sourceError.stack;
-      },
-      enumerable: false,
-      configurable: true
-    });
-  }
-}
-
-},{"util":104}],71:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 (function (global){
 /**
  * lodash (Custom Build) <https://lodash.com/>
@@ -13294,7 +11141,7 @@ module.exports = get;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],72:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 (function (global){
 /**
  * Lodash (Custom Build) <https://lodash.com/>
@@ -15147,7 +12994,7 @@ module.exports = isEqual;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],73:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -15301,7 +13148,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],74:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 'use strict';
 
 var format = require('format-util');
@@ -15604,7 +13451,7 @@ function lazyPopStack (error) {
   });
 }
 
-},{"format-util":18}],75:[function(require,module,exports){
+},{"format-util":15}],76:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -15652,7 +13499,7 @@ function nextTick(fn, arg1, arg2, arg3) {
 
 }).call(this,require('_process'))
 
-},{"_process":76}],76:[function(require,module,exports){
+},{"_process":77}],77:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -15838,7 +13685,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],77:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.4.1 by @mathias */
 ;(function(root) {
@@ -16376,7 +14223,7 @@ process.umask = function() { return 0; };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],78:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -16462,7 +14309,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],79:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -16549,13 +14396,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],80:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":78,"./encode":79}],81:[function(require,module,exports){
+},{"./decode":79,"./encode":80}],82:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -16680,7 +14527,7 @@ function forEach(xs, f) {
     f(xs[i], i);
   }
 }
-},{"./_stream_readable":83,"./_stream_writable":85,"core-util-is":13,"inherits":21,"process-nextick-args":75}],82:[function(require,module,exports){
+},{"./_stream_readable":84,"./_stream_writable":86,"core-util-is":11,"inherits":18,"process-nextick-args":76}],83:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -16728,7 +14575,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":84,"core-util-is":13,"inherits":21}],83:[function(require,module,exports){
+},{"./_stream_transform":85,"core-util-is":11,"inherits":18}],84:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -17739,7 +15586,7 @@ function indexOf(xs, x) {
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./_stream_duplex":81,"./internal/streams/BufferList":86,"./internal/streams/destroy":87,"./internal/streams/stream":88,"_process":76,"core-util-is":13,"events":17,"inherits":21,"isarray":23,"process-nextick-args":75,"safe-buffer":90,"string_decoder/":95,"util":8}],84:[function(require,module,exports){
+},{"./_stream_duplex":82,"./internal/streams/BufferList":87,"./internal/streams/destroy":88,"./internal/streams/stream":89,"_process":77,"core-util-is":11,"events":14,"inherits":18,"isarray":20,"process-nextick-args":76,"safe-buffer":91,"string_decoder/":96,"util":7}],85:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -17954,7 +15801,7 @@ function done(stream, er, data) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":81,"core-util-is":13,"inherits":21}],85:[function(require,module,exports){
+},{"./_stream_duplex":82,"core-util-is":11,"inherits":18}],86:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -18622,7 +16469,7 @@ Writable.prototype._destroy = function (err, cb) {
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./_stream_duplex":81,"./internal/streams/destroy":87,"./internal/streams/stream":88,"_process":76,"core-util-is":13,"inherits":21,"process-nextick-args":75,"safe-buffer":90,"util-deprecate":101}],86:[function(require,module,exports){
+},{"./_stream_duplex":82,"./internal/streams/destroy":88,"./internal/streams/stream":89,"_process":77,"core-util-is":11,"inherits":18,"process-nextick-args":76,"safe-buffer":91,"util-deprecate":102}],87:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -18697,7 +16544,7 @@ module.exports = function () {
 
   return BufferList;
 }();
-},{"safe-buffer":90}],87:[function(require,module,exports){
+},{"safe-buffer":91}],88:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -18770,10 +16617,10 @@ module.exports = {
   destroy: destroy,
   undestroy: undestroy
 };
-},{"process-nextick-args":75}],88:[function(require,module,exports){
+},{"process-nextick-args":76}],89:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":17}],89:[function(require,module,exports){
+},{"events":14}],90:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = exports;
 exports.Readable = exports;
@@ -18782,7 +16629,7 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":81,"./lib/_stream_passthrough.js":82,"./lib/_stream_readable.js":83,"./lib/_stream_transform.js":84,"./lib/_stream_writable.js":85}],90:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":82,"./lib/_stream_passthrough.js":83,"./lib/_stream_readable.js":84,"./lib/_stream_transform.js":85,"./lib/_stream_writable.js":86}],91:[function(require,module,exports){
 /* eslint-disable node/no-deprecated-api */
 var buffer = require('buffer')
 var Buffer = buffer.Buffer
@@ -18846,7 +16693,7 @@ SafeBuffer.allocUnsafeSlow = function (size) {
   return buffer.SlowBuffer(size)
 }
 
-},{"buffer":10}],91:[function(require,module,exports){
+},{"buffer":8}],92:[function(require,module,exports){
 (function (global){
 var ClientRequest = require('./lib/request')
 var extend = require('xtend')
@@ -18929,7 +16776,7 @@ http.METHODS = [
 ]
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./lib/request":93,"builtin-status-codes":11,"url":99,"xtend":170}],92:[function(require,module,exports){
+},{"./lib/request":94,"builtin-status-codes":9,"url":100,"xtend":174}],93:[function(require,module,exports){
 (function (global){
 exports.fetch = isFunction(global.fetch) && isFunction(global.ReadableStream)
 
@@ -19003,7 +16850,7 @@ xhr = null // Help gc
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],93:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 (function (process,global,Buffer){
 var capability = require('./capability')
 var inherits = require('inherits')
@@ -19314,7 +17161,7 @@ var unsafeHeaders = [
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 
-},{"./capability":92,"./response":94,"_process":76,"buffer":10,"inherits":21,"readable-stream":89,"to-arraybuffer":98}],94:[function(require,module,exports){
+},{"./capability":93,"./response":95,"_process":77,"buffer":8,"inherits":18,"readable-stream":90,"to-arraybuffer":99}],95:[function(require,module,exports){
 (function (process,global,Buffer){
 var capability = require('./capability')
 var inherits = require('inherits')
@@ -19501,7 +17348,7 @@ IncomingMessage.prototype._onXHRProgress = function () {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 
-},{"./capability":92,"_process":76,"buffer":10,"inherits":21,"readable-stream":89}],95:[function(require,module,exports){
+},{"./capability":93,"_process":77,"buffer":8,"inherits":18,"readable-stream":90}],96:[function(require,module,exports){
 'use strict';
 
 var Buffer = require('safe-buffer').Buffer;
@@ -19774,10 +17621,10 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"safe-buffer":90}],96:[function(require,module,exports){
+},{"safe-buffer":91}],97:[function(require,module,exports){
 module.exports = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch'];
 
-},{}],97:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 module.exports={
   "title": "A JSON Schema for Swagger 2.0 API.",
   "id": "http://swagger.io/v2/schema.json#",
@@ -21369,7 +19216,7 @@ module.exports={
     }
   }
 }
-},{}],98:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 var Buffer = require('buffer').Buffer
 
 module.exports = function (buf) {
@@ -21398,7 +19245,7 @@ module.exports = function (buf) {
 	}
 }
 
-},{"buffer":10}],99:[function(require,module,exports){
+},{"buffer":8}],100:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22132,7 +19979,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":100,"punycode":77,"querystring":80}],100:[function(require,module,exports){
+},{"./util":101,"punycode":78,"querystring":81}],101:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -22150,7 +19997,7 @@ module.exports = {
   }
 };
 
-},{}],101:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 (function (global){
 
 /**
@@ -22222,16 +20069,16 @@ function config (name) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],102:[function(require,module,exports){
-arguments[4][21][0].apply(exports,arguments)
-},{"dup":21}],103:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
+arguments[4][18][0].apply(exports,arguments)
+},{"dup":18}],104:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],104:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -22822,7 +20669,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":103,"_process":76,"inherits":102}],105:[function(require,module,exports){
+},{"./support/isBuffer":104,"_process":77,"inherits":103}],106:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -22949,9 +20796,17 @@ var _isHexColor = require('./lib/isHexColor');
 
 var _isHexColor2 = _interopRequireDefault(_isHexColor);
 
+var _isISRC = require('./lib/isISRC');
+
+var _isISRC2 = _interopRequireDefault(_isISRC);
+
 var _isMD = require('./lib/isMD5');
 
 var _isMD2 = _interopRequireDefault(_isMD);
+
+var _isHash = require('./lib/isHash');
+
+var _isHash2 = _interopRequireDefault(_isHash);
 
 var _isJSON = require('./lib/isJSON');
 
@@ -22976,10 +20831,6 @@ var _isUUID2 = _interopRequireDefault(_isUUID);
 var _isMongoId = require('./lib/isMongoId');
 
 var _isMongoId2 = _interopRequireDefault(_isMongoId);
-
-var _isDate = require('./lib/isDate');
-
-var _isDate2 = _interopRequireDefault(_isDate);
 
 var _isAfter = require('./lib/isAfter');
 
@@ -23029,6 +20880,14 @@ var _isDataURI = require('./lib/isDataURI');
 
 var _isDataURI2 = _interopRequireDefault(_isDataURI);
 
+var _isLatLong = require('./lib/isLatLong');
+
+var _isLatLong2 = _interopRequireDefault(_isLatLong);
+
+var _isPostalCode = require('./lib/isPostalCode');
+
+var _isPostalCode2 = _interopRequireDefault(_isPostalCode);
+
 var _ltrim = require('./lib/ltrim');
 
 var _ltrim2 = _interopRequireDefault(_ltrim);
@@ -23075,7 +20934,7 @@ var _toString2 = _interopRequireDefault(_toString);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var version = '6.3.0';
+var version = '8.2.0';
 
 var validator = {
   version: version,
@@ -23109,14 +20968,15 @@ var validator = {
   isHexadecimal: _isHexadecimal2.default,
   isDivisibleBy: _isDivisibleBy2.default,
   isHexColor: _isHexColor2.default,
+  isISRC: _isISRC2.default,
   isMD5: _isMD2.default,
+  isHash: _isHash2.default,
   isJSON: _isJSON2.default,
   isEmpty: _isEmpty2.default,
   isLength: _isLength2.default,
   isByteLength: _isByteLength2.default,
   isUUID: _isUUID2.default,
   isMongoId: _isMongoId2.default,
-  isDate: _isDate2.default,
   isAfter: _isAfter2.default,
   isBefore: _isBefore2.default,
   isIn: _isIn2.default,
@@ -23125,10 +20985,12 @@ var validator = {
   isISBN: _isISBN2.default,
   isISSN: _isISSN2.default,
   isMobilePhone: _isMobilePhone2.default,
+  isPostalCode: _isPostalCode2.default,
   isCurrency: _isCurrency2.default,
   isISO8601: _isISO2.default,
   isBase64: _isBase2.default,
   isDataURI: _isDataURI2.default,
+  isLatLong: _isLatLong2.default,
   ltrim: _ltrim2.default,
   rtrim: _rtrim2.default,
   trim: _trim2.default,
@@ -23144,7 +21006,7 @@ var validator = {
 
 exports.default = validator;
 module.exports = exports['default'];
-},{"./lib/blacklist":107,"./lib/contains":108,"./lib/equals":109,"./lib/escape":110,"./lib/isAfter":111,"./lib/isAlpha":112,"./lib/isAlphanumeric":113,"./lib/isAscii":114,"./lib/isBase64":115,"./lib/isBefore":116,"./lib/isBoolean":117,"./lib/isByteLength":118,"./lib/isCreditCard":119,"./lib/isCurrency":120,"./lib/isDataURI":121,"./lib/isDate":122,"./lib/isDecimal":123,"./lib/isDivisibleBy":124,"./lib/isEmail":125,"./lib/isEmpty":126,"./lib/isFQDN":127,"./lib/isFloat":128,"./lib/isFullWidth":129,"./lib/isHalfWidth":130,"./lib/isHexColor":131,"./lib/isHexadecimal":132,"./lib/isIP":133,"./lib/isISBN":134,"./lib/isISIN":135,"./lib/isISO8601":136,"./lib/isISSN":137,"./lib/isIn":138,"./lib/isInt":139,"./lib/isJSON":140,"./lib/isLength":141,"./lib/isLowercase":142,"./lib/isMACAddress":143,"./lib/isMD5":144,"./lib/isMobilePhone":145,"./lib/isMongoId":146,"./lib/isMultibyte":147,"./lib/isNumeric":148,"./lib/isSurrogatePair":149,"./lib/isURL":150,"./lib/isUUID":151,"./lib/isUppercase":152,"./lib/isVariableWidth":153,"./lib/isWhitelisted":154,"./lib/ltrim":155,"./lib/matches":156,"./lib/normalizeEmail":157,"./lib/rtrim":158,"./lib/stripLow":159,"./lib/toBoolean":160,"./lib/toDate":161,"./lib/toFloat":162,"./lib/toInt":163,"./lib/trim":164,"./lib/unescape":165,"./lib/util/toString":168,"./lib/whitelist":169}],106:[function(require,module,exports){
+},{"./lib/blacklist":108,"./lib/contains":109,"./lib/equals":110,"./lib/escape":111,"./lib/isAfter":112,"./lib/isAlpha":113,"./lib/isAlphanumeric":114,"./lib/isAscii":115,"./lib/isBase64":116,"./lib/isBefore":117,"./lib/isBoolean":118,"./lib/isByteLength":119,"./lib/isCreditCard":120,"./lib/isCurrency":121,"./lib/isDataURI":122,"./lib/isDecimal":123,"./lib/isDivisibleBy":124,"./lib/isEmail":125,"./lib/isEmpty":126,"./lib/isFQDN":127,"./lib/isFloat":128,"./lib/isFullWidth":129,"./lib/isHalfWidth":130,"./lib/isHash":131,"./lib/isHexColor":132,"./lib/isHexadecimal":133,"./lib/isIP":134,"./lib/isISBN":135,"./lib/isISIN":136,"./lib/isISO8601":137,"./lib/isISRC":138,"./lib/isISSN":139,"./lib/isIn":140,"./lib/isInt":141,"./lib/isJSON":142,"./lib/isLatLong":143,"./lib/isLength":144,"./lib/isLowercase":145,"./lib/isMACAddress":146,"./lib/isMD5":147,"./lib/isMobilePhone":148,"./lib/isMongoId":149,"./lib/isMultibyte":150,"./lib/isNumeric":151,"./lib/isPostalCode":152,"./lib/isSurrogatePair":153,"./lib/isURL":154,"./lib/isUUID":155,"./lib/isUppercase":156,"./lib/isVariableWidth":157,"./lib/isWhitelisted":158,"./lib/ltrim":159,"./lib/matches":160,"./lib/normalizeEmail":161,"./lib/rtrim":162,"./lib/stripLow":163,"./lib/toBoolean":164,"./lib/toDate":165,"./lib/toFloat":166,"./lib/toInt":167,"./lib/trim":168,"./lib/unescape":169,"./lib/util/toString":172,"./lib/whitelist":173}],107:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23157,34 +21019,42 @@ var alpha = exports.alpha = {
   'de-DE': /^[A-ZÄÖÜß]+$/i,
   'es-ES': /^[A-ZÁÉÍÑÓÚÜ]+$/i,
   'fr-FR': /^[A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸ]+$/i,
-  'nl-NL': /^[A-ZÉËÏÓÖÜ]+$/i,
+  'it-IT': /^[A-ZÀÉÈÌÎÓÒÙ]+$/i,
+  'nb-NO': /^[A-ZÆØÅ]+$/i,
+  'nl-NL': /^[A-ZÁÉËÏÓÖÜÚ]+$/i,
+  'nn-NO': /^[A-ZÆØÅ]+$/i,
   'hu-HU': /^[A-ZÁÉÍÓÖŐÚÜŰ]+$/i,
   'pl-PL': /^[A-ZĄĆĘŚŁŃÓŻŹ]+$/i,
   'pt-PT': /^[A-ZÃÁÀÂÇÉÊÍÕÓÔÚÜ]+$/i,
   'ru-RU': /^[А-ЯЁ]+$/i,
   'sr-RS@latin': /^[A-ZČĆŽŠĐ]+$/i,
   'sr-RS': /^[А-ЯЂЈЉЊЋЏ]+$/i,
+  'sv-SE': /^[A-ZÅÄÖ]+$/i,
   'tr-TR': /^[A-ZÇĞİıÖŞÜ]+$/i,
-  'uk-UA': /^[А-ЯЄIЇҐ]+$/i,
+  'uk-UA': /^[А-ЩЬЮЯЄIЇҐ]+$/i,
   ar: /^[ءآأؤإئابةتثجحخدذرزسشصضطظعغفقكلمنهوىيًٌٍَُِّْٰ]+$/
 };
 
 var alphanumeric = exports.alphanumeric = {
   'en-US': /^[0-9A-Z]+$/i,
   'cs-CZ': /^[0-9A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]+$/i,
-  'da-DK': /^[0-9A-ZÆØÅ]$/i,
+  'da-DK': /^[0-9A-ZÆØÅ]+$/i,
   'de-DE': /^[0-9A-ZÄÖÜß]+$/i,
   'es-ES': /^[0-9A-ZÁÉÍÑÓÚÜ]+$/i,
   'fr-FR': /^[0-9A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸ]+$/i,
+  'it-IT': /^[0-9A-ZÀÉÈÌÎÓÒÙ]+$/i,
   'hu-HU': /^[0-9A-ZÁÉÍÓÖŐÚÜŰ]+$/i,
-  'nl-NL': /^[0-9A-ZÉËÏÓÖÜ]+$/i,
+  'nb-NO': /^[0-9A-ZÆØÅ]+$/i,
+  'nl-NL': /^[0-9A-ZÁÉËÏÓÖÜÚ]+$/i,
+  'nn-NO': /^[0-9A-ZÆØÅ]+$/i,
   'pl-PL': /^[0-9A-ZĄĆĘŚŁŃÓŻŹ]+$/i,
   'pt-PT': /^[0-9A-ZÃÁÀÂÇÉÊÍÕÓÔÚÜ]+$/i,
   'ru-RU': /^[0-9А-ЯЁ]+$/i,
   'sr-RS@latin': /^[0-9A-ZČĆŽŠĐ]+$/i,
   'sr-RS': /^[0-9А-ЯЂЈЉЊЋЏ]+$/i,
+  'sv-SE': /^[0-9A-ZÅÄÖ]+$/i,
   'tr-TR': /^[0-9A-ZÇĞİıÖŞÜ]+$/i,
-  'uk-UA': /^[0-9А-ЯЄIЇҐ]+$/i,
+  'uk-UA': /^[0-9А-ЩЬЮЯЄIЇҐ]+$/i,
   ar: /^[٠١٢٣٤٥٦٧٨٩0-9ءآأؤإئابةتثجحخدذرزسشصضطظعغفقكلمنهوىيًٌٍَُِّْٰ]+$/
 };
 
@@ -23207,7 +21077,7 @@ for (var _locale, _i = 0; _i < arabicLocales.length; _i++) {
   alpha[_locale] = alpha.ar;
   alphanumeric[_locale] = alphanumeric.ar;
 }
-},{}],107:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23226,7 +21096,7 @@ function blacklist(str, chars) {
   return str.replace(new RegExp('[' + chars + ']+', 'g'), '');
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],108:[function(require,module,exports){
+},{"./util/assertString":170}],109:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23249,7 +21119,7 @@ function contains(str, elem) {
   return str.indexOf((0, _toString2.default)(elem)) >= 0;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166,"./util/toString":168}],109:[function(require,module,exports){
+},{"./util/assertString":170,"./util/toString":172}],110:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23268,11 +21138,11 @@ function equals(str, comparison) {
   return str === comparison;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],110:[function(require,module,exports){
+},{"./util/assertString":170}],111:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-      value: true
+  value: true
 });
 exports.default = escape;
 
@@ -23283,11 +21153,11 @@ var _assertString2 = _interopRequireDefault(_assertString);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function escape(str) {
-      (0, _assertString2.default)(str);
-      return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\//g, '&#x2F;').replace(/\\/g, '&#x5C;').replace(/`/g, '&#96;');
+  (0, _assertString2.default)(str);
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\//g, '&#x2F;').replace(/\\/g, '&#x5C;').replace(/`/g, '&#96;');
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],111:[function(require,module,exports){
+},{"./util/assertString":170}],112:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23314,7 +21184,7 @@ function isAfter(str) {
   return !!(original && comparison && original > comparison);
 }
 module.exports = exports['default'];
-},{"./toDate":161,"./util/assertString":166}],112:[function(require,module,exports){
+},{"./toDate":165,"./util/assertString":170}],113:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23340,7 +21210,7 @@ function isAlpha(str) {
   throw new Error('Invalid locale \'' + locale + '\'');
 }
 module.exports = exports['default'];
-},{"./alpha":106,"./util/assertString":166}],113:[function(require,module,exports){
+},{"./alpha":107,"./util/assertString":170}],114:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23366,7 +21236,7 @@ function isAlphanumeric(str) {
   throw new Error('Invalid locale \'' + locale + '\'');
 }
 module.exports = exports['default'];
-},{"./alpha":106,"./util/assertString":166}],114:[function(require,module,exports){
+},{"./alpha":107,"./util/assertString":170}],115:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23389,7 +21259,7 @@ function isAscii(str) {
   return ascii.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],115:[function(require,module,exports){
+},{"./util/assertString":170}],116:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23415,7 +21285,7 @@ function isBase64(str) {
   return firstPaddingChar === -1 || firstPaddingChar === len - 1 || firstPaddingChar === len - 2 && str[len - 1] === '=';
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],116:[function(require,module,exports){
+},{"./util/assertString":170}],117:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23442,7 +21312,7 @@ function isBefore(str) {
   return !!(original && comparison && original < comparison);
 }
 module.exports = exports['default'];
-},{"./toDate":161,"./util/assertString":166}],117:[function(require,module,exports){
+},{"./toDate":165,"./util/assertString":170}],118:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23461,7 +21331,7 @@ function isBoolean(str) {
   return ['true', 'false', '1', '0'].indexOf(str) >= 0;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],118:[function(require,module,exports){
+},{"./util/assertString":170}],119:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23495,7 +21365,7 @@ function isByteLength(str, options) {
   return len >= min && (typeof max === 'undefined' || len <= max);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],119:[function(require,module,exports){
+},{"./util/assertString":170}],120:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23510,12 +21380,12 @@ var _assertString2 = _interopRequireDefault(_assertString);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /* eslint-disable max-len */
-var creditCard = /^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})|62[0-9]{14}$/;
+var creditCard = /^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11}|62[0-9]{14})$/;
 /* eslint-enable max-len */
 
 function isCreditCard(str) {
   (0, _assertString2.default)(str);
-  var sanitized = str.replace(/[^0-9]+/g, '');
+  var sanitized = str.replace(/[- ]+/g, '');
   if (!creditCard.test(sanitized)) {
     return false;
   }
@@ -23541,7 +21411,7 @@ function isCreditCard(str) {
   return !!(sum % 10 === 0 ? sanitized : false);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],120:[function(require,module,exports){
+},{"./util/assertString":170}],121:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23560,14 +21430,18 @@ var _assertString2 = _interopRequireDefault(_assertString);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function currencyRegex(options) {
+  var decimal_digits = '\\d{' + options.digits_after_decimal[0] + '}';
+  options.digits_after_decimal.forEach(function (digit, index) {
+    if (index !== 0) decimal_digits = decimal_digits + '|\\d{' + digit + '}';
+  });
   var symbol = '(\\' + options.symbol.replace(/\./g, '\\.') + ')' + (options.require_symbol ? '' : '?'),
       negative = '-?',
       whole_dollar_amount_without_sep = '[1-9]\\d*',
       whole_dollar_amount_with_sep = '[1-9]\\d{0,2}(\\' + options.thousands_separator + '\\d{3})*',
       valid_whole_dollar_amounts = ['0', whole_dollar_amount_without_sep, whole_dollar_amount_with_sep],
       whole_dollar_amount = '(' + valid_whole_dollar_amounts.join('|') + ')?',
-      decimal_amount = '(\\' + options.decimal_separator + '\\d{2})?';
-  var pattern = whole_dollar_amount + decimal_amount;
+      decimal_amount = '(\\' + options.decimal_separator + '(' + decimal_digits + '))' + (options.require_decimal ? '' : '?');
+  var pattern = whole_dollar_amount + (options.allow_decimal || options.require_decimal ? decimal_amount : '');
 
   // default is negative sign before symbol, but there are two other options (besides parens)
   if (options.allow_negatives && !options.parens_for_negatives) {
@@ -23601,12 +21475,9 @@ function currencyRegex(options) {
     }
   }
 
-  /* eslint-disable prefer-template */
-  return new RegExp('^' +
   // ensure there's a dollar and/or decimal amount, and that
   // it doesn't start with a space or a negative sign followed by a space
-  '(?!-? )(?=.*\\d)' + pattern + '$');
-  /* eslint-enable prefer-template */
+  return new RegExp('^(?!-? )(?=.*\\d)' + pattern + '$');
 }
 
 var default_currency_options = {
@@ -23621,6 +21492,9 @@ var default_currency_options = {
   allow_negative_sign_placeholder: false,
   thousands_separator: ',',
   decimal_separator: '.',
+  allow_decimal: true,
+  require_decimal: false,
+  digits_after_decimal: [2],
   allow_space_after_digits: false
 };
 
@@ -23630,7 +21504,7 @@ function isCurrency(str, options) {
   return currencyRegex(options).test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166,"./util/merge":167}],121:[function(require,module,exports){
+},{"./util/assertString":170,"./util/merge":171}],122:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23651,108 +21525,7 @@ function isDataURI(str) {
   return dataURI.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],122:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = isDate;
-
-var _assertString = require('./util/assertString');
-
-var _assertString2 = _interopRequireDefault(_assertString);
-
-var _isISO = require('./isISO8601');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function getTimezoneOffset(str) {
-  var iso8601Parts = str.match(_isISO.iso8601);
-  var timezone = void 0,
-      sign = void 0,
-      hours = void 0,
-      minutes = void 0;
-  if (!iso8601Parts) {
-    str = str.toLowerCase();
-    timezone = str.match(/(?:\s|gmt\s*)(-|\+)(\d{1,4})(\s|$)/);
-    if (!timezone) {
-      return str.indexOf('gmt') !== -1 ? 0 : null;
-    }
-    sign = timezone[1];
-    var offset = timezone[2];
-    if (offset.length === 3) {
-      offset = '0' + offset;
-    }
-    if (offset.length <= 2) {
-      hours = 0;
-      minutes = parseInt(offset, 10);
-    } else {
-      hours = parseInt(offset.slice(0, 2), 10);
-      minutes = parseInt(offset.slice(2, 4), 10);
-    }
-  } else {
-    timezone = iso8601Parts[21];
-    if (!timezone) {
-      // if no hour/minute was provided, the date is GMT
-      return !iso8601Parts[12] ? 0 : null;
-    }
-    if (timezone === 'z' || timezone === 'Z') {
-      return 0;
-    }
-    sign = iso8601Parts[22];
-    if (timezone.indexOf(':') !== -1) {
-      hours = parseInt(iso8601Parts[23], 10);
-      minutes = parseInt(iso8601Parts[24], 10);
-    } else {
-      hours = 0;
-      minutes = parseInt(iso8601Parts[23], 10);
-    }
-  }
-  return (hours * 60 + minutes) * (sign === '-' ? 1 : -1);
-}
-
-function isDate(str) {
-  (0, _assertString2.default)(str);
-  var normalizedDate = new Date(Date.parse(str));
-  if (isNaN(normalizedDate)) {
-    return false;
-  }
-
-  // normalizedDate is in the user's timezone. Apply the input
-  // timezone offset to the date so that the year and day match
-  // the input
-  var timezoneOffset = getTimezoneOffset(str);
-  if (timezoneOffset !== null) {
-    var timezoneDifference = normalizedDate.getTimezoneOffset() - timezoneOffset;
-    normalizedDate = new Date(normalizedDate.getTime() + 60000 * timezoneDifference);
-  }
-
-  var day = String(normalizedDate.getDate());
-  var dayOrYear = void 0,
-      dayOrYearMatches = void 0,
-      year = void 0;
-  // check for valid double digits that could be late days
-  // check for all matches since a string like '12/23' is a valid date
-  // ignore everything with nearby colons
-  dayOrYearMatches = str.match(/(^|[^:\d])[23]\d([^T:\d]|$)/g);
-  if (!dayOrYearMatches) {
-    return true;
-  }
-  dayOrYear = dayOrYearMatches.map(function (digitString) {
-    return digitString.match(/\d+/g)[0];
-  }).join('/');
-
-  year = String(normalizedDate.getFullYear()).slice(-2);
-  if (dayOrYear === day || dayOrYear === year) {
-    return true;
-  } else if (dayOrYear === '' + day / year || dayOrYear === '' + year / day) {
-    return true;
-  }
-  return false;
-}
-module.exports = exports['default'];
-},{"./isISO8601":136,"./util/assertString":166}],123:[function(require,module,exports){
+},{"./util/assertString":170}],123:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23773,7 +21546,7 @@ function isDecimal(str) {
   return str !== '' && decimal.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],124:[function(require,module,exports){
+},{"./util/assertString":170}],124:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23796,7 +21569,7 @@ function isDivisibleBy(str, num) {
   return (0, _toFloat2.default)(str) % parseInt(num, 10) === 0;
 }
 module.exports = exports['default'];
-},{"./toFloat":162,"./util/assertString":166}],125:[function(require,module,exports){
+},{"./toFloat":166,"./util/assertString":170}],125:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23831,7 +21604,7 @@ var default_email_options = {
 
 /* eslint-disable max-len */
 /* eslint-disable no-control-regex */
-var displayName = /^[a-z\d!#\$%&'\*\+\-\/=\?\^_`{\|}~\.\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+[a-z\d!#\$%&'\*\+\-\/=\?\^_`{\|}~\.\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF\s]*<(.+)>$/i;
+var displayName = /^[a-z\d!#\$%&'\*\+\-\/=\?\^_`{\|}~\.\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+[a-z\d!#\$%&'\*\+\-\/=\?\^_`{\|}~\,\.\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF\s]*<(.+)>$/i;
 var emailUserPart = /^[a-z\d!#\$%&'\*\+\-\/=\?\^_`{\|}~]+$/i;
 var quotedEmailUser = /^([\s\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e]|(\\[\x01-\x09\x0b\x0c\x0d-\x7f]))*$/i;
 var emailUserUtf8Part = /^[a-z\d!#\$%&'\*\+\-\/=\?\^_`{\|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+$/i;
@@ -23861,7 +21634,7 @@ function isEmail(str, options) {
     user = user.replace(/\./g, '').toLowerCase();
   }
 
-  if (!(0, _isByteLength2.default)(user, { max: 64 }) || !(0, _isByteLength2.default)(domain, { max: 256 })) {
+  if (!(0, _isByteLength2.default)(user, { max: 64 }) || !(0, _isByteLength2.default)(domain, { max: 254 })) {
     return false;
   }
 
@@ -23886,7 +21659,7 @@ function isEmail(str, options) {
   return true;
 }
 module.exports = exports['default'];
-},{"./isByteLength":118,"./isFQDN":127,"./util/assertString":166,"./util/merge":167}],126:[function(require,module,exports){
+},{"./isByteLength":119,"./isFQDN":127,"./util/assertString":170,"./util/merge":171}],126:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23905,7 +21678,7 @@ function isEmpty(str) {
   return str.length === 0;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],127:[function(require,module,exports){
+},{"./util/assertString":170}],127:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23943,6 +21716,10 @@ function isFDQN(str, options) {
     if (!parts.length || !/^([a-z\u00a1-\uffff]{2,}|xn[a-z0-9-]{2,})$/i.test(tld)) {
       return false;
     }
+    // disallow spaces
+    if (/[\s\u2002-\u200B\u202F\u205F\u3000\uFEFF\uDB40\uDC20]/.test(tld)) {
+      return false;
+    }
   }
   for (var part, i = 0; i < parts.length; i++) {
     part = parts[i];
@@ -23952,8 +21729,8 @@ function isFDQN(str, options) {
     if (!/^[a-z\u00a1-\uffff0-9-]+$/i.test(part)) {
       return false;
     }
+    // disallow full-width chars
     if (/[\uff01-\uff5e]/.test(part)) {
-      // disallow full-width chars
       return false;
     }
     if (part[0] === '-' || part[part.length - 1] === '-') {
@@ -23963,7 +21740,7 @@ function isFDQN(str, options) {
   return true;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166,"./util/merge":167}],128:[function(require,module,exports){
+},{"./util/assertString":170,"./util/merge":171}],128:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23988,7 +21765,7 @@ function isFloat(str, options) {
   return float.test(str) && (!options.hasOwnProperty('min') || str >= options.min) && (!options.hasOwnProperty('max') || str <= options.max) && (!options.hasOwnProperty('lt') || str < options.lt) && (!options.hasOwnProperty('gt') || str > options.gt);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],129:[function(require,module,exports){
+},{"./util/assertString":170}],129:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24009,7 +21786,7 @@ function isFullWidth(str) {
   (0, _assertString2.default)(str);
   return fullWidth.test(str);
 }
-},{"./util/assertString":166}],130:[function(require,module,exports){
+},{"./util/assertString":170}],130:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24030,7 +21807,43 @@ function isHalfWidth(str) {
   (0, _assertString2.default)(str);
   return halfWidth.test(str);
 }
-},{"./util/assertString":166}],131:[function(require,module,exports){
+},{"./util/assertString":170}],131:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = isHash;
+
+var _assertString = require('./util/assertString');
+
+var _assertString2 = _interopRequireDefault(_assertString);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var lengths = {
+  md5: 32,
+  md4: 32,
+  sha1: 40,
+  sha256: 64,
+  sha384: 96,
+  sha512: 128,
+  ripemd128: 32,
+  ripemd160: 40,
+  tiger128: 32,
+  tiger160: 40,
+  tiger192: 48,
+  crc32: 8,
+  crc32b: 8
+};
+
+function isHash(str, algorithm) {
+  (0, _assertString2.default)(str);
+  var hash = new RegExp('^[a-f0-9]{' + lengths[algorithm] + '}$');
+  return hash.test(str);
+}
+module.exports = exports['default'];
+},{"./util/assertString":170}],132:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24051,7 +21864,7 @@ function isHexColor(str) {
   return hexcolor.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],132:[function(require,module,exports){
+},{"./util/assertString":170}],133:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24072,7 +21885,7 @@ function isHexadecimal(str) {
   return hexadecimal.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],133:[function(require,module,exports){
+},{"./util/assertString":170}],134:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24154,7 +21967,7 @@ function isIP(str) {
   return false;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],134:[function(require,module,exports){
+},{"./util/assertString":170}],135:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24212,7 +22025,7 @@ function isISBN(str) {
   return false;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],135:[function(require,module,exports){
+},{"./util/assertString":170}],136:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24261,18 +22074,13 @@ function isISIN(str) {
   return parseInt(str.substr(str.length - 1), 10) === (10000 - sum) % 10;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],136:[function(require,module,exports){
+},{"./util/assertString":170}],137:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.iso8601 = undefined;
-
-exports.default = function (str) {
-  (0, _assertString2.default)(str);
-  return iso8601.test(str);
-};
+exports.default = isISO8601;
 
 var _assertString = require('./util/assertString');
 
@@ -24282,9 +22090,37 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /* eslint-disable max-len */
 // from http://goo.gl/0ejHHW
-var iso8601 = exports.iso8601 = /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/;
+var iso8601 = /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/;
 /* eslint-enable max-len */
-},{"./util/assertString":166}],137:[function(require,module,exports){
+
+function isISO8601(str) {
+  (0, _assertString2.default)(str);
+  return iso8601.test(str);
+}
+module.exports = exports['default'];
+},{"./util/assertString":170}],138:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = isISRC;
+
+var _assertString = require('./util/assertString');
+
+var _assertString2 = _interopRequireDefault(_assertString);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// see http://isrc.ifpi.org/en/isrc-standard/code-syntax
+var isrc = /^[A-Z]{2}[0-9A-Z]{3}\d{2}\d{5}$/;
+
+function isISRC(str) {
+  (0, _assertString2.default)(str);
+  return isrc.test(str);
+}
+module.exports = exports['default'];
+},{"./util/assertString":170}],139:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24343,7 +22179,7 @@ function isISSN(str) {
   return checksum % 11 === 0;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],138:[function(require,module,exports){
+},{"./util/assertString":170}],140:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24383,7 +22219,7 @@ function isIn(str, options) {
   return false;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166,"./util/toString":168}],139:[function(require,module,exports){
+},{"./util/assertString":170,"./util/toString":172}],141:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24417,7 +22253,7 @@ function isInt(str, options) {
   return regex.test(str) && minCheckPassed && maxCheckPassed && ltCheckPassed && gtCheckPassed;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],140:[function(require,module,exports){
+},{"./util/assertString":170}],142:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24443,7 +22279,31 @@ function isJSON(str) {
   return false;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],141:[function(require,module,exports){
+},{"./util/assertString":170}],143:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function (str) {
+  (0, _assertString2.default)(str);
+  if (!str.includes(',')) return false;
+  var pair = str.split(',');
+  return lat.test(pair[0]) && long.test(pair[1]);
+};
+
+var _assertString = require('./util/assertString');
+
+var _assertString2 = _interopRequireDefault(_assertString);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var lat = /^\(?[+-]?(90(\.0+)?|[1-8]?\d(\.\d+)?)$/;
+var long = /^\s?[+-]?(180(\.0+)?|1[0-7]\d(\.\d+)?|\d{1,2}(\.\d+)?)\)?$/;
+
+module.exports = exports['default'];
+},{"./util/assertString":170}],144:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24478,7 +22338,7 @@ function isLength(str, options) {
   return len >= min && (typeof max === 'undefined' || len <= max);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],142:[function(require,module,exports){
+},{"./util/assertString":170}],145:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24497,7 +22357,7 @@ function isLowercase(str) {
   return str === str.toLowerCase();
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],143:[function(require,module,exports){
+},{"./util/assertString":170}],146:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24518,7 +22378,7 @@ function isMACAddress(str) {
   return macAddress.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],144:[function(require,module,exports){
+},{"./util/assertString":170}],147:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24539,7 +22399,7 @@ function isMD5(str) {
   return md5.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],145:[function(require,module,exports){
+},{"./util/assertString":170}],148:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24555,11 +22415,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /* eslint-disable max-len */
 var phones = {
+  'ar-AE': /^((\+?971)|0)?5[024568]\d{7}$/,
   'ar-DZ': /^(\+?213|0)(5|6|7)\d{8}$/,
+  'ar-EG': /^((\+?20)|0)?1[012]\d{8}$/,
+  'ar-JO': /^(\+?962|0)?7[789]\d{7}$/,
   'ar-SY': /^(!?(\+?963)|0)?9\d{8}$/,
   'ar-SA': /^(!?(\+?966)|0)?5\d{8}$/,
   'en-US': /^(\+?1)?[2-9]\d{2}[2-9](?!11)\d{6}$/,
   'cs-CZ': /^(\+?420)? ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/,
+  'sk-SK': /^(\+?421)? ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/,
   'de-DE': /^(\+?49[ \.\-])?([\(]{1}[0-9]{1,6}[\)])?([0-9 \.\-\/]{3,20})((x|ext|extension)[ ]?[0-9]{1,4})?$/,
   'da-DK': /^(\+?45)?(\d{8})$/,
   'el-GR': /^(\+?30)?(69\d{8})$/,
@@ -24567,16 +22431,24 @@ var phones = {
   'en-GB': /^(\+?44|0)7\d{9}$/,
   'en-HK': /^(\+?852\-?)?[569]\d{3}\-?\d{4}$/,
   'en-IN': /^(\+?91|0)?[789]\d{9}$/,
+  'en-KE': /^(\+?254|0)?[7]\d{8}$/,
   'en-NG': /^(\+?234|0)?[789]\d{9}$/,
   'en-NZ': /^(\+?64|0)2\d{7,9}$/,
+  'en-UG': /^(\+?256|0)?[7]\d{8}$/,
+  'en-RW': /^(\+?250|0)?[7]\d{8}$/,
+  'en-TZ': /^(\+?255|0)?[67]\d{8}$/,
   'en-ZA': /^(\+?27|0)\d{9}$/,
   'en-ZM': /^(\+?26)?09[567]\d{7}$/,
   'es-ES': /^(\+?34)?(6\d{1}|7[1234])\d{7}$/,
-  'fi-FI': /^(\+?358|0)\s?(4(0|1|2|4|5)?|50)\s?(\d\s?){4,8}\d$/,
+  'fi-FI': /^(\+?358|0)\s?(4(0|1|2|4|5|6)?|50)\s?(\d\s?){4,8}\d$/,
+  'fa-IR': /^(\+?98[\-\s]?|0)9[0-39]\d[\-\s]?\d{3}[\-\s]?\d{4}$/,
   'fr-FR': /^(\+?33|0)[67]\d{8}$/,
   'he-IL': /^(\+972|0)([23489]|5[0248]|77)[1-9]\d{6}/,
   'hu-HU': /^(\+?36)(20|30|70)\d{7}$/,
+  'lt-LT': /^(\+370|8)\d{8}$/,
+  'id-ID': /^(\+?62|0[1-9])[\s|\d]+$/,
   'it-IT': /^(\+?39)?\s?3\d{2} ?\d{6,7}$/,
+  'ko-KR': /^((\+?82)[ \-]?)?0?1([0|1|6|7|8|9]{1})[ \-]?\d{3,4}[ \-]?\d{4}$/,
   'ja-JP': /^(\+?81|0)\d{1,4}[ \-]?\d{1,4}[ \-]?\d{4}$/,
   'ms-MY': /^(\+?6?01){1}(([145]{1}(\-|\s)?\d{7,8})|([236789]{1}(\s|\-)?\d{7}))$/,
   'nb-NO': /^(\+?47)?[49]\d{7}$/,
@@ -24605,11 +22477,21 @@ function isMobilePhone(str, locale) {
   (0, _assertString2.default)(str);
   if (locale in phones) {
     return phones[locale].test(str);
+  } else if (locale === 'any') {
+    for (var key in phones) {
+      if (phones.hasOwnProperty(key)) {
+        var phone = phones[key];
+        if (phone.test(str)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
-  return false;
+  throw new Error('Invalid locale \'' + locale + '\'');
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],146:[function(require,module,exports){
+},{"./util/assertString":170}],149:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24632,7 +22514,7 @@ function isMongoId(str) {
   return (0, _isHexadecimal2.default)(str) && str.length === 24;
 }
 module.exports = exports['default'];
-},{"./isHexadecimal":132,"./util/assertString":166}],147:[function(require,module,exports){
+},{"./isHexadecimal":133,"./util/assertString":170}],150:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24655,7 +22537,7 @@ function isMultibyte(str) {
   return multibyte.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],148:[function(require,module,exports){
+},{"./util/assertString":170}],151:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24676,7 +22558,83 @@ function isNumeric(str) {
   return numeric.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],149:[function(require,module,exports){
+},{"./util/assertString":170}],152:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.locales = undefined;
+
+exports.default = function (str, locale) {
+  (0, _assertString2.default)(str);
+  if (locale in patterns) {
+    return patterns[locale].test(str);
+  } else if (locale === 'any') {
+    for (var key in patterns) {
+      if (patterns.hasOwnProperty(key)) {
+        var pattern = patterns[key];
+        if (pattern.test(str)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  throw new Error('Invalid locale \'' + locale + '\'');
+};
+
+var _assertString = require('./util/assertString');
+
+var _assertString2 = _interopRequireDefault(_assertString);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// common patterns
+var threeDigit = /^\d{3}$/;
+var fourDigit = /^\d{4}$/;
+var fiveDigit = /^\d{5}$/;
+var sixDigit = /^\d{6}$/;
+
+var patterns = {
+  AT: fourDigit,
+  AU: sixDigit,
+  BE: fourDigit,
+  CA: /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][\s\-]?\d[ABCEGHJ-NPRSTV-Z]\d$/i,
+  CH: fourDigit,
+  CZ: /^\d{3}\s?\d{2}$/,
+  DE: fiveDigit,
+  DK: fourDigit,
+  DZ: fiveDigit,
+  ES: fiveDigit,
+  FI: fiveDigit,
+  FR: /^\d{2}\s?\d{3}$/,
+  GB: /^(gir\s?0aa|[a-z]{1,2}\d[\da-z]?\s?(\d[a-z]{2})?)$/i,
+  GR: /^\d{3}\s?\d{2}$/,
+  IL: fiveDigit,
+  IN: sixDigit,
+  IS: threeDigit,
+  IT: fiveDigit,
+  JP: /^\d{3}\-\d{4}$/,
+  KE: fiveDigit,
+  LI: /^(948[5-9]|949[0-7])$/,
+  MX: fiveDigit,
+  NL: /^\d{4}\s?[a-z]{2}$/i,
+  NO: fourDigit,
+  PL: /^\d{2}\-\d{3}$/,
+  PT: /^\d{4}(\-\d{3})?$/,
+  RO: sixDigit,
+  RU: sixDigit,
+  SA: fiveDigit,
+  SE: /^\d{3}\s?\d{2}$/,
+  TW: /^\d{3}(\d{2})?$/,
+  US: /^\d{5}(-\d{4})?$/,
+  ZA: fourDigit,
+  ZM: fiveDigit
+};
+
+var locales = exports.locales = Object.keys(patterns);
+},{"./util/assertString":170}],153:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24697,7 +22655,7 @@ function isSurrogatePair(str) {
   return surrogatePair.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],150:[function(require,module,exports){
+},{"./util/assertString":170}],154:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24787,6 +22745,10 @@ function isURL(url, options) {
   }
   url = split.join('://');
 
+  if (url === '') {
+    return false;
+  }
+
   split = url.split('/');
   url = split.shift();
 
@@ -24803,7 +22765,8 @@ function isURL(url, options) {
   }
   hostname = split.join('@');
 
-  port_str = ipv6 = null;
+  port_str = null;
+  ipv6 = null;
   var ipv6_match = hostname.match(wrapped_ipv6);
   if (ipv6_match) {
     host = '';
@@ -24824,7 +22787,7 @@ function isURL(url, options) {
     }
   }
 
-  if (!(0, _isIP2.default)(host) && !(0, _isFQDN2.default)(host, options) && (!ipv6 || !(0, _isIP2.default)(ipv6, 6)) && host !== 'localhost') {
+  if (!(0, _isIP2.default)(host) && !(0, _isFQDN2.default)(host, options) && (!ipv6 || !(0, _isIP2.default)(ipv6, 6))) {
     return false;
   }
 
@@ -24840,7 +22803,7 @@ function isURL(url, options) {
   return true;
 }
 module.exports = exports['default'];
-},{"./isFQDN":127,"./isIP":133,"./util/assertString":166,"./util/merge":167}],151:[function(require,module,exports){
+},{"./isFQDN":127,"./isIP":134,"./util/assertString":170,"./util/merge":171}],155:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24869,7 +22832,7 @@ function isUUID(str) {
   return pattern && pattern.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],152:[function(require,module,exports){
+},{"./util/assertString":170}],156:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24888,7 +22851,7 @@ function isUppercase(str) {
   return str === str.toUpperCase();
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],153:[function(require,module,exports){
+},{"./util/assertString":170}],157:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24911,7 +22874,7 @@ function isVariableWidth(str) {
   return _isFullWidth.fullWidth.test(str) && _isHalfWidth.halfWidth.test(str);
 }
 module.exports = exports['default'];
-},{"./isFullWidth":129,"./isHalfWidth":130,"./util/assertString":166}],154:[function(require,module,exports){
+},{"./isFullWidth":129,"./isHalfWidth":130,"./util/assertString":170}],158:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24935,7 +22898,7 @@ function isWhitelisted(str, chars) {
   return true;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],155:[function(require,module,exports){
+},{"./util/assertString":170}],159:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24955,7 +22918,7 @@ function ltrim(str, chars) {
   return str.replace(pattern, '');
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],156:[function(require,module,exports){
+},{"./util/assertString":170}],160:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24977,7 +22940,7 @@ function matches(str, pattern, modifiers) {
   return pattern.test(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],157:[function(require,module,exports){
+},{"./util/assertString":170}],161:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25115,7 +23078,7 @@ function normalizeEmail(email, options) {
   return parts.join('@');
 }
 module.exports = exports['default'];
-},{"./isEmail":125,"./util/merge":167}],158:[function(require,module,exports){
+},{"./isEmail":125,"./util/merge":171}],162:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25141,7 +23104,7 @@ function rtrim(str, chars) {
   return idx < str.length ? str.substr(0, idx + 1) : str;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],159:[function(require,module,exports){
+},{"./util/assertString":170}],163:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25165,7 +23128,7 @@ function stripLow(str, keep_new_lines) {
   return (0, _blacklist2.default)(str, chars);
 }
 module.exports = exports['default'];
-},{"./blacklist":107,"./util/assertString":166}],160:[function(require,module,exports){
+},{"./blacklist":108,"./util/assertString":170}],164:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25187,7 +23150,7 @@ function toBoolean(str, strict) {
   return str !== '0' && str !== 'false' && str !== '';
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],161:[function(require,module,exports){
+},{"./util/assertString":170}],165:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25207,7 +23170,7 @@ function toDate(date) {
   return !isNaN(date) ? new Date(date) : null;
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],162:[function(require,module,exports){
+},{"./util/assertString":170}],166:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25226,7 +23189,7 @@ function toFloat(str) {
   return parseFloat(str);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],163:[function(require,module,exports){
+},{"./util/assertString":170}],167:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25245,7 +23208,7 @@ function toInt(str, radix) {
   return parseInt(str, radix || 10);
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],164:[function(require,module,exports){
+},{"./util/assertString":170}],168:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25267,11 +23230,11 @@ function trim(str, chars) {
   return (0, _rtrim2.default)((0, _ltrim2.default)(str, chars), chars);
 }
 module.exports = exports['default'];
-},{"./ltrim":155,"./rtrim":158}],165:[function(require,module,exports){
+},{"./ltrim":159,"./rtrim":162}],169:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-      value: true
+  value: true
 });
 exports.default = unescape;
 
@@ -25282,11 +23245,11 @@ var _assertString2 = _interopRequireDefault(_assertString);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function unescape(str) {
-      (0, _assertString2.default)(str);
-      return str.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#x2F;/g, '/').replace(/&#96;/g, '`');
+  (0, _assertString2.default)(str);
+  return str.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#x2F;/g, '/').replace(/&#x5C;/g, '\\').replace(/&#96;/g, '`');
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],166:[function(require,module,exports){
+},{"./util/assertString":170}],170:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25294,12 +23257,14 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = assertString;
 function assertString(input) {
-  if (typeof input !== 'string') {
+  var isString = typeof input === 'string' || input instanceof String;
+
+  if (!isString) {
     throw new TypeError('This library (validator.js) validates strings only');
   }
 }
 module.exports = exports['default'];
-},{}],167:[function(require,module,exports){
+},{}],171:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25318,7 +23283,7 @@ function merge() {
   return obj;
 }
 module.exports = exports['default'];
-},{}],168:[function(require,module,exports){
+},{}],172:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25341,7 +23306,7 @@ function toString(input) {
   return String(input);
 }
 module.exports = exports['default'];
-},{}],169:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25360,7 +23325,7 @@ function whitelist(str, chars) {
   return str.replace(new RegExp('[^' + chars + ']+', 'g'), '');
 }
 module.exports = exports['default'];
-},{"./util/assertString":166}],170:[function(require,module,exports){
+},{"./util/assertString":170}],174:[function(require,module,exports){
 module.exports = extend
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -25381,7 +23346,7 @@ function extend() {
     return target
 }
 
-},{}],171:[function(require,module,exports){
+},{}],175:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -25442,7 +23407,7 @@ module.exports = {
 
 };
 
-},{}],172:[function(require,module,exports){
+},{}],176:[function(require,module,exports){
 /*jshint maxlen: false*/
 
 var validator = require("validator");
@@ -25573,7 +23538,7 @@ var FormatValidators = {
 
 module.exports = FormatValidators;
 
-},{"validator":105}],173:[function(require,module,exports){
+},{"validator":106}],177:[function(require,module,exports){
 "use strict";
 
 var FormatValidators  = require("./FormatValidators"),
@@ -26116,7 +24081,7 @@ exports.validate = function (report, schema, json) {
 
 };
 
-},{"./FormatValidators":172,"./Report":175,"./Utils":179}],174:[function(require,module,exports){
+},{"./FormatValidators":176,"./Report":179,"./Utils":183}],178:[function(require,module,exports){
 // Number.isFinite polyfill
 // http://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.isfinite
 if (typeof Number.isFinite !== "function") {
@@ -26134,7 +24099,7 @@ if (typeof Number.isFinite !== "function") {
     };
 }
 
-},{}],175:[function(require,module,exports){
+},{}],179:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -26341,7 +24306,7 @@ module.exports = Report;
 
 }).call(this,require('_process'))
 
-},{"./Errors":171,"./Utils":179,"_process":76,"lodash.get":71}],176:[function(require,module,exports){
+},{"./Errors":175,"./Utils":183,"_process":77,"lodash.get":72}],180:[function(require,module,exports){
 "use strict";
 
 var isequal             = require("lodash.isequal");
@@ -26497,7 +24462,7 @@ exports.getSchemaByUri = function (report, uri, root) {
 
 exports.getRemotePath = getRemotePath;
 
-},{"./Report":175,"./SchemaCompilation":177,"./SchemaValidation":178,"./Utils":179,"lodash.isequal":72}],177:[function(require,module,exports){
+},{"./Report":179,"./SchemaCompilation":181,"./SchemaValidation":182,"./Utils":183,"lodash.isequal":73}],181:[function(require,module,exports){
 "use strict";
 
 var Report      = require("./Report");
@@ -26798,7 +24763,7 @@ exports.compileSchema = function (report, schema) {
 
 };
 
-},{"./Report":175,"./SchemaCache":176,"./Utils":179}],178:[function(require,module,exports){
+},{"./Report":179,"./SchemaCache":180,"./Utils":183}],182:[function(require,module,exports){
 "use strict";
 
 var FormatValidators = require("./FormatValidators"),
@@ -26942,7 +24907,7 @@ var SchemaValidators = {
         }
     },
     uniqueItems: function (report, schema) {
-        // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.3.4.2
+        // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.3.4.1
         if (typeof schema.uniqueItems !== "boolean") {
             report.addError("KEYWORD_TYPE_EXPECTED", ["uniqueItems", "boolean"]);
         }
@@ -27407,7 +25372,7 @@ exports.validateSchema = function (report, schema) {
     return isValid;
 };
 
-},{"./FormatValidators":172,"./JsonValidation":173,"./Report":175,"./Utils":179}],179:[function(require,module,exports){
+},{"./FormatValidators":176,"./JsonValidation":177,"./Report":179,"./Utils":183}],183:[function(require,module,exports){
 "use strict";
 
 exports.isAbsoluteUri = function (uri) {
@@ -27626,7 +25591,7 @@ exports.ucs2decode = function (string) {
 };
 /*jshint +W016*/
 
-},{}],180:[function(require,module,exports){
+},{}],184:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -27983,7 +25948,7 @@ module.exports = ZSchema;
 
 }).call(this,require('_process'))
 
-},{"./FormatValidators":172,"./JsonValidation":173,"./Polyfills":174,"./Report":175,"./SchemaCache":176,"./SchemaCompilation":177,"./SchemaValidation":178,"./Utils":179,"./schemas/hyper-schema.json":181,"./schemas/schema.json":182,"_process":76,"lodash.get":71}],181:[function(require,module,exports){
+},{"./FormatValidators":176,"./JsonValidation":177,"./Polyfills":178,"./Report":179,"./SchemaCache":180,"./SchemaCompilation":181,"./SchemaValidation":182,"./Utils":183,"./schemas/hyper-schema.json":185,"./schemas/schema.json":186,"_process":77,"lodash.get":72}],185:[function(require,module,exports){
 module.exports={
     "$schema": "http://json-schema.org/draft-04/hyper-schema#",
     "id": "http://json-schema.org/draft-04/hyper-schema#",
@@ -28143,7 +26108,7 @@ module.exports={
 }
 
 
-},{}],182:[function(require,module,exports){
+},{}],186:[function(require,module,exports){
 module.exports={
     "id": "http://json-schema.org/draft-04/schema#",
     "$schema": "http://json-schema.org/draft-04/schema#",
