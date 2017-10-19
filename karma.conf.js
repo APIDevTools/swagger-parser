@@ -91,13 +91,17 @@ function configureCodeCoverage (config) {
 function configureLocalBrowsers (config) {
   var isMac = /^darwin/.test(process.platform),
       isWindows = /^win/.test(process.platform),
-      isLinux = !(isMac || isWindows);
+      isLinux = !(isMac || isWindows),
+      isCI = process.env.CI;
 
-  if (isMac) {
+  if (isCI) {
+    config.browsers = ['ChromeHeadless'];
+  }
+  else if (isMac) {
     config.browsers = ['Firefox', 'Chrome', 'Safari'];
   }
   else if (isLinux) {
-    config.browsers = ['Firefox', 'ChromeHeadless'];
+    config.browsers = ['Firefox', 'Chrome'];
   }
   else if (isWindows) {
     config.browsers = ['Firefox', 'Chrome', 'Safari', 'IE'];
