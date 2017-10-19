@@ -1,6 +1,6 @@
 {
   "name": "superagent-dist",
-  "version": "1.8.2",
+  "version": "1.7.2",
   "description": "superagent.js for the browser",
   "main": "superagent.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "superagent": "1.8.2"
+    "superagent": "1.7.2"
   },
   "devDependencies": {
     "browserify": "^13.0.0",

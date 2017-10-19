@@ -71,7 +71,7 @@ helper.dereferenced.circularExternal =
       title: 'pet'
     },
     thing: {
-      $ref: 'circular.yaml#/definitions/thing'
+      $ref: '#/definitions/thing'
     },
     person: {
       title: 'person',

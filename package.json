@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "version": "5.0.0-build.1",
+  "version": "4.0.0-beta.2",
   "description": "Swagger 2.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
@@ -67,7 +67,7 @@
     "node-sass": "^4.5.3",
     "npm-check": "^5.4.5",
     "simplifyify": "^3.2.4",
-    "superagent": "^3.6.3",
+    "superagent": "^3.7.0",
     "version-bump-prompt": "^3.1.2"
   },
   "dependencies": {

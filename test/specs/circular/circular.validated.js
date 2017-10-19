@@ -72,7 +72,7 @@ helper.validated.circularExternal =
         title: 'pet'
       },
       thing: {
-        $ref: 'circular.yaml#/definitions/thing'
+        $ref: '#/definitions/thing'
       },
       person: {
         title: 'person',
@@ -191,7 +191,7 @@ helper.validated.circularExternal =
         title: 'pet'
       },
       thing: {
-        $ref: 'circular.yaml#/definitions/thing'
+        $ref: '#/definitions/thing'
       },
       person: {
         $ref: 'definitions/person.yaml'

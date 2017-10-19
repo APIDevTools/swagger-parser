@@ -14,7 +14,7 @@ Swagger Parser
 [![Coverage Status](https://coveralls.io/repos/BigstickCarpet/swagger-parser/badge.svg?branch=master&service=github)](https://coveralls.io/r/BigstickCarpet/swagger-parser)
 [![Codacy Score](https://www.codacy.com/project/badge/6d686f916836433b9c013379fbe1052c)](https://www.codacy.com/public/jamesmessinger/swagger-parser)
 [![Inline docs](http://inch-ci.org/github/BigstickCarpet/swagger-parser.svg?branch=master&style=shields)](http://inch-ci.org/github/BigstickCarpet/swagger-parser)
-[![Tested on APIs.guru](https://api.apis.guru/badges/tested_on.svg)](https://APIs.guru)
+[![Tested on APIs.guru](https://api.apis.guru/badges/tested_on.svg)](https://apis.guru/browse-apis/)
 
 [![npm](http://img.shields.io/npm/v/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
 [![Bower](http://img.shields.io/bower/v/swagger-parser.svg)](http://bower.io/)
@@ -31,9 +31,8 @@ Features
 - [Resolves](docs/swagger-parser.md#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
 - Can [bundle](docs/swagger-parser.md#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
 - Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
-- Configurable caching of external files and URLs
-- **[Tested](http://bigstickcarpet.github.io/swagger-parser/test/index.html)** in Node, IO.js, and all modern web browsers on Mac, Windows, Linux, iOS, and Android
-- Tested on **[over 500 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
+- **[Tested](http://bigstickcarpet.github.io/swagger-parser/test/index.html)** in Node.js and all modern web browsers on Mac, Windows, and Linux
+- Tested on **[over 600 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
 - Supports [circular references](docs/README.md#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
 
@@ -129,7 +128,7 @@ To build/test the project locally on your computer:
 3. __Run the build script__<br>
 `npm run build`
 
-4. __Run the unit tests__<br>
+4. __Run the tests__<br>
 `npm run mocha` (test in Node)<br>
 `npm run karma` (test in web browsers)<br>
 `npm test` (test in Node and browsers, and report code coverage)

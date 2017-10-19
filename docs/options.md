@@ -3,40 +3,92 @@ Options
 
 All [`SwaggerParser`](swagger-parser.md) methods accept an optional `options` parameter, which you can use to customize how the API is parsed, resolved, dereferenced, etc.
 
-If you pass an options parameter, you _don't_ need to specify _every_ option.  Any options you don't specify will use their default values, as shown below.
+If you pass an options parameter, you _don't_ need to specify _every_ option.  Any options you don't specify will use their default values.
+
+Example
+-------------------
 
 ```javascript
 SwaggerParser.validate("my-api.yaml", {
-  allow: {
-    json: false,      // Don't allow JSON files
-    empty: false      // Don't allow empty files
+  parse: {
+    json: false,                    // Disable the JSON parser
+    yaml: {
+      allowEmpty: false             // Don't allow empty YAML files
+    },
+    text: {
+      canParse: [".txt", ".html"],  // Parse .txt and .html files as plain text (strings)
+      encoding: 'utf16'             // Use UTF-16 encoding
+    }
   },
-  $refs: {
-    internal: false   // Don't dereference internal $refs, only external
+  resolve: {
+    file: false,                    // Don't resolve local file references
+    http: {
+      timeout: 2000,                // 2 second timeout
+      withCredentials: true,        // Include auth credentials when resolving HTTP references
+    }
   },
-  cache: {
-    fs: 1,            // Cache local files for 1 second
-    http: 600         // Cache http URLs for 10 minutes
+  dereference: {
+    circular: false                 // Don't allow circular $refs
   },
   validate: {
-    spec: false       // Don't validate against the Swagger 2.0 spec
+    spec: false                     // Don't validate against the Swagger 2.0 spec
   }
 });
 ```
 
-|Option           |Type     |Default   |Description
-|:----------------|:--------|:---------|:----------
-|`allow.json`     |bool     |true      |Determines whether JSON files are supported
-|`allow.yaml`     |bool     |true      |Determines whether YAML files are supported<br> (note: all JSON files are also valid YAML files)
-|`allow.empty`    |bool     |true      |Determines whether it's ok for a `$ref` pointer to point to an empty file
-|`allow.unknown`  |bool     |true      |Determines whether it's ok for a `$ref` pointer to point to an unknown/unsupported file type (such as HTML, text, image, etc.). The default is to resolve unknown files as a [`Buffer`](https://nodejs.org/api/buffer.html#buffer_class_buffer)
-|`$refs.internal` |bool     |true      |Determines whether internal `$ref` pointers (such as `#/definitions/widget`) will be dereferenced when calling [`dereference()`](swagger-parser.md#dereferenceapi-options-callback).  Either way, you'll still be able to get the value using [`$Refs.get()`](refs.md#getref-options)
-|`$refs.external` |bool     |true      |Determines whether external `$ref` pointers get resolved/dereferenced. If `false`, then no files/URLs will be retrieved.  Use this if you only want to allow single-file APIs.
-|`$refs.circular` |bool or "ignore"     |true      |Determines whether [circular `$ref` pointers](README.md#circular-refs) are allowed. If `false`, then a `ReferenceError` will be thrown if the API contains a circular reference.<br><br> If set to `"ignore"`, then circular references will _not_ be dereferenced, even when calling [`dereference()`](ref-parser.md#dereferenceschema-options-callback). No error will be thrown, but the [`$Refs.circular`](refs.md#circular) property will still be set to `true`.
-|`validate.schema`|bool     |true      |Determines whether the [`validate()`](swagger-parser.md#validateapi-options-callback) method validates the API against the [Swagger 2.0 schema](https://github.com/swagger-api/swagger-spec/blob/master/schemas/v2.0/schema.json)
-|`validate.spec`  |bool     |true      |Determines whether the [`validate()`](swagger-parser.md#validateapi-options-callback) method validates the API against the [Swagger 2.0 spec](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md).  This will catch some things that aren't covered by the `validate.schema` option, such as duplicate parameters, invalid MIME types, etc.
-|`cache.fs`       |number   |60        |<a name="caching"></a>The length of time (in seconds) to cache local files.  The default is one minute.  Setting to zero will cache forever.
-|`cache.http`     |number   |300       |The length of time (in seconds) to cache HTTP URLs.  The default is five minutes.  Setting to zero will cache forever.
-|`cache.https`    |number   |300       |The length of time (in seconds) to cache HTTPS URLs.  The default is five minutes.  Setting to zero will cache forever.
+
+`parse` Options
+-------------------
+The `parse` options determine how different types of files will be parsed.
+
+Swagger Parser comes with built-in JSON, YAML, plain-text, and binary parsers, any of which you can configure or disable.  You can also add [your own custom parsers](plugins/parsers.md) if you want.
+
+|Option(s)                    |Type       |Description
+|:----------------------------|:----------|:------------
+|`json`<br>`yaml`<br>`text`<br>`binary`|`object` `boolean`|These are the built-in parsers. In addition, you can add [your own custom parsers](plugins/parsers.md)<br><br>To disable a parser, just set it to `false`.
+|`json.order` `yaml.order` `text.order` `binary.order`|`number`|Parsers run in a specific order, relative to other parsers. For example, a parser with `order: 5` will run _before_ a parser with `order: 10`.  If a parser is unable to successfully parse a file, then the next parser is tried, until one succeeds or they all fail.<br><br>You can change the order in which parsers run, which is useful if you know that most of your referenced files will be a certain type, or if you add [your own custom parser](plugins/parsers.md) that you want to run _first_.
+|`json.allowEmpty` `yaml.allowEmpty` `text.allowEmpty` `binary.allowEmpty`|`boolean`|All of the built-in parsers allow empty files by default. The JSON and YAML parsers will parse empty files as `undefined`. The text parser will parse empty files as an empty string.  The binary parser will parse empty files as an empty byte array.<br><br>You can set `allowEmpty: false` on any parser, which will cause an error to be thrown if a file empty.
+|`json.canParse` `yaml.canParse` `text.canParse` `binary.canParse`|`boolean`, `RegExp`, `string`, `array`, `function`|Determines which parsers will be used for which files.<br><br>A regular expression can be used to match files by their full path. A string (or array of strings) can be used to match files by their file extension. Or a function can be used to perform more complex matching logic. See the [custom parser](plugins/parsers.md) docs for details.
+|`text.encoding`|`string`   |The encoding to use when parsing text-based files. The default is "utf8".
 
 
+`resolve` Options
+-------------------
+The `resolve` options control how Swagger Parser will resolve file paths and URLs, and how those files will be read/downloaded.
+
+Swagger Parser comes with built-in support for HTTP and HTTPS, as well as support for local files (when running in Node.js).  You can configure or disable either of these built-in resolvers. You can also add [your own custom resolvers](plugins/resolvers.md) if you want.
+
+|Option(s)                    |Type       |Description
+|:----------------------------|:----------|:------------
+|`external`|`boolean`|Determines whether external $ref pointers will be resolved. If this option is disabled, then external $ref pointers will simply be ignored.
+|`file`<br>`http`|`object` `boolean`|These are the built-in resolvers. In addition, you can add [your own custom resolvers](plugins/resolvers.md)<br><br>To disable a resolver, just set it to `false`.
+|`file.order` `http.order`|`number`|Resolvers run in a specific order, relative to other resolvers. For example, a resolver with `order: 5` will run _before_ a resolver with `order: 10`.  If a resolver is unable to successfully resolve a path, then the next resolver is tried, until one succeeds or they all fail.<br><br>You can change the order in which resolvers run, which is useful if you know that most of your file references will be a certain type, or if you add [your own custom resolver](plugins/resolvers.md) that you want to run _first_.
+|`file.canRead` `http.canRead`|`boolean`, `RegExp`, `string`, `array`, `function`|Determines which resolvers will be used for which files.<br><br>A regular expression can be used to match files by their full path. A string (or array of strings) can be used to match files by their file extension. Or a function can be used to perform more complex matching logic. See the [custom resolver](plugins/resolvers.md) docs for details.
+|`http.headers`|`object`|You can specify any HTTP headers that should be sent when downloading files. For example, some servers may require you to set the `Accept` or `Referrer` header.
+|`http.timeout`        |`number`   |The amount of time (in milliseconds) to wait for a response from the server when downloading files. The default is 5 seconds.
+|`http.redirects`      |`number`   |The maximum number of HTTP redirects to follow per file. The default is 5. To disable automatic following of redirects, set this to zero.
+|`http.withCredentials`|`boolean`|Set this to `true` if you're downloading files from a CORS-enabled server that requires authentication
+
+
+`dereference` Options
+-------------------
+The `dereference` options control how Swagger Parser will dereference `$ref` pointers within the API.
+
+|Option(s)             |Type                |Description
+|:---------------------|:-------------------|:------------
+|`circular`|`boolean` or `"ignore"`|Determines whether [circular `$ref` pointers](README.md#circular-refs) are handled.<br><br>If set to `false`, then a `ReferenceError` will be thrown if the API contains any circular references.<br><br> If set to `"ignore"`, then circular references will simply be ignored.  No error will be thrown, but the [`$Refs.circular`](refs.md#circular) property will still be set to `true`.
+
+
+`validate` Options
+-------------------
+The `validate` options control how Swagger Parser will validate the API.
+
+Swagger Parser comes with built-in support for validating against the [Official Swagger 2.0 Schema](https://github.com/OAI/OpenAPI-Specification/tree/master/schemas/v2.0) as well as the [Swagger 2.0 Specification](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md). The specification validator will catch some things that aren't covered by the Swagger 2.0 Schema, such as duplicate parameters, invalid MIME types, etc.
+
+You can configure or disable either of these built-in validators.  You can also add [your own custom validators](plugins/validators.js) if you want.
+
+|Option(s)             |Type                |Description
+|:---------------------|:-------------------|:------------
+|`schema`<br>`spec`|`object` `boolean`  |These are the built-in validators. In addition, you can add [your own custom validators](plugins/validators.js)<br><br>To disable a validator, just set it to `false`.
+|`schema.order` `spec.order`|`number`|Validators run in a specific order, relative to other validators.  For example, a validator with `order: 5` will run _before_ a validator with `order: 10`.<br><br>You can change the order in which [custom validators](plugins/validators.md) run, which is useful if your validator relies on another validator being successful.
+|`schema.canValidate` `spec.canValidate`|`boolean`, `RegExp`, `string`, `array`, `function`|Determines which validators will be used for which files.<br><br>A regular expression can be used to match files by their full path. A string (or array of strings) can be used to match files by their file extension. Or a function can be used to perform more complex matching logic. See the [custom validator](plugins/validators.md) docs for details.
