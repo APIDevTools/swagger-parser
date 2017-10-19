@@ -44,25 +44,27 @@ describe('Real-world APIs', function () {
   // Mocha requires us to create our tests synchronously. But the list of APIs is downloaded asynchronously.
   // So, we just create 600 placeholder tests, and then rename them later to reflect which API they're testing.
   for (var i = 1; i <= 600; i++) {
-    it(i + ') ', function (done) {
-      // Get the next API to test
-      var api = realWorldAPIs[apiIndex++];
+    it(i + ') ', testNextAPI);
+  }
 
-      if (api) {
-        this.test.title += api.name;
+  function testNextAPI (done) {
+    // Get the next API to test
+    var api = realWorldAPIs[apiIndex++];
 
-        // Validate this API
-        SwaggerParser.validate(api.url)
-          .then(function () {
-            done();
-          })
-          .catch(done);
-      }
-      else {
-        // There are no more APIs to test
-        this.test.title += 'more APIs coming soon...';
-        done();
-      }
-    });
+    if (api) {
+      this.test.title += api.name;
+
+      // Validate this API
+      SwaggerParser.validate(api.url)
+        .then(function () {
+          done();
+        })
+        .catch(done);
+    }
+    else {
+      // There are no more APIs to test
+      this.test.title += 'more APIs coming soon...';
+      done();
+    }
   }
 });

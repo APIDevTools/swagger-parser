@@ -1,4 +1,4 @@
-var pathToTestsDirectory = global.__karma__ ? '/base/tests/' : '';
+var pathToTestsDirectory = global.__karma__ ? '/base/test/' : '';
 
 helper.parsed.objectSource =
 {

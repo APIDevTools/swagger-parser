@@ -6,12 +6,12 @@
   var _testsDir = getTestsDir();
 
   if (userAgent.isNode) {
-    // Run all tests from the "tests" directory
+    // Run all tests from the "test" directory
     process.chdir(_path.join(__dirname, '..'));
   }
 
   /**
-   * Returns the relative path of a file in the "tests" directory
+   * Returns the relative path of a file in the "test" directory
    *
    * NOTE: When running in a test-runner (such as Karma) the absolute path is returned instead
    */
@@ -25,17 +25,17 @@
     file = encodeFile(file);
 
     if (window.location.href.indexOf(_testsDir) === 0) {
-      // Return the relative path from "/tests/index.html"
+      // Return the relative path from "/test/index.html"
       return file;
     }
 
     // We're running in a test-runner (such as Karma), so return an absolute path,
-    // since we don't know the relative path of the "tests" directory.
+    // since we don't know the relative path of the "test" directory.
     return _testsDir.replace(/^https?:\/\/[^\/]+(\/.*)/, '$1' + file);
   };
 
   /**
-   * Returns the absolute path of a file in the "tests" directory
+   * Returns the absolute path of a file in the "test" directory
    */
   path.abs = function (file) {
     if (userAgent.isNode) {
@@ -52,7 +52,7 @@
   };
 
   /**
-   * Returns the path of the "tests" directory
+   * Returns the path of the "test" directory
    */
   function getTestsDir () {
     if (userAgent.isNode) {

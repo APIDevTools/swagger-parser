@@ -34,7 +34,7 @@
     "/dist/*.test.js",
     "/docs",
     "/lib",
-    "/tests",
+    "/test",
     "/www",
     "/.*",
     "/*.js",
