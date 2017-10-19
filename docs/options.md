@@ -85,10 +85,9 @@ The `validate` options control how Swagger Parser will validate the API.
 
 Swagger Parser comes with built-in support for validating against the [Official Swagger 2.0 Schema](https://github.com/OAI/OpenAPI-Specification/tree/master/schemas/v2.0) as well as the [Swagger 2.0 Specification](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md). The specification validator will catch some things that aren't covered by the Swagger 2.0 Schema, such as duplicate parameters, invalid MIME types, etc.
 
-You can configure or disable either of these built-in validators.  You can also add [your own custom validators](plugins/validators.js) if you want.
+You can disable either (or both) of these built-in validators by setting them to false.
 
 |Option(s)             |Type                |Description
 |:---------------------|:-------------------|:------------
-|`schema`<br>`spec`|`object` `boolean`  |These are the built-in validators. In addition, you can add [your own custom validators](plugins/validators.js)<br><br>To disable a validator, just set it to `false`.
-|`schema.order` `spec.order`|`number`|Validators run in a specific order, relative to other validators.  For example, a validator with `order: 5` will run _before_ a validator with `order: 10`.<br><br>You can change the order in which [custom validators](plugins/validators.md) run, which is useful if your validator relies on another validator being successful.
-|`schema.canValidate` `spec.canValidate`|`boolean`, `RegExp`, `string`, `array`, `function`|Determines which validators will be used for which files.<br><br>A regular expression can be used to match files by their full path. A string (or array of strings) can be used to match files by their file extension. Or a function can be used to perform more complex matching logic. See the [custom validator](plugins/validators.md) docs for details.
+|`schema`|`boolean`|Set to `false` to disable validating against the [Official Swagger 2.0 Schema](https://github.com/OAI/OpenAPI-Specification/tree/master/schemas/v2.0)
+|`spec`|`boolean`|Set to `false` to disable validating against the [Swagger 2.0 Specification](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md).
