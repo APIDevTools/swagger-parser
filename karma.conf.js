@@ -5,6 +5,14 @@
 var baseConfig = {
   frameworks: ['mocha'],
   reporters: ['verbose'],
+
+  // We test against 600+ real-world APIs, each of which is a pretty large download.
+  // This often causes flaky browser behavior in CI environments, so set very lenient tolerances
+  captureTimeout: 60000,
+  browserDisconnectTimeout: 30000,
+  browserDisconnectTolerance: 5,
+  browserNoActivityTimeout: 60000,
+
   files: [
     // Third-Party Libraries
     'www/bower_components/chai/chai.js',
@@ -95,7 +103,7 @@ function configureLocalBrowsers (config) {
       isCI = process.env.CI;
 
   if (isCI) {
-    config.browsers = ['ChromeHeadless'];
+    config.browsers = ['Firefox', 'ChromeHeadless'];
   }
   else if (isMac) {
     config.browsers = ['Firefox', 'Chrome', 'Safari'];
@@ -165,8 +173,4 @@ function configureSauceLabs (config) {
 
   config.reporters.push('saucelabs');
   config.browsers = Object.keys(config.customLaunchers);
-  config.captureTimeout = 120000;
-  config.browserDisconnectTimeout = 15000;
-  config.browserNoActivityTimeout = 15000;
-  // config.logLevel = 'debug';
 }

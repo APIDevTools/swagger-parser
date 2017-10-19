@@ -7,7 +7,7 @@
     mocha.fullTrace();
     mocha.asyncOnly();
     mocha.checkLeaks();
-    mocha.globals(['$0', '$1', '$2', '$3', '$4', '$5', 'ga', 'gaplugins', 'gaGlobal']);
+    mocha.globals(['$0', '$1', '$2', '$3', '$4', '$5', 'ga', 'gaplugins', 'gaGlobal', 'gaData']);
   }
 
   beforeEach(function () {
