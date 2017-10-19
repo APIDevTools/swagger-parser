@@ -1,8 +1,14 @@
 # Travis CI config
 # http://docs.travis-ci.com/user/languages/javascript-with-nodejs/
 
+dist: trusty
 sudo: false
 language: node_js
+
+addons:
+  firefox: latest
+  chrome: stable
+
 matrix:
   include:
     # Local Browsers
@@ -18,11 +24,6 @@ matrix:
     - node_js: 5
     - node_js: 6
     - node_js: 7
-
-  fast_finish: true
-  allow_failures:
-    - node_js: 8
-      env: KARMA=true KARMA_SAUCE=true
 
 before_script:
   # Setup a virtual display for browser testing
