@@ -33,7 +33,7 @@
     "istanbul": "istanbul cover _mocha --dir coverage/node",
     "karma": "karma start --single-run",
     "test": "npm run browserify -- --test && npm run istanbul && npm run karma",
-    "upgrade": "ncu --upgradeAll && npm update && bower update",
+    "upgrade": "npm-check -u",
     "bump": "bump --prompt --grep dist/* --tag --push --all",
     "release": "npm run upgrade && npm run build-www && npm test && npm run bump && npm publish",
     "build-www": "npm run sass && npm run browserify-www",
@@ -65,7 +65,7 @@
     "karma-verbose-reporter": "0.0.6",
     "mocha": "^4.0.1",
     "node-sass": "^4.5.3",
-    "npm-check-updates": "^2.13.0",
+    "npm-check": "^5.4.5",
     "simplifyify": "^3.2.4",
     "superagent": "^3.6.3",
     "version-bump-prompt": "^3.1.2"
