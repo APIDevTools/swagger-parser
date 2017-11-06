@@ -1,7 +1,7 @@
 /*!
- * Swagger Parser v4.0.0 (October 19th 2017)
+ * Swagger Parser v4.0.1 (November 6th 2017)
  * 
- * https://bigstickcarpet.github.io/swagger-parser
+ * http://bigstickcarpet.com/swagger-parser
  * 
  * @author  James Messinger (http://jamesmessinger.com)
  * @license MIT
@@ -9669,6 +9669,7 @@ function get (u, httpOptions) {
       port: u.port,
       path: u.path,
       auth: u.auth,
+      protocol: u.protocol,
       headers: httpOptions.headers || {},
       withCredentials: httpOptions.withCredentials
     });
@@ -10865,7 +10866,7 @@ memoize.Cache = MapCache;
  *
  * @static
  * @memberOf _
- * @since 4.0.0
+ * @since 4.0.1
  * @category Lang
  * @param {*} value The value to compare.
  * @param {*} other The other value to compare.
@@ -10979,7 +10980,7 @@ function isObject(value) {
  *
  * @static
  * @memberOf _
- * @since 4.0.0
+ * @since 4.0.1
  * @category Lang
  * @param {*} value The value to check.
  * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
@@ -11006,7 +11007,7 @@ function isObjectLike(value) {
  *
  * @static
  * @memberOf _
- * @since 4.0.0
+ * @since 4.0.1
  * @category Lang
  * @param {*} value The value to check.
  * @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
@@ -11029,7 +11030,7 @@ function isSymbol(value) {
  *
  * @static
  * @memberOf _
- * @since 4.0.0
+ * @since 4.0.1
  * @category Lang
  * @param {*} value The value to process.
  * @returns {string} Returns the string.
@@ -12568,7 +12569,7 @@ function toSource(func) {
  *
  * @static
  * @memberOf _
- * @since 4.0.0
+ * @since 4.0.1
  * @category Lang
  * @param {*} value The value to compare.
  * @param {*} other The other value to compare.
@@ -12652,7 +12653,7 @@ var isArray = Array.isArray;
  *
  * @static
  * @memberOf _
- * @since 4.0.0
+ * @since 4.0.1
  * @category Lang
  * @param {*} value The value to check.
  * @returns {boolean} Returns `true` if `value` is array-like, else `false`.
@@ -12760,7 +12761,7 @@ function isFunction(value) {
  *
  * @static
  * @memberOf _
- * @since 4.0.0
+ * @since 4.0.1
  * @category Lang
  * @param {*} value The value to check.
  * @returns {boolean} Returns `true` if `value` is a valid length, else `false`.
@@ -12819,7 +12820,7 @@ function isObject(value) {
  *
  * @static
  * @memberOf _
- * @since 4.0.0
+ * @since 4.0.1
  * @category Lang
  * @param {*} value The value to check.
  * @returns {boolean} Returns `true` if `value` is object-like, else `false`.

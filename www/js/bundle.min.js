@@ -1,7 +1,7 @@
 /*!
- * Swagger Parser v4.0.0-beta.2 (October 19th 2017)
+ * Swagger Parser v4.0.0 (November 6th 2017)
  * 
- * https://bigstickcarpet.github.io/swagger-parser
+ * http://bigstickcarpet.com/swagger-parser
  * 
  * @author  James Messinger (http://jamesmessinger.com)
  * @license MIT
