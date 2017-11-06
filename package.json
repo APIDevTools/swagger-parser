@@ -22,7 +22,7 @@
     "url": "http://jamesmessinger.com"
   },
   "license": "MIT",
-  "homepage": "https://bigstickcarpet.github.io/swagger-parser",
+  "homepage": "http://bigstickcarpet.com/swagger-parser",
   "main": "lib/index.js",
   "scripts": {
     "lint": "eslint lib test www/js/src --fix",
