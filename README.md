@@ -9,7 +9,7 @@ Swagger Parser
 ============================
 #### Swagger 2.0 parser and validator for Node and browsers
 
-[![Build Status](https://api.travis-ci.org/BigstickCarpet/swagger-parser.svg)](https://travis-ci.org/BigstickCarpet/swagger-parser)
+[![Build Status](https://api.travis-ci.org/BigstickCarpet/swagger-parser.svg?branch=master)](https://travis-ci.org/BigstickCarpet/swagger-parser)
 [![Dependencies](https://david-dm.org/BigstickCarpet/swagger-parser.svg)](https://david-dm.org/BigstickCarpet/swagger-parser)
 [![Coverage Status](https://coveralls.io/repos/BigstickCarpet/swagger-parser/badge.svg?branch=master&service=github)](https://coveralls.io/r/BigstickCarpet/swagger-parser)
 [![Codacy Score](https://www.codacy.com/project/badge/6d686f916836433b9c013379fbe1052c)](https://www.codacy.com/public/jamesmessinger/swagger-parser)
