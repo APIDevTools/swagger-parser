@@ -18,7 +18,10 @@ describe('Real-world APIs', function () {
         delete apis['googleapis.com:adsense'];  // GitHub's CORS policy blocks this
         delete apis['versioneye.com'];          // Fails validation due to incorrect content type
         delete apis['clarify.io'];              // Contains an invalid $ref
-        delete apis['bungie.net'];              // https://github.com/BigstickCarpet/json-schema-ref-parser/issues/56
+
+        // https://github.com/BigstickCarpet/json-schema-ref-parser/issues/56
+        delete apis['bungie.net'];
+        delete apis['stripe.com'];
 
         // https://github.com/APIs-guru/openapi-directory/issues/351
         delete apis['azure.com:network-applicationGateway'];
