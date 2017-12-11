@@ -20,6 +20,16 @@ describe('Real-world APIs', function () {
         delete apis['clarify.io'];              // Contains an invalid $ref
         delete apis['bungie.net'];              // https://github.com/BigstickCarpet/json-schema-ref-parser/issues/56
 
+        // https://github.com/APIs-guru/openapi-directory/issues/351
+        delete apis['azure.com:network-applicationGateway'];
+        delete apis['azure.com:network-expressRouteCircuit'];
+        delete apis['azure.com:network-networkInterface'];
+        delete apis['azure.com:network-networkSecurityGroup'];
+        delete apis['azure.com:network-publicIpAddress'];
+        delete apis['azure.com:network-routeFilter'];
+        delete apis['azure.com:network-routeTable'];
+        delete apis['azure.com:network-virtualNetwork'];
+
         // Transform the list into an array of {name: string, url: string}
         realWorldAPIs = [];
         Object.keys(apis).forEach(function (apiName) {
