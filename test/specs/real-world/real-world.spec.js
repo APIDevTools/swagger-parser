@@ -14,24 +14,21 @@ describe('Real-world APIs', function () {
 
         // Remove certain APIs that are known to cause problems
         var apis = res.body;
-        delete apis['citrixonline.com:scim'];   // special characters in the URL cause problems
         delete apis['googleapis.com:adsense'];  // GitHub's CORS policy blocks this
         delete apis['versioneye.com'];          // Fails validation due to incorrect content type
-        delete apis['clarify.io'];              // Contains an invalid $ref
 
         // https://github.com/BigstickCarpet/json-schema-ref-parser/issues/56
         delete apis['bungie.net'];
         delete apis['stripe.com'];
 
         // https://github.com/APIs-guru/openapi-directory/issues/351
-        delete apis['azure.com:network-applicationGateway'];
         delete apis['azure.com:network-expressRouteCircuit'];
-        delete apis['azure.com:network-networkInterface'];
-        delete apis['azure.com:network-networkSecurityGroup'];
-        delete apis['azure.com:network-publicIpAddress'];
-        delete apis['azure.com:network-routeFilter'];
-        delete apis['azure.com:network-routeTable'];
-        delete apis['azure.com:network-virtualNetwork'];
+        delete apis['azure.com:automation-dscCompilationJob'];
+        delete apis['azure.com:automation-job'];
+        delete apis['azure.com:automation-runbook'];
+        delete apis['azure.com:automation-softwareUpdateConfiguration v2017-05-15-preview'];
+        delete apis['azure.com:automation-softwareUpdateConfiguration'];
+        delete apis['azure.com:automation-softwareUpdateConfigurationMachineRun'];
 
         // Transform the list into an array of {name: string, url: string}
         realWorldAPIs = [];

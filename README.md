@@ -32,7 +32,7 @@ Features
 - Can [bundle](docs/swagger-parser.md#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
 - Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
 - **[Tested](http://bigstickcarpet.com/swagger-parser/test/index.html)** in Node.js and all modern web browsers on Mac, Windows, and Linux
-- Tested on **[over 600 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
+- Tested on **[over 1,000 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
 - Supports [circular references](docs/README.md#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
 
