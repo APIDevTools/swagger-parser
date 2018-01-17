@@ -74,10 +74,10 @@
   "dependencies": {
     "call-me-maybe": "^1.0.1",
     "debug": "^3.1.0",
-    "json-schema-ref-parser": "^4.0.4",
-    "ono": "^4.0.2",
-    "swagger-methods": "^1.0.0",
+    "json-schema-ref-parser": "^4.1.0",
+    "ono": "^4.0.3",
+    "swagger-methods": "^1.0.4",
     "swagger-schema-official": "2.0.0-bab6bed",
-    "z-schema": "^3.18.4"
+    "z-schema": "^3.19.0"
   }
 }
