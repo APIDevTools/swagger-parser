@@ -1,8 +1,8 @@
 /*!
- * Swagger Parser v4.0.0 (November 6th 2017)
- *
+ * Swagger Parser v4.0.1 (January 17th 2018)
+ * 
  * http://bigstickcarpet.com/swagger-parser
- *
+ * 
  * @author  James Messinger (http://bigstickcarpet.com)
  * @license MIT
  */
@@ -25,7 +25,7 @@ function format(fmt) {
           break;
       }
       if(!escaped) {
-        return arg;
+        return arg; 
       }
       args.unshift(arg);
       return match;

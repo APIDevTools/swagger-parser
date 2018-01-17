@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Swagger 2.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
