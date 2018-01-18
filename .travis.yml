@@ -2,7 +2,7 @@
 # http://docs.travis-ci.com/user/languages/javascript-with-nodejs/
 
 dist: trusty
-sudo: false
+sudo: required  # TEMPORARY HACK (see https://github.com/travis-ci/travis-ci/issues/8836)
 language: node_js
 
 addons:
