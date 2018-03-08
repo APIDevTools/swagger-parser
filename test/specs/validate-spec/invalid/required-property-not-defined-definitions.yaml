@@ -1,0 +1,32 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Swagger Petstore
+paths:
+  '/pet/{petId}':
+      get:
+        summary: Find pet by ID
+        parameters:
+          - name: petId
+            in: path
+            description: ID of pet to return
+            required: true
+            type: integer
+            format: int64
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: '#/definitions/Pet'
+definitions:
+  Pet:
+    type: object
+    required:
+      - name
+      - photoUrls                        # <--- does not exist
+    properties:
+      name:
+        type: string
+        example: doggie
+      color:
+        type: string

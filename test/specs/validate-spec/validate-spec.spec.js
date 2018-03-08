@@ -97,6 +97,18 @@ describe('Invalid APIs (Swagger 2.0 specification validation)', function () {
       valid: false,
       file: 'file-invalid-consumes.yaml',
       error: 'Validation failed. /paths/users/{username}/profile/image/post has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded'
+    },
+    {
+      name: 'required property in input does not exist',
+      valid: false,
+      file: 'required-property-not-defined-input.yaml',
+      error: 'Validation failed. Required property \'notExists\' does not exist in object'
+    },
+    {
+      name: 'required property in definition does not exist',
+      valid: false,
+      file: 'required-property-not-defined-definitions.yaml',
+      error: 'Validation failed. Required property \'photoUrls\' does not exist in object'
     }
   ];
 
