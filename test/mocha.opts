@@ -1,0 +1,5 @@
+--bail
+--async-only
+--recursive
+test/fixtures
+test/specs

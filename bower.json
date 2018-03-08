@@ -19,7 +19,7 @@
   "authors": [
     {
       "name": "James Messinger",
-      "homepage": "http://jamesmessinger.com"
+      "homepage": "http://bigstickcarpet.com"
     }
   ],
   "license": "MIT",
@@ -31,24 +31,25 @@
   },
   "ignore": [
     "/bower_components",
+    "/dist/*.test.js",
     "/docs",
     "/lib",
+    "/test",
     "/www",
-    "/dist/*.test.js",
-    "/tests",
-    "/karma.conf.js",
     "/.*",
-    "/index.html",
-    "/package.json"
+    "/*.js",
+    "/*.json",
+    "/*.html",
+    "/*.txt",
+    "/*.yml"
   ],
   "dependencies": {},
   "devDependencies": {
     "ace-builds": "https://github.com/ajaxorg/ace-builds.git#~1.2.0",
     "bootstrap-sass": "~3.3.5",
     "jquery": "~2.1.4",
-    "chai": "*",
-    "mocha": "*",
-    "sinon-js": "*",
-    "superagent-dist": "*"
+    "chai": "^4.1.2",
+    "mocha": "^3.0.0",
+    "superagent-dist": "^1.8.2"
   }
 }

@@ -1,0 +1,18 @@
+# ESLint config
+# http://eslint.org/docs/user-guide/configuring
+# https://github.com/BigstickCarpet/eslint-config-modular
+
+extends:
+  - modular/node
+
+env:
+  jquery: true
+
+globals:
+  SwaggerParser: false
+
+  # Google Analytics
+  ga: false
+
+  # ACE Editor
+  ace: false

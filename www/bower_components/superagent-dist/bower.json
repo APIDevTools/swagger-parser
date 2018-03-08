@@ -1,11 +1,11 @@
 {
   "name": "superagent-dist",
-  "version": "1.6.2",
+  "version": "1.7.2",
   "main": "superagent.js",
   "dependencies": {},
   "ignore": [
     "build.js",
-    "release.js",
+    "update.js",
     "node_modules"
   ]
 }

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Swagger Parser tests">
+    <meta name="author" content="James Messinger (bigstickcarpet.com)">
+
+    <title>Swagger Parser Tests</title>
+
+    <link rel="stylesheet" href="../www/bower_components/mocha/mocha.css"/>
+
+    <!-- Google Analytics -->
+    <script>
+      if (location.hostname !== 'localhost') {
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-68102273-1', 'auto');
+        ga('send', 'pageview');
+      }
+    </script>
+  </head>
+  <body>
+    <div id="mocha"></div>
+
+    <!-- Third-Party Libraries -->
+    <script src="../www/bower_components/mocha/mocha.js"></script>
+    <script src="../www/bower_components/chai/chai.js"></script>
+    <script src="../www/bower_components/superagent-dist/superagent.js"></script>
+
+    <!-- Polyfills for older browsers -->
+    <script src="../www/polyfills/promise.js"></script>
+    <script src="../www/polyfills/typedarray.js"></script>
+
+    <!-- Swagger Parser -->
+    <script src="../dist/swagger-parser.js"></script>
+
+    <!-- Test Fixtures -->
+    <script src="fixtures/globals.js"></script>
+    <script src="fixtures/helper.js"></script>
+    <script src="fixtures/mocha.js"></script>
+    <script src="fixtures/path.js"></script>
+
+    <!-- Tests -->
+    <script src="specs/exports.spec.js"></script>
+
+    <script src="specs/circular/circular.parsed.js"></script>
+    <script src="specs/circular/circular.dereferenced.js"></script>
+    <script src="specs/circular/circular.validated.js"></script>
+    <script src="specs/circular/circular.bundled.js"></script>
+    <script src="specs/circular/circular.spec.js"></script>
+
+    <script src="specs/deep-circular/deep-circular.parsed.js"></script>
+    <script src="specs/deep-circular/deep-circular.dereferenced.js"></script>
+    <script src="specs/deep-circular/deep-circular.bundled.js"></script>
+    <script src="specs/deep-circular/deep-circular.spec.js"></script>
+
+    <script src="specs/unknown/unknown.parsed.js"></script>
+    <script src="specs/unknown/unknown.dereferenced.js"></script>
+    <script src="specs/unknown/unknown.spec.js"></script>
+
+    <script src="specs/object-source/object-source.parsed.js"></script>
+    <script src="specs/object-source/object-source.dereferenced.js"></script>
+    <script src="specs/object-source/object-source.bundled.js"></script>
+    <script src="specs/object-source/object-source.spec.js"></script>
+
+    <script src="specs/invalid/invalid.spec.js"></script>
+    <script src="specs/validate-schema/validate-schema.spec.js"></script>
+    <script src="specs/validate-spec/validate-spec.spec.js"></script>
+
+    <script src="specs/callbacks-promises/callbacks-promises.parsed.js"></script>
+    <script src="specs/callbacks-promises/callbacks-promises.dereferenced.js"></script>
+    <script src="specs/callbacks-promises/callbacks-promises.bundled.js"></script>
+    <script src="specs/callbacks-promises/callbacks-promises.spec.js"></script>
+
+    <script src="specs/real-world/real-world.spec.js"></script>
+
+    <script>
+      mocha.run();
+    </script>
+  </body>
+</html>
