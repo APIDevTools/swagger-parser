@@ -1,0 +1,30 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Swagger Petstore
+paths:
+  /pets:
+    post:
+      description: Creates a new pet in the store
+      parameters:
+        - name: pet
+          in: body
+          description: Pet to add to the store
+          required: true
+          schema:
+            type: object
+            required:
+              - notExists                # <--- does not exist
+            properties:
+              name:
+                type: string
+              color:
+                type: string
+      responses:
+        '200':
+          description: pet response
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
