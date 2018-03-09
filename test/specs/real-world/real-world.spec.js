@@ -9,11 +9,12 @@ describe('Real-world APIs', function () {
     superagent.get('https://api.apis.guru/v2/list.json')
       .end(function (err, res) {
         if (err || !res.ok) {
-          return done(err || new Error('Unable to downlaod real-world APIs from apis.guru'));
+          return done(err || new Error('Unable to download real-world APIs from apis.guru'));
         }
 
-        // Remove certain APIs that are known to cause problems
         var apis = res.body;
+
+        // Remove certain APIs that are known to cause problems
         delete apis['googleapis.com:adsense'];  // GitHub's CORS policy blocks this
         delete apis['versioneye.com'];          // Fails validation due to incorrect content type
 
@@ -29,6 +30,9 @@ describe('Real-world APIs', function () {
         delete apis['azure.com:automation-softwareUpdateConfiguration v2017-05-15-preview'];
         delete apis['azure.com:automation-softwareUpdateConfiguration'];
         delete apis['azure.com:automation-softwareUpdateConfigurationMachineRun'];
+
+        // OpenAPI 3.0 definitions
+        delete apis['brex.io']; // https://api.apis.guru/v2/specs/brex.io/1.0.0/openapi.yaml
 
         // Transform the list into an array of {name: string, url: string}
         realWorldAPIs = [];
