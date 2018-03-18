@@ -29,6 +29,7 @@ describe('Real-world APIs', function () {
         delete apis['azure.com:automation-softwareUpdateConfiguration v2017-05-15-preview'];
         delete apis['azure.com:automation-softwareUpdateConfiguration'];
         delete apis['azure.com:automation-softwareUpdateConfigurationMachineRun'];
+        delete apis['azure.com:apimanagement-apimdeployment'];
 
         // Transform the list into an array of {name: string, url: string}
         realWorldAPIs = [];
