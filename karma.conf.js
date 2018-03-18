@@ -112,7 +112,7 @@ function configureLocalBrowsers (config) {
     config.browsers = ['Firefox', 'Chrome'];
   }
   else if (isWindows) {
-    config.browsers = ['Firefox', 'Chrome', 'Safari', 'IE'];
+    config.browsers = ['Firefox', 'Chrome', 'Edge', 'IE'];
   }
 }
 
