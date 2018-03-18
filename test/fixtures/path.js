@@ -1,111 +1,132 @@
 (function () {
   'use strict';
 
-  var path = global.path = {};
-  var _path = userAgent.isNode ? require('path') : null;
-  var _url = userAgent.isNode ? require('url') : null;
-  var _testsDir = getTestsDir();
-
+  var path;
   if (userAgent.isNode) {
+    path = filesystemPathHelpers();
+  }
+  else {
+    path = urlPathHelpers();
+  }
+
+  global.path = path;
+
+  /**
+   * Helper functions for getting local filesystem paths in various formats
+   */
+  function filesystemPathHelpers () {
+    var _path = userAgent.isNode ? require('path') : null;
+    var _url = userAgent.isNode ? require('url') : null;
+    var _testsDir = _path.resolve(__dirname, '..');
+    var _isWindows = /^win/.test(process.platform);
+
     // Run all tests from the "test" directory
     process.chdir(_path.join(__dirname, '..'));
+
+    return {
+      /**
+       * Returns the relative path of a file in the "test" directory
+       */
+      rel: function (file) {
+        return _path.normalize(file);
+      },
+
+      /**
+       * Returns the absolute path of a file in the "test" directory
+       */
+      abs: function (file) {
+        file = _path.join(_testsDir, file || _path.sep);
+        return file;
+      },
+
+      /**
+       * Returns the path of a file in the "test" directory as a URL.
+       * (e.g. "file://path/to/json-schema-ref-parser/test/files...")
+       */
+      url: function (file) {
+        var pathname = path.abs(file);
+
+        if (_isWindows) {
+          pathname = pathname.replace(/\\/g, '/');  // Convert Windows separators to URL separators
+        }
+
+        var url = _url.format({
+          protocol: 'file:',
+          slashes: true,
+          pathname: pathname
+        });
+
+        return url;
+      },
+
+      /**
+       * Returns the absolute path of the current working directory.
+       */
+      cwd: function () {
+        return _path.join(process.cwd(), _path.sep);
+      }
+    };
   }
 
   /**
-   * Returns the relative path of a file in the "test" directory
-   *
-   * NOTE: When running in a test-runner (such as Karma) the absolute path is returned instead
+   * Helper functions for getting URLs in various formats
    */
-  path.rel = function (file) {
-    if (userAgent.isNode) {
-      // Return the relative path from the project root
-      return _path.normalize(file);
+  function urlPathHelpers () {
+    // Get the URL of the "test" directory
+    var filename = document.querySelector('script[src*="fixtures/path.js"]').src;
+    var _testsDir = filename.substr(0, filename.indexOf('fixtures/path.js'));
+
+    /**
+     * URI-encodes the given file name
+     */
+    function encodePath (file) {
+      return encodeURIComponent(file).split('%2F').join('/');
     }
 
-    // Encode special characters in paths when running in a browser
-    file = encodeFile(file);
+    return {
+      /**
+       * Returns the relative path of a file in the "test" directory
+       *
+       * NOTE: When running in Karma the absolute path is returned instead
+       */
+      rel: function (file) {
+        // Encode special characters in paths
+        file = encodePath(file);
 
-    if (window.location.href.indexOf(_testsDir) === 0) {
-      // Return the relative path from "/test/index.html"
-      return file;
-    }
+        if (window.location.href.indexOf(_testsDir) === 0) {
+          // We're running from the "/test/index.html" page, directly in a browser.
+          // So return the relative path from the "test" directory.
+          return file;
+        }
+        else {
+          // We're running in Karma, so return an absolute path,
+          // since we don't know the relative path of the "test" directory.
+          return _testsDir.replace(/^https?:\/\/[^\/]+(\/.*)/, '$1' + file);
+        }
+      },
 
-    // We're running in a test-runner (such as Karma), so return an absolute path,
-    // since we don't know the relative path of the "test" directory.
-    return _testsDir.replace(/^https?:\/\/[^\/]+(\/.*)/, '$1' + file);
-  };
+      /**
+       * Returns the absolute path of a file in the "test" directory
+       */
+      abs: function (file) {
+        return _testsDir + encodePath(file);
+      },
 
-  /**
-   * Returns the absolute path of a file in the "test" directory
-   */
-  path.abs = function (file) {
-    if (userAgent.isNode) {
-      file = _path.join(_testsDir, file || '/');
-    }
-    else {
-      file = _testsDir + encodeFile(file);
-    }
-    if (/^[A-Z]\:[\\\/]/.test(file)) {
-      // lowercase the drive letter on Windows, for string comparison purposes
-      file = file[0].toLowerCase() + file.substr(1);
-    }
-    return file;
-  };
+      /**
+       * Returns the path of a file in the "test" directory as an absolute URL.
+       * (e.g. "http://localhost/test/files/...")
+       */
+      url: function (file) {
+        return path.abs(file);
+      },
 
-  /**
-   * Returns the path of a file in the "test" directory as a URL.
-   */
-  path.url = function (file) {
-    if (userAgent.isBrowser) {
-      // In browsers, just return the absolute URL (e.g. "http://localhost/test/files/...")
-      return path.abs(file);
-    }
-
-    // In Node, return the absolute path as a URL (e.g. "file://path/to/json-schema-ref-parser/test/files...")
-    var pathname = path.abs(file);
-    if (/^win/.test(process.platform)) {
-      pathname = pathname.replace(/\\/g, '/');  // Convert Windows separators to URL separators
-    }
-    var url = _url.format({
-      protocol: 'file:',
-      slashes: true,
-      pathname: pathname
-    });
-
-    return url;
-  };
-
-  /**
-   * Returns the path of the current working directory.
-   * In Node, this is the "test" directory. In the browser, it is the directory of the current page.
-   */
-  path.cwd = function () {
-    if (userAgent.isNode) {
-      return process.cwd() + '/';
-    }
-    else {
-      return location.href;
-    }
-  };
-
-  /**
-   * Returns the path of the "test" directory
-   */
-  function getTestsDir () {
-    if (userAgent.isNode) {
-      return _path.resolve(__dirname, '..');
-    }
-    else {
-      var filename = document.querySelector('script[src*="fixtures/path.js"]').src;
-      return filename.substr(0, filename.indexOf('fixtures/path.js'));
-    }
-  }
-
-  /**
-   * URI-encodes the given file name
-   */
-  function encodeFile (file) {
-    return encodeURIComponent(file).split('%2F').join('/');
+      /**
+       * Returns the path of the current page.
+       */
+      cwd: function () {
+        return location.href;
+      }
+    };
   }
 
 }());
