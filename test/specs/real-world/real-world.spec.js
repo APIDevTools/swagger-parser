@@ -3,6 +3,7 @@ describe('Real-world APIs', function () {
 
   var realWorldAPIs = [];
   var apiIndex = 0;
+  var safeToIgnore = getKnownApiErrors();
 
   before(function (done) {
     // This hook sometimes takes several seconds, due to the large download
@@ -89,33 +90,6 @@ describe('Real-world APIs', function () {
    * It checks for known validation errors in certain API definitions on APIs.guru
    */
   function shouldIgnoreError (api, error) {
-    var safeToIgnore = [
-      // Swagger 3.0 files aren't supported yet
-      { error: 'not a valid Swagger API definition' },
-
-      // Many Azure API definitions erroneously reference external files that don't exist
-      { api: 'azure.com', error: /Error downloading .*\.json\s+HTTP ERROR 404/ },
-
-      // Many Azure API definitions have endpoints with multiple "location" placeholders, which is invalid
-      { api: 'azure.com', error: 'has multiple path placeholders named {location}' },
-      { api: 'azure.com', error: 'Required property \'location\' does not exist' },
-
-      // Stoplight.io's API definition uses multi-type schemas, which isn't allowed by Swagger 2.0
-      { api: 'stoplight.io', error: 'invalid response schema type (object,string)' },
-
-      // VersionEye's API definition is missing MIME types
-      { api: 'versioneye.com', error: 'has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded' },
-
-      // Many API definitions have data models with required properties that aren't defined
-      { api: 'azure.com:apimanagement-apimdeployment', error: 'Required property \'sku\' does not exist' },
-      { api: 'azure.com:compute', error: 'Required property \'name\' does not exist' },
-      { api: 'azure.com:recoveryservices-registeredidentities', error: 'Required property \'certificate\' does not exist' },
-      { api: 'azure.com:resources', error: 'Required property \'code\' does not exist' },
-      { api: 'azure.com:servicefabric', error: 'Required property \'ServiceKind\' does not exist' },
-      { api: 'azure.com:timeseriesinsights', error: 'Required property \'dataRetentionTime\' does not exist' },
-      { api: 'iqualify.com', error: 'Required property \'contentId\' does not exist' },
-    ];
-
     for (var i = 0; i < safeToIgnore.length; i++) {
       var expected = safeToIgnore[i];
       var actual = { api: api.name, error: error.message };
@@ -146,4 +120,50 @@ describe('Real-world APIs', function () {
     return true;
   }
 
+  /**
+   * Returns a list of known validation errors in certain API definitions on APIs.guru.
+   */
+  function getKnownApiErrors () {
+    var safeToIgnore = [
+      // Swagger 3.0 files aren't supported yet
+      { error: 'not a valid Swagger API definition' },
+
+      // Many Azure API definitions erroneously reference external files that don't exist
+      { api: 'azure.com', error: /Error downloading .*\.json\s+HTTP ERROR 404/ },
+
+      // Many Azure API definitions have endpoints with multiple "location" placeholders, which is invalid
+      { api: 'azure.com', error: 'has multiple path placeholders named {location}' },
+      { api: 'azure.com', error: 'Required property \'location\' does not exist' },
+
+      // Stoplight.io's API definition uses multi-type schemas, which isn't allowed by Swagger 2.0
+      { api: 'stoplight.io', error: 'invalid response schema type (object,string)' },
+
+      // VersionEye's API definition is missing MIME types
+      { api: 'versioneye.com', error: 'has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded' },
+
+      // Many API definitions have data models with required properties that aren't defined
+      { api: 'azure.com:apimanagement-apimdeployment', error: 'Required property \'sku\' does not exist' },
+      { api: 'azure.com:compute', error: 'Required property \'name\' does not exist' },
+      { api: 'azure.com:recoveryservices-registeredidentities', error: 'Required property \'certificate\' does not exist' },
+      { api: 'azure.com:resources', error: 'Required property \'code\' does not exist' },
+      { api: 'azure.com:servicefabric', error: 'Required property \'ServiceKind\' does not exist' },
+      { api: 'azure.com:timeseriesinsights', error: 'Required property \'dataRetentionTime\' does not exist' },
+      { api: 'iqualify.com', error: 'Required property \'contentId\' does not exist' },
+    ];
+
+    var nodeVersion = parseFloat(process.version.substr(1));
+
+    if (nodeVersion < 8) {
+      // Many AWS APIs contain RegEx patterns that are invalid on older versions of Node.
+      // They work fine on Node 8+ though.  Examples of problematic RegExp include:
+      //    ^[0-9A-Za-z\.\-_]*(?<!\.)$
+      //    jdbc:(redshift|postgresql)://((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+redshift\.amazonaws\.com:\d{1,5}/[a-zA-Z0-9_$]+
+      safeToIgnore.push({
+        api: 'amazonaws.com',
+        error: "Object didn't pass validation for format regex",
+      });
+    }
+
+    return safeToIgnore;
+  }
 });
