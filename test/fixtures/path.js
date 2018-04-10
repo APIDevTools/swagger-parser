@@ -9,7 +9,7 @@
     path = urlPathHelpers();
   }
 
-  global.path = path;
+  host.global.path = path;
 
   /**
    * Helper functions for getting local filesystem paths in various formats

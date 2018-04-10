@@ -5,15 +5,15 @@ describe('API with $refs to unknown file types', function () {
 
   beforeEach(function () {
     // Some old Webkit browsers throw an error when downloading zero-byte files.
-    windowOnError = global.onerror;
-    global.onerror = function () {
+    windowOnError = host.global.onerror;
+    host.global.onerror = function () {
       testDone();
       return true;
     };
   });
 
   afterEach(function () {
-    global.onerror = windowOnError;
+    host.global.onerror = windowOnError;
   });
 
   it('should parse successfully', function (done) {

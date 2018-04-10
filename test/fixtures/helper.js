@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  global.helper = {};
+  host.global.helper = {};
 
   /**
    * Parsed JSON schemas
