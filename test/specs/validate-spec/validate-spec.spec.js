@@ -102,13 +102,18 @@ describe('Invalid APIs (Swagger 2.0 specification validation)', function () {
       name: 'required property in input does not exist',
       valid: false,
       file: 'required-property-not-defined-input.yaml',
-      error: 'Validation failed. Required property \'notExists\' does not exist in object'
+      error: 'Validation failed. Property \'notExists\' listed as required but does not exist in \'/paths/pets/post/parameters/pet\''
     },
     {
       name: 'required property in definition does not exist',
       valid: false,
       file: 'required-property-not-defined-definitions.yaml',
-      error: 'Validation failed. Required property \'photoUrls\' does not exist in object'
+      error: 'Validation failed. Property \'photoUrls\' listed as required but does not exist in \'/definitions/Pet\''
+    },
+    {
+      name: 'schema declares required properties which are inherited (allOf)',
+      valid: true,
+      file: 'inherited-required-properties.yaml'
     }
   ];
 

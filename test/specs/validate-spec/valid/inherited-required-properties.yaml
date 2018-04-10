@@ -1,0 +1,59 @@
+swagger: '2.0'
+schemes:
+  - https
+host: api.iqualify.com
+basePath: /v1
+info:
+  contact:
+    x-twitter: hello_iqualify
+  description: >+
+    The iQualify API for testing
+  title: iQualify
+  version: v1
+paths:
+  /offerings:
+    post:
+      description: Creates new offering.
+      parameters:
+        - in: body
+          name: offering
+          required: true
+          schema:
+            $ref: '#/definitions/OfferingRequired'
+      produces:
+        - application/json
+      responses:
+        '201':
+          description: offering created
+          schema:
+            $ref: '#/definitions/OfferingMetadataResponse'
+      summary: Create offering
+definitions:
+  Offering:
+    properties:
+      contentId:
+        minLength: 1
+        type: string
+      end:
+        format: date-time
+        type: string
+      isReadonly:
+        type: boolean
+      name:
+        minLength: 1
+        type: string
+      start:
+        format: date-time
+        type: string
+  OfferingRequired:
+    allOf:
+      - $ref: '#/definitions/Offering'
+    required:
+      - contentId                        # <-- all required properties are inherited
+      - start
+      - end
+  OfferingMetadataResponse:
+    properties:
+      contentId:
+        minLength: 1
+        type: string
