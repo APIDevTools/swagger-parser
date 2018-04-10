@@ -170,10 +170,6 @@ describe('Real-world APIs', function () {
         api: 'azure.com', error: 'has multiple path placeholders named {location}',
         whatToDo: 'ignore',
       },
-      {
-        api: 'azure.com', error: 'Required property \'location\' does not exist',
-        whatToDo: 'ignore',
-      },
 
       // Stoplight.io's API definition uses multi-type schemas, which isn't allowed by Swagger 2.0
       {
@@ -184,36 +180,6 @@ describe('Real-world APIs', function () {
       // VersionEye's API definition is missing MIME types
       {
         api: 'versioneye.com', error: 'has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded',
-        whatToDo: 'ignore',
-      },
-
-      // Many API definitions have data models with required properties that aren't defined
-      {
-        api: 'azure.com:apimanagement-apimdeployment', error: 'Required property \'sku\' does not exist',
-        whatToDo: 'ignore',
-      },
-      {
-        api: 'azure.com:compute', error: 'Required property \'name\' does not exist',
-        whatToDo: 'ignore',
-      },
-      {
-        api: 'azure.com:recoveryservices-registeredidentities', error: 'Required property \'certificate\' does not exist',
-        whatToDo: 'ignore',
-      },
-      {
-        api: 'azure.com:resources', error: 'Required property \'code\' does not exist',
-        whatToDo: 'ignore',
-      },
-      {
-        api: 'azure.com:servicefabric', error: 'Required property \'ServiceKind\' does not exist',
-        whatToDo: 'ignore',
-      },
-      {
-        api: 'azure.com:timeseriesinsights', error: 'Required property \'dataRetentionTime\' does not exist',
-        whatToDo: 'ignore',
-      },
-      {
-        api: 'iqualify.com', error: 'Required property \'contentId\' does not exist',
         whatToDo: 'ignore',
       },
     ];
