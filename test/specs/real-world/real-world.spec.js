@@ -3,7 +3,7 @@ describe('Real-world APIs', function () {
 
   var realWorldAPIs = [];
   var apiIndex = 0;
-  var safeToIgnore = getKnownApiErrors();
+  var knownApiErrors = getKnownApiErrors();
 
   before(function (done) {
     // This hook sometimes takes several seconds, due to the large download
@@ -27,7 +27,7 @@ describe('Real-world APIs', function () {
         delete apis['bungie.net'];
         delete apis['stripe.com'];
 
-        // Transform the list into an array of {name: string, url: string}
+        // Flatten the list, so there's an API object for every API version
         realWorldAPIs = [];
         Object.keys(apis).forEach(function (apiName) {
           Object.keys(apis[apiName].versions).forEach(function (version) {
@@ -46,7 +46,7 @@ describe('Real-world APIs', function () {
     // Some of these APIs are vary large, so we need to increase the timouts
     // to allow time for them to be downloaded, dereferenced, and validated.
     // so we need to increase the timeouts to allow for that
-    this.currentTest.timeout(30000);
+    this.currentTest.timeout(60000);
     this.currentTest.slow(5000);
   });
 
@@ -56,27 +56,16 @@ describe('Real-world APIs', function () {
     it(i + ') ', testNextAPI);
   }
 
+  /**
+   * This Mocha test is repeated for each API in the APIs.guru registry
+   */
   function testNextAPI (done) {
     // Get the next API to test
     var api = realWorldAPIs[apiIndex++];
 
     if (api) {
       this.test.title += api.name + ' ' + (api.version[0] === 'v' ? api.version : 'v' + api.version);
-
-      // Validate this API
-      SwaggerParser.validate(api.swaggerYamlUrl)
-        .then(function () {
-          done();
-        })
-        .catch(function (err) {
-          if (shouldIgnoreError(api, err)) {
-            done();
-          }
-          else {
-            console.error('\n\nERROR IN THIS API:', JSON.stringify(api, null, 2));
-            done(err);
-          }
-        });
+      validateApi(api).then(done);
     }
     else {
       // There are no more APIs to test
@@ -86,69 +75,147 @@ describe('Real-world APIs', function () {
   }
 
   /**
-   * Determines whether an API validation error is safe to ignore.
-   * It checks for known validation errors in certain API definitions on APIs.guru
+   * Downloads an API definition and validates it.  Automatically retries if the download fails.
    */
-  function shouldIgnoreError (api, error) {
-    for (var i = 0; i < safeToIgnore.length; i++) {
-      var expected = safeToIgnore[i];
-      var actual = { api: api.name, error: error.message };
+  function validateApi (api, attemptNumber) {
+    attemptNumber = attemptNumber || 1;
 
-      if (isMatch(actual, expected)) {
-        // This error is safe to ignore because it's a known problem with this API definition
-        return true;
-      }
-    }
+    return SwaggerParser.validate(api.swaggerYamlUrl)
+      .then(function () {
+        return null;
+      })
+      .catch(function (error) {
+        var knownError = knownApiErrors.find(isMatch(api, error));
+
+        if (!knownError) {
+          console.error('\n\nERROR IN THIS API:', JSON.stringify(api, null, 2));
+          throw error;
+        }
+
+        if (knownError.whatToDo === 'ignore') {
+          // Ignore the error.  It's a known problem with this API
+          return null;
+        }
+
+        if (knownError.whatToDo === 'retry') {
+          if (attemptNumber >= 3) {
+            console.error('    failed to download.  aborting');
+            throw error;
+          }
+          else {
+            // Wait a few seconds, then try the download again
+            return new Promise(
+              function (resolve) {
+                console.error('    failed to download.  trying again...');
+                setTimeout(resolve, 2000);
+              })
+              .then(function () {
+                return validateApi(api, attemptNumber + 1);
+              });
+          }
+        }
+      });
   }
 
   /**
-   * Determines whether an API and error match a known error that is safe to ignore.
+   * Determines whether an API and error match a known error.
    */
-  function isMatch (actual, expected) {
-    if (typeof expected.api === 'string' && actual.api.indexOf(expected.api) === -1) {
-      return false;
-    }
+  function isMatch (api, error) {
+    return function (knownError) {
+      if (typeof knownError.api === 'string' && api.name.indexOf(knownError.api) === -1) {
+        return false;
+      }
 
-    if (typeof expected.error === 'string' && actual.error.indexOf(expected.error) === -1) {
-      return false;
-    }
+      if (typeof knownError.error === 'string' && error.message.indexOf(knownError.error) === -1) {
+        return false;
+      }
 
-    if (expected.error instanceof RegExp && !expected.error.test(actual.error)) {
-      return false;
-    }
+      if (knownError.error instanceof RegExp && !knownError.error.test(error.message)) {
+        return false;
+      }
 
-    return true;
+      return true;
+    };
   }
 
   /**
    * Returns a list of known validation errors in certain API definitions on APIs.guru.
    */
   function getKnownApiErrors () {
-    var safeToIgnore = [
+    var knownErrors = [
+      // If the API definition failed to download, then retry
+      {
+        error: /Error downloading https?:.*swagger\.yaml/,
+        whatToDo: 'retry',
+      },
+      {
+        error: 'socket hang up',
+        whatToDo: 'retry',
+      },
+
       // Swagger 3.0 files aren't supported yet
-      { error: 'not a valid Swagger API definition' },
+      {
+        error: 'not a valid Swagger API definition',
+        whatToDo: 'ignore',
+      },
 
       // Many Azure API definitions erroneously reference external files that don't exist
-      { api: 'azure.com', error: /Error downloading .*\.json\s+HTTP ERROR 404/ },
+      {
+        api: 'azure.com', error: /Error downloading .*\.json\s+HTTP ERROR 404/,
+        whatToDo: 'ignore',
+      },
 
       // Many Azure API definitions have endpoints with multiple "location" placeholders, which is invalid
-      { api: 'azure.com', error: 'has multiple path placeholders named {location}' },
-      { api: 'azure.com', error: 'Required property \'location\' does not exist' },
+      {
+        api: 'azure.com', error: 'has multiple path placeholders named {location}',
+        whatToDo: 'ignore',
+      },
+      {
+        api: 'azure.com', error: 'Required property \'location\' does not exist',
+        whatToDo: 'ignore',
+      },
 
       // Stoplight.io's API definition uses multi-type schemas, which isn't allowed by Swagger 2.0
-      { api: 'stoplight.io', error: 'invalid response schema type (object,string)' },
+      {
+        api: 'stoplight.io', error: 'invalid response schema type (object,string)',
+        whatToDo: 'ignore',
+      },
 
       // VersionEye's API definition is missing MIME types
-      { api: 'versioneye.com', error: 'has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded' },
+      {
+        api: 'versioneye.com', error: 'has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded',
+        whatToDo: 'ignore',
+      },
 
       // Many API definitions have data models with required properties that aren't defined
-      { api: 'azure.com:apimanagement-apimdeployment', error: 'Required property \'sku\' does not exist' },
-      { api: 'azure.com:compute', error: 'Required property \'name\' does not exist' },
-      { api: 'azure.com:recoveryservices-registeredidentities', error: 'Required property \'certificate\' does not exist' },
-      { api: 'azure.com:resources', error: 'Required property \'code\' does not exist' },
-      { api: 'azure.com:servicefabric', error: 'Required property \'ServiceKind\' does not exist' },
-      { api: 'azure.com:timeseriesinsights', error: 'Required property \'dataRetentionTime\' does not exist' },
-      { api: 'iqualify.com', error: 'Required property \'contentId\' does not exist' },
+      {
+        api: 'azure.com:apimanagement-apimdeployment', error: 'Required property \'sku\' does not exist',
+        whatToDo: 'ignore',
+      },
+      {
+        api: 'azure.com:compute', error: 'Required property \'name\' does not exist',
+        whatToDo: 'ignore',
+      },
+      {
+        api: 'azure.com:recoveryservices-registeredidentities', error: 'Required property \'certificate\' does not exist',
+        whatToDo: 'ignore',
+      },
+      {
+        api: 'azure.com:resources', error: 'Required property \'code\' does not exist',
+        whatToDo: 'ignore',
+      },
+      {
+        api: 'azure.com:servicefabric', error: 'Required property \'ServiceKind\' does not exist',
+        whatToDo: 'ignore',
+      },
+      {
+        api: 'azure.com:timeseriesinsights', error: 'Required property \'dataRetentionTime\' does not exist',
+        whatToDo: 'ignore',
+      },
+      {
+        api: 'iqualify.com', error: 'Required property \'contentId\' does not exist',
+        whatToDo: 'ignore',
+      },
     ];
 
     var nodeVersion = parseFloat(process.version.substr(1));
@@ -158,12 +225,13 @@ describe('Real-world APIs', function () {
       // They work fine on Node 8+ though.  Examples of problematic RegExp include:
       //    ^[0-9A-Za-z\.\-_]*(?<!\.)$
       //    jdbc:(redshift|postgresql)://((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+redshift\.amazonaws\.com:\d{1,5}/[a-zA-Z0-9_$]+
-      safeToIgnore.push({
+      knownErrors.push({
         api: 'amazonaws.com',
         error: "Object didn't pass validation for format regex",
+        whatToDo: 'ignore',
       });
     }
 
-    return safeToIgnore;
+    return knownErrors;
   }
 });
