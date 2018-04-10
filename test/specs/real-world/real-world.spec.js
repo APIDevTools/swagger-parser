@@ -65,7 +65,7 @@ describe('Real-world APIs', function () {
 
     if (api) {
       this.test.title += api.name + ' ' + (api.version[0] === 'v' ? api.version : 'v' + api.version);
-      validateApi(api).then(done);
+      validateApi(api).then(done, done);
     }
     else {
       // There are no more APIs to test
@@ -99,14 +99,14 @@ describe('Real-world APIs', function () {
 
         if (knownError.whatToDo === 'retry') {
           if (attemptNumber >= 3) {
-            console.error('    failed to download.  aborting');
+            console.error('        failed to download.  aborting');
             throw error;
           }
           else {
             // Wait a few seconds, then try the download again
             return new Promise(
               function (resolve) {
-                console.error('    failed to download.  trying again...');
+                console.error('        failed to download.  trying again...');
                 setTimeout(resolve, 2000);
               })
               .then(function () {
