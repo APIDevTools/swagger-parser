@@ -184,11 +184,14 @@ describe('Real-world APIs', function () {
       },
     ];
 
-    if (host.node && host.node.version < 8) {
-      // Many AWS APIs contain RegEx patterns that are invalid on older versions of Node.
-      // They work fine on Node 8+ though.  Examples of problematic RegExp include:
+    if ((host.node && host.node.version < 8) || (host.browser && !host.browser.chrome)) {
+      // Many AWS APIs contain RegEx patterns that are invalid on older versions of Node
+      // and some browsers. They work fine on Node 8+ and Chrome though.
+      //
+      // Examples of problematic RegExp include:
       //    ^[0-9A-Za-z\.\-_]*(?<!\.)$
       //    jdbc:(redshift|postgresql)://((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+redshift\.amazonaws\.com:\d{1,5}/[a-zA-Z0-9_$]+
+      //
       knownErrors.push({
         api: 'amazonaws.com',
         error: "Object didn't pass validation for format regex",
