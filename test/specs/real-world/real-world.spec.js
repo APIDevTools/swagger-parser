@@ -218,9 +218,7 @@ describe('Real-world APIs', function () {
       },
     ];
 
-    var nodeVersion = parseFloat(process.version.substr(1));
-
-    if (nodeVersion < 8) {
+    if (host.node && host.node.version < 8) {
       // Many AWS APIs contain RegEx patterns that are invalid on older versions of Node.
       // They work fine on Node 8+ though.  Examples of problematic RegExp include:
       //    ^[0-9A-Za-z\.\-_]*(?<!\.)$

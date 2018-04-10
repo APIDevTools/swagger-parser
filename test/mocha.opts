@@ -1,5 +1,6 @@
 --bail
 --async-only
 --recursive
+--require karma-host-environment
 test/fixtures
 test/specs

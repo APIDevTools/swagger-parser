@@ -7,10 +7,17 @@ extends:
   - modular/browser
 
 globals:
+  # Swagger Parser
   SwaggerParser: true
-  helper: true
-  userAgent: true
+
+  # karma-host-environment
+  # https://www.npmjs.com/package/karma-host-environment
+  host: false
+
+  # SuperAgent
+  # https://visionmedia.github.io/superagent/
   superagent: true
+
+  # Test Fixtures
+  helper: true
   path: true
-  chai: true
-  expect: true

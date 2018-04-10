@@ -9,15 +9,9 @@
 (function () {
   'use strict';
 
-  if (typeof window === 'object') {
+  if (host.browser) {
     // Expose Browser globals
-    window.global = window;
     window.expect = chai.expect;
-    window.userAgent = {
-      isNode: false,
-      isBrowser: true,
-      isKarma: !!window.__karma__
-    };
   }
   else {
     // Expose Node globals
@@ -25,12 +19,6 @@
     global.superagent = require('superagent');
     global.expect = require('chai').expect;
     global.path = require('path');
-
-    global.userAgent = {
-      isNode: true,
-      isBrowser: false,
-      isTravisCI: !!process.env.TRAVIS
-    };
   }
 
 }());

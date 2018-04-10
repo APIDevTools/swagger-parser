@@ -3,7 +3,7 @@
 'use strict';
 
 var baseConfig = {
-  frameworks: ['mocha'],
+  frameworks: ['mocha', 'karma-host-environment'],
   reporters: ['verbose'],
 
   // We test against 600+ real-world APIs, each of which is a pretty large download.

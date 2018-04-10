@@ -2,7 +2,7 @@
   'use strict';
 
   var path;
-  if (userAgent.isNode) {
+  if (host.node) {
     path = filesystemPathHelpers();
   }
   else {
@@ -15,8 +15,8 @@
    * Helper functions for getting local filesystem paths in various formats
    */
   function filesystemPathHelpers () {
-    var _path = userAgent.isNode ? require('path') : null;
-    var _url = userAgent.isNode ? require('url') : null;
+    var _path = host.node ? require('path') : null;
+    var _url = host.node ? require('url') : null;
     var _testsDir = _path.resolve(__dirname, '..');
     var _isWindows = /^win/.test(process.platform);
 
