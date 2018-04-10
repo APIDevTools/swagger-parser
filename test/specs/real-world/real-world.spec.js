@@ -99,8 +99,8 @@ describe('Real-world APIs', function () {
 
         if (knownError.whatToDo === 'retry') {
           if (attemptNumber >= 3) {
-            console.error('        failed to download.  aborting');
-            throw error;
+            console.error('        failed to download.  giving up.');
+            return null;
           }
           else {
             // Wait a few seconds, then try the download again
