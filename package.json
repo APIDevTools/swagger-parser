@@ -76,7 +76,7 @@
   "dependencies": {
     "call-me-maybe": "^1.0.1",
     "debug": "^3.1.0",
-    "json-schema-ref-parser": "^5.0.1",
+    "json-schema-ref-parser": "^5.0.3",
     "ono": "^4.0.5",
     "swagger-methods": "^1.0.4",
     "swagger-schema-official": "2.0.0-bab6bed",
