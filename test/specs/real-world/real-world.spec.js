@@ -85,7 +85,7 @@ describe('Real-world APIs', function () {
         return null;
       })
       .catch(function (error) {
-        var knownError = knownApiErrors.find(isMatch(api, error));
+        var knownError = findKnownApiError(api, error);
 
         if (!knownError) {
           console.error('\n\nERROR IN THIS API:', JSON.stringify(api, null, 2));
@@ -120,22 +120,24 @@ describe('Real-world APIs', function () {
   /**
    * Determines whether an API and error match a known error.
    */
-  function isMatch (api, error) {
-    return function (knownError) {
+  function findKnownApiError (api, error) {
+    for (var i = 0; i < knownApiErrors.length; i++) {
+      var knownError = knownApiErrors[i];
+
       if (typeof knownError.api === 'string' && api.name.indexOf(knownError.api) === -1) {
-        return false;
+        continue;
       }
 
       if (typeof knownError.error === 'string' && error.message.indexOf(knownError.error) === -1) {
-        return false;
+        continue;
       }
 
       if (knownError.error instanceof RegExp && !knownError.error.test(error.message)) {
-        return false;
+        continue;
       }
 
       return true;
-    };
+    }
   }
 
   /**
