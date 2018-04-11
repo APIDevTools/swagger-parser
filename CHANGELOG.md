@@ -3,6 +3,13 @@ All notable changes will be documented in this file.
 Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [v4.1.0](https://github.com/BigstickCarpet/swagger-parser/tree/v4.1.0) (2018-04-11)
+
+- [@marcelstoer](https://github.com/marcelstoer) submitted [PR #83](https://github.com/BigstickCarpet/swagger-parser/pull/83) and [PR #84](https://github.com/BigstickCarpet/swagger-parser/pull/84), both of which improve the [`validate()` method](https://github.com/BigstickCarpet/swagger-parser/blob/master/docs/swagger-parser.md#validateapi-options-callback).  It will now detect when a JSON Schema in your API definition has `required` properties that don't exist.
+
+[Full Changelog](https://github.com/BigstickCarpet/swagger-parser/compare/v4.0.0...v4.1.0)
+
+
 ## [v4.0.0](https://github.com/BigstickCarpet/swagger-parser/tree/v4.0.0) (2017-10-19)
 
 #### Breaking Changes
