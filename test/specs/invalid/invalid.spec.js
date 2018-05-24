@@ -7,7 +7,7 @@ describe('Invalid APIs (can\'t be parsed)', function () {
       .then(helper.shouldNotGetCalled)
       .catch(function (err) {
         expect(err).to.be.an.instanceOf(SyntaxError);
-        expect(err.message).to.contain('not-swagger.yaml is not a valid Swagger API definition');
+        expect(err.message).to.contain('not-swagger.yaml is not a valid Openapi API definition');
       });
   });
 
