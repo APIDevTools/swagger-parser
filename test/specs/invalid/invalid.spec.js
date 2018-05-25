@@ -17,7 +17,7 @@ describe('Invalid APIs (can\'t be parsed)', function () {
       .then(helper.shouldNotGetCalled)
       .catch(function (err) {
         expect(err).to.be.an.instanceOf(SyntaxError);
-        expect(err.message).to.equal('Unsupported Swagger version: 1.2. Swagger Parser only supports version 2.0');
+        expect(err.message).to.equal('Unrecognized Swagger version: 1.2. Expected 2.0');
       });
   });
 
@@ -27,7 +27,7 @@ describe('Invalid APIs (can\'t be parsed)', function () {
       .then(helper.shouldNotGetCalled)
       .catch(function (err) {
         expect(err).to.be.an.instanceOf(SyntaxError);
-        expect(err.message).to.equal('Unsupported Swagger version: 3. Swagger Parser only supports version 2.0');
+        expect(err.message).to.equal('Unrecognized Swagger version: 3. Expected 2.0');
       });
   });
 
