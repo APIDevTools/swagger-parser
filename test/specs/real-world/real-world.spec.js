@@ -155,12 +155,6 @@ describe('Real-world APIs', function () {
         whatToDo: 'retry',
       },
 
-      // Swagger 3.0 files aren't supported yet
-      {
-        error: 'not a valid Swagger API definition',
-        whatToDo: 'ignore',
-      },
-
       // Many Azure API definitions erroneously reference external files that don't exist
       {
         api: 'azure.com', error: /Error downloading .*\.json\s+HTTP ERROR 404/,
