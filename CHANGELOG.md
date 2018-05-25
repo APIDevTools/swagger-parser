@@ -3,6 +3,13 @@ All notable changes will be documented in this file.
 Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [v5.0.0](https://github.com/BigstickCarpet/swagger-parser/tree/v5.0.0) (2018-05-25)
+
+- After [months](https://github.com/BigstickCarpet/swagger-parser/issues/62) and [months](https://github.com/BigstickCarpet/swagger-parser/issues/72) of delays, initial support for OpenAPI 3.0 is finally here!  A big "Thank You!" to [Leo Long](https://github.com/yujunlong2000) for doing the work and submitting [PR #88](https://github.com/BigstickCarpet/swagger-parser/pull/88).
+
+[Full Changelog](https://github.com/BigstickCarpet/swagger-parser/compare/v4.1.0...v5.0.0)
+
+
 ## [v4.1.0](https://github.com/BigstickCarpet/swagger-parser/tree/v4.1.0) (2018-04-11)
 
 - [@marcelstoer](https://github.com/marcelstoer) submitted [PR #83](https://github.com/BigstickCarpet/swagger-parser/pull/83) and [PR #84](https://github.com/BigstickCarpet/swagger-parser/pull/84), both of which improve the [`validate()` method](https://github.com/BigstickCarpet/swagger-parser/blob/master/docs/swagger-parser.md#validateapi-options-callback).  It will now detect when a JSON Schema in your API definition has `required` properties that don't exist.

@@ -1,4 +1,4 @@
-Swagger Parser
+Swagger/OpenAPI Parser
 ============================
 #### Swagger 2.0 and OpenAPI 3.0 parser and validator for Node and browsers
 
