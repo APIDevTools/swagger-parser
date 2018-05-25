@@ -1,5 +1,5 @@
 /*!
- * Swagger Parser v4.1.0 (May 25th 2018)
+ * Swagger Parser v5.0.0 (May 25th 2018)
  * 
  * http://bigstickcarpet.com/swagger-parser
  * 
@@ -532,15 +532,17 @@ exports.encode = exports.stringify = require('./encode');
 
 var debug = location.hostname === 'localhost';
 
+module.exports = analytics;
+
 /**
  * Initializes Google Analytics and sends a "pageview" hit
  */
-exports.init = function () {
+function analytics () {
   if (!debug) {
     ga('create', 'UA-68102273-1', 'auto');
     ga('send', 'pageview');
   }
-};
+}
 
 /**
  * Tracks an event in Google Analytics
@@ -550,7 +552,7 @@ exports.init = function () {
  * @param {string} [label] - label for categorization
  * @param {number} [value] - numeric value, such as a counter
  */
-exports.trackEvent = function (category, action, label, value) {
+analytics.trackEvent = function (category, action, label, value) {
   if (debug) {
     console.log('Reporting an event to Google Analytics: ', category, action, label, value);
   }
@@ -564,7 +566,7 @@ exports.trackEvent = function (category, action, label, value) {
  *
  * @param {Error} err
  */
-exports.trackError = function (err) {
+analytics.trackError = function (err) {
   if (debug) {
     console.error('Reporting an error to Google Analytics: ', err);
   }
@@ -579,10 +581,15 @@ exports.trackError = function (err) {
 var form = require('./form'),
     analytics = require('./analytics');
 
+module.exports = dropdowns;
+
 /**
  * Adds all the drop-down menu functionality
  */
-exports.init = function () {
+function dropdowns () {
+  // Set the initial method name (in case it was set by the querystring module)
+  setSelectedMethod(form.method.button.val());
+
   // Update each dropdown's label when its value(s) change
   onChange(form.allow.menu, setAllowLabel);
   onChange(form.refs.menu, setRefsLabel);
@@ -600,15 +607,14 @@ exports.init = function () {
   trackCheckbox(form.validate.spec);
 
   // Change the button text whenever a new method is selected
-  setButtonLabel(form.method.button.val());
   form.method.menu.find('a').on('click', function (event) {
     form.method.menu.dropdown('toggle');
     event.stopPropagation();
     var methodName = $(this).data('value');
-    setButtonLabel(methodName);
+    setSelectedMethod(methodName);
     trackButtonLabel(methodName);
   });
-};
+}
 
 /**
  * Calls the given function whenever the user selects (or deselects)
@@ -700,13 +706,17 @@ function setValidateLabel () {
 }
 
 /**
- * Sets the "Validate!" button's text and value
+ * Updates the UI to match the specified method name
  *
  * @param {string} methodName - The method name (e.g. "validate", "dereference", etc.)
  */
-function setButtonLabel (methodName) {
+function setSelectedMethod (methodName) {
   form.method.button.val(methodName.toLowerCase());
-  form.method.button.text(methodName[0].toUpperCase() + methodName.substr(1) + ' it!');
+
+  methodName = methodName[0].toUpperCase() + methodName.substr(1);
+  form.method.button.text(methodName + ' it!');
+  form.tabs.url.text(methodName + ' a URL');
+  form.tabs.text.text(methodName + ' Text');
 }
 
 /**
@@ -758,28 +768,30 @@ var form = require('./form'),
     ono = require('ono'),
     ACE_THEME = 'ace/theme/terminal';
 
+module.exports = editors;
+
 /**
  * Initializes the ACE text editors
  */
-exports.init = function () {
-  this.sampleAPI = form.sampleAPI = ace.edit('sample-api');
-  form.sampleAPI.setTheme(ACE_THEME);
-  var session = form.sampleAPI.getSession();
+function editors () {
+  editors.textBox = form.textBox = ace.edit('text-box');
+  form.textBox.setTheme(ACE_THEME);
+  var session = form.textBox.getSession();
   session.setMode('ace/mode/yaml');
   session.setTabSize(2);
 
-  this.results = $('#results');
-  this.tabs = this.results.find('.nav-tabs');
-  this.panes = this.results.find('.tab-content');
+  editors.results = $('#results');
+  editors.tabs = editors.results.find('.nav-tabs');
+  editors.panes = editors.results.find('.tab-content');
 };
 
 /**
  * Removes all results tabs and editors
  */
-exports.clearResults = function () {
-  this.results.removeClass('error animated').addClass('hidden');
-  this.tabs.children().remove();
-  this.panes.children().remove();
+editors.clearResults = function () {
+  editors.results.removeClass('error animated').addClass('hidden');
+  editors.tabs.children().remove();
+  editors.panes.children().remove();
 };
 
 /**
@@ -788,9 +800,9 @@ exports.clearResults = function () {
  * @param {string} title - The title of the tab
  * @param {object|string} content - An object that will be displayed as JSON in the editor
  */
-exports.showResult = function (title, content) {
-  this.results.removeClass('hidden');
-  this.addResult(title || 'Sample API', content);
+editors.showResult = function (title, content) {
+  editors.results.removeClass('hidden');
+  editors.addResult(title || 'Sample API', content);
   showResults();
 };
 
@@ -799,9 +811,9 @@ exports.showResult = function (title, content) {
  *
  * @param {Error} err
  */
-exports.showError = function (err) {
-  this.results.removeClass('hidden').addClass('error');
-  this.addResult('Error!', err);
+editors.showError = function (err) {
+  editors.results.removeClass('hidden').addClass('error');
+  editors.addResult('Error!', err);
   showResults();
 };
 
@@ -811,19 +823,19 @@ exports.showError = function (err) {
  * @param {string} title - The title of the tab
  * @param {object|string} content - An object that will be displayed as JSON in the editor
  */
-exports.addResult = function (title, content) {
-  var index = this.tabs.children().length;
+editors.addResult = function (title, content) {
+  var index = editors.tabs.children().length;
   var titleId = 'results-tab-' + index + '-title';
   var editorId = 'results-' + index;
   var active = index === 0 ? 'active' : '';
 
   // Add a tab and pane
-  this.tabs.append(
+  editors.tabs.append(
     '<li id="results-tab-' + index + '" class="' + active + '" role="presentation">' +
     ' <a id="' + titleId + '" href="#results-pane-' + index + '" role="tab" aria-controls="results-pane-' + index + '" data-toggle="tab"></a>' +
     '</li>'
   );
-  this.panes.append(
+  editors.panes.append(
     '<div id="results-pane-' + index + '" class="tab-pane ' + active + '" role="tabpanel">' +
     '  <pre id="' + editorId + '" class="editor"></pre>' +
     '</div>'
@@ -831,11 +843,11 @@ exports.addResult = function (title, content) {
 
   // Set the tab title
   var shortTitle = getShortTitle(title);
-  this.tabs.find('#' + titleId).text(shortTitle).attr('title', title);
+  editors.tabs.find('#' + titleId).text(shortTitle).attr('title', title);
 
   // Set the <pre> content
   content = toText(content);
-  this.panes.find('#' + editorId).text(content.text);
+  editors.panes.find('#' + editorId).text(content.text);
 
   // Turn the <pre> into an Ace Editor
   var editor = ace.edit(editorId);
@@ -870,7 +882,7 @@ function getShortTitle (title) {
  * Ensures that the results are visible, and plays an animation to get the user's attention.
  */
 function showResults () {
-  var results = exports.results;
+  var results = editors.results;
 
   setTimeout(function () {
     results[0].scrollIntoView();
@@ -916,79 +928,93 @@ function toText (obj) {
 },{"./form":9,"ono":1}],9:[function(require,module,exports){
 'use strict';
 
+module.exports = form;
+
 /**
  * Finds all form fields and exposes them as properties.
  */
-exports.init = function () {
-  this.form = $('#swagger-parser-form');
+function form () {
+  form.form = $('#swagger-parser-form');
 
-  this.allow = {
-    label: this.form.find('#allow-label'),
-    menu: this.form.find('#allow-menu'),
-    json: this.form.find('input[name=allow-json]'),
-    yaml: this.form.find('input[name=allow-yaml]'),
-    text: this.form.find('input[name=allow-text]'),
-    empty: this.form.find('input[name=allow-empty]'),
-    unknown: this.form.find('input[name=allow-unknown]')
+  form.allow = {
+    label: form.form.find('#allow-label'),
+    menu: form.form.find('#allow-menu'),
+    json: form.form.find('input[name=allow-json]'),
+    yaml: form.form.find('input[name=allow-yaml]'),
+    text: form.form.find('input[name=allow-text]'),
+    empty: form.form.find('input[name=allow-empty]'),
+    unknown: form.form.find('input[name=allow-unknown]')
   };
 
-  this.refs = {
-    label: this.form.find('#refs-label'),
-    menu: this.form.find('#refs-menu'),
-    external: this.form.find('input[name=refs-external]'),
-    circular: this.form.find('input[name=refs-circular]')
+  form.refs = {
+    label: form.form.find('#refs-label'),
+    menu: form.form.find('#refs-menu'),
+    external: form.form.find('input[name=refs-external]'),
+    circular: form.form.find('input[name=refs-circular]')
   };
 
-  this.validate = {
-    label: this.form.find('#validate-label'),
-    menu: this.form.find('#validate-menu'),
-    schema: this.form.find('input[name=validate-schema]'),
-    spec: this.form.find('input[name=validate-spec]')
+  form.validate = {
+    label: form.form.find('#validate-label'),
+    menu: form.form.find('#validate-menu'),
+    schema: form.form.find('input[name=validate-schema]'),
+    spec: form.form.find('input[name=validate-spec]')
   };
 
-  this.tabs = {
-    yourAPI: this.form.find('#your-api-tab'),
-    sampleAPI: this.form.find('#sample-api-tab')
+  form.tabs = {
+    url: form.form.find('#url-tab'),
+    text: form.form.find('#text-tab')
   };
 
-  this.method = {
-    button: this.form.find('button[name=method]'),
-    menu: this.form.find('#method-menu')
+  form.method = {
+    button: form.form.find('button[name=method]'),
+    menu: form.form.find('#method-menu')
   };
 
-  this.url = this.form.find('input[name=url]');
-  this.bookmark = this.form.find('#bookmark');
+  form.samples = {
+    url: {
+      container: form.form.find('#url-sample'),
+      link: form.form.find('#url-sample-link'),
+    },
+    text: {
+      container: form.form.find('#text-sample'),
+      link: form.form.find('#text-sample-link'),
+    }
+  };
+
+  form.url = form.form.find('input[name=url]');
+  form.textBox = null; // This is set in editors.js
+  form.bookmark = form.form.find('#bookmark');
 };
 
 /**
  * Returns a Swagger Parser options object,
  * set to the current values of all the form fields.
  */
-exports.getOptions = function () {
+form.getOptions = function () {
   return {
     parse: {
-      json: this.allow.json.is(':checked') ? {
-        allowEmpty: this.allow.empty.is(':checked'),
+      json: form.allow.json.is(':checked') ? {
+        allowEmpty: form.allow.empty.is(':checked'),
       } : false,
-      yaml: this.allow.yaml.is(':checked') ? {
-        allowEmpty: this.allow.empty.is(':checked'),
+      yaml: form.allow.yaml.is(':checked') ? {
+        allowEmpty: form.allow.empty.is(':checked'),
       } : false,
-      text: this.allow.text.is(':checked') ? {
-        allowEmpty: this.allow.empty.is(':checked'),
+      text: form.allow.text.is(':checked') ? {
+        allowEmpty: form.allow.empty.is(':checked'),
       } : false,
-      binary: this.allow.unknown.is(':checked') ? {
-        allowEmpty: this.allow.empty.is(':checked'),
+      binary: form.allow.unknown.is(':checked') ? {
+        allowEmpty: form.allow.empty.is(':checked'),
       } : false,
     },
     resolve: {
-      external: this.refs.external.is(':checked'),
+      external: form.refs.external.is(':checked'),
     },
     dereference: {
-      circular: this.refs.circular.is(':checked'),
+      circular: form.refs.circular.is(':checked'),
     },
     validate: {
-      schema: this.validate.schema.is(':checked'),
-      spec: this.validate.spec.is(':checked'),
+      schema: form.validate.schema.is(':checked'),
+      spec: form.validate.spec.is(':checked'),
     },
   };
 };
@@ -996,21 +1022,28 @@ exports.getOptions = function () {
 /**
  * Returns the Swagger API or URL, depending on the current form fields.
  */
-exports.getAPI = function () {
-  var url = this.url.val();
-  if (url) {
-    return url;
-  }
-
-  var sampleAPI = this.sampleAPI.getValue();
-  if (this.allow.yaml.is(':checked')) {
-    return SwaggerParser.YAML.parse(sampleAPI);
-  }
-  else if (this.allow.json.is(':checked')) {
-    return JSON.parse(sampleAPI);
+form.getAPI = function () {
+  // Determine which tab is selected
+  if (form.tabs.url.parent().attr('class').indexOf('active') >= 0) {
+    var url = form.url.val();
+    if (url) {
+      return url;
+    }
+    else {
+      throw new URIError('Please specify the URL of your Swagger/OpenAPI definition');
+    }
   }
   else {
-    throw new SyntaxError('Unable to parse the API. Neither YAML nor JSON are allowed.');
+    var text = form.textBox.getValue();
+    if (form.allow.yaml.is(':checked')) {
+      return SwaggerParser.YAML.parse(text);
+    }
+    else if (form.allow.json.is(':checked')) {
+      return JSON.parse(text);
+    }
+    else {
+      throw new SyntaxError('Unable to parse the API. Neither YAML nor JSON are allowed.');
+    }
   }
 };
 
@@ -1021,32 +1054,36 @@ var form = require('./form'),
     querystring = require('./querystring'),
     dropdowns = require('./dropdowns'),
     editors = require('./editors'),
+    samples = require('./samples'),
     parser = require('./parser'),
     analytics = require('./analytics');
 
 $(function () {
-  form.init();
-  querystring.init();
-  dropdowns.init();
-  editors.init();
-  parser.init();
-  analytics.init();
+  form();
+  querystring();
+  dropdowns();
+  editors();
+  samples();
+  parser();
+  analytics();
 });
 
-},{"./analytics":6,"./dropdowns":7,"./editors":8,"./form":9,"./parser":11,"./querystring":12}],11:[function(require,module,exports){
+},{"./analytics":6,"./dropdowns":7,"./editors":8,"./form":9,"./parser":11,"./querystring":12,"./samples":13}],11:[function(require,module,exports){
 'use strict';
 
 var form = require('./form'),
     editors = require('./editors'),
     analytics = require('./analytics'),
     ono = require('ono'),
-    parser = null,
+    swaggerParser = null,
     counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
+
+module.exports = parser;
 
 /**
  * Adds event handlers to trigger Swagger Parser methods
  */
-exports.init = function () {
+function parser () {
   // When the form is submitted, parse the Swagger API
   form.form.on('submit', function (event) {
     event.preventDefault();
@@ -1055,7 +1092,7 @@ exports.init = function () {
 
   // When the "x" button is clicked, discard the results
   $('#clear').on('click', function () {
-    parser = null;
+    swaggerParser = null;
     editors.clearResults();
     analytics.trackEvent('results', 'clear');
   });
@@ -1071,16 +1108,16 @@ function parseSwagger () {
     editors.clearResults();
 
     // Get all the parameters
-    parser = parser || new SwaggerParser();
+    swaggerParser = swaggerParser || new SwaggerParser();
     var options = form.getOptions();
     var method = form.method.button.val();
     var api = form.getAPI();
 
     // Call Swagger Parser
-    parser[method](api, options)
+    swaggerParser[method](api, options)
       .then(function () {
         // Show the results
-        var results = parser.$refs.values();
+        var results = swaggerParser.$refs.values();
         Object.keys(results).forEach(function (key) {
           editors.showResult(key, results[key]);
         });
@@ -1103,13 +1140,15 @@ function parseSwagger () {
 },{"./analytics":6,"./editors":8,"./form":9,"ono":1}],12:[function(require,module,exports){
 'use strict';
 
-var querystring = require('querystring'),
+var qs = require('querystring'),
     form = require('./form');
+
+module.exports = querystring;
 
 /**
  * Initializes the UI, based on the query-string in the URL
  */
-exports.init = function () {
+function querystring () {
   setFormFields();
   setBookmarkURL();
   form.bookmark.on('click focus mouseenter', setBookmarkURL);
@@ -1119,7 +1158,7 @@ exports.init = function () {
  * Populates all form fields based on the query-string in the URL
  */
 function setFormFields () {
-  var query = querystring.parse(window.location.search.substr(1));
+  var query = qs.parse(window.location.search.substr(1));
 
   setCheckbox(form.allow.json, query['allow-json']);
   setCheckbox(form.allow.yaml, query['allow-yaml']);
@@ -1134,7 +1173,6 @@ function setFormFields () {
   // If a custom URL is specified, then show the "Your API" tab
   if (query.url) {
     form.url.val(query.url);
-    form.tabs.yourAPI.tab('show');
   }
 
   // If a method is specified, then change the "Validate!" button
@@ -1181,9 +1219,115 @@ function setBookmarkURL () {
   var url = form.url.val();
   url === '' || (query.url = url);
 
-  var bookmark = '?' + querystring.stringify(query);
+  var bookmark = '?' + qs.stringify(query);
   form.bookmark.attr('href', bookmark);
 }
 
-},{"./form":9,"querystring":5}]},{},[10])
+},{"./form":9,"querystring":5}],13:[function(require,module,exports){
+'use strict';
+
+var form = require('./form');
+
+module.exports = samples;
+
+/**
+ * Allows the user to use a sample URL or sample API text
+ */
+function samples () {
+  form.samples.url.link.on('click', function (event) {
+    event.preventDefault();
+    form.url.val(samples.url);
+  });
+
+  form.samples.text.link.on('click', function (event) {
+    event.preventDefault();
+    form.textBox.setValue(samples.text, -1);
+    form.samples.text.container.hide();
+    form.textBox.focus();
+  });
+
+  form.textBox.on('input', function () {
+    if (form.textBox.session.getValue().length === 0) {
+      form.samples.text.container.show();
+    }
+    else {
+      form.samples.text.container.hide();
+    }
+  });
+}
+
+samples.url = 'http://bigstickcarpet.com/swagger-parser/www/swagger.yaml';
+
+samples.text =
+  'swagger: "2.0"\n' +
+  'info:\n' +
+  '  version: 1.0.0\n' +
+  '  title: Swagger Petstore\n' +
+  '  description: >\n' +
+  '    A sample API that uses a petstore as an example\n' +
+  '    to demonstrate features in the swagger-2.0 specification\n' +
+  'consumes:\n' +
+  '  - application/json\n' +
+  'produces:\n' +
+  '  - application/json\n' +
+  'paths:\n' +
+  '  /pets:\n' +
+  '    get:\n' +
+  '      description: Returns all pets from the petstore\n' +
+  '      responses:\n' +
+  '        "200":\n' +
+  '          description: pet response\n' +
+  '          schema:\n' +
+  '            type: array\n' +
+  '            items:\n' +
+  '              $ref: "#/definitions/pet"\n' +
+  '        default:\n' +
+  '          description: unexpected error\n' +
+  '          schema:\n' +
+  '            $ref: "#/definitions/errorModel"\n' +
+  '    post:\n' +
+  '      description: Creates a new pet in the store\n' +
+  '      parameters:\n' +
+  '        - name: pet\n' +
+  '          in: body\n' +
+  '          description: Pet to add to the store\n' +
+  '          required: true\n' +
+  '          schema:\n' +
+  '            $ref: "#/definitions/pet"\n' +
+  '      responses:\n' +
+  '        "200":\n' +
+  '          description: pet response\n' +
+  '          schema:\n' +
+  '            $ref: "#/definitions/pet"\n' +
+  '        default:\n' +
+  '          description: unexpected error\n' +
+  '          schema:\n' +
+  '            $ref: "#/definitions/errorModel"\n' +
+  '  "/pets/{name}":\n' +
+  '    get:\n' +
+  '      description: Returns a single pet by name\n' +
+  '      parameters:\n' +
+  '        - name: name\n' +
+  '          in: path\n' +
+  '          description: Name of the pet to fetch\n' +
+  '          required: true\n' +
+  '          type: string\n' +
+  '      responses:\n' +
+  '        "200":\n' +
+  '          description: pet response\n' +
+  '          schema:\n' +
+  '            $ref: "#/definitions/pet"\n' +
+  '        default:\n' +
+  '          description: unexpected error\n' +
+  '          schema:\n' +
+  '            $ref: "#/definitions/errorModel"\n' +
+  'definitions:\n' +
+  '  pet:\n' +
+  '    $ref: pet.yaml\n' +
+  '  pet-owner:\n' +
+  '    $ref: pet-owner.yaml\n' +
+  '  errorModel:\n' +
+  '    $ref: error.json\n';
+
+},{"./form":9}]},{},[10])
 //# sourceMappingURL=bundle.js.map

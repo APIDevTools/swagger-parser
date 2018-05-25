@@ -134,3 +134,22 @@ footer {
     }
   }
 }
+
+
+/*
+ * Placeholder text
+ */
+.form-control {
+  &::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    color: $placeholder-color;
+  }
+  &::-moz-placeholder { /* Firefox 19+ */
+    color: $placeholder-color;
+  }
+  &:-ms-input-placeholder { /* IE 10+ */
+    color: $placeholder-color;
+  }
+  &:-moz-placeholder { /* Firefox 18- */
+    color: $placeholder-color;
+  }
+}

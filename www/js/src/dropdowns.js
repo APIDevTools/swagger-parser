@@ -3,10 +3,15 @@
 var form = require('./form'),
     analytics = require('./analytics');
 
+module.exports = dropdowns;
+
 /**
  * Adds all the drop-down menu functionality
  */
-exports.init = function () {
+function dropdowns () {
+  // Set the initial method name (in case it was set by the querystring module)
+  setSelectedMethod(form.method.button.val());
+
   // Update each dropdown's label when its value(s) change
   onChange(form.allow.menu, setAllowLabel);
   onChange(form.refs.menu, setRefsLabel);
@@ -24,15 +29,14 @@ exports.init = function () {
   trackCheckbox(form.validate.spec);
 
   // Change the button text whenever a new method is selected
-  setButtonLabel(form.method.button.val());
   form.method.menu.find('a').on('click', function (event) {
     form.method.menu.dropdown('toggle');
     event.stopPropagation();
     var methodName = $(this).data('value');
-    setButtonLabel(methodName);
+    setSelectedMethod(methodName);
     trackButtonLabel(methodName);
   });
-};
+}
 
 /**
  * Calls the given function whenever the user selects (or deselects)
@@ -124,13 +128,17 @@ function setValidateLabel () {
 }
 
 /**
- * Sets the "Validate!" button's text and value
+ * Updates the UI to match the specified method name
  *
  * @param {string} methodName - The method name (e.g. "validate", "dereference", etc.)
  */
-function setButtonLabel (methodName) {
+function setSelectedMethod (methodName) {
   form.method.button.val(methodName.toLowerCase());
-  form.method.button.text(methodName[0].toUpperCase() + methodName.substr(1) + ' it!');
+
+  methodName = methodName[0].toUpperCase() + methodName.substr(1);
+  form.method.button.text(methodName + ' it!');
+  form.tabs.url.text(methodName + ' a URL');
+  form.tabs.text.text(methodName + ' Text');
 }
 
 /**

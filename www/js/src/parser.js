@@ -4,13 +4,15 @@ var form = require('./form'),
     editors = require('./editors'),
     analytics = require('./analytics'),
     ono = require('ono'),
-    parser = null,
+    swaggerParser = null,
     counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
+
+module.exports = parser;
 
 /**
  * Adds event handlers to trigger Swagger Parser methods
  */
-exports.init = function () {
+function parser () {
   // When the form is submitted, parse the Swagger API
   form.form.on('submit', function (event) {
     event.preventDefault();
@@ -19,7 +21,7 @@ exports.init = function () {
 
   // When the "x" button is clicked, discard the results
   $('#clear').on('click', function () {
-    parser = null;
+    swaggerParser = null;
     editors.clearResults();
     analytics.trackEvent('results', 'clear');
   });
@@ -35,16 +37,16 @@ function parseSwagger () {
     editors.clearResults();
 
     // Get all the parameters
-    parser = parser || new SwaggerParser();
+    swaggerParser = swaggerParser || new SwaggerParser();
     var options = form.getOptions();
     var method = form.method.button.val();
     var api = form.getAPI();
 
     // Call Swagger Parser
-    parser[method](api, options)
+    swaggerParser[method](api, options)
       .then(function () {
         // Show the results
-        var results = parser.$refs.values();
+        var results = swaggerParser.$refs.values();
         Object.keys(results).forEach(function (key) {
           editors.showResult(key, results[key]);
         });

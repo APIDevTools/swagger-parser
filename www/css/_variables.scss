@@ -3,6 +3,7 @@ $darkest:                   #333;
 $dark:                      #777;
 $medium:                    rgba(255,255,255,.5);
 $light:                     #a9a9a9;
+$lighter:                   #ccc;
 $lightest:                  #fff;
 
 $contrast:                  #00be00;
@@ -44,3 +45,5 @@ $tab-pane-height:           30em;
 $editor-bg:                 $tab-bg;
 $editor-scrollbar-track:    darken($darkest, 5%);
 $editor-scrollbar-thumb:    $dark;
+
+$placeholder-color:         #d0d0d0;

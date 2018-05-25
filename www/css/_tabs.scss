@@ -43,10 +43,14 @@
     height: 100%;
     background-color: $tab-bg;
 
-    &#your-api-pane {
+    &#url-pane {
       position: relative;
       padding: 3em 0;
       text-align: center;
+
+      #url-sample {
+        margin: 2em;
+      }
 
       #bookmark {
         position: absolute;
@@ -63,11 +67,24 @@
         }
       }
     }
+
+    &#text-pane {
+      position: relative;
+
+      #text-sample {
+        position: absolute;
+        z-index: 1;
+        top: 45%;
+        left: 0;
+        width: 100%;
+        text-align: center;
+      }
+    }
   }
 
   @media (min-width: $breakpoint-sm) {
     > .tab-pane {
-      &#your-api-pane {
+      &#url-pane {
         padding: 10em 0;
       }
     }

@@ -1,12 +1,14 @@
 'use strict';
 
-var querystring = require('querystring'),
+var qs = require('querystring'),
     form = require('./form');
+
+module.exports = querystring;
 
 /**
  * Initializes the UI, based on the query-string in the URL
  */
-exports.init = function () {
+function querystring () {
   setFormFields();
   setBookmarkURL();
   form.bookmark.on('click focus mouseenter', setBookmarkURL);
@@ -16,7 +18,7 @@ exports.init = function () {
  * Populates all form fields based on the query-string in the URL
  */
 function setFormFields () {
-  var query = querystring.parse(window.location.search.substr(1));
+  var query = qs.parse(window.location.search.substr(1));
 
   setCheckbox(form.allow.json, query['allow-json']);
   setCheckbox(form.allow.yaml, query['allow-yaml']);
@@ -31,7 +33,6 @@ function setFormFields () {
   // If a custom URL is specified, then show the "Your API" tab
   if (query.url) {
     form.url.val(query.url);
-    form.tabs.yourAPI.tab('show');
   }
 
   // If a method is specified, then change the "Validate!" button
@@ -78,6 +79,6 @@ function setBookmarkURL () {
   var url = form.url.val();
   url === '' || (query.url = url);
 
-  var bookmark = '?' + querystring.stringify(query);
+  var bookmark = '?' + qs.stringify(query);
   form.bookmark.attr('href', bookmark);
 }

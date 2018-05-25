@@ -4,28 +4,30 @@ var form = require('./form'),
     ono = require('ono'),
     ACE_THEME = 'ace/theme/terminal';
 
+module.exports = editors;
+
 /**
  * Initializes the ACE text editors
  */
-exports.init = function () {
-  this.sampleAPI = form.sampleAPI = ace.edit('sample-api');
-  form.sampleAPI.setTheme(ACE_THEME);
-  var session = form.sampleAPI.getSession();
+function editors () {
+  editors.textBox = form.textBox = ace.edit('text-box');
+  form.textBox.setTheme(ACE_THEME);
+  var session = form.textBox.getSession();
   session.setMode('ace/mode/yaml');
   session.setTabSize(2);
 
-  this.results = $('#results');
-  this.tabs = this.results.find('.nav-tabs');
-  this.panes = this.results.find('.tab-content');
+  editors.results = $('#results');
+  editors.tabs = editors.results.find('.nav-tabs');
+  editors.panes = editors.results.find('.tab-content');
 };
 
 /**
  * Removes all results tabs and editors
  */
-exports.clearResults = function () {
-  this.results.removeClass('error animated').addClass('hidden');
-  this.tabs.children().remove();
-  this.panes.children().remove();
+editors.clearResults = function () {
+  editors.results.removeClass('error animated').addClass('hidden');
+  editors.tabs.children().remove();
+  editors.panes.children().remove();
 };
 
 /**
@@ -34,9 +36,9 @@ exports.clearResults = function () {
  * @param {string} title - The title of the tab
  * @param {object|string} content - An object that will be displayed as JSON in the editor
  */
-exports.showResult = function (title, content) {
-  this.results.removeClass('hidden');
-  this.addResult(title || 'Sample API', content);
+editors.showResult = function (title, content) {
+  editors.results.removeClass('hidden');
+  editors.addResult(title || 'Sample API', content);
   showResults();
 };
 
@@ -45,9 +47,9 @@ exports.showResult = function (title, content) {
  *
  * @param {Error} err
  */
-exports.showError = function (err) {
-  this.results.removeClass('hidden').addClass('error');
-  this.addResult('Error!', err);
+editors.showError = function (err) {
+  editors.results.removeClass('hidden').addClass('error');
+  editors.addResult('Error!', err);
   showResults();
 };
 
@@ -57,19 +59,19 @@ exports.showError = function (err) {
  * @param {string} title - The title of the tab
  * @param {object|string} content - An object that will be displayed as JSON in the editor
  */
-exports.addResult = function (title, content) {
-  var index = this.tabs.children().length;
+editors.addResult = function (title, content) {
+  var index = editors.tabs.children().length;
   var titleId = 'results-tab-' + index + '-title';
   var editorId = 'results-' + index;
   var active = index === 0 ? 'active' : '';
 
   // Add a tab and pane
-  this.tabs.append(
+  editors.tabs.append(
     '<li id="results-tab-' + index + '" class="' + active + '" role="presentation">' +
     ' <a id="' + titleId + '" href="#results-pane-' + index + '" role="tab" aria-controls="results-pane-' + index + '" data-toggle="tab"></a>' +
     '</li>'
   );
-  this.panes.append(
+  editors.panes.append(
     '<div id="results-pane-' + index + '" class="tab-pane ' + active + '" role="tabpanel">' +
     '  <pre id="' + editorId + '" class="editor"></pre>' +
     '</div>'
@@ -77,11 +79,11 @@ exports.addResult = function (title, content) {
 
   // Set the tab title
   var shortTitle = getShortTitle(title);
-  this.tabs.find('#' + titleId).text(shortTitle).attr('title', title);
+  editors.tabs.find('#' + titleId).text(shortTitle).attr('title', title);
 
   // Set the <pre> content
   content = toText(content);
-  this.panes.find('#' + editorId).text(content.text);
+  editors.panes.find('#' + editorId).text(content.text);
 
   // Turn the <pre> into an Ace Editor
   var editor = ace.edit(editorId);
@@ -116,7 +118,7 @@ function getShortTitle (title) {
  * Ensures that the results are visible, and plays an animation to get the user's attention.
  */
 function showResults () {
-  var results = exports.results;
+  var results = editors.results;
 
   setTimeout(function () {
     results[0].scrollIntoView();

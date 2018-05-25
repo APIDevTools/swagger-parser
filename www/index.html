@@ -100,7 +100,7 @@
                       <input type="checkbox" name="validate-schema" value="yes" data-value="schema" checked autocomplete="off"> Validate against Swagger/OpenAPI schema
                     </label></a></li>
                     <li><a id="validate-spec" class="checkbox"><label>
-                      <input type="checkbox" name="validate-spec" value="yes" data-value="spec" checked autocomplete="off"> Validate against Swagger 2.0 spec
+                      <input type="checkbox" name="validate-spec" value="yes" data-value="spec" checked autocomplete="off"> Validate against Swagger/OpenAPI spec
                     </label></a></li>
                   </ul>
                 </div>
@@ -125,94 +125,31 @@
             </div>
 
             <ul class="nav nav-tabs" role="tablist">
-              <li role="presentation">
-                <a id="your-api-tab" href="#your-api-pane" role="tab" aria-controls="your-api-pane" data-toggle="tab">Your API</a>
-              </li>
               <li class="active" role="presentation">
-                <a id="sample-api-tab" href="#sample-api-pane" role="tab" aria-controls="sample-api-pane" data-toggle="tab">Sample API</a>
+                <a id="url-tab" href="#url-pane" role="tab" aria-controls="url-pane" data-toggle="tab">Validate a URL</a>
+              </li>
+              <li role="presentation">
+                <a id="text-tab" href="#text-pane" role="tab" aria-controls="text-pane" data-toggle="tab">Validate Text</a>
               </li>
             </ul>
             <div class="tab-content">
-              <div id="your-api-pane" class="tab-pane" role="tabpanel">
+              <div id="url-pane" class="tab-pane active" role="tabpanel">
                 <div class="form-group">
                   <label for="url">Enter the URL of your Swagger/OpenAPI definition</label>
                   <div class="col-xs-12 col-sm-offset-2 col-sm-8">
                     <input type="url" id="url" name="url" class="form-control" placeholder="http://your-site.com/swagger.yaml">
+                    <p id="url-sample">
+                      or <a id="url-sample-link" href="#">use a sample</a> instead
+                    </p>
                   </div>
                 </div>
                 <a id="bookmark" href="#">bookmark these settings</a>
               </div>
-              <div id="sample-api-pane" class="tab-pane active" role="tabpanel">
-                <pre id="sample-api" class="editor">swagger: '2.0'
-info:
-  version: 1.0.0
-  title: Swagger Petstore
-  description: >
-    A sample API that uses a petstore as an example
-    to demonstrate features in the swagger-2.0 specification
-consumes:
-  - application/json
-produces:
-  - application/json
-paths:
-  /pets:
-    get:
-      description: Returns all pets from the petstore
-      responses:
-        '200':
-          description: pet response
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/pet'
-        default:
-          description: unexpected error
-          schema:
-            $ref: '#/definitions/errorModel'
-    post:
-      description: Creates a new pet in the store
-      parameters:
-        - name: pet
-          in: body
-          description: Pet to add to the store
-          required: true
-          schema:
-            $ref: '#/definitions/pet'
-      responses:
-        '200':
-          description: pet response
-          schema:
-            $ref: '#/definitions/pet'
-        default:
-          description: unexpected error
-          schema:
-            $ref: '#/definitions/errorModel'
-  '/pets/{name}':
-    get:
-      description: Returns a single pet by name
-      parameters:
-        - name: name
-          in: path
-          description: Name of the pet to fetch
-          required: true
-          type: string
-      responses:
-        '200':
-          description: pet response
-          schema:
-            $ref: '#/definitions/pet'
-        default:
-          description: unexpected error
-          schema:
-            $ref: '#/definitions/errorModel'
-definitions:
-  pet:
-    $ref: pet.yaml
-  pet-owner:
-    $ref: pet-owner.yaml
-  errorModel:
-    $ref: error.json
-</pre>
+              <div id="text-pane" class="tab-pane" role="tabpanel">
+                <pre id="text-box" class="editor"></pre>
+                <p id="text-sample">
+                  Paste your API definition, or <a id="text-sample-link" href="#">use a sample</a> instead
+                </p>
               </div>
             </div>
           </form>
@@ -262,7 +199,7 @@ definitions:
     <script src="polyfills/typedarray.js"></script>
 
     <!-- Swagger Parser -->
-    <script src="js/bundle.min.js"></script>
+    <script src="js/bundle.js"></script>
     <script src="../dist/swagger-parser.min.js"></script>
   </body>
 </html>
