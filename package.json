@@ -48,7 +48,7 @@
   "devDependencies": {
     "bower": "^1.8.2",
     "chai": "^4.1.2",
-    "codacy-coverage": "^2.1.0",
+    "codacy-coverage": "^3.0.0",
     "coveralls": "^3.0.0",
     "eslint": "^4.19.0",
     "eslint-config-modular": "^4.1.2",
