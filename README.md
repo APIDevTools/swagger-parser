@@ -1,13 +1,6 @@
-------------------------------------------------
-
-### OpenAPI v3.0 support coming soon!
-The next major release of Swagger Parser will include support for [OpenAPI v3.0](https://www.openapis.org/blog/2017/07/26/the-oai-announces-the-openapi-specification-3-0-0).  Swagger v2.0 will still be supported as well.  More details and an alpha version will be released soon.
-
-------------------------------------------------
-
 Swagger Parser
 ============================
-#### Swagger 2.0 parser and validator for Node and browsers
+#### Swagger 2.0 and OpenAPI 3.0 parser and validator for Node and browsers
 
 [![Build Status](https://api.travis-ci.org/BigstickCarpet/swagger-parser.svg?branch=master)](https://travis-ci.org/BigstickCarpet/swagger-parser)
 [![Dependencies](https://david-dm.org/BigstickCarpet/swagger-parser.svg)](https://david-dm.org/BigstickCarpet/swagger-parser)
@@ -27,7 +20,7 @@ Swagger Parser
 Features
 --------------------------
 - Parses Swagger specs in **JSON** or **YAML** format
-- Validates against the [Swagger 2.0 schema](https://github.com/swagger-api/swagger-spec/blob/master/schemas/v2.0/schema.json) _and_ the [Swagger 2.0 spec](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md)
+- Validates against the [Swagger 2.0 schema](https://github.com/swagger-api/swagger-spec/blob/master/schemas/v2.0/schema.json) or [OpenAPI 3.0 Schema](https://github.com/kogosoftwarellc/open-api/blob/master/packages/openapi-schema-validation/schema/openapi-3.0.json)
 - [Resolves](docs/swagger-parser.md#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
 - Can [bundle](docs/swagger-parser.md#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
 - Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with

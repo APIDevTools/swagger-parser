@@ -31,7 +31,7 @@ SwaggerParser.validate("my-api.yaml", {
     circular: false                 // Don't allow circular $refs
   },
   validate: {
-    spec: false                     // Don't validate against the Swagger 2.0 spec
+    spec: false                     // Don't validate against the Swagger spec
   }
 });
 ```
@@ -83,11 +83,13 @@ The `dereference` options control how Swagger Parser will dereference `$ref` poi
 -------------------
 The `validate` options control how Swagger Parser will validate the API.
 
-Swagger Parser comes with built-in support for validating against the [Official Swagger 2.0 Schema](https://github.com/OAI/OpenAPI-Specification/tree/master/schemas/v2.0) as well as the [Swagger 2.0 Specification](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md). The specification validator will catch some things that aren't covered by the Swagger 2.0 Schema, such as duplicate parameters, invalid MIME types, etc.
+Swagger Parser comes with built-in support for validating against the [Swagger 2.0 Schema](https://github.com/OAI/OpenAPI-Specification/tree/master/schemas/v2.0) and [OpenAPI 3.0 Schema](https://github.com/kogosoftwarellc/open-api/blob/master/packages/openapi-schema-validation/schema/openapi-3.0.json).  It can also validate against the [Swagger 2.0 Specification](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md). The specification validator will catch some things that aren't covered by the Swagger 2.0 Schema, such as duplicate parameters, invalid MIME types, etc.
+
+> **Note:** Validating against the [OpenAPI 3.0 Specification](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md) is not (yet) supported.  For now, the `validate.spec` option is ignored if your API is in OpenAPI 3.0 format.
 
 You can disable either (or both) of these built-in validators by setting them to false.
 
 |Option(s)             |Type                |Description
 |:---------------------|:-------------------|:------------
-|`schema`|`boolean`|Set to `false` to disable validating against the [Official Swagger 2.0 Schema](https://github.com/OAI/OpenAPI-Specification/tree/master/schemas/v2.0)
+|`schema`|`boolean`|Set to `false` to disable validating against the [Swagger 2.0 Schema](https://github.com/OAI/OpenAPI-Specification/tree/master/schemas/v2.0) or [OpenAPI 3.0 Schema](https://github.com/kogosoftwarellc/open-api/blob/master/packages/openapi-schema-validation/schema/openapi-3.0.json)
 |`spec`|`boolean`|Set to `false` to disable validating against the [Swagger 2.0 Specification](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md).

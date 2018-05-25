@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "description": "Swagger 2.0 parser and validator for Node and browsers",
+  "description": "Swagger 2.0 and 3.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
     "json",

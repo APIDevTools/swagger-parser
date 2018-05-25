@@ -63,7 +63,12 @@ A callback that will receive the dereferenced and validated [Swagger object](htt
 - **Return Value:** `Promise`<br>
 See [Callbacks vs. Promises](README.md#callbacks-vs-promises)
 
-Validates the Swagger API against the [Swagger 2.0 schema](https://github.com/swagger-api/swagger-spec/blob/master/schemas/v2.0/schema.json) and/or the [Swagger 2.0 spec](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md) (depending on the options).
+Validates the Swagger API against the [Swagger 2.0 schema](https://github.com/swagger-api/swagger-spec/blob/master/schemas/v2.0/schema.json) or [OpenAPI 3.0 Schema](https://github.com/kogosoftwarellc/open-api/blob/master/packages/openapi-schema-validation/schema/openapi-3.0.json).
+
+If [the `validate.spec` option](options.md#validate-options) is enabled, then this method also validates against the [Swagger 2.0 spec](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md). The specification validator will catch some things that aren't covered by the Swagger 2.0 Schema, such as duplicate parameters, invalid MIME types, etc.
+
+> **Note:** Validating against the [OpenAPI 3.0 Specification](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md) is not (yet) supported.  For now, the `validate.spec` option is ignored if your API is in OpenAPI 3.0 format.
+
 
 If validation fails, then an error will be passed to the callback function, or the Promise will reject. Either way, the error will contain information about why the API is invalid.
 
@@ -193,5 +198,3 @@ SwaggerParser.resolve("my-api.yaml")
     $refs.set("schemas/person.yaml#/properties/favoriteColor/default", "blue");
   });
 ```
-
-

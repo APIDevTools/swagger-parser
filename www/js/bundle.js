@@ -1,5 +1,5 @@
 /*!
- * Swagger Parser v4.0.2 (April 11th 2018)
+ * Swagger Parser v4.1.0 (May 25th 2018)
  * 
  * http://bigstickcarpet.com/swagger-parser
  * 
@@ -7,45 +7,6 @@
  * @license MIT
  */
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-function format(fmt) {
-  var re = /(%?)(%([jds]))/g
-    , args = Array.prototype.slice.call(arguments, 1);
-  if(args.length) {
-    fmt = fmt.replace(re, function(match, escaped, ptn, flag) {
-      var arg = args.shift();
-      switch(flag) {
-        case 's':
-          arg = '' + arg;
-          break;
-        case 'd':
-          arg = Number(arg);
-          break;
-        case 'j':
-          arg = JSON.stringify(arg);
-          break;
-      }
-      if(!escaped) {
-        return arg; 
-      }
-      args.unshift(arg);
-      return match;
-    })
-  }
-
-  // arguments remain after formatting
-  if(args.length) {
-    fmt += ' ' + args.join(' ');
-  }
-
-  // update escaped %% values
-  fmt = fmt.replace(/%{2,2}/g, '%');
-
-  return '' + fmt;
-}
-
-module.exports = format;
-
-},{}],2:[function(require,module,exports){
 'use strict';
 
 var format = require('format-util');
@@ -348,7 +309,46 @@ function lazyPopStack (error) {
   });
 }
 
-},{"format-util":1}],3:[function(require,module,exports){
+},{"format-util":2}],2:[function(require,module,exports){
+function format(fmt) {
+  var re = /(%?)(%([jds]))/g
+    , args = Array.prototype.slice.call(arguments, 1);
+  if(args.length) {
+    fmt = fmt.replace(re, function(match, escaped, ptn, flag) {
+      var arg = args.shift();
+      switch(flag) {
+        case 's':
+          arg = '' + arg;
+          break;
+        case 'd':
+          arg = Number(arg);
+          break;
+        case 'j':
+          arg = JSON.stringify(arg);
+          break;
+      }
+      if(!escaped) {
+        return arg; 
+      }
+      args.unshift(arg);
+      return match;
+    })
+  }
+
+  // arguments remain after formatting
+  if(args.length) {
+    fmt += ' ' + args.join(' ');
+  }
+
+  // update escaped %% values
+  fmt = fmt.replace(/%{2,2}/g, '%');
+
+  return '' + fmt;
+}
+
+module.exports = format;
+
+},{}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -913,7 +913,7 @@ function toText (obj) {
   }
 }
 
-},{"./form":9,"ono":2}],9:[function(require,module,exports){
+},{"./form":9,"ono":1}],9:[function(require,module,exports){
 'use strict';
 
 /**
@@ -1100,7 +1100,7 @@ function parseSwagger () {
   }
 }
 
-},{"./analytics":6,"./editors":8,"./form":9,"ono":2}],12:[function(require,module,exports){
+},{"./analytics":6,"./editors":8,"./form":9,"ono":1}],12:[function(require,module,exports){
 'use strict';
 
 var querystring = require('querystring'),
