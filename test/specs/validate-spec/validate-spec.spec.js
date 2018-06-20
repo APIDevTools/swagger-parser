@@ -99,6 +99,16 @@ describe('Invalid APIs (Swagger 2.0 specification validation)', function () {
       error: 'Validation failed. /paths/users/{username}/profile/image/post has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded'
     },
     {
+      name: '"file" param with vendor specific form-data "consumes"',
+      valid: true,
+      file: 'file-vendor-specific-consumes-formdata.yaml'
+    },
+    {
+      name: '"file" param with vendor specific urlencoded "consumes"',
+      valid: true,
+      file: 'file-vendor-specific-consumes-urlencoded.yaml'
+    },
+    {
       name: 'required property in input does not exist',
       valid: false,
       file: 'required-property-not-defined-input.yaml',
