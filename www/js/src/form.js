@@ -56,7 +56,7 @@ function form () {
   form.url = form.form.find('input[name=url]');
   form.textBox = null; // This is set in editors.js
   form.bookmark = form.form.find('#bookmark');
-};
+}
 
 /**
  * Returns a Swagger Parser options object,

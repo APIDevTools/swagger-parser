@@ -19,7 +19,7 @@ function editors () {
   editors.results = $('#results');
   editors.tabs = editors.results.find('.nav-tabs');
   editors.panes = editors.results.find('.tab-content');
-};
+}
 
 /**
  * Removes all results tabs and editors

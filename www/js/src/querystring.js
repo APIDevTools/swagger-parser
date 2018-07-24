@@ -12,7 +12,7 @@ function querystring () {
   setFormFields();
   setBookmarkURL();
   form.bookmark.on('click focus mouseenter', setBookmarkURL);
-};
+}
 
 /**
  * Populates all form fields based on the query-string in the URL

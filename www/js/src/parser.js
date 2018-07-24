@@ -25,7 +25,7 @@ function parser () {
     editors.clearResults();
     analytics.trackEvent('results', 'clear');
   });
-};
+}
 
 /**
  * This function is called when the "Validate it!" button is clicked.

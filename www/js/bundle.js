@@ -1,5 +1,5 @@
 /*!
- * Swagger Parser v5.0.0 (May 25th 2018)
+ * Swagger Parser v5.0.0 (July 24th 2018)
  * 
  * http://bigstickcarpet.com/swagger-parser
  * 
@@ -783,7 +783,7 @@ function editors () {
   editors.results = $('#results');
   editors.tabs = editors.results.find('.nav-tabs');
   editors.panes = editors.results.find('.tab-content');
-};
+}
 
 /**
  * Removes all results tabs and editors
@@ -984,7 +984,7 @@ function form () {
   form.url = form.form.find('input[name=url]');
   form.textBox = null; // This is set in editors.js
   form.bookmark = form.form.find('#bookmark');
-};
+}
 
 /**
  * Returns a Swagger Parser options object,
@@ -1096,7 +1096,7 @@ function parser () {
     editors.clearResults();
     analytics.trackEvent('results', 'clear');
   });
-};
+}
 
 /**
  * This function is called when the "Validate it!" button is clicked.
@@ -1152,7 +1152,7 @@ function querystring () {
   setFormFields();
   setBookmarkURL();
   form.bookmark.on('click focus mouseenter', setBookmarkURL);
-};
+}
 
 /**
  * Populates all form fields based on the query-string in the URL
