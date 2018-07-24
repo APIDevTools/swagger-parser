@@ -350,16 +350,18 @@ helper.bundled.deepCircular =
                     middle: {
                       type: 'string',
                       enum: [
-                        { $ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/first/type' },
-                        { $ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/first/title' }
+                        { $ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last/type' },
+                        { $ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last/title' }
                       ]
                     },
                     prefix: {
                       minLength: 3,
-                      $ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/first'
+                      $ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last'
                     },
                     last: {
-                      $ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/first'
+                      minLength: 1,
+                      type: 'string',
+                      title: 'requiredString'
                     },
                     suffix: {
                       $ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/prefix',
@@ -367,9 +369,7 @@ helper.bundled.deepCircular =
                       maxLength: 3
                     },
                     first: {
-                      minLength: 1,
-                      type: 'string',
-                      title: 'requiredString'
+                      $ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last'
                     }
                   },
                   title: 'name'
