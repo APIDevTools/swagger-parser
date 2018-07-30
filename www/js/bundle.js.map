@@ -1,12 +1,12 @@
 {
   "version": 3,
   "sources": [
-    "..\\..\\node_modules\\simplifyify\\node_modules\\browser-pack\\_prelude.js",
+    "..\\..\\node_modules\\browser-pack\\_prelude.js",
     "..\\..\\node_modules\\ono\\lib\\ono.js",
     "..\\..\\node_modules\\ono\\node_modules\\format-util\\format.js",
-    "..\\..\\node_modules\\simplifyify\\node_modules\\querystring-es3\\decode.js",
-    "..\\..\\node_modules\\simplifyify\\node_modules\\querystring-es3\\encode.js",
-    "..\\..\\node_modules\\simplifyify\\node_modules\\querystring-es3\\index.js",
+    "..\\..\\node_modules\\querystring-es3\\decode.js",
+    "..\\..\\node_modules\\querystring-es3\\encode.js",
+    "..\\..\\node_modules\\querystring-es3\\index.js",
     "src\\analytics.js",
     "src\\dropdowns.js",
     "src\\editors.js",
