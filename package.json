@@ -78,7 +78,7 @@
   "dependencies": {
     "call-me-maybe": "^1.0.1",
     "debug": "^3.1.0",
-    "json-schema-ref-parser": "^5.1.1",
+    "json-schema-ref-parser": "^5.1.2",
     "ono": "^4.0.5",
     "openapi-schema-validation": "^0.4.1",
     "swagger-methods": "^1.0.4",
