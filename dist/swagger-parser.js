@@ -1,5 +1,5 @@
 /*!
- * Swagger Parser v5.0.2 (July 30th 2018)
+ * Swagger Parser v5.0.3 (July 31st 2018)
  * 
  * http://bigstickcarpet.com/swagger-parser
  * 
@@ -11019,7 +11019,7 @@ function getResult (obj, prop, file, callback) {
 
 var isWindows = /^win/.test(process.platform),
     forwardSlashPattern = /\//g,
-    protocolPattern = /^([a-z0-9.+-]+):\/\//i,
+    protocolPattern = /^(\w{2,}):\/\//i,
     url = module.exports;
 
 // RegExp patterns to URL-encode special characters in local filesystem paths

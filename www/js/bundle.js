@@ -1,5 +1,5 @@
 /*!
- * Swagger Parser v5.0.1 (July 30th 2018)
+ * Swagger Parser v5.0.2 (July 31st 2018)
  * 
  * http://bigstickcarpet.com/swagger-parser
  * 
@@ -1256,7 +1256,7 @@ function samples () {
   });
 }
 
-samples.url = 'http://bigstickcarpet.com/swagger-parser/www/swagger.yaml';
+samples.url = 'https://bigstickcarpet.com/swagger-parser/www/swagger.yaml';
 
 samples.text =
   'swagger: "2.0"\n' +
