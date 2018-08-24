@@ -52,11 +52,11 @@
     "chai": "^4.1.2",
     "codacy-coverage": "^3.0.0",
     "coveralls": "^3.0.2",
-    "eslint": "^5.2.0",
+    "eslint": "^5.4.0",
     "eslint-config-modular": "^4.1.2",
     "http-server": "^0.11.1",
     "istanbul": "^0.4.5",
-    "karma": "^2.0.5",
+    "karma": "^3.0.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-cli": "^1.0.1",
     "karma-coverage": "^1.1.1",
@@ -69,8 +69,8 @@
     "karma-sauce-launcher": "^1.2.0",
     "karma-verbose-reporter": "0.0.6",
     "mocha": "^5.0.4",
-    "node-sass": "^4.9.2",
-    "npm-check": "^5.5.2",
+    "node-sass": "^4.9.3",
+    "npm-check": "^5.8.0",
     "simplifyify": "^4.0.3",
     "superagent": "^3.8.2",
     "version-bump-prompt": "^4.0.0"
@@ -78,11 +78,11 @@
   "dependencies": {
     "call-me-maybe": "^1.0.1",
     "debug": "^3.1.0",
-    "json-schema-ref-parser": "^5.1.2",
-    "ono": "^4.0.5",
-    "openapi-schema-validation": "^0.4.1",
+    "json-schema-ref-parser": "^5.1.3",
+    "ono": "^4.0.6",
+    "openapi-schema-validation": "^0.4.2",
     "swagger-methods": "^1.0.4",
     "swagger-schema-official": "2.0.0-bab6bed",
-    "z-schema": "^3.19.1"
+    "z-schema": "^3.23.0"
   }
 }
