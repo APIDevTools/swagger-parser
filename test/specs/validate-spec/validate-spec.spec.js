@@ -124,6 +124,12 @@ describe('Invalid APIs (Swagger 2.0 specification validation)', function () {
       name: 'schema declares required properties which are inherited (allOf)',
       valid: true,
       file: 'inherited-required-properties.yaml'
+    },
+    {
+      name: 'duplicate operation IDs',
+      valid: false,
+      file: 'duplicate-operation-ids.yaml',
+      error: 'Validation failed. Duplicate operation id \'users\''
     }
   ];
 
