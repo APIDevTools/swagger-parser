@@ -1,5 +1,5 @@
 /*!
- * Swagger Parser v5.0.4 (August 24th 2018)
+ * Swagger Parser v5.0.5 (August 24th 2018)
  * 
  * http://bigstickcarpet.com/swagger-parser
  * 
