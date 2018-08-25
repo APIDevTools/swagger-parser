@@ -130,6 +130,12 @@ describe('Invalid APIs (Swagger 2.0 specification validation)', function () {
       valid: false,
       file: 'duplicate-operation-ids.yaml',
       error: 'Validation failed. Duplicate operation id \'users\''
+    },
+    {
+      name: 'array response body without items',
+      valid: false,
+      file: 'array-response-body-no-items.yaml',
+      error: 'Validation failed. /paths/users/get/responses/200/schema is an array, so it must include an \"items\" schema'
     }
   ];
 
