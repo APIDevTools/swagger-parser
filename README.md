@@ -15,7 +15,7 @@ Swagger/OpenAPI Parser
 
 [![Browser Compatibility](https://saucelabs.com/browser-matrix/swagger-parser.svg)](https://saucelabs.com/u/swagger-parser)
 
-[![Online Demo](http://james-messinger.github.io/swagger-parser/www/img/demo.svg)](http://james-messinger.github.io/swagger-parser/)
+[![Online Demo](https://jamesmessinger.com/swagger-parser/www/img/demo.svg)](https://jamesmessinger.com/swagger-parser/)
 
 Features
 --------------------------
@@ -24,7 +24,7 @@ Features
 - [Resolves](docs/swagger-parser.md#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
 - Can [bundle](docs/swagger-parser.md#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
 - Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
-- **[Tested](http://james-messinger.github.io/swagger-parser/test/index.html)** in Node.js and all modern web browsers on Mac, Windows, and Linux
+- **[Tested](https://jamesmessinger.com/swagger-parser/test/index.html)** in Node.js and all modern web browsers on Mac, Windows, and Linux
 - Tested on **[over 1,000 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
 - Supports [circular references](docs/README.md#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
@@ -127,7 +127,7 @@ To build/test the project locally on your computer:
 `npm test` (test in Node and browsers, and report code coverage)
 
 5. __Start the local web server__<br>
-`npm start` (then browse to [http://localhost:8080/www/index.html](http://james-messinger.github.io/swagger-parser/www/index.html) or [http://localhost:8080/test/index.html](http://james-messinger.github.io/swagger-parser/test/index.html))
+`npm start` (then browse to [http://localhost:8080/www/index.html](https://jamesmessinger.com/swagger-parser/www/index.html) or [http://localhost:8080/test/index.html](https://jamesmessinger.com/swagger-parser/test/index.html))
 
 
 License

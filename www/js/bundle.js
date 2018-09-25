@@ -1,7 +1,7 @@
 /*!
  * Swagger Parser v5.0.3 (August 24th 2018)
  *
- * http://james-messinger.github.io/swagger-parser
+ * https://jamesmessinger.com/swagger-parser
  *
  * @author  James Messinger (http://jamesmessinger.com)
  * @license MIT
@@ -1256,7 +1256,7 @@ function samples () {
   });
 }
 
-samples.url = 'https://james-messinger.github.io/swagger-parser/www/swagger.yaml';
+samples.url = 'https://jamesmessinger.com/swagger-parser/www/swagger.yaml';
 
 samples.text =
   'swagger: "2.0"\n' +

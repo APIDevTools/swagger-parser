@@ -30,7 +30,7 @@ function samples () {
   });
 }
 
-samples.url = 'https://james-messinger.github.io/swagger-parser/www/swagger.yaml';
+samples.url = 'https://jamesmessinger.com/swagger-parser/www/swagger.yaml';
 
 samples.text =
   'swagger: "2.0"\n' +
