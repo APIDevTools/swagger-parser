@@ -21,10 +21,10 @@
   ],
   "author": {
     "name": "James Messinger",
-    "url": "http://bigstickcarpet.com"
+    "url": "http://jamesmessinger.com"
   },
   "license": "MIT",
-  "homepage": "http://bigstickcarpet.com/swagger-parser",
+  "homepage": "http://james-messinger.github.io/swagger-parser",
   "main": "lib/index.js",
   "scripts": {
     "lint": "eslint lib test www/js/src --fix",
@@ -45,7 +45,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/BigstickCarpet/swagger-parser.git"
+    "url": "https://github.com/James-Messinger/swagger-parser.git"
   },
   "devDependencies": {
     "bower": "^1.8.2",

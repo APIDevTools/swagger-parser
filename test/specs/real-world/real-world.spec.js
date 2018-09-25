@@ -23,7 +23,7 @@ describe('Real-world APIs', function () {
         delete apis['googleapis.com:adsense'];
 
         // These APIs cause infinite loops in json-schema-ref-parser.  Still investigating.
-        // https://github.com/BigstickCarpet/json-schema-ref-parser/issues/56
+        // https://github.com/James-Messinger/json-schema-ref-parser/issues/56
         delete apis['bungie.net'];
         delete apis['stripe.com'];
 

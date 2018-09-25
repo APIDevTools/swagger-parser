@@ -2,8 +2,8 @@ Swagger/OpenAPI Parser
 ============================
 #### Swagger 2.0 and OpenAPI 3.0 parser and validator for Node and browsers
 
-[![Build Status](https://api.travis-ci.org/BigstickCarpet/swagger-parser.svg?branch=master)](https://travis-ci.org/BigstickCarpet/swagger-parser)
-[![Dependencies](https://david-dm.org/BigstickCarpet/swagger-parser.svg)](https://david-dm.org/BigstickCarpet/swagger-parser)
+[![Build Status](https://api.travis-ci.org/James-Messinger/swagger-parser.svg?branch=master)](https://travis-ci.org/James-Messinger/swagger-parser)
+[![Dependencies](https://david-dm.org/James-Messinger/swagger-parser.svg)](https://david-dm.org/James-Messinger/swagger-parser)
 [![Coverage Status](https://coveralls.io/repos/BigstickCarpet/swagger-parser/badge.svg?branch=master&service=github)](https://coveralls.io/r/BigstickCarpet/swagger-parser)
 [![Codacy Score](https://api.codacy.com/project/badge/Grade/6d686f916836433b9c013379fbe1052c)](https://www.codacy.com/public/jamesmessinger/swagger-parser)
 [![Inline docs](http://inch-ci.org/github/BigstickCarpet/swagger-parser.svg?branch=master&style=shields)](http://inch-ci.org/github/BigstickCarpet/swagger-parser)
@@ -15,7 +15,7 @@ Swagger/OpenAPI Parser
 
 [![Browser Compatibility](https://saucelabs.com/browser-matrix/swagger-parser.svg)](https://saucelabs.com/u/swagger-parser)
 
-[![Online Demo](http://bigstickcarpet.com/swagger-parser/www/img/demo.svg)](http://bigstickcarpet.com/swagger-parser/)
+[![Online Demo](http://james-messinger.github.io/swagger-parser/www/img/demo.svg)](http://james-messinger.github.io/swagger-parser/)
 
 Features
 --------------------------
@@ -24,7 +24,7 @@ Features
 - [Resolves](docs/swagger-parser.md#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
 - Can [bundle](docs/swagger-parser.md#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
 - Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
-- **[Tested](http://bigstickcarpet.com/swagger-parser/test/index.html)** in Node.js and all modern web browsers on Mac, Windows, and Linux
+- **[Tested](http://james-messinger.github.io/swagger-parser/test/index.html)** in Node.js and all modern web browsers on Mac, Windows, and Linux
 - Tested on **[over 1,000 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
 - Supports [circular references](docs/README.md#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
@@ -32,8 +32,8 @@ Features
 
 Related Projects
 --------------------------
-- [Swagger CLI](https://github.com/BigstickCarpet/swagger-cli)
-- [Swagger Express Middleware](https://github.com/BigstickCarpet/swagger-express-middleware)
+- [Swagger CLI](https://github.com/James-Messinger/swagger-cli)
+- [Swagger Express Middleware](https://github.com/James-Messinger/swagger-express-middleware)
 
 
 Example
@@ -107,13 +107,13 @@ Full API documentation is available [right here](docs/README.md)
 
 Contributing
 --------------------------
-I welcome any contributions, enhancements, and bug-fixes.  [File an issue](https://github.com/BigstickCarpet/swagger-parser/issues) on GitHub and [submit a pull request](https://github.com/BigstickCarpet/swagger-parser/pulls).
+I welcome any contributions, enhancements, and bug-fixes.  [File an issue](https://github.com/James-Messinger/swagger-parser/issues) on GitHub and [submit a pull request](https://github.com/James-Messinger/swagger-parser/pulls).
 
 #### Building/Testing
 To build/test the project locally on your computer:
 
 1. __Clone this repo__<br>
-`git clone https://github.com/bigstickcarpet/swagger-parser.git`
+`git clone https://github.com/James-Messinger/swagger-parser.git`
 
 2. __Install dependencies__<br>
 `npm install`
@@ -127,7 +127,7 @@ To build/test the project locally on your computer:
 `npm test` (test in Node and browsers, and report code coverage)
 
 5. __Start the local web server__<br>
-`npm start` (then browse to [http://localhost:8080/www/index.html](http://bigstickcarpet.com/swagger-parser/www/index.html) or [http://localhost:8080/test/index.html](http://bigstickcarpet.com/swagger-parser/test/index.html))
+`npm start` (then browse to [http://localhost:8080/www/index.html](http://james-messinger.github.io/swagger-parser/www/index.html) or [http://localhost:8080/test/index.html](http://james-messinger.github.io/swagger-parser/test/index.html))
 
 
 License
