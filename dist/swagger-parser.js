@@ -1,9 +1,9 @@
 /*!
  * Swagger Parser v5.0.5 (August 24th 2018)
  *
- * https://jamesmessinger.com/swagger-parser
+ * https://apidevtools.org/swagger-parser
  *
- * @author  James Messinger (http://jamesmessinger.com)
+ * @author  James Messinger (https://jamesmessinger.com)
  * @license MIT
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.SwaggerParser = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
@@ -4470,7 +4470,7 @@ function format(fmt) {
           break;
       }
       if(!escaped) {
-        return arg; 
+        return arg;
       }
       args.unshift(arg);
       return match;
@@ -18981,7 +18981,7 @@ var IncomingMessage = exports.IncomingMessage = function (xhr, response, mode, f
 		self.url = response.url
 		self.statusCode = response.status
 		self.statusMessage = response.statusText
-		
+
 		response.headers.forEach(function (header, key){
 			self.headers[key.toLowerCase()] = header
 			self.rawHeaders.push(key, header)
@@ -19111,7 +19111,7 @@ IncomingMessage.prototype._onXHRProgress = function () {
 				self.push(new Buffer(response))
 				break
 			}
-			// Falls through in IE8	
+			// Falls through in IE8
 		case 'text':
 			try { // This will fail when readyState = 3 in IE9. Switch mode and wait for readyState = 4
 				response = xhr.responseText

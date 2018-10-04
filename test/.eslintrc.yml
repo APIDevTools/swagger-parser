@@ -1,6 +1,6 @@
 # ESLint config
 # http://eslint.org/docs/user-guide/configuring
-# https://github.com/James-Messinger/eslint-config-modular
+# https://github.com/JS-DevTools/eslint-config-modular
 
 extends:
   - modular/test

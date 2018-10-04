@@ -2,20 +2,20 @@ Swagger/OpenAPI Parser
 ============================
 #### Swagger 2.0 and OpenAPI 3.0 parser and validator for Node and browsers
 
-[![Build Status](https://api.travis-ci.org/James-Messinger/swagger-parser.svg?branch=master)](https://travis-ci.org/James-Messinger/swagger-parser)
-[![Dependencies](https://david-dm.org/James-Messinger/swagger-parser.svg)](https://david-dm.org/James-Messinger/swagger-parser)
-[![Coverage Status](https://coveralls.io/repos/BigstickCarpet/swagger-parser/badge.svg?branch=master&service=github)](https://coveralls.io/r/BigstickCarpet/swagger-parser)
-[![Codacy Score](https://api.codacy.com/project/badge/Grade/6d686f916836433b9c013379fbe1052c)](https://www.codacy.com/public/jamesmessinger/swagger-parser)
-[![Inline docs](http://inch-ci.org/github/BigstickCarpet/swagger-parser.svg?branch=master&style=shields)](http://inch-ci.org/github/BigstickCarpet/swagger-parser)
+[![Build Status](https://api.travis-ci.org/APIDevTools/swagger-parser.svg?branch=master)](https://travis-ci.org/APIDevTools/swagger-parser)
+[![Dependencies](https://david-dm.org/APIDevTools/swagger-parser.svg)](https://david-dm.org/APIDevTools/swagger-parser)
+[![Coverage Status](https://coveralls.io/repos/github/APIDevTools/swagger-parser/badge.svg?branch=master)](https://coveralls.io/github/APIDevTools/swagger-parser)
+[![Codacy Score](https://api.codacy.com/project/badge/Grade/6d686f916836433b9c013379fbe1052c)](https://www.codacy.com/public/JamesMessinger/swagger-parser)
+[![Inline docs](https://inch-ci.org/github/APIDevTools/swagger-parser.svg?branch=master&style=shields)](https://inch-ci.org/github/APIDevTools/swagger-parser)
 [![Tested on APIs.guru](https://api.apis.guru/badges/tested_on.svg)](https://apis.guru/browse-apis/)
 
-[![npm](http://img.shields.io/npm/v/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
-[![Bower](http://img.shields.io/bower/v/swagger-parser.svg)](http://bower.io/)
+[![npm](https://img.shields.io/npm/v/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
+[![Bower](https://img.shields.io/bower/v/swagger-parser.svg)](http://bower.io/)
 [![License](https://img.shields.io/npm/l/swagger-parser.svg)](LICENSE)
 
 [![Browser Compatibility](https://saucelabs.com/browser-matrix/swagger-parser.svg)](https://saucelabs.com/u/swagger-parser)
 
-[![Online Demo](https://jamesmessinger.com/swagger-parser/www/img/demo.svg)](https://jamesmessinger.com/swagger-parser/)
+[![Online Demo](https://apidevtools.org/swagger-parser/www/img/demo.svg)](https://apidevtools.org/swagger-parser/)
 
 Features
 --------------------------
@@ -24,7 +24,7 @@ Features
 - [Resolves](docs/swagger-parser.md#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
 - Can [bundle](docs/swagger-parser.md#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
 - Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
-- **[Tested](https://jamesmessinger.com/swagger-parser/test/index.html)** in Node.js and all modern web browsers on Mac, Windows, and Linux
+- **[Tested](https://apidevtools.org/swagger-parser/test/index.html)** in Node.js and all modern web browsers on Mac, Windows, and Linux
 - Tested on **[over 1,000 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
 - Supports [circular references](docs/README.md#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
@@ -32,8 +32,8 @@ Features
 
 Related Projects
 --------------------------
-- [Swagger CLI](https://github.com/James-Messinger/swagger-cli)
-- [Swagger Express Middleware](https://github.com/James-Messinger/swagger-express-middleware)
+- [Swagger CLI](https://github.com/APIDevTools/swagger-cli)
+- [Swagger Express Middleware](https://github.com/APIDevTools/swagger-express-middleware)
 
 
 Example
@@ -107,13 +107,13 @@ Full API documentation is available [right here](docs/README.md)
 
 Contributing
 --------------------------
-I welcome any contributions, enhancements, and bug-fixes.  [File an issue](https://github.com/James-Messinger/swagger-parser/issues) on GitHub and [submit a pull request](https://github.com/James-Messinger/swagger-parser/pulls).
+I welcome any contributions, enhancements, and bug-fixes.  [File an issue](https://github.com/APIDevTools/swagger-parser/issues) on GitHub and [submit a pull request](https://github.com/APIDevTools/swagger-parser/pulls).
 
 #### Building/Testing
 To build/test the project locally on your computer:
 
 1. __Clone this repo__<br>
-`git clone https://github.com/James-Messinger/swagger-parser.git`
+`git clone https://github.com/APIDevTools/swagger-parser.git`
 
 2. __Install dependencies__<br>
 `npm install`
@@ -127,7 +127,7 @@ To build/test the project locally on your computer:
 `npm test` (test in Node and browsers, and report code coverage)
 
 5. __Start the local web server__<br>
-`npm start` (then browse to [http://localhost:8080/www/index.html](https://jamesmessinger.com/swagger-parser/www/index.html) or [http://localhost:8080/test/index.html](https://jamesmessinger.com/swagger-parser/test/index.html))
+`npm start` (then browse to [http://localhost:8080/www/index.html](https://apidevtools.org/swagger-parser/www/index.html) or [http://localhost:8080/test/index.html](https://apidevtools.org/swagger-parser/test/index.html))
 
 
 License

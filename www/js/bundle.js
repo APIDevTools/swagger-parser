@@ -1,9 +1,9 @@
 /*!
  * Swagger Parser v5.0.3 (August 24th 2018)
  *
- * https://jamesmessinger.com/swagger-parser
+ * https://apidevtools.org/swagger-parser
  *
- * @author  James Messinger (http://jamesmessinger.com)
+ * @author  James Messinger (https://jamesmessinger.com)
  * @license MIT
  */
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
@@ -25,7 +25,7 @@ function format(fmt) {
           break;
       }
       if(!escaped) {
-        return arg; 
+        return arg;
       }
       args.unshift(arg);
       return match;
@@ -1256,7 +1256,7 @@ function samples () {
   });
 }
 
-samples.url = 'https://jamesmessinger.com/swagger-parser/www/swagger.yaml';
+samples.url = 'https://apidevtools.org/swagger-parser/www/swagger.yaml';
 
 samples.text =
   'swagger: "2.0"\n' +

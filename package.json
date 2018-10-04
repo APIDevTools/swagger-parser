@@ -21,10 +21,10 @@
   ],
   "author": {
     "name": "James Messinger",
-    "url": "http://jamesmessinger.com"
+    "url": "https://jamesmessinger.com"
   },
   "license": "MIT",
-  "homepage": "https://jamesmessinger.com/swagger-parser",
+  "homepage": "https://apidevtools.org/swagger-parser",
   "main": "lib/index.js",
   "scripts": {
     "lint": "eslint lib test www/js/src --fix",
@@ -45,7 +45,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/James-Messinger/swagger-parser.git"
+    "url": "https://github.com/APIDevTools/swagger-parser.git"
   },
   "devDependencies": {
     "bower": "^1.8.2",
