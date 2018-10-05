@@ -23,9 +23,20 @@
     "name": "James Messinger",
     "url": "https://jamesmessinger.com"
   },
-  "license": "MIT",
   "homepage": "https://apidevtools.org/swagger-parser",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/APIDevTools/swagger-parser.git"
+  },
+  "license": "MIT",
   "main": "lib/index.js",
+  "files": [
+    "dist/swagger-parser.js",
+    "dist/swagger-parser.js.map",
+    "dist/swagger-parser.min.js",
+    "dist/swagger-parser.min.js.map",
+    "lib"
+  ],
   "scripts": {
     "lint": "eslint lib test www/js/src --fix",
     "build": "npm run lint && npm run browserify && npm run build-www",
@@ -42,10 +53,6 @@
     "browserify-www": "simplifyify www/js/src/index.js --outfile www/js/bundle.js --bundle --debug --minify",
     "sass": "node-sass --source-map true --output-style compressed www/css/style.scss www/css/style.min.css",
     "start": "http-server -o -c-1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/APIDevTools/swagger-parser.git"
   },
   "devDependencies": {
     "bower": "^1.8.2",
