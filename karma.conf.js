@@ -15,8 +15,7 @@ var baseConfig = {
 
   files: [
     // Third-Party Libraries
-    'www/bower_components/chai/chai.js',
-    'www/bower_components/superagent-dist/superagent.js',
+    'https://cdn.rawgit.com/stephanebachelier/superagent-dist/1721239d/superagent.js',
 
     // Polyfills for older browsers
     'www/polyfills/promise.js',

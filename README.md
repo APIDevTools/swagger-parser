@@ -10,7 +10,6 @@ Swagger/OpenAPI Parser
 [![Tested on APIs.guru](https://api.apis.guru/badges/tested_on.svg)](https://apis.guru/browse-apis/)
 
 [![npm](https://img.shields.io/npm/v/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
-[![Bower](https://img.shields.io/bower/v/swagger-parser.svg)](http://bower.io/)
 [![License](https://img.shields.io/npm/l/swagger-parser.svg)](LICENSE)
 
 [![Browser Compatibility](https://saucelabs.com/browser-matrix/swagger-parser.svg)](https://saucelabs.com/u/swagger-parser)
@@ -81,22 +80,20 @@ var SwaggerParser = require('swagger-parser');
 ```
 
 #### Web Browsers
-Install using [bower](http://bower.io/):
-
-```bash
-bower install swagger-parser
-```
-
-Then reference [`swagger-parser.js`](dist/swagger-parser.js) or [`swagger-parser.min.js`](dist/swagger-parser.min.js) in your HTML:
+Reference [`swagger-parser.js`](dist/swagger-parser.js) or [`swagger-parser.min.js`](dist/swagger-parser.min.js) in your HTML:
 
 ```html
-<script src="bower_components/swagger-parser/dist/swagger-parser.js"></script>
-```
-
-Or, if you're using AMD (Require.js), then import it into your module:
-
-```javascript
-define(["swagger-parser"], function(SwaggerParser) { /* your module's code */ })
+<script src="https://cdn.rawgit.com/JS-DevTools/swagger-parser/dist/swagger-parser.js"></script>
+<script>
+  SwaggerParser.validate(myAPI, function(err, api) {
+    if (err) {
+      console.error(err);
+    }
+    else {
+      console.log("API name: %s, Version: %s", api.info.title, api.info.version);
+    }
+  });
+</script>
 ```
 
 
