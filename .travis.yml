@@ -28,16 +28,8 @@ before_script:
   - sh -e /etc/init.d/xvfb start
 
 script:
-  # Always make sure the code passes linting rules
   - npm run lint
-
-  # Run Karma (browser tests) or Mocha (Node.js tests).
-  - if [[ $KARMA ]]; then
-      npm run browserify -- --test;
-      npm run karma;
-    else
-      npm run istanbul;
-    fi
+  - npm run coverage
 
 after_success:
   # concatenate all code-coverage data into a single file
