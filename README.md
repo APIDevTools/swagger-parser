@@ -119,9 +119,7 @@ To build/test the project locally on your computer:
 `npm run build`
 
 4. __Run the tests__<br>
-`npm run mocha` (test in Node)<br>
-`npm run karma` (test in web browsers)<br>
-`npm test` (test in Node and browsers, and report code coverage)
+`npm test`
 
 5. __Start the local web server__<br>
 `npm start` (then browse to [http://localhost:8080/www/index.html](https://apidevtools.org/swagger-parser/www/index.html) or [http://localhost:8080/test/index.html](https://apidevtools.org/swagger-parser/test/index.html))

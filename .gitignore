@@ -36,6 +36,6 @@ pids
 node_modules
 
 # Test output
-lib-cov
+/.nyc_output
 /coverage
-/dist/*.test.js
+/dist/*.coverage.js

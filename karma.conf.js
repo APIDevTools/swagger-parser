@@ -83,7 +83,7 @@ function configureForDebugging (config) {
  */
 function configureCodeCoverage (config) {
   config.reporters.push('coverage');
-  config.files.splice(config.files.indexOf('dist/swagger-parser.min.js'), 1, 'dist/swagger-parser.test.js');
+  config.files.splice(config.files.indexOf('dist/swagger-parser.min.js'), 1, 'dist/swagger-parser.coverage.js');
   config.coverageReporter = {
     reporters: [
       { type: 'text-summary' },
