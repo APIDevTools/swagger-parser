@@ -1,8 +1,8 @@
 /*!
- * Swagger Parser v5.0.3 (August 24th 2018)
- *
+ * Swagger Parser v5.0.6 (October 5th 2018)
+ * 
  * https://apidevtools.org/swagger-parser
- *
+ * 
  * @author  James Messinger (https://jamesmessinger.com)
  * @license MIT
  */
@@ -25,7 +25,7 @@ function format(fmt) {
           break;
       }
       if(!escaped) {
-        return arg;
+        return arg; 
       }
       args.unshift(arg);
       return match;

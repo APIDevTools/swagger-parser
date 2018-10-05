@@ -3,6 +3,15 @@ All notable changes will be documented in this file.
 Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [v6.0.0](https://github.com/APIDevTools/swagger-parser/tree/v6.0.0) (2018-10-05)
+
+- Dropped support for [Bower](https://www.npmjs.com/package/bower), since it has been deprecated
+
+- Removed the [`debug`](https://npmjs.com/package/debug) dependency
+
+[Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v5.0.0...v6.0.0)
+
+
 ## [v5.0.0](https://github.com/APIDevTools/swagger-parser/tree/v5.0.0) (2018-05-25)
 
 - After [months](https://github.com/APIDevTools/swagger-parser/issues/62) and [months](https://github.com/APIDevTools/swagger-parser/issues/72) of delays, initial support for OpenAPI 3.0 is finally here!  A big "Thank You!" to [Leo Long](https://github.com/yujunlong2000) for doing the work and submitting [PR #88](https://github.com/APIDevTools/swagger-parser/pull/88).
