@@ -16,12 +16,11 @@ matrix:
       env: KARMA=true KARMA_COVERAGE=true
 
     # Sauce Labs
-    - node_js: 10
+    - node_js: 8
       env: KARMA=true KARMA_SAUCE=true
 
     # Node
     - node_js: 6
-    - node_js: 8
 
 before_script:
   # Setup a virtual display for browser testing
