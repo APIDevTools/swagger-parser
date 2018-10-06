@@ -1,8 +1,10 @@
 # Travis CI config
 # http://docs.travis-ci.com/user/languages/javascript-with-nodejs/
+# https://docs.travis-ci.com/user/customizing-the-build/
+# https://docs.travis-ci.com/user/migrating-from-legacy/
 
 dist: trusty
-sudo: required  # TEMPORARY HACK (see https://github.com/travis-ci/travis-ci/issues/8836)
+sudo: required  # Required for headless Chrome
 language: node_js
 
 addons:
