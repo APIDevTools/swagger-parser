@@ -539,8 +539,9 @@ module.exports = analytics;
  */
 function analytics () {
   if (!debug) {
-    ga('create', 'UA-68102273-1', 'auto');
-    ga('send', 'pageview');
+    if (typeof gtag === "undefined") {
+      console.warn('Google Analytics is not enabled');
+    }
   }
 }
 
@@ -553,11 +554,19 @@ function analytics () {
  * @param {number} [value] - numeric value, such as a counter
  */
 analytics.trackEvent = function (category, action, label, value) {
-  if (debug) {
-    console.log('Reporting an event to Google Analytics: ', category, action, label, value);
+  try {
+    console.log('Analytics event: ', category, action, label, value);
+
+    if (!debug) {
+      gtag('event', action, {
+        'event_category': category,
+        'event_label': label,
+        'value': value
+      });
+    }
   }
-  else {
-    ga('send', 'event', category, action, label, value);
+  catch (error) {
+    analytics.trackError(error);
   }
 };
 
@@ -567,11 +576,19 @@ analytics.trackEvent = function (category, action, label, value) {
  * @param {Error} err
  */
 analytics.trackError = function (err) {
-  if (debug) {
-    console.error('Reporting an error to Google Analytics: ', err);
+  try {
+    console.error('Analytics error: ', err);
+
+    if (!debug) {
+      gtag('event', 'exception', {
+        name: err.name || 'Error',
+        description: err.message,
+        stack: err.stack,
+      });
+    }
   }
-  else {
-    ga('send', 'exception', { exDescription: err.message });
+  catch (error) {
+    console.error(err);
   }
 };
 
