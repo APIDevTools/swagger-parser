@@ -97,7 +97,7 @@ samples.text =
   '            $ref: "#/definitions/errorModel"\n' +
   'definitions:\n' +
   '  pet:\n' +
-  '    $ref: pet.yaml\n' +
+  '    $ref: sample/pet.yaml\n' +
   '  pet-owner:\n' +
   '    $ref: sample/pet-owner.yaml\n' +
   '  errorModel:\n' +
