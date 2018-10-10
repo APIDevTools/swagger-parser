@@ -11,28 +11,28 @@ Things to Know
 Classes & Methods
 ---------------------
 
-#### [`SwaggerParser`](swagger-parser.md)
-- [`api`](swagger-parser.md#api)
-- [`$refs`](swagger-parser.md#refs)
-- [`validate()`](swagger-parser.md#validateapi-options-callback)
-- [`dereference()`](swagger-parser.md#dereferenceapi-options-callback)
-- [`bundle()`](swagger-parser.md#bundleapi-options-callback)
-- [`parse()`](swagger-parser.md#parseapi-options-callback)
-- [`resolve()`](swagger-parser.md#resolveapi-options-callback)
+#### [The `SwaggerParser` class](swagger-parser.md)
+- [`api` property](swagger-parser.md#api)
+- [`$refs` property](swagger-parser.md#refs)
+- [`validate()` method](swagger-parser.md#validateapi-options-callback)
+- [`dereference()` method](swagger-parser.md#dereferenceapi-options-callback)
+- [`bundle()` method](swagger-parser.md#bundleapi-options-callback)
+- [`parse()` method](swagger-parser.md#parseapi-options-callback)
+- [`resolve()` method](swagger-parser.md#resolveapi-options-callback)
 
-#### [`$Refs`](refs.md)
-- [`circular`](refs.md#circular)
-- [`paths()`](refs.md#pathstypes)
-- [`values()`](refs.md#valuestypes)
-- [`exists()`](refs.md#existsref)
-- [`get()`](refs.md#getref-options)
-- [`set()`](refs.md#setref-value-options)
+#### [The `$Refs` class](refs.md)
+- [`circular` property](refs.md#circular)
+- [`paths()` method](refs.md#pathstypes)
+- [`values()` method](refs.md#valuestypes)
+- [`exists()` method](refs.md#existsref)
+- [`get()` method](refs.md#getref-options)
+- [`set()` method](refs.md#setref-value-options)
 
-#### [`YAML`](yaml.md)
-- [`parse()`](yaml.md#parsetext)
-- [`stringify()`](yaml.md#stringifyvalue)
+#### [The `YAML` object](yaml.md)
+- [`parse()` method](yaml.md#parsetext)
+- [`stringify()` method](yaml.md#stringifyvalue)
 
-#### [`Options`](options.md)
+#### [The `Options` object](options.md)
 
 
 ### Class methods vs. Instance methods
