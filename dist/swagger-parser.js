@@ -1,7 +1,7 @@
 /*!
- * Swagger Parser v6.0.0 (October 5th 2018)
+ * Swagger Parser v6.0.1 (October 10th 2018)
  * 
- * https://apidevtools.org/swagger-parser
+ * https://apidevtools.org/swagger-parser/
  * 
  * @author  James Messinger (https://jamesmessinger.com)
  * @license MIT
