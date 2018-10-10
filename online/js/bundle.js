@@ -1342,9 +1342,9 @@ samples.text =
   '  pet:\n' +
   '    $ref: pet.yaml\n' +
   '  pet-owner:\n' +
-  '    $ref: pet-owner.yaml\n' +
+  '    $ref: sample/pet-owner.yaml\n' +
   '  errorModel:\n' +
-  '    $ref: error.json\n';
+  '    $ref: sample/error.json\n';
 
 },{"./form":9}]},{},[10])
 //# sourceMappingURL=bundle.js.map

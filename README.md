@@ -14,7 +14,7 @@ Swagger/OpenAPI Parser
 
 [![Browser Compatibility](https://saucelabs.com/browser-matrix/swagger-parser.svg)](https://saucelabs.com/u/swagger-parser)
 
-[![Online Demo](https://apidevtools.org/swagger-parser/online/img/demo.svg)](https://apidevtools.org/swagger-parser/)
+[![Online Demo](https://apidevtools.org/swagger-parser/online/img/demo.svg)](https://apidevtools.org/swagger-parser/online/)
 
 Features
 --------------------------
