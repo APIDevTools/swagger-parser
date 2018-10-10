@@ -1,0 +1,32 @@
+remote_theme: APIDevTools/gh-pages-theme
+
+title: Swagger & OpenAPI Parser and Validator
+logo: /img/logos/logo.png
+
+author:
+  twitter: APIDevTools
+
+google_analytics: UA-68102273-2
+
+twitter:
+  username: APIDevTools
+  card: summary
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      image: /img/logos/card.png
+
+  - scope:
+      path: "test/specs/**/*"
+    values:
+      sitemap: false
+
+  - scope:
+      path: "www/**/*"
+    values:
+      sitemap: false
+
+plugins:
+  - jekyll-sitemap

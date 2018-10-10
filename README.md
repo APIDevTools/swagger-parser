@@ -122,7 +122,7 @@ To build/test the project locally on your computer:
 `npm test`
 
 5. __Start the local web server__<br>
-`npm start` (then browse to [http://localhost:8080](http://localhost:8080) or [http://localhost:8080/test/](http://localhost:8080/test/))
+`npm start` (then browse to [http://localhost:8080/test/](http://localhost:8080/test/))
 
 
 License
