@@ -14,7 +14,7 @@ Swagger/OpenAPI Parser
 
 [![Browser Compatibility](https://saucelabs.com/browser-matrix/swagger-parser.svg)](https://saucelabs.com/u/swagger-parser)
 
-[![Online Demo](https://apidevtools.org/swagger-parser/www/img/demo.svg)](https://apidevtools.org/swagger-parser/)
+[![Online Demo](https://apidevtools.org/swagger-parser/online/img/demo.svg)](https://apidevtools.org/swagger-parser/)
 
 Features
 --------------------------
@@ -23,7 +23,7 @@ Features
 - [Resolves](docs/swagger-parser.md#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
 - Can [bundle](docs/swagger-parser.md#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
 - Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
-- **[Tested](https://apidevtools.org/swagger-parser/test/index.html)** in Node.js and all modern web browsers on Mac, Windows, and Linux
+- **[Tested](https://apidevtools.org/swagger-parser/test/)** in Node.js and all modern web browsers on Mac, Windows, and Linux
 - Tested on **[over 1,000 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
 - Supports [circular references](docs/README.md#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
@@ -122,7 +122,7 @@ To build/test the project locally on your computer:
 `npm test`
 
 5. __Start the local web server__<br>
-`npm start` (then browse to [http://localhost:8080/www/index.html](https://apidevtools.org/swagger-parser/www/index.html) or [http://localhost:8080/test/index.html](https://apidevtools.org/swagger-parser/test/index.html))
+`npm start` (then browse to [http://localhost:8080](http://localhost:8080) or [http://localhost:8080/test/](http://localhost:8080/test/))
 
 
 License
