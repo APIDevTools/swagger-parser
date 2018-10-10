@@ -38,11 +38,11 @@
     "lib"
   ],
   "scripts": {
-    "lint": "eslint lib test online/js/src --fix",
+    "lint": "eslint lib test online/src/js --fix",
     "build": "npm run build:browser && npm run build:website && npm run build:sass",
     "build:browser": "simplifyify lib/index.js --outfile dist/swagger-parser.js --standalone SwaggerParser --bundle --debug --minify",
-    "build:website": "simplifyify online/js/src/index.js --outfile online/js/bundle.js --bundle --debug --minify",
-    "build:sass": "node-sass --source-map true --output-style compressed online/css/style.scss online/css/style.min.css",
+    "build:website": "simplifyify online/src/js/index.js --outfile online/js/bundle.js --bundle --debug --minify",
+    "build:sass": "node-sass --source-map true --output-style compressed online/src/scss/style.scss online/css/style.min.css",
     "test": "npm run test:node && npm run test:browser",
     "test:node": "mocha",
     "test:browser": "karma start --single-run",

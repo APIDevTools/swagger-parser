@@ -30,7 +30,7 @@ function samples () {
   });
 }
 
-samples.url = 'https://apidevtools.org/swagger-parser/online/swagger.yaml';
+samples.url = 'https://apidevtools.org/swagger-parser/online/sample/swagger.yaml';
 
 samples.text =
   'swagger: "2.0"\n' +

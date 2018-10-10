@@ -1,7 +1,7 @@
 /*!
- * Swagger Parser v5.0.6 (October 5th 2018)
+ * Swagger Parser v6.0.0 (October 10th 2018)
  * 
- * https://apidevtools.org/swagger-parser
+ * https://apidevtools.org/swagger-parser/
  * 
  * @author  James Messinger (https://jamesmessinger.com)
  * @license MIT
@@ -1256,7 +1256,7 @@ function samples () {
   });
 }
 
-samples.url = 'https://apidevtools.org/swagger-parser/www/swagger.yaml';
+samples.url = 'https://apidevtools.org/swagger-parser/online/sample/swagger.yaml';
 
 samples.text =
   'swagger: "2.0"\n' +

@@ -11,8 +11,5 @@ env:
 globals:
   SwaggerParser: false
 
-  # Google Analytics
-  ga: false
-
   # ACE Editor
   ace: false

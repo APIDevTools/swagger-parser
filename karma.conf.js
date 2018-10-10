@@ -13,8 +13,8 @@ module.exports = function (karma) {
       'https://cdn.rawgit.com/stephanebachelier/superagent-dist/1721239d/superagent.js',
 
       // Polyfills for older browsers
-      'www/polyfills/promise.js',
-      'www/polyfills/typedarray.js',
+      'online/js/polyfills/promise.js',
+      'online/js/polyfills/typedarray.js',
 
       // Swagger Parser
       'dist/swagger-parser.min.js',
