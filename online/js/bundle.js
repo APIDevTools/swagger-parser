@@ -1,5 +1,5 @@
 /*!
- * Swagger Parser v6.0.0 (October 10th 2018)
+ * Swagger Parser v6.0.1 (October 10th 2018)
  * 
  * https://apidevtools.org/swagger-parser/
  * 
@@ -539,7 +539,7 @@ module.exports = analytics;
  */
 function analytics () {
   if (!debug) {
-    if (typeof gtag === "undefined") {
+    if (typeof gtag === 'undefined') {
       console.warn('Google Analytics is not enabled');
     }
   }
@@ -559,9 +559,9 @@ analytics.trackEvent = function (category, action, label, value) {
 
     if (!debug) {
       gtag('event', action, {
-        'event_category': category,
-        'event_label': label,
-        'value': value
+        event_category: category,   // eslint-disable-line camelcase
+        event_label: label,         // eslint-disable-line camelcase
+        value: value
       });
     }
   }
