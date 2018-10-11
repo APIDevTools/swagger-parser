@@ -137,11 +137,19 @@ function configureSauceLabs (config) {
       platform: 'Windows 10',
       browserName: 'microsoftedge'
     },
-    SauceLabs_Safari_Latest: {
-      base: 'SauceLabs',
-      platform: 'macOS 10.13',
-      browserName: 'safari'
-    },
+
+    // TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO FIXME TODO
+    // ======================================================================
+    // I've temporarily commented-out Safari on Mac because SauceLabs seems to
+    // be having problems with their Mac VMs right now.
+    // https://travis-ci.org/APIDevTools/json-schema-ref-parser/jobs/440110398#L1169-L1194
+    // ======================================================================
+    // SauceLabs_Safari_Latest: {
+    //   base: 'SauceLabs',
+    //   platform: 'macOS 10.13',
+    //   browserName: 'safari'
+    // },
+
     SauceLabs_Chrome_Latest: {
       base: 'SauceLabs',
       platform: 'Windows 10',
