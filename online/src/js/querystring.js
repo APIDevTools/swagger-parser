@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-var qs = require('querystring'),
-    form = require('./form');
+var qs = require("querystring"),
+    form = require("./form");
 
 module.exports = querystring;
 
@@ -11,7 +11,7 @@ module.exports = querystring;
 function querystring () {
   setFormFields();
   setBookmarkURL();
-  form.bookmark.on('click focus mouseenter', setBookmarkURL);
+  form.bookmark.on("click focus mouseenter", setBookmarkURL);
 }
 
 /**
@@ -20,15 +20,15 @@ function querystring () {
 function setFormFields () {
   var query = qs.parse(window.location.search.substr(1));
 
-  setCheckbox(form.allow.json, query['allow-json']);
-  setCheckbox(form.allow.yaml, query['allow-yaml']);
-  setCheckbox(form.allow.text, query['allow-text']);
-  setCheckbox(form.allow.empty, query['allow-empty']);
-  setCheckbox(form.allow.unknown, query['allow-unknown']);
-  setCheckbox(form.refs.external, query['refs-external']);
-  setCheckbox(form.refs.circular, query['refs-circular']);
-  setCheckbox(form.validate.schema, query['validate-schema']);
-  setCheckbox(form.validate.spec, query['validate-spec']);
+  setCheckbox(form.allow.json, query["allow-json"]);
+  setCheckbox(form.allow.yaml, query["allow-yaml"]);
+  setCheckbox(form.allow.text, query["allow-text"]);
+  setCheckbox(form.allow.empty, query["allow-empty"]);
+  setCheckbox(form.allow.unknown, query["allow-unknown"]);
+  setCheckbox(form.refs.external, query["refs-external"]);
+  setCheckbox(form.refs.circular, query["refs-circular"]);
+  setCheckbox(form.validate.schema, query["validate-schema"]);
+  setCheckbox(form.validate.spec, query["validate-spec"]);
 
   // If a custom URL is specified, then show the "Your API" tab
   if (query.url) {
@@ -38,7 +38,7 @@ function setFormFields () {
   // If a method is specified, then change the "Validate!" button
   if (query.method) {
     query.method = query.method.toLowerCase();
-    if (['parse', 'resolve', 'bundle', 'dereference', 'validate'].indexOf(query.method) !== -1) {
+    if (["parse", "resolve", "bundle", "dereference", "validate"].indexOf(query.method) !== -1) {
       form.method.button.val(query.method);
     }
   }
@@ -51,8 +51,8 @@ function setFormFields () {
  * @param {*} value
  */
 function setCheckbox (input, value) {
-  if (!value || value === 'true' || value === 'on') {
-    value = 'yes';
+  if (!value || value === "true" || value === "on") {
+    value = "yes";
   }
   input.val([value]);
 }
@@ -63,22 +63,22 @@ function setCheckbox (input, value) {
 function setBookmarkURL () {
   var query = {};
   var options = form.getOptions();
-  options.parse.json || (query['allow-json'] = 'no');
-  options.parse.yaml || (query['allow-yaml'] = 'no');
-  options.parse.text || (query['allow-text'] = 'no');
-  options.parse.json.allowEmpty || (query['allow-empty'] = 'no');
-  options.parse.binary || (query['allow-unknown'] = 'no');
-  options.resolve.external || (query['refs-external'] = 'no');
-  options.dereference.circular || (query['refs-circular'] = 'no');
-  options.validate.schema || (query['validate-schema'] = 'no');
-  options.validate.spec || (query['validate-spec'] = 'no');
+  options.parse.json || (query["allow-json"] = "no");
+  options.parse.yaml || (query["allow-yaml"] = "no");
+  options.parse.text || (query["allow-text"] = "no");
+  options.parse.json.allowEmpty || (query["allow-empty"] = "no");
+  options.parse.binary || (query["allow-unknown"] = "no");
+  options.resolve.external || (query["refs-external"] = "no");
+  options.dereference.circular || (query["refs-circular"] = "no");
+  options.validate.schema || (query["validate-schema"] = "no");
+  options.validate.spec || (query["validate-spec"] = "no");
 
   var method = form.method.button.val();
-  method === 'validate' || (query.method = method);
+  method === "validate" || (query.method = method);
 
   var url = form.url.val();
-  url === '' || (query.url = url);
+  url === "" || (query.url = url);
 
-  var bookmark = '?' + qs.stringify(query);
-  form.bookmark.attr('href', bookmark);
+  var bookmark = "?" + qs.stringify(query);
+  form.bookmark.attr("href", bookmark);
 }

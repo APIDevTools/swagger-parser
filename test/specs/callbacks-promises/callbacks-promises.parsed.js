@@ -1,27 +1,27 @@
 helper.parsed.callbacksPromises =
 {
-  swagger: '2.0',
+  swagger: "2.0",
   info: {
-    version: '1.0.0',
+    version: "1.0.0",
     description: "This is an intentionally over-complicated API that returns a person's name",
-    title: 'Name API'
+    title: "Name API"
   },
   paths: {
-    '/people/{name}': {
+    "/people/{name}": {
       parameters: [
         {
           required: true,
-          type: 'string',
-          name: 'name',
-          in: 'path'
+          type: "string",
+          name: "name",
+          in: "path"
         }
       ],
       get: {
         responses: {
           200: {
-            description: 'Returns the requested name',
+            description: "Returns the requested name",
             schema: {
-              $ref: '#/definitions/name'
+              $ref: "#/definitions/name"
             }
           }
         }
@@ -31,37 +31,37 @@ helper.parsed.callbacksPromises =
   definitions: {
     requiredString: {
       minLength: 1,
-      type: 'string',
-      title: 'requiredString'
+      type: "string",
+      title: "requiredString"
     },
     name: {
       required: [
-        'first',
-        'last'
+        "first",
+        "last"
       ],
-      type: 'object',
+      type: "object",
       properties: {
         middle: {
-          type: 'string',
+          type: "string",
           enum: [
-            { $ref: '#/definitions/name/properties/first/type' },
-            { $ref: '#/definitions/name/properties/last/title' }
+            { $ref: "#/definitions/name/properties/first/type" },
+            { $ref: "#/definitions/name/properties/last/title" }
           ]
         },
         prefix: {
           minLength: 3,
-          $ref: '#/definitions/name/properties/last'
+          $ref: "#/definitions/name/properties/last"
         },
         last: {
-          $ref: '#/definitions/name/properties/first'
+          $ref: "#/definitions/name/properties/first"
         },
         suffix: {
-          $ref: '#/definitions/name/properties/prefix',
-          type: 'string',
+          $ref: "#/definitions/name/properties/prefix",
+          type: "string",
           maxLength: 3
         },
         first: {
-          $ref: '#/definitions/requiredString'
+          $ref: "#/definitions/requiredString"
         }
       }
     }

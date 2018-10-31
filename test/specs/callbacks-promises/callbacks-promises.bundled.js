@@ -3,67 +3,67 @@ helper.bundled.callbacksPromises =
   definitions: {
     requiredString: {
       minLength: 1,
-      type: 'string',
-      title: 'requiredString'
+      type: "string",
+      title: "requiredString"
     },
     name: {
       required: [
-        'first',
-        'last'
+        "first",
+        "last"
       ],
-      type: 'object',
+      type: "object",
       properties: {
         last: {
-          $ref: '#/definitions/requiredString'
+          $ref: "#/definitions/requiredString"
         },
         first: {
-          $ref: '#/definitions/requiredString'
+          $ref: "#/definitions/requiredString"
         },
         middle: {
-          type: 'string',
+          type: "string",
           enum: [
-            { $ref: '#/definitions/requiredString/type' },
-            { $ref: '#/definitions/requiredString/title' }
+            { $ref: "#/definitions/requiredString/type" },
+            { $ref: "#/definitions/requiredString/title" }
           ]
         },
         prefix: {
-          $ref: '#/definitions/requiredString',
+          $ref: "#/definitions/requiredString",
           minLength: 3
         },
         suffix: {
-          $ref: '#/definitions/name/properties/prefix',
+          $ref: "#/definitions/name/properties/prefix",
           maxLength: 3,
-          type: 'string'
+          type: "string"
         }
       }
     }
   },
   info: {
-    version: '1.0.0',
+    version: "1.0.0",
     description: "This is an intentionally over-complicated API that returns a person's name",
-    title: 'Name API'
+    title: "Name API"
   },
   paths: {
-    '/people/{name}': {
+    "/people/{name}": {
       parameters: [
         {
           required: true,
-          type: 'string',
-          name: 'name',
-          in: 'path'
+          type: "string",
+          name: "name",
+          in: "path"
         }
       ],
       get: {
         responses: {
           200: {
-            description: 'Returns the requested name',
+            description: "Returns the requested name",
             schema: {
-              $ref: '#/definitions/name'
+              $ref: "#/definitions/name"
             }
           }
         }
       }
     }
   },
-  swagger: '2.0'
+  swagger: "2.0"
 };

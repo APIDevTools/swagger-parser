@@ -1,47 +1,47 @@
 helper.dereferenced.circularExternal =
 {
-  swagger: '2.0',
+  swagger: "2.0",
   info: {
-    version: '1.0.0',
-    description: 'This API contains circular (recursive) JSON references',
-    title: 'Circular $Refs'
+    version: "1.0.0",
+    description: "This API contains circular (recursive) JSON references",
+    title: "Circular $Refs"
   },
   paths: {
-    '/pet': {
+    "/pet": {
       get: {
         responses: {
           200: {
-            description: 'Returns a pet',
+            description: "Returns a pet",
             schema: null
           }
         }
       }
     },
-    '/thing': {
+    "/thing": {
       get: {
         responses: {
           200: {
-            description: 'Returns a thing',
+            description: "Returns a thing",
             schema: null
           }
         }
       }
     },
-    '/person': {
+    "/person": {
       get: {
         responses: {
           200: {
-            description: 'Returns a person',
+            description: "Returns a person",
             schema: null
           }
         }
       }
     },
-    '/parent': {
+    "/parent": {
       get: {
         responses: {
           200: {
-            description: 'Returns a parent',
+            description: "Returns a parent",
             schema: null
           }
         }
@@ -50,81 +50,81 @@ helper.dereferenced.circularExternal =
   },
   definitions: {
     pet: {
-      type: 'object',
+      type: "object",
       properties: {
         age: {
-          type: 'number'
+          type: "number"
         },
         name: {
-          type: 'string'
+          type: "string"
         },
         species: {
           enum: [
-            'cat',
-            'dog',
-            'bird',
-            'fish'
+            "cat",
+            "dog",
+            "bird",
+            "fish"
           ],
-          type: 'string'
+          type: "string"
         }
       },
-      title: 'pet'
+      title: "pet"
     },
     thing: {
-      $ref: '#/definitions/thing'
+      $ref: "#/definitions/thing"
     },
     person: {
-      title: 'person',
-      type: 'object',
+      title: "person",
+      type: "object",
       properties: {
         spouse: null,
         name: {
-          type: 'string'
+          type: "string"
         }
       }
     },
     parent: {
-      title: 'parent',
-      type: 'object',
+      title: "parent",
+      type: "object",
       properties: {
         name: {
-          type: 'string'
+          type: "string"
         },
         children: {
           items: null,
-          type: 'array'
+          type: "array"
         }
       }
     },
     child: {
-      title: 'child',
-      type: 'object',
+      title: "child",
+      type: "object",
       properties: {
         parents: {
           items: null,
-          type: 'array'
+          type: "array"
         },
         name: {
-          type: 'string'
+          type: "string"
         }
       }
     }
   }
 };
 
-helper.dereferenced.circularExternal.paths['/pet'].get.responses['200'].schema =
+helper.dereferenced.circularExternal.paths["/pet"].get.responses["200"].schema =
   helper.dereferenced.circularExternal.definitions.pet;
 
-helper.dereferenced.circularExternal.paths['/thing'].get.responses['200'].schema =
+helper.dereferenced.circularExternal.paths["/thing"].get.responses["200"].schema =
   helper.dereferenced.circularExternal.definitions.thing;
 
-helper.dereferenced.circularExternal.paths['/person'].get.responses['200'].schema =
+helper.dereferenced.circularExternal.paths["/person"].get.responses["200"].schema =
   helper.dereferenced.circularExternal.definitions.person.properties.spouse =
     helper.dereferenced.circularExternal.definitions.person;
 
 helper.dereferenced.circularExternal.definitions.parent.properties.children.items =
   helper.dereferenced.circularExternal.definitions.child;
 
-helper.dereferenced.circularExternal.paths['/parent'].get.responses['200'].schema =
+helper.dereferenced.circularExternal.paths["/parent"].get.responses["200"].schema =
   helper.dereferenced.circularExternal.definitions.child.properties.parents.items =
     helper.dereferenced.circularExternal.definitions.parent;

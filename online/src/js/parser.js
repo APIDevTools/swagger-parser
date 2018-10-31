@@ -1,9 +1,9 @@
-'use strict';
+"use strict";
 
-var form = require('./form'),
-    editors = require('./editors'),
-    analytics = require('./analytics'),
-    ono = require('ono'),
+var form = require("./form"),
+    editors = require("./editors"),
+    analytics = require("./analytics"),
+    ono = require("ono"),
     swaggerParser = null,
     counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
 
@@ -14,16 +14,16 @@ module.exports = parser;
  */
 function parser () {
   // When the form is submitted, parse the Swagger API
-  form.form.on('submit', function (event) {
+  form.form.on("submit", function (event) {
     event.preventDefault();
     parseSwagger();
   });
 
   // When the "x" button is clicked, discard the results
-  $('#clear').on('click', function () {
+  $("#clear").on("click", function () {
     swaggerParser = null;
     editors.clearResults();
-    analytics.trackEvent('results', 'clear');
+    analytics.trackEvent("results", "clear");
   });
 }
 
@@ -58,7 +58,7 @@ function parseSwagger () {
 
     // Track the operation
     counters[method]++;
-    analytics.trackEvent('button', 'click', method, counters[method]);
+    analytics.trackEvent("button", "click", method, counters[method]);
   }
   catch (err) {
     editors.showError(ono(err));

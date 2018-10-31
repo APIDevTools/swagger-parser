@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-var debug = location.hostname === 'localhost';
+var debug = location.hostname === "localhost";
 
 module.exports = analytics;
 
@@ -9,8 +9,8 @@ module.exports = analytics;
  */
 function analytics () {
   if (!debug) {
-    if (typeof gtag === 'undefined') {
-      console.warn('Google Analytics is not enabled');
+    if (typeof gtag === "undefined") {
+      console.warn("Google Analytics is not enabled");
     }
   }
 }
@@ -25,10 +25,10 @@ function analytics () {
  */
 analytics.trackEvent = function (category, action, label, value) {
   try {
-    console.log('Analytics event: ', category, action, label, value);
+    console.log("Analytics event: ", category, action, label, value);
 
     if (!debug) {
-      gtag('event', action, {
+      gtag("event", action, {
         event_category: category,   // eslint-disable-line camelcase
         event_label: label,         // eslint-disable-line camelcase
         value: value
@@ -47,11 +47,11 @@ analytics.trackEvent = function (category, action, label, value) {
  */
 analytics.trackError = function (err) {
   try {
-    console.error('Analytics error: ', err);
+    console.error("Analytics error: ", err);
 
     if (!debug) {
-      gtag('event', 'exception', {
-        name: err.name || 'Error',
+      gtag("event", "exception", {
+        name: err.name || "Error",
         description: err.message,
         stack: err.stack,
       });

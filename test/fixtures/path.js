@@ -1,5 +1,5 @@
 (function () {
-  'use strict';
+  "use strict";
 
   var path;
   if (host.node) {
@@ -15,13 +15,13 @@
    * Helper functions for getting local filesystem paths in various formats
    */
   function filesystemPathHelpers () {
-    var _path = host.node ? require('path') : null;
-    var _url = host.node ? require('url') : null;
-    var _testsDir = _path.resolve(__dirname, '..');
+    var _path = host.node ? require("path") : null;
+    var _url = host.node ? require("url") : null;
+    var _testsDir = _path.resolve(__dirname, "..");
     var _isWindows = /^win/.test(process.platform);
 
     // Run all tests from the "test" directory
-    process.chdir(_path.join(__dirname, '..'));
+    process.chdir(_path.join(__dirname, ".."));
 
     return {
       /**
@@ -47,11 +47,11 @@
         var pathname = path.abs(file);
 
         if (_isWindows) {
-          pathname = pathname.replace(/\\/g, '/');  // Convert Windows separators to URL separators
+          pathname = pathname.replace(/\\/g, "/");  // Convert Windows separators to URL separators
         }
 
         var url = _url.format({
-          protocol: 'file:',
+          protocol: "file:",
           slashes: true,
           pathname: pathname
         });
@@ -74,13 +74,13 @@
   function urlPathHelpers () {
     // Get the URL of the "test" directory
     var filename = document.querySelector('script[src*="fixtures/path.js"]').src;
-    var _testsDir = filename.substr(0, filename.indexOf('fixtures/path.js'));
+    var _testsDir = filename.substr(0, filename.indexOf("fixtures/path.js"));
 
     /**
      * URI-encodes the given file name
      */
     function encodePath (file) {
-      return encodeURIComponent(file).split('%2F').join('/');
+      return encodeURIComponent(file).split("%2F").join("/");
     }
 
     return {
@@ -101,7 +101,7 @@
         else {
           // We're running in Karma, so return an absolute path,
           // since we don't know the relative path of the "test" directory.
-          return _testsDir.replace(/^https?:\/\/[^\/]+(\/.*)/, '$1' + file);
+          return _testsDir.replace(/^https?:\/\/[^\/]+(\/.*)/, "$1" + file);
         }
       },
 

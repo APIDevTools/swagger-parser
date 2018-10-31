@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = form;
 
@@ -6,56 +6,56 @@ module.exports = form;
  * Finds all form fields and exposes them as properties.
  */
 function form () {
-  form.form = $('#swagger-parser-form');
+  form.form = $("#swagger-parser-form");
 
   form.allow = {
-    label: form.form.find('#allow-label'),
-    menu: form.form.find('#allow-menu'),
-    json: form.form.find('input[name=allow-json]'),
-    yaml: form.form.find('input[name=allow-yaml]'),
-    text: form.form.find('input[name=allow-text]'),
-    empty: form.form.find('input[name=allow-empty]'),
-    unknown: form.form.find('input[name=allow-unknown]')
+    label: form.form.find("#allow-label"),
+    menu: form.form.find("#allow-menu"),
+    json: form.form.find("input[name=allow-json]"),
+    yaml: form.form.find("input[name=allow-yaml]"),
+    text: form.form.find("input[name=allow-text]"),
+    empty: form.form.find("input[name=allow-empty]"),
+    unknown: form.form.find("input[name=allow-unknown]")
   };
 
   form.refs = {
-    label: form.form.find('#refs-label'),
-    menu: form.form.find('#refs-menu'),
-    external: form.form.find('input[name=refs-external]'),
-    circular: form.form.find('input[name=refs-circular]')
+    label: form.form.find("#refs-label"),
+    menu: form.form.find("#refs-menu"),
+    external: form.form.find("input[name=refs-external]"),
+    circular: form.form.find("input[name=refs-circular]")
   };
 
   form.validate = {
-    label: form.form.find('#validate-label'),
-    menu: form.form.find('#validate-menu'),
-    schema: form.form.find('input[name=validate-schema]'),
-    spec: form.form.find('input[name=validate-spec]')
+    label: form.form.find("#validate-label"),
+    menu: form.form.find("#validate-menu"),
+    schema: form.form.find("input[name=validate-schema]"),
+    spec: form.form.find("input[name=validate-spec]")
   };
 
   form.tabs = {
-    url: form.form.find('#url-tab'),
-    text: form.form.find('#text-tab')
+    url: form.form.find("#url-tab"),
+    text: form.form.find("#text-tab")
   };
 
   form.method = {
-    button: form.form.find('button[name=method]'),
-    menu: form.form.find('#method-menu')
+    button: form.form.find("button[name=method]"),
+    menu: form.form.find("#method-menu")
   };
 
   form.samples = {
     url: {
-      container: form.form.find('#url-sample'),
-      link: form.form.find('#url-sample-link'),
+      container: form.form.find("#url-sample"),
+      link: form.form.find("#url-sample-link"),
     },
     text: {
-      container: form.form.find('#text-sample'),
-      link: form.form.find('#text-sample-link'),
+      container: form.form.find("#text-sample"),
+      link: form.form.find("#text-sample-link"),
     }
   };
 
-  form.url = form.form.find('input[name=url]');
+  form.url = form.form.find("input[name=url]");
   form.textBox = null; // This is set in editors.js
-  form.bookmark = form.form.find('#bookmark');
+  form.bookmark = form.form.find("#bookmark");
 }
 
 /**
@@ -65,28 +65,28 @@ function form () {
 form.getOptions = function () {
   return {
     parse: {
-      json: form.allow.json.is(':checked') ? {
-        allowEmpty: form.allow.empty.is(':checked'),
+      json: form.allow.json.is(":checked") ? {
+        allowEmpty: form.allow.empty.is(":checked"),
       } : false,
-      yaml: form.allow.yaml.is(':checked') ? {
-        allowEmpty: form.allow.empty.is(':checked'),
+      yaml: form.allow.yaml.is(":checked") ? {
+        allowEmpty: form.allow.empty.is(":checked"),
       } : false,
-      text: form.allow.text.is(':checked') ? {
-        allowEmpty: form.allow.empty.is(':checked'),
+      text: form.allow.text.is(":checked") ? {
+        allowEmpty: form.allow.empty.is(":checked"),
       } : false,
-      binary: form.allow.unknown.is(':checked') ? {
-        allowEmpty: form.allow.empty.is(':checked'),
+      binary: form.allow.unknown.is(":checked") ? {
+        allowEmpty: form.allow.empty.is(":checked"),
       } : false,
     },
     resolve: {
-      external: form.refs.external.is(':checked'),
+      external: form.refs.external.is(":checked"),
     },
     dereference: {
-      circular: form.refs.circular.is(':checked'),
+      circular: form.refs.circular.is(":checked"),
     },
     validate: {
-      schema: form.validate.schema.is(':checked'),
-      spec: form.validate.spec.is(':checked'),
+      schema: form.validate.schema.is(":checked"),
+      spec: form.validate.spec.is(":checked"),
     },
   };
 };
@@ -96,25 +96,25 @@ form.getOptions = function () {
  */
 form.getAPI = function () {
   // Determine which tab is selected
-  if (form.tabs.url.parent().attr('class').indexOf('active') >= 0) {
+  if (form.tabs.url.parent().attr("class").indexOf("active") >= 0) {
     var url = form.url.val();
     if (url) {
       return url;
     }
     else {
-      throw new URIError('Please specify the URL of your Swagger/OpenAPI definition');
+      throw new URIError("Please specify the URL of your Swagger/OpenAPI definition");
     }
   }
   else {
     var text = form.textBox.getValue();
-    if (form.allow.yaml.is(':checked')) {
+    if (form.allow.yaml.is(":checked")) {
       return SwaggerParser.YAML.parse(text);
     }
-    else if (form.allow.json.is(':checked')) {
+    else if (form.allow.json.is(":checked")) {
       return JSON.parse(text);
     }
     else {
-      throw new SyntaxError('Unable to parse the API. Neither YAML nor JSON are allowed.');
+      throw new SyntaxError("Unable to parse the API. Neither YAML nor JSON are allowed.");
     }
   }
 };

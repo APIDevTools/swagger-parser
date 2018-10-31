@@ -1,5 +1,5 @@
 (function () {
-  'use strict';
+  "use strict";
 
   host.global.helper = {};
 
@@ -27,8 +27,8 @@
    * Throws an error if called.
    */
   helper.shouldNotGetCalled = function shouldNotGetCalled (done) {
-    var err = new Error('This function should not have gotten called.');
-    if (typeof done === 'function') {
+    var err = new Error("This function should not have gotten called.");
+    if (typeof done === "function") {
       return function (err2) {
         if (err2 instanceof Error) {
           done(err2);
@@ -72,12 +72,12 @@
           // Resolved file paths
           expect($refs.paths()).to.have.same.members(expectedFiles);
           if (host.node) {
-            expect($refs.paths(['file'])).to.have.same.members(expectedFiles);
-            expect($refs.paths('http')).to.be.an('array').with.lengthOf(0);
+            expect($refs.paths(["file"])).to.have.same.members(expectedFiles);
+            expect($refs.paths("http")).to.be.an("array").with.lengthOf(0);
           }
           else {
-            expect($refs.paths(['http', 'https'])).to.have.same.members(expectedFiles);
-            expect($refs.paths('fs')).to.be.an('array').with.lengthOf(0);
+            expect($refs.paths(["http", "https"])).to.have.same.members(expectedFiles);
+            expect($refs.paths("fs")).to.be.an("array").with.lengthOf(0);
           }
 
           // Resolved values
@@ -99,13 +99,13 @@
    * Converts Buffer objects to POJOs, so they can be compared using Chai
    */
   helper.convertNodeBuffersToPOJOs = function convertNodeBuffersToPOJOs (value) {
-    if (value && (value._isBuffer || (value.constructor && value.constructor.name === 'Buffer'))) {
+    if (value && (value._isBuffer || (value.constructor && value.constructor.name === "Buffer"))) {
       // Convert Buffers to POJOs for comparison
       value = value.toJSON();
 
       if (host.node && host.node.version < 4) {
         // Node v0.10 serializes buffers differently
-        value = { type: 'Buffer', data: value };
+        value = { type: "Buffer", data: value };
       }
     }
     return value;
@@ -116,7 +116,7 @@
    */
   helper.cloneDeep = function cloneDeep (value) {
     var clone = value;
-    if (value && typeof value === 'object') {
+    if (value && typeof value === "object") {
       clone = value instanceof Array ? [] : {};
       var keys = Object.keys(value);
       for (var i = 0; i < keys.length; i++) {

@@ -2,144 +2,144 @@ helper.parsed.circularExternal =
 {
   api: {
     info: {
-      version: '1.0.0',
-      description: 'This API contains circular (recursive) JSON references',
-      title: 'Circular $Refs'
+      version: "1.0.0",
+      description: "This API contains circular (recursive) JSON references",
+      title: "Circular $Refs"
     },
     paths: {
-      '/parent': {
+      "/parent": {
         get: {
           responses: {
             200: {
-              description: 'Returns a parent',
+              description: "Returns a parent",
               schema: {
-                $ref: '#/definitions/parent'
+                $ref: "#/definitions/parent"
               }
             }
           }
         }
       },
-      '/pet': {
+      "/pet": {
         get: {
           responses: {
             200: {
-              description: 'Returns a pet',
+              description: "Returns a pet",
               schema: {
-                $ref: '#/definitions/pet'
+                $ref: "#/definitions/pet"
               }
             }
           }
         }
       },
-      '/thing': {
+      "/thing": {
         get: {
           responses: {
             200: {
-              description: 'Returns a thing',
+              description: "Returns a thing",
               schema: {
-                $ref: '#/definitions/thing'
+                $ref: "#/definitions/thing"
               }
             }
           }
         }
       },
-      '/person': {
+      "/person": {
         get: {
           responses: {
             200: {
-              description: 'Returns a person',
+              description: "Returns a person",
               schema: {
-                $ref: '#/definitions/person'
+                $ref: "#/definitions/person"
               }
             }
           }
         }
       }
     },
-    swagger: '2.0',
+    swagger: "2.0",
     definitions: {
       pet: {
-        $ref: 'definitions/pet.yaml'
+        $ref: "definitions/pet.yaml"
       },
       thing: {
-        $ref: 'circular.yaml#/definitions/thing'
+        $ref: "circular.yaml#/definitions/thing"
       },
       person: {
-        $ref: 'definitions/person.yaml'
+        $ref: "definitions/person.yaml"
       },
       parent: {
-        $ref: 'definitions/parent.yaml'
+        $ref: "definitions/parent.yaml"
       },
       child: {
-        $ref: 'definitions/child.yaml'
+        $ref: "definitions/child.yaml"
       }
     }
   },
 
   pet: {
-    type: 'object',
+    type: "object",
     properties: {
       age: {
-        type: 'number'
+        type: "number"
       },
       name: {
-        type: 'string'
+        type: "string"
       },
       species: {
         enum: [
-          'cat',
-          'dog',
-          'bird',
-          'fish'
+          "cat",
+          "dog",
+          "bird",
+          "fish"
         ],
-        type: 'string'
+        type: "string"
       }
     },
-    title: 'pet'
+    title: "pet"
   },
 
   child: {
-    type: 'object',
+    type: "object",
     properties: {
       parents: {
         items: {
-          $ref: 'parent.yaml'
+          $ref: "parent.yaml"
         },
-        type: 'array'
+        type: "array"
       },
       name: {
-        type: 'string'
+        type: "string"
       }
     },
-    title: 'child'
+    title: "child"
   },
 
   parent: {
-    type: 'object',
+    type: "object",
     properties: {
       name: {
-        type: 'string'
+        type: "string"
       },
       children: {
         items: {
-          $ref: 'child.yaml'
+          $ref: "child.yaml"
         },
-        type: 'array'
+        type: "array"
       }
     },
-    title: 'parent'
+    title: "parent"
   },
 
   person: {
-    type: 'object',
+    type: "object",
     properties: {
       spouse: {
-        $ref: 'person.yaml'
+        $ref: "person.yaml"
       },
       name: {
-        type: 'string'
+        type: "string"
       }
     },
-    title: 'person'
+    title: "person"
   }
 };

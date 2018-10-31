@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-var form = require('./form'),
-    analytics = require('./analytics');
+var form = require("./form"),
+    analytics = require("./analytics");
 
 module.exports = dropdowns;
 
@@ -29,10 +29,10 @@ function dropdowns () {
   trackCheckbox(form.validate.spec);
 
   // Change the button text whenever a new method is selected
-  form.method.menu.find('a').on('click', function (event) {
-    form.method.menu.dropdown('toggle');
+  form.method.menu.find("a").on("click", function (event) {
+    form.method.menu.dropdown("toggle");
     event.stopPropagation();
-    var methodName = $(this).data('value');
+    var methodName = $(this).data("value");
     setSelectedMethod(methodName);
     trackButtonLabel(methodName);
   });
@@ -46,20 +46,20 @@ function dropdowns () {
  * @param {function} setLabel
  */
 function onChange (menu, setLabel) {
-  var dropdown = menu.parent('.dropdown');
+  var dropdown = menu.parent(".dropdown");
 
   // Don't auto-close the menu when items are clicked
-  menu.find('a').on('click', function (event) {
+  menu.find("a").on("click", function (event) {
     event.stopPropagation();
   });
 
   // Set the label immediately, and again whenever the menu is closed
   setLabel();
-  dropdown.on('hidden.bs.dropdown', setLabel);
+  dropdown.on("hidden.bs.dropdown", setLabel);
 
   // Track when a dropdown menu is shown
-  dropdown.on('shown.bs.dropdown', function () {
-    analytics.trackEvent('options', 'shown', menu.attr('id'));
+  dropdown.on("shown.bs.dropdown", function () {
+    analytics.trackEvent("options", "shown", menu.attr("id"));
   });
 }
 
@@ -72,22 +72,22 @@ function setAllowLabel () {
 
   switch (values.checked.length) {
     case 0:
-      form.allow.label.text('No file types allowed');
+      form.allow.label.text("No file types allowed");
       break;
     case 1:
-      form.allow.label.text('Only allow ' + values.checked[0] + ' files');
+      form.allow.label.text("Only allow " + values.checked[0] + " files");
       break;
     case 2:
-      form.allow.label.text('Only allow ' + values.checked[0] + ' and ' + values.checked[1]);
+      form.allow.label.text("Only allow " + values.checked[0] + " and " + values.checked[1]);
       break;
     case 3:
-      form.allow.label.text('Don\'t allow ' + values.unchecked[0] + ' or ' + values.unchecked[1]);
+      form.allow.label.text("Don't allow " + values.unchecked[0] + " or " + values.unchecked[1]);
       break;
     case 4:
-      form.allow.label.text('Don\'t allow ' + values.unchecked[0] + ' files');
+      form.allow.label.text("Don't allow " + values.unchecked[0] + " files");
       break;
     case 5:
-      form.allow.label.text('Allow all file types');
+      form.allow.label.text("Allow all file types");
   }
 }
 
@@ -99,13 +99,13 @@ function setRefsLabel () {
 
   switch (values.checked.length) {
     case 0:
-      form.refs.label.text('Only follow internal $refs');
+      form.refs.label.text("Only follow internal $refs");
       break;
     case 1:
-      form.refs.label.text('Don\'t follow ' + values.unchecked[0] + ' $refs');
+      form.refs.label.text("Don't follow " + values.unchecked[0] + " $refs");
       break;
     case 2:
-      form.refs.label.text('Follow all $refs');
+      form.refs.label.text("Follow all $refs");
   }
 }
 
@@ -117,13 +117,13 @@ function setValidateLabel () {
 
   switch (values.checked.length) {
     case 0:
-      form.validate.label.text('Don\'t validate anything');
+      form.validate.label.text("Don't validate anything");
       break;
     case 1:
-      form.validate.label.text('Don\'t validate Swagger ' + values.unchecked[0]);
+      form.validate.label.text("Don't validate Swagger " + values.unchecked[0]);
       break;
     case 2:
-      form.validate.label.text('Validate everything');
+      form.validate.label.text("Validate everything");
   }
 }
 
@@ -136,9 +136,9 @@ function setSelectedMethod (methodName) {
   form.method.button.val(methodName.toLowerCase());
 
   methodName = methodName[0].toUpperCase() + methodName.substr(1);
-  form.method.button.text(methodName + ' it!');
-  form.tabs.url.text(methodName + ' a URL');
-  form.tabs.text.text(methodName + ' Text');
+  form.method.button.text(methodName + " it!");
+  form.tabs.url.text(methodName + " a URL");
+  form.tabs.text.text(methodName + " Text");
 }
 
 /**
@@ -147,9 +147,9 @@ function setSelectedMethod (methodName) {
  * @param {jQuery} checkbox
  */
 function trackCheckbox (checkbox) {
-  checkbox.on('change', function () {
-    var value = checkbox.is(':checked') ? 1 : 0;
-    analytics.trackEvent('options', 'changed', checkbox.attr('name'), value);
+  checkbox.on("change", function () {
+    var value = checkbox.is(":checked") ? 1 : 0;
+    analytics.trackEvent("options", "changed", checkbox.attr("name"), value);
   });
 }
 
@@ -159,8 +159,8 @@ function trackCheckbox (checkbox) {
  * @param {string} methodName - The method name (e.g. "validate", "dereference", etc.)
  */
 function trackButtonLabel (methodName) {
-  var value = ['', 'parse', 'resolve', 'bundle', 'dereference', 'validate'].indexOf(methodName);
-  analytics.trackEvent('options', 'changed', 'method', value);
+  var value = ["", "parse", "resolve", "bundle", "dereference", "validate"].indexOf(methodName);
+  analytics.trackEvent("options", "changed", "method", value);
 }
 
 /**
@@ -173,11 +173,11 @@ function getCheckedAndUnchecked (checkboxes) {
   var checked = [], unchecked = [];
   for (var i = 0; i < arguments.length; i++) {
     var checkbox = arguments[i];
-    if (checkbox.is(':checked')) {
-      checked.push(checkbox.data('value'));
+    if (checkbox.is(":checked")) {
+      checked.push(checkbox.data("value"));
     }
     else {
-      unchecked.push(checkbox.data('value'));
+      unchecked.push(checkbox.data("value"));
     }
   }
   return { checked: checked, unchecked: unchecked };

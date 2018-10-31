@@ -1,5 +1,5 @@
-describe('Real-world APIs', function () {
-  'use strict';
+describe("Real-world APIs", function () {
+  "use strict";
 
   var realWorldAPIs = [];
   var apiIndex = 0;
@@ -10,22 +10,22 @@ describe('Real-world APIs', function () {
     this.timeout(10000);
 
     // Download a list of over 1500 real-world Swagger APIs from apis.guru
-    superagent.get('https://api.apis.guru/v2/list.json')
+    superagent.get("https://api.apis.guru/v2/list.json")
       .end(function (err, res) {
         if (err || !res.ok) {
-          return done(err || new Error('Unable to downlaod real-world APIs from apis.guru'));
+          return done(err || new Error("Unable to downlaod real-world APIs from apis.guru"));
         }
 
         // Remove certain APIs that are known to cause problems
         var apis = res.body;
 
         // GitHub's CORS policy blocks this request
-        delete apis['googleapis.com:adsense'];
+        delete apis["googleapis.com:adsense"];
 
         // These APIs cause infinite loops in json-schema-ref-parser.  Still investigating.
         // https://github.com/APIDevTools/json-schema-ref-parser/issues/56
-        delete apis['bungie.net'];
-        delete apis['stripe.com'];
+        delete apis["bungie.net"];
+        delete apis["stripe.com"];
 
         // Flatten the list, so there's an API object for every API version
         realWorldAPIs = [];
@@ -53,7 +53,7 @@ describe('Real-world APIs', function () {
   // Mocha requires us to create our tests synchronously. But the list of APIs is downloaded asynchronously.
   // So, we just create 1500 placeholder tests, and then rename them later to reflect which API they're testing.
   for (var i = 1; i <= 1500; i++) {
-    it(i + ') ', testNextAPI);
+    it(i + ") ", testNextAPI);
   }
 
   /**
@@ -64,12 +64,12 @@ describe('Real-world APIs', function () {
     var api = realWorldAPIs[apiIndex++];
 
     if (api) {
-      this.test.title += api.name + ' ' + (api.version[0] === 'v' ? api.version : 'v' + api.version);
+      this.test.title += api.name + " " + (api.version[0] === "v" ? api.version : "v" + api.version);
       validateApi(api).then(done, done);
     }
     else {
       // There are no more APIs to test
-      this.test.title += 'more APIs coming soon...';
+      this.test.title += "more APIs coming soon...";
       done();
     }
   }
@@ -88,25 +88,25 @@ describe('Real-world APIs', function () {
         var knownError = findKnownApiError(api, error);
 
         if (!knownError) {
-          console.error('\n\nERROR IN THIS API:', JSON.stringify(api, null, 2));
+          console.error("\n\nERROR IN THIS API:", JSON.stringify(api, null, 2));
           throw error;
         }
 
-        if (knownError.whatToDo === 'ignore') {
+        if (knownError.whatToDo === "ignore") {
           // Ignore the error.  It's a known problem with this API
           return null;
         }
 
-        if (knownError.whatToDo === 'retry') {
+        if (knownError.whatToDo === "retry") {
           if (attemptNumber >= 3) {
-            console.error('        failed to download.  giving up.');
+            console.error("        failed to download.  giving up.");
             return null;
           }
           else {
             // Wait a few seconds, then try the download again
             return new Promise(
               function (resolve) {
-                console.error('        failed to download.  trying again...');
+                console.error("        failed to download.  trying again...");
                 setTimeout(resolve, 2000);
               })
               .then(function () {
@@ -124,11 +124,11 @@ describe('Real-world APIs', function () {
     for (var i = 0; i < knownApiErrors.length; i++) {
       var knownError = knownApiErrors[i];
 
-      if (typeof knownError.api === 'string' && api.name.indexOf(knownError.api) === -1) {
+      if (typeof knownError.api === "string" && api.name.indexOf(knownError.api) === -1) {
         continue;
       }
 
-      if (typeof knownError.error === 'string' && error.message.indexOf(knownError.error) === -1) {
+      if (typeof knownError.error === "string" && error.message.indexOf(knownError.error) === -1) {
         continue;
       }
 
@@ -148,35 +148,35 @@ describe('Real-world APIs', function () {
       // If the API definition failed to download, then retry
       {
         error: /Error downloading https?:.*swagger\.yaml/,
-        whatToDo: 'retry',
+        whatToDo: "retry",
       },
       {
-        error: 'socket hang up',
-        whatToDo: 'retry',
+        error: "socket hang up",
+        whatToDo: "retry",
       },
 
       // Many Azure API definitions erroneously reference external files that don't exist
       {
-        api: 'azure.com', error: /Error downloading .*\.json\s+HTTP ERROR 404/,
-        whatToDo: 'ignore',
+        api: "azure.com", error: /Error downloading .*\.json\s+HTTP ERROR 404/,
+        whatToDo: "ignore",
       },
 
       // Many Azure API definitions have endpoints with multiple "location" placeholders, which is invalid
       {
-        api: 'azure.com', error: 'has multiple path placeholders named {location}',
-        whatToDo: 'ignore',
+        api: "azure.com", error: "has multiple path placeholders named {location}",
+        whatToDo: "ignore",
       },
 
       // Stoplight.io's API definition uses multi-type schemas, which isn't allowed by Swagger 2.0
       {
-        api: 'stoplight.io', error: 'invalid response schema type (object,string)',
-        whatToDo: 'ignore',
+        api: "stoplight.io", error: "invalid response schema type (object,string)",
+        whatToDo: "ignore",
       },
 
       // VersionEye's API definition is missing MIME types
       {
-        api: 'versioneye.com', error: 'has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded',
-        whatToDo: 'ignore',
+        api: "versioneye.com", error: "has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded",
+        whatToDo: "ignore",
       },
     ];
 
@@ -189,9 +189,9 @@ describe('Real-world APIs', function () {
       //    jdbc:(redshift|postgresql)://((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+redshift\.amazonaws\.com:\d{1,5}/[a-zA-Z0-9_$]+
       //
       knownErrors.push({
-        api: 'amazonaws.com',
+        api: "amazonaws.com",
         error: "Object didn't pass validation for format regex",
-        whatToDo: 'ignore',
+        whatToDo: "ignore",
       });
     }
 

@@ -1,48 +1,48 @@
 helper.validated.circularExternal =
 {
   fullyDereferenced: {
-    swagger: '2.0',
+    swagger: "2.0",
     info: {
-      version: '1.0.0',
-      description: 'This API contains circular (recursive) JSON references',
-      title: 'Circular $Refs'
+      version: "1.0.0",
+      description: "This API contains circular (recursive) JSON references",
+      title: "Circular $Refs"
     },
     paths: {
-      '/pet': {
+      "/pet": {
         get: {
           responses: {
             200: {
-              description: 'Returns a pet',
+              description: "Returns a pet",
               schema: null
             }
           }
         }
       },
-      '/thing': {
+      "/thing": {
         get: {
           responses: {
             200: {
-              description: 'Returns a thing',
+              description: "Returns a thing",
               schema: null
             }
           }
         }
       },
-      '/person': {
+      "/person": {
         get: {
           responses: {
             200: {
-              description: 'Returns a person',
+              description: "Returns a person",
               schema: null
             }
           }
         }
       },
-      '/parent': {
+      "/parent": {
         get: {
           responses: {
             200: {
-              description: 'Returns a parent',
+              description: "Returns a parent",
               schema: null
             }
           }
@@ -51,62 +51,62 @@ helper.validated.circularExternal =
     },
     definitions: {
       pet: {
-        type: 'object',
+        type: "object",
         properties: {
           age: {
-            type: 'number'
+            type: "number"
           },
           name: {
-            type: 'string'
+            type: "string"
           },
           species: {
             enum: [
-              'cat',
-              'dog',
-              'bird',
-              'fish'
+              "cat",
+              "dog",
+              "bird",
+              "fish"
             ],
-            type: 'string'
+            type: "string"
           }
         },
-        title: 'pet'
+        title: "pet"
       },
       thing: {
-        $ref: '#/definitions/thing'
+        $ref: "#/definitions/thing"
       },
       person: {
-        title: 'person',
-        type: 'object',
+        title: "person",
+        type: "object",
         properties: {
           spouse: null,
           name: {
-            type: 'string'
+            type: "string"
           }
         }
       },
       parent: {
-        title: 'parent',
-        type: 'object',
+        title: "parent",
+        type: "object",
         properties: {
           name: {
-            type: 'string'
+            type: "string"
           },
           children: {
             items: null,
-            type: 'array'
+            type: "array"
           }
         }
       },
       child: {
-        title: 'child',
-        type: 'object',
+        title: "child",
+        type: "object",
         properties: {
           parents: {
             items: null,
-            type: 'array'
+            type: "array"
           },
           name: {
-            type: 'string'
+            type: "string"
           }
         }
       }
@@ -114,54 +114,54 @@ helper.validated.circularExternal =
   },
 
   ignoreCircular$Refs: {
-    swagger: '2.0',
+    swagger: "2.0",
     info: {
-      version: '1.0.0',
-      description: 'This API contains circular (recursive) JSON references',
-      title: 'Circular $Refs'
+      version: "1.0.0",
+      description: "This API contains circular (recursive) JSON references",
+      title: "Circular $Refs"
     },
     paths: {
-      '/parent': {
+      "/parent": {
         get: {
           responses: {
             200: {
-              description: 'Returns a parent',
+              description: "Returns a parent",
               schema: {
-                $ref: '#/definitions/parent'
+                $ref: "#/definitions/parent"
               }
             }
           }
         }
       },
-      '/pet': {
+      "/pet": {
         get: {
           responses: {
             200: {
-              description: 'Returns a pet',
+              description: "Returns a pet",
               schema: null
             }
           }
         }
       },
-      '/thing': {
+      "/thing": {
         get: {
           responses: {
             200: {
-              description: 'Returns a thing',
+              description: "Returns a thing",
               schema: {
-                $ref: '#/definitions/thing'
+                $ref: "#/definitions/thing"
               }
             }
           }
         }
       },
-      '/person': {
+      "/person": {
         get: {
           responses: {
             200: {
-              description: 'Returns a person',
+              description: "Returns a person",
               schema: {
-                $ref: '#/definitions/person'
+                $ref: "#/definitions/person"
               }
             }
           }
@@ -170,58 +170,58 @@ helper.validated.circularExternal =
     },
     definitions: {
       pet: {
-        type: 'object',
+        type: "object",
         properties: {
           age: {
-            type: 'number'
+            type: "number"
           },
           name: {
-            type: 'string'
+            type: "string"
           },
           species: {
             enum: [
-              'cat',
-              'dog',
-              'bird',
-              'fish'
+              "cat",
+              "dog",
+              "bird",
+              "fish"
             ],
-            type: 'string'
+            type: "string"
           }
         },
-        title: 'pet'
+        title: "pet"
       },
       thing: {
-        $ref: '#/definitions/thing'
+        $ref: "#/definitions/thing"
       },
       person: {
-        $ref: 'definitions/person.yaml'
+        $ref: "definitions/person.yaml"
       },
       parent: {
-        $ref: 'definitions/parent.yaml'
+        $ref: "definitions/parent.yaml"
       },
       child: {
-        $ref: 'definitions/child.yaml'
+        $ref: "definitions/child.yaml"
       }
     }
   }
 };
 
-helper.validated.circularExternal.fullyDereferenced.paths['/pet'].get.responses['200'].schema =
+helper.validated.circularExternal.fullyDereferenced.paths["/pet"].get.responses["200"].schema =
   helper.validated.circularExternal.fullyDereferenced.definitions.pet;
 
-helper.validated.circularExternal.fullyDereferenced.paths['/thing'].get.responses['200'].schema =
+helper.validated.circularExternal.fullyDereferenced.paths["/thing"].get.responses["200"].schema =
   helper.validated.circularExternal.fullyDereferenced.definitions.thing;
 
-helper.validated.circularExternal.fullyDereferenced.paths['/person'].get.responses['200'].schema =
+helper.validated.circularExternal.fullyDereferenced.paths["/person"].get.responses["200"].schema =
   helper.validated.circularExternal.fullyDereferenced.definitions.person.properties.spouse =
     helper.validated.circularExternal.fullyDereferenced.definitions.person;
 
 helper.validated.circularExternal.fullyDereferenced.definitions.parent.properties.children.items =
   helper.validated.circularExternal.fullyDereferenced.definitions.child;
 
-helper.validated.circularExternal.fullyDereferenced.paths['/parent'].get.responses['200'].schema =
+helper.validated.circularExternal.fullyDereferenced.paths["/parent"].get.responses["200"].schema =
   helper.validated.circularExternal.fullyDereferenced.definitions.child.properties.parents.items =
     helper.validated.circularExternal.fullyDereferenced.definitions.parent;
 
-helper.validated.circularExternal.ignoreCircular$Refs.paths['/pet'].get.responses['200'].schema =
+helper.validated.circularExternal.ignoreCircular$Refs.paths["/pet"].get.responses["200"].schema =
   helper.validated.circularExternal.ignoreCircular$Refs.definitions.pet;
