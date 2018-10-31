@@ -1,5 +1,5 @@
 /*!
- * Swagger Parser v6.0.1 (October 10th 2018)
+ * Swagger Parser v6.0.2 (October 31st 2018)
  * 
  * https://apidevtools.org/swagger-parser/
  * 
@@ -85,7 +85,7 @@ SwaggerParser.prototype.parse = function (path, api, options, callback) {
         }
       }
       else {
-        var supportedVersions = ['3.0.0', '3.0.1'];
+        var supportedVersions = ['3.0.0', '3.0.1', '3.0.2'];
 
         // Verify that the parsed object is a Openapi API
         if (schema.openapi === undefined || schema.info === undefined || schema.paths === undefined) {
@@ -8856,11 +8856,11 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 });
 
 },{"../type":84}],101:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var $Ref = require('./ref'),
-    Pointer = require('./pointer'),
-    url = require('./util/url');
+var $Ref = require("./ref"),
+    Pointer = require("./pointer"),
+    url = require("./util/url");
 
 module.exports = bundle;
 
@@ -8877,7 +8877,7 @@ function bundle (parser, options) {
 
   // Build an inventory of all $ref pointers in the JSON Schema
   var inventory = [];
-  crawl(parser, 'schema', parser.$refs._root$Ref.path + '#', '#', 0, inventory, parser.$refs, options);
+  crawl(parser, "schema", parser.$refs._root$Ref.path + "#", "#", 0, inventory, parser.$refs, options);
 
   // Remap all $ref pointers
   remap(inventory);
@@ -8897,7 +8897,7 @@ function bundle (parser, options) {
 function crawl (parent, key, path, pathFromRoot, indirections, inventory, $refs, options) {
   var obj = key === null ? parent : parent[key];
 
-  if (obj && typeof obj === 'object') {
+  if (obj && typeof obj === "object") {
     if ($Ref.isAllowed$Ref(obj)) {
       inventory$Ref(parent, key, path, pathFromRoot, indirections, inventory, $refs, options);
     }
@@ -8909,10 +8909,10 @@ function crawl (parent, key, path, pathFromRoot, indirections, inventory, $refs,
         .sort(function (a, b) {
           // Most people will expect references to be bundled into the the "definitions" property,
           // so we always crawl that property first, if it exists.
-          if (a === 'definitions') {
+          if (a === "definitions") {
             return -1;
           }
-          else if (b === 'definitions') {
+          else if (b === "definitions") {
             return 1;
           }
           else {
@@ -9044,8 +9044,8 @@ function remap (inventory) {
     else {
       // Determine how far each $ref is from the "definitions" property.
       // Most people will expect references to be bundled into the the "definitions" property if possible.
-      var aDefinitionsIndex = a.pathFromRoot.lastIndexOf('/definitions');
-      var bDefinitionsIndex = b.pathFromRoot.lastIndexOf('/definitions');
+      var aDefinitionsIndex = a.pathFromRoot.lastIndexOf("/definitions");
+      var bDefinitionsIndex = b.pathFromRoot.lastIndexOf("/definitions");
 
       if (aDefinitionsIndex !== bDefinitionsIndex) {
         // Give higher priority to the $ref that's closer to the "definitions" property
@@ -9070,9 +9070,9 @@ function remap (inventory) {
       // This $ref points to the same value as the prevous $ref, so remap it to the same path
       entry.$ref.$ref = pathFromRoot;
     }
-    else if (entry.file === file && entry.hash.indexOf(hash + '/') === 0) {
-      // This $ref points to the a sub-value as the prevous $ref, so remap it beneath that path
-      entry.$ref.$ref = Pointer.join(pathFromRoot, Pointer.parse(entry.hash));
+    else if (entry.file === file && entry.hash.indexOf(hash + "/") === 0) {
+      // This $ref points to a sub-value of the prevous $ref, so remap it beneath that path
+      entry.$ref.$ref = Pointer.join(pathFromRoot, Pointer.parse(entry.hash.replace(hash, "#")));
     }
     else {
       // We've moved to a new file or new hash
@@ -9112,12 +9112,12 @@ function removeFromInventory (inventory, entry) {
 }
 
 },{"./pointer":111,"./ref":112,"./util/url":118}],102:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var $Ref = require('./ref'),
-    Pointer = require('./pointer'),
-    ono = require('ono'),
-    url = require('./util/url');
+var $Ref = require("./ref"),
+    Pointer = require("./pointer"),
+    ono = require("ono"),
+    url = require("./util/url");
 
 module.exports = dereference;
 
@@ -9130,7 +9130,7 @@ module.exports = dereference;
  */
 function dereference (parser, options) {
   // console.log('Dereferencing $ref pointers in %s', parser.$refs._root$Ref.path);
-  var dereferenced = crawl(parser.schema, parser.$refs._root$Ref.path, '#', [], parser.$refs, options);
+  var dereferenced = crawl(parser.schema, parser.$refs._root$Ref.path, "#", [], parser.$refs, options);
   parser.$refs.circular = dereferenced.circular;
   parser.schema = dereferenced.value;
 }
@@ -9153,7 +9153,7 @@ function crawl (obj, path, pathFromRoot, parents, $refs, options) {
     circular: false
   };
 
-  if (obj && typeof obj === 'object') {
+  if (obj && typeof obj === "object") {
     parents.push(obj);
 
     if ($Ref.isAllowed$Ref(obj, options)) {
@@ -9228,7 +9228,7 @@ function dereference$Ref ($ref, path, pathFromRoot, parents, $refs, options) {
     dereferencedValue = dereferenced.value;
   }
 
-  if (circular && !directCircular && options.dereference.circular === 'ignore') {
+  if (circular && !directCircular && options.dereference.circular === "ignore") {
     // The user has chosen to "ignore" circular references, so don't change the value
     dereferencedValue = $ref;
   }
@@ -9257,28 +9257,28 @@ function dereference$Ref ($ref, path, pathFromRoot, parents, $refs, options) {
 function foundCircularReference (keyPath, $refs, options) {
   $refs.circular = true;
   if (!options.dereference.circular) {
-    throw ono.reference('Circular $ref pointer found at %s', keyPath);
+    throw ono.reference("Circular $ref pointer found at %s", keyPath);
   }
   return true;
 }
 
 },{"./pointer":111,"./ref":112,"./util/url":118,"ono":122}],103:[function(require,module,exports){
 (function (Buffer){
-'use strict';
+"use strict";
 
-var Options = require('./options'),
-    $Refs = require('./refs'),
-    parse = require('./parse'),
-    normalizeArgs = require('./normalize-args'),
-    resolveExternal = require('./resolve-external'),
-    bundle = require('./bundle'),
-    dereference = require('./dereference'),
-    url = require('./util/url'),
-    maybe = require('call-me-maybe'),
-    ono = require('ono');
+var Options = require("./options"),
+    $Refs = require("./refs"),
+    parse = require("./parse"),
+    normalizeArgs = require("./normalize-args"),
+    resolveExternal = require("./resolve-external"),
+    bundle = require("./bundle"),
+    dereference = require("./dereference"),
+    url = require("./util/url"),
+    maybe = require("call-me-maybe"),
+    ono = require("ono");
 
 module.exports = $RefParser;
-module.exports.YAML = require('./util/yaml');
+module.exports.YAML = require("./util/yaml");
 
 /**
  * This class parses a JSON schema, builds a map of its JSON references and their resolved values,
@@ -9337,7 +9337,7 @@ $RefParser.prototype.parse = function (path, schema, options, callback) {
   var promise;
 
   if (!args.path && !args.schema) {
-    var err = ono('Expected a file path, URL, or object. Got %s', args.path || args.schema);
+    var err = ono("Expected a file path, URL, or object. Got %s", args.path || args.schema);
     return maybe(args.callback, Promise.reject(err));
   }
 
@@ -9351,16 +9351,16 @@ $RefParser.prototype.parse = function (path, schema, options, callback) {
   // So we're being generous here and doing the conversion automatically.
   // This is not intended to be a 100% bulletproof solution.
   // If it doesn't work for your use-case, then use a URL instead.
-  var pathType = 'http';
+  var pathType = "http";
   if (url.isFileSystemPath(args.path)) {
     args.path = url.fromFileSystemPath(args.path);
-    pathType = 'file';
+    pathType = "file";
   }
 
   // Resolve the absolute path of the schema
   args.path = url.resolve(url.cwd(), args.path);
 
-  if (args.schema && typeof args.schema === 'object') {
+  if (args.schema && typeof args.schema === "object") {
     // A schema object was passed-in.
     // So immediately add a new $Ref with the schema object as its value
     var $ref = this.$refs._add(args.path);
@@ -9376,7 +9376,7 @@ $RefParser.prototype.parse = function (path, schema, options, callback) {
   var me = this;
   return promise
     .then(function (result) {
-      if (!result || typeof result !== 'object' || Buffer.isBuffer(result)) {
+      if (!result || typeof result !== "object" || Buffer.isBuffer(result)) {
         throw ono.syntax('"%s" is not a valid JSON Schema', me.$refs._root$Ref.path || result);
       }
       else {
@@ -9522,9 +9522,9 @@ $RefParser.prototype.dereference = function (path, schema, options, callback) {
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
 
 },{"../../is-buffer/index.js":69,"./bundle":101,"./dereference":102,"./normalize-args":104,"./options":105,"./parse":106,"./refs":113,"./resolve-external":114,"./util/url":118,"./util/yaml":119,"call-me-maybe":11,"ono":122}],104:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var Options = require('./options');
+var Options = require("./options");
 
 module.exports = normalizeArgs;
 
@@ -9538,15 +9538,15 @@ function normalizeArgs (args) {
   var path, schema, options, callback;
   args = Array.prototype.slice.call(args);
 
-  if (typeof args[args.length - 1] === 'function') {
+  if (typeof args[args.length - 1] === "function") {
     // The last parameter is a callback function
     callback = args.pop();
   }
 
-  if (typeof args[0] === 'string') {
+  if (typeof args[0] === "string") {
     // The first parameter is the path
     path = args[0];
-    if (typeof args[2] === 'object') {
+    if (typeof args[2] === "object") {
       // The second parameter is the schema, and the third parameter is the options
       schema = args[1];
       options = args[2];
@@ -9559,7 +9559,7 @@ function normalizeArgs (args) {
   }
   else {
     // The first parameter is the schema
-    path = '';
+    path = "";
     schema = args[0];
     options = args[1];
   }
@@ -9578,14 +9578,14 @@ function normalizeArgs (args) {
 
 },{"./options":105}],105:[function(require,module,exports){
 /* eslint lines-around-comment: [2, {beforeBlockComment: false}] */
-'use strict';
+"use strict";
 
-var jsonParser = require('./parsers/json'),
-    yamlParser = require('./parsers/yaml'),
-    textParser = require('./parsers/text'),
-    binaryParser = require('./parsers/binary'),
-    fileResolver = require('./resolvers/file'),
-    httpResolver = require('./resolvers/http');
+var jsonParser = require("./parsers/json"),
+    yamlParser = require("./parsers/yaml"),
+    textParser = require("./parsers/text"),
+    binaryParser = require("./parsers/binary"),
+    fileResolver = require("./resolvers/file"),
+    httpResolver = require("./resolvers/http");
 
 module.exports = $RefParserOptions;
 
@@ -9686,7 +9686,7 @@ function merge (target, source) {
  */
 function isMergeable (val) {
   return val &&
-    (typeof val === 'object') &&
+    (typeof val === "object") &&
     !Array.isArray(val) &&
     !(val instanceof RegExp) &&
     !(val instanceof Date);
@@ -9694,11 +9694,11 @@ function isMergeable (val) {
 
 },{"./parsers/binary":107,"./parsers/json":108,"./parsers/text":109,"./parsers/yaml":110,"./resolvers/file":115,"./resolvers/http":116}],106:[function(require,module,exports){
 (function (Buffer){
-'use strict';
+"use strict";
 
-var ono = require('ono'),
-    url = require('./util/url'),
-    plugins = require('./util/plugins');
+var ono = require("ono"),
+    url = require("./util/url"),
+    plugins = require("./util/plugins");
 
 module.exports = parse;
 
@@ -9761,11 +9761,11 @@ function readFile (file, options) {
 
     // Find the resolvers that can read this file
     var resolvers = plugins.all(options.resolve);
-    resolvers = plugins.filter(resolvers, 'canRead', file);
+    resolvers = plugins.filter(resolvers, "canRead", file);
 
     // Run the resolvers, in order, until one of them succeeds
     plugins.sort(resolvers);
-    plugins.run(resolvers, 'read', file)
+    plugins.run(resolvers, "read", file)
       .then(resolve, onError);
 
     function onError (err) {
@@ -9801,12 +9801,12 @@ function parseFile (file, options) {
     // If none of the parsers are an exact match for this file, then we'll try ALL of them.
     // This handles situations where the file IS a supported type, just with an unknown extension.
     var allParsers = plugins.all(options.parse);
-    var filteredParsers = plugins.filter(allParsers, 'canParse', file);
+    var filteredParsers = plugins.filter(allParsers, "canParse", file);
     var parsers = filteredParsers.length > 0 ? filteredParsers : allParsers;
 
     // Run the parsers, in order, until one of them succeeds
     plugins.sort(parsers);
-    plugins.run(parsers, 'parse', file)
+    plugins.run(parsers, "parse", file)
       .then(onParsed, onError);
 
     function onParsed (parser) {
@@ -9821,10 +9821,10 @@ function parseFile (file, options) {
     function onError (err) {
       if (err) {
         err = err instanceof Error ? err : new Error(err);
-        reject(ono.syntax(err, 'Error parsing %s', file.url));
+        reject(ono.syntax(err, "Error parsing %s", file.url));
       }
       else {
-        reject(ono.syntax('Unable to parse %s', file.url));
+        reject(ono.syntax("Unable to parse %s", file.url));
       }
     }
   });
@@ -9838,8 +9838,8 @@ function parseFile (file, options) {
  */
 function isEmpty (value) {
   return value === undefined ||
-    (typeof value === 'object' && Object.keys(value).length === 0) ||
-    (typeof value === 'string' && value.trim().length === 0) ||
+    (typeof value === "object" && Object.keys(value).length === 0) ||
+    (typeof value === "string" && value.trim().length === 0) ||
     (Buffer.isBuffer(value) && value.length === 0);
 }
 
@@ -9847,7 +9847,7 @@ function isEmpty (value) {
 
 },{"../../is-buffer/index.js":69,"./util/plugins":117,"./util/url":118,"ono":122}],107:[function(require,module,exports){
 (function (Buffer){
-'use strict';
+"use strict";
 
 var BINARY_REGEXP = /\.(jpeg|jpg|gif|png|bmp|ico)$/i;
 
@@ -9907,7 +9907,7 @@ module.exports = {
 
 },{"buffer":9}],108:[function(require,module,exports){
 (function (Buffer){
-'use strict';
+"use strict";
 
 module.exports = {
   /**
@@ -9932,7 +9932,7 @@ module.exports = {
    *
    * @type {RegExp|string[]|function}
    */
-  canParse: '.json',
+  canParse: ".json",
 
   /**
    * Parses the given file as JSON
@@ -9950,7 +9950,7 @@ module.exports = {
         data = data.toString();
       }
 
-      if (typeof data === 'string') {
+      if (typeof data === "string") {
         if (data.trim().length === 0) {
           resolve(undefined);  // This mirrors the YAML behavior
         }
@@ -9970,7 +9970,7 @@ module.exports = {
 
 },{"../../../is-buffer/index.js":69}],109:[function(require,module,exports){
 (function (Buffer){
-'use strict';
+"use strict";
 
 var TEXT_REGEXP = /\.(txt|htm|html|md|xml|js|min|map|css|scss|less|svg)$/i;
 
@@ -9994,7 +9994,7 @@ module.exports = {
    *
    * @type {string}
    */
-  encoding: 'utf8',
+  encoding: "utf8",
 
   /**
    * Determines whether this parser can parse a given file reference.
@@ -10010,7 +10010,7 @@ module.exports = {
    */
   canParse: function isText (file) {
     // Use this parser if the file is a string or Buffer, and has a known text-based extension
-    return (typeof file.data === 'string' || Buffer.isBuffer(file.data)) && TEXT_REGEXP.test(file.url);
+    return (typeof file.data === "string" || Buffer.isBuffer(file.data)) && TEXT_REGEXP.test(file.url);
   },
 
   /**
@@ -10023,14 +10023,14 @@ module.exports = {
    * @returns {Promise<string>}
    */
   parse: function parseText (file) {
-    if (typeof file.data === 'string') {
+    if (typeof file.data === "string") {
       return file.data;
     }
     else if (Buffer.isBuffer(file.data)) {
       return file.data.toString(this.encoding);
     }
     else {
-      throw new Error('data is not text');
+      throw new Error("data is not text");
     }
   }
 };
@@ -10039,9 +10039,9 @@ module.exports = {
 
 },{"../../../is-buffer/index.js":69}],110:[function(require,module,exports){
 (function (Buffer){
-'use strict';
+"use strict";
 
-var YAML = require('../util/yaml');
+var YAML = require("../util/yaml");
 
 module.exports = {
   /**
@@ -10066,7 +10066,7 @@ module.exports = {
    *
    * @type {RegExp|string[]|function}
    */
-  canParse: ['.yaml', '.yml', '.json'],  // JSON is valid YAML
+  canParse: [".yaml", ".yml", ".json"],  // JSON is valid YAML
 
   /**
    * Parses the given file as YAML
@@ -10084,7 +10084,7 @@ module.exports = {
         data = data.toString();
       }
 
-      if (typeof data === 'string') {
+      if (typeof data === "string") {
         resolve(YAML.parse(data));
       }
       else {
@@ -10098,13 +10098,13 @@ module.exports = {
 }).call(this,{"isBuffer":require("../../../is-buffer/index.js")})
 
 },{"../../../is-buffer/index.js":69,"../util/yaml":119}],111:[function(require,module,exports){
-'use strict';
+"use strict";
 
 module.exports = Pointer;
 
-var $Ref = require('./ref'),
-    url = require('./util/url'),
-    ono = require('ono'),
+var $Ref = require("./ref"),
+    url = require("./util/url"),
+    ono = require("ono"),
     slashes = /\//g,
     tildes = /~/g,
     escapedSlash = /~1/g,
@@ -10263,14 +10263,14 @@ Pointer.parse = function (path) {
   }
 
   // Split into an array
-  pointer = pointer.split('/');
+  pointer = pointer.split("/");
 
   // Decode each part, according to RFC 6901
   for (var i = 0; i < pointer.length; i++) {
-    pointer[i] = decodeURIComponent(pointer[i].replace(escapedSlash, '/').replace(escapedTilde, '~'));
+    pointer[i] = decodeURIComponent(pointer[i].replace(escapedSlash, "/").replace(escapedTilde, "~"));
   }
 
-  if (pointer[0] !== '') {
+  if (pointer[0] !== "") {
     throw ono.syntax('Invalid $ref pointer "%s". Pointers must begin with "#/"', pointer);
   }
 
@@ -10286,8 +10286,8 @@ Pointer.parse = function (path) {
  */
 Pointer.join = function (base, tokens) {
   // Ensure that the base path contains a hash
-  if (base.indexOf('#') === -1) {
-    base += '#';
+  if (base.indexOf("#") === -1) {
+    base += "#";
   }
 
   // Append each token to the base path
@@ -10295,7 +10295,7 @@ Pointer.join = function (base, tokens) {
   for (var i = 0; i < tokens.length; i++) {
     var token = tokens[i];
     // Encode the token, according to RFC 6901
-    base += '/' + encodeURIComponent(token.replace(tildes, '~0').replace(slashes, '~1'));
+    base += "/" + encodeURIComponent(token.replace(tildes, "~0").replace(slashes, "~1"));
   }
 
   return base;
@@ -10355,8 +10355,8 @@ function resolveIf$Ref (pointer, options) {
  * @returns {*} - Returns the assigned value
  */
 function setValue (pointer, token, value) {
-  if (pointer.value && typeof pointer.value === 'object') {
-    if (token === '-' && Array.isArray(pointer.value)) {
+  if (pointer.value && typeof pointer.value === "object") {
+    if (token === "-" && Array.isArray(pointer.value)) {
       pointer.value.push(value);
     }
     else {
@@ -10370,11 +10370,11 @@ function setValue (pointer, token, value) {
 }
 
 },{"./ref":112,"./util/url":118,"ono":122}],112:[function(require,module,exports){
-'use strict';
+"use strict";
 
 module.exports = $Ref;
 
-var Pointer = require('./pointer');
+var Pointer = require("./pointer");
 
 /**
  * This class represents a single JSON reference and its resolved value.
@@ -10474,7 +10474,7 @@ $Ref.prototype.set = function (path, value) {
  * @returns {boolean}
  */
 $Ref.is$Ref = function (value) {
-  return value && typeof value === 'object' && typeof value.$ref === 'string' && value.$ref.length > 0;
+  return value && typeof value === "object" && typeof value.$ref === "string" && value.$ref.length > 0;
 };
 
 /**
@@ -10484,7 +10484,7 @@ $Ref.is$Ref = function (value) {
  * @returns {boolean}
  */
 $Ref.isExternal$Ref = function (value) {
-  return $Ref.is$Ref(value) && value.$ref[0] !== '#';
+  return $Ref.is$Ref(value) && value.$ref[0] !== "#";
 };
 
 /**
@@ -10497,11 +10497,11 @@ $Ref.isExternal$Ref = function (value) {
  */
 $Ref.isAllowed$Ref = function (value, options) {
   if ($Ref.is$Ref(value)) {
-    if (value.$ref.substr(0, 2) === '#/' || value.$ref === '#') {
+    if (value.$ref.substr(0, 2) === "#/" || value.$ref === "#") {
       // It's a JSON Pointer reference, which is always allowed
       return true;
     }
-    else if (value.$ref[0] !== '#' && (!options || options.resolve.external)) {
+    else if (value.$ref[0] !== "#" && (!options || options.resolve.external)) {
       // It's an external reference, which is allowed by the options
       return true;
     }
@@ -10583,10 +10583,10 @@ $Ref.isExtended$Ref = function (value) {
  * @returns {*} - Returns the dereferenced value
  */
 $Ref.dereference = function ($ref, resolvedValue) {
-  if (resolvedValue && typeof resolvedValue === 'object' && $Ref.isExtended$Ref($ref)) {
+  if (resolvedValue && typeof resolvedValue === "object" && $Ref.isExtended$Ref($ref)) {
     var merged = {};
     Object.keys($ref).forEach(function (key) {
-      if (key !== '$ref') {
+      if (key !== "$ref") {
         merged[key] = $ref[key];
       }
     });
@@ -10604,11 +10604,11 @@ $Ref.dereference = function ($ref, resolvedValue) {
 };
 
 },{"./pointer":111}],113:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var ono = require('ono'),
-    $Ref = require('./ref'),
-    url = require('./util/url');
+var ono = require("ono"),
+    $Ref = require("./ref"),
+    url = require("./util/url");
 
 module.exports = $Refs;
 
@@ -10796,18 +10796,18 @@ function getPaths ($refs, types) {
   return paths.map(function (path) {
     return {
       encoded: path,
-      decoded: $refs[path].pathType === 'file' ? url.toFileSystemPath(path, true) : path
+      decoded: $refs[path].pathType === "file" ? url.toFileSystemPath(path, true) : path
     };
   });
 }
 
 },{"./ref":112,"./util/url":118,"ono":122}],114:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var $Ref = require('./ref'),
-    Pointer = require('./pointer'),
-    parse = require('./parse'),
-    url = require('./util/url');
+var $Ref = require("./ref"),
+    Pointer = require("./pointer"),
+    parse = require("./parse"),
+    url = require("./util/url");
 
 module.exports = resolveExternal;
 
@@ -10832,7 +10832,7 @@ function resolveExternal (parser, options) {
 
   try {
     // console.log('Resolving $ref pointers in %s', parser.$refs._root$Ref.path);
-    var promises = crawl(parser.schema, parser.$refs._root$Ref.path + '#', parser.$refs, options);
+    var promises = crawl(parser.schema, parser.$refs._root$Ref.path + "#", parser.$refs, options);
     return Promise.all(promises);
   }
   catch (e) {
@@ -10857,7 +10857,7 @@ function resolveExternal (parser, options) {
 function crawl (obj, path, $refs, options) {
   var promises = [];
 
-  if (obj && typeof obj === 'object') {
+  if (obj && typeof obj === "object") {
     if ($Ref.isExternal$Ref(obj)) {
       promises.push(resolve$Ref(obj, path, $refs, options));
     }
@@ -10909,16 +10909,16 @@ function resolve$Ref ($ref, path, $refs, options) {
     .then(function (result) {
       // Crawl the parsed value
       // console.log('Resolving $ref pointers in %s', withoutHash);
-      var promises = crawl(result, withoutHash + '#', $refs, options);
+      var promises = crawl(result, withoutHash + "#", $refs, options);
       return Promise.all(promises);
     });
 }
 
 },{"./parse":106,"./pointer":111,"./ref":112,"./util/url":118}],115:[function(require,module,exports){
-'use strict';
-var fs = require('fs'),
-    ono = require('ono'),
-    url = require('../util/url');
+"use strict";
+var fs = require("fs"),
+    ono = require("ono"),
+    url = require("../util/url");
 
 module.exports = {
   /**
@@ -10957,7 +10957,7 @@ module.exports = {
         path = url.toFileSystemPath(file.url);
       }
       catch (err) {
-        reject(ono.uri(err, 'Malformed URI: %s', file.url));
+        reject(ono.uri(err, "Malformed URI: %s", file.url));
       }
 
       // console.log('Opening file: %s', path);
@@ -10981,12 +10981,12 @@ module.exports = {
 
 },{"../util/url":118,"fs":7,"ono":122}],116:[function(require,module,exports){
 (function (process,Buffer){
-'use strict';
+"use strict";
 
-var http = require('http'),
-    https = require('https'),
-    ono = require('ono'),
-    url = require('../util/url');
+var http = require("http"),
+    https = require("https"),
+    ono = require("ono"),
+    url = require("../util/url");
 
 module.exports = {
   /**
@@ -11085,15 +11085,15 @@ function download (u, httpOptions, redirects) {
     get(u, httpOptions)
       .then(function (res) {
         if (res.statusCode >= 400) {
-          throw ono({ status: res.statusCode }, 'HTTP ERROR %d', res.statusCode);
+          throw ono({ status: res.statusCode }, "HTTP ERROR %d", res.statusCode);
         }
         else if (res.statusCode >= 300) {
           if (redirects.length > httpOptions.redirects) {
-            reject(ono({ status: res.statusCode }, 'Error downloading %s. \nToo many redirects: \n  %s',
-              redirects[0], redirects.join(' \n  ')));
+            reject(ono({ status: res.statusCode }, "Error downloading %s. \nToo many redirects: \n  %s",
+              redirects[0], redirects.join(" \n  ")));
           }
           else if (!res.headers.location) {
-            throw ono({ status: res.statusCode }, 'HTTP %d redirect with no location header', res.statusCode);
+            throw ono({ status: res.statusCode }, "HTTP %d redirect with no location header", res.statusCode);
           }
           else {
             // console.log('HTTP %d redirect %s -> %s', res.statusCode, u.href, res.headers.location);
@@ -11106,7 +11106,7 @@ function download (u, httpOptions, redirects) {
         }
       })
       .catch(function (err) {
-        reject(ono(err, 'Error downloading', u.href));
+        reject(ono(err, "Error downloading", u.href));
       });
   });
 }
@@ -11124,7 +11124,7 @@ function get (u, httpOptions) {
   return new Promise(function (resolve, reject) {
     // console.log('GET', u.href);
 
-    var protocol = u.protocol === 'https:' ? https : http;
+    var protocol = u.protocol === "https:" ? https : http;
     var req = protocol.get({
       hostname: u.hostname,
       port: u.port,
@@ -11135,26 +11135,26 @@ function get (u, httpOptions) {
       withCredentials: httpOptions.withCredentials
     });
 
-    if (typeof req.setTimeout === 'function') {
+    if (typeof req.setTimeout === "function") {
       req.setTimeout(httpOptions.timeout);
     }
 
-    req.on('timeout', function () {
+    req.on("timeout", function () {
       req.abort();
     });
 
-    req.on('error', reject);
+    req.on("error", reject);
 
-    req.once('response', function (res) {
+    req.once("response", function (res) {
       res.body = new Buffer(0);
 
-      res.on('data', function (data) {
+      res.on("data", function (data) {
         res.body = Buffer.concat([res.body, new Buffer(data)]);
       });
 
-      res.on('error', reject);
+      res.on("error", reject);
 
-      res.on('end', function () {
+      res.on("end", function () {
         resolve(res);
       });
     });
@@ -11164,7 +11164,7 @@ function get (u, httpOptions) {
 }).call(this,require('_process'),require("buffer").Buffer)
 
 },{"../util/url":118,"_process":125,"buffer":9,"http":139,"https":66,"ono":122}],117:[function(require,module,exports){
-'use strict';
+"use strict";
 
 /**
  * Returns the given plugins as an array, rather than an object map.
@@ -11176,7 +11176,7 @@ function get (u, httpOptions) {
 exports.all = function (plugins) {
   return Object.keys(plugins)
     .filter(function (key) {
-      return typeof plugins[key] === 'object';
+      return typeof plugins[key] === "object";
     })
     .map(function (key) {
       plugins[key].name = key;
@@ -11242,7 +11242,7 @@ exports.run = function (plugins, method, file) {
       try {
         // console.log('  %s', plugin.name);
         var result = getResult(plugin, method, file, callback);
-        if (result && typeof result.then === 'function') {
+        if (result && typeof result.then === "function") {
           // A promise was returned
           result.then(onSuccess, onError);
         }
@@ -11297,7 +11297,7 @@ exports.run = function (plugins, method, file) {
 function getResult (obj, prop, file, callback) {
   var value = obj[prop];
 
-  if (typeof value === 'function') {
+  if (typeof value === "function") {
     return value.apply(obj, [file, callback]);
   }
 
@@ -11308,7 +11308,7 @@ function getResult (obj, prop, file, callback) {
     if (value instanceof RegExp) {
       return value.test(file.url);
     }
-    else if (typeof value === 'string') {
+    else if (typeof value === "string") {
       return value === file.extension;
     }
     else if (Array.isArray(value)) {
@@ -11321,7 +11321,7 @@ function getResult (obj, prop, file, callback) {
 
 },{}],118:[function(require,module,exports){
 (function (process){
-'use strict';
+"use strict";
 
 var isWindows = /^win/.test(process.platform),
     forwardSlashPattern = /\//g,
@@ -11330,21 +11330,21 @@ var isWindows = /^win/.test(process.platform),
 
 // RegExp patterns to URL-encode special characters in local filesystem paths
 var urlEncodePatterns = [
-  /\?/g, '%3F',
-  /\#/g, '%23',
+  /\?/g, "%3F",
+  /\#/g, "%23",
 ];
 
 // RegExp patterns to URL-decode special characters for local filesystem paths
 var urlDecodePatterns = [
-  /\%23/g, '#',
-  /\%24/g, '$',
-  /\%26/g, '&',
-  /\%2C/g, ',',
-  /\%40/g, '@'
+  /\%23/g, "#",
+  /\%24/g, "$",
+  /\%26/g, "&",
+  /\%2C/g, ",",
+  /\%40/g, "@"
 ];
 
-exports.parse = require('url').parse;
-exports.resolve = require('url').resolve;
+exports.parse = require("url").parse;
+exports.resolve = require("url").resolve;
 
 /**
  * Returns the current working directory (in Node) or the current page URL (in browsers).
@@ -11352,7 +11352,7 @@ exports.resolve = require('url').resolve;
  * @returns {string}
  */
 exports.cwd = function cwd () {
-  return process.browser ? location.href : process.cwd() + '/';
+  return process.browser ? location.href : process.cwd() + "/";
 };
 
 /**
@@ -11376,11 +11376,11 @@ exports.getProtocol = function getProtocol (path) {
  * @returns {string}
  */
 exports.getExtension = function getExtension (path) {
-  var lastDot = path.lastIndexOf('.');
+  var lastDot = path.lastIndexOf(".");
   if (lastDot >= 0) {
     return path.substr(lastDot).toLowerCase();
   }
-  return '';
+  return "";
 };
 
 /**
@@ -11391,11 +11391,11 @@ exports.getExtension = function getExtension (path) {
  * @returns {string}
  */
 exports.getHash = function getHash (path) {
-  var hashIndex = path.indexOf('#');
+  var hashIndex = path.indexOf("#");
   if (hashIndex >= 0) {
     return path.substr(hashIndex);
   }
-  return '#';
+  return "#";
 };
 
 /**
@@ -11405,7 +11405,7 @@ exports.getHash = function getHash (path) {
  * @returns {string}
  */
 exports.stripHash = function stripHash (path) {
-  var hashIndex = path.indexOf('#');
+  var hashIndex = path.indexOf("#");
   if (hashIndex >= 0) {
     path = path.substr(0, hashIndex);
   }
@@ -11420,7 +11420,7 @@ exports.stripHash = function stripHash (path) {
  */
 exports.isHttp = function isHttp (path) {
   var protocol = url.getProtocol(path);
-  if (protocol === 'http' || protocol === 'https') {
+  if (protocol === "http" || protocol === "https") {
     return true;
   }
   else if (protocol === undefined) {
@@ -11448,7 +11448,7 @@ exports.isFileSystemPath = function isFileSystemPath (path) {
   }
 
   var protocol = url.getProtocol(path);
-  return protocol === undefined || protocol === 'file';
+  return protocol === undefined || protocol === "file";
 };
 
 /**
@@ -11471,7 +11471,7 @@ exports.fromFileSystemPath = function fromFileSystemPath (path) {
   // Step 1: On Windows, replace backslashes with forward slashes,
   // rather than encoding them as "%5C"
   if (isWindows) {
-    path = path.replace(/\\/g, '/');
+    path = path.replace(/\\/g, "/");
   }
 
   // Step 2: `encodeURI` will take care of MOST characters
@@ -11507,36 +11507,36 @@ exports.toFileSystemPath = function toFileSystemPath (path, keepFileProtocol) {
 
   // Step 3: If it's a "file://" URL, then format it consistently
   // or convert it to a local filesystem path
-  var isFileUrl = path.substr(0, 7).toLowerCase() === 'file://';
+  var isFileUrl = path.substr(0, 7).toLowerCase() === "file://";
   if (isFileUrl) {
     // Strip-off the protocol, and the initial "/", if there is one
-    path = path[7] === '/' ? path.substr(8) : path.substr(7);
+    path = path[7] === "/" ? path.substr(8) : path.substr(7);
 
     // insert a colon (":") after the drive letter on Windows
-    if (isWindows && path[1] === '/') {
-      path = path[0] + ':' + path.substr(1);
+    if (isWindows && path[1] === "/") {
+      path = path[0] + ":" + path.substr(1);
     }
 
     if (keepFileProtocol) {
       // Return the consistently-formatted "file://" URL
-      path = 'file:///' + path;
+      path = "file:///" + path;
     }
     else {
       // Convert the "file://" URL to a local filesystem path.
       // On Windows, it will start with something like "C:/".
       // On Posix, it will start with "/"
       isFileUrl = false;
-      path = isWindows ? path : '/' + path;
+      path = isWindows ? path : "/" + path;
     }
   }
 
   // Step 4: Normalize Windows paths (unless it's a "file://" URL)
   if (isWindows && !isFileUrl) {
     // Replace forward slashes with backslashes
-    path = path.replace(forwardSlashPattern, '\\');
+    path = path.replace(forwardSlashPattern, "\\");
 
     // Capitalize the drive letter
-    if (path.substr(1, 2) === ':\\') {
+    if (path.substr(1, 2) === ":\\") {
       path = path[0].toUpperCase() + path.substr(1);
     }
   }
@@ -11548,10 +11548,10 @@ exports.toFileSystemPath = function toFileSystemPath (path, keepFileProtocol) {
 
 },{"_process":125,"url":148}],119:[function(require,module,exports){
 /* eslint lines-around-comment: [2, {beforeBlockComment: false}] */
-'use strict';
+"use strict";
 
-var yaml = require('js-yaml'),
-    ono = require('ono');
+var yaml = require("js-yaml"),
+    ono = require("ono");
 
 /**
  * Simple YAML parsing functions, similar to {@link JSON.parse} and {@link JSON.stringify}
@@ -11589,7 +11589,7 @@ module.exports = {
    */
   stringify: function yamlStringify (value, replacer, space) {
     try {
-      var indent = (typeof space === 'string' ? space.length : space) || 2;
+      var indent = (typeof space === "string" ? space.length : space) || 2;
       return yaml.safeDump(value, { indent: indent });
     }
     catch (e) {
