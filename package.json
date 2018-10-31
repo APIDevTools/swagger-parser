@@ -38,7 +38,7 @@
     "lib"
   ],
   "scripts": {
-    "lint": "eslint lib test online/src/js --fix",
+    "lint": "eslint lib test online/src/js",
     "build": "npm run build:browser && npm run build:website && npm run build:sass",
     "build:browser": "simplifyify lib/index.js --outfile dist/swagger-parser.js --standalone SwaggerParser --bundle --debug --minify",
     "build:website": "simplifyify online/src/js/index.js --outfile online/js/bundle.js --bundle --debug --minify",
