@@ -86,7 +86,7 @@
     "call-me-maybe": "^1.0.1",
     "json-schema-ref-parser": "^6.0.2",
     "ono": "^4.0.10",
-    "openapi-schema-validation": "^0.4.2",
+    "openapi-schema-validator": "^3.0.2",
     "swagger-methods": "^1.0.6",
     "swagger-schema-official": "2.0.0-bab6bed",
     "z-schema": "^3.24.1"
