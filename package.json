@@ -51,12 +51,11 @@
     "coverage:browser": "npm run build:browser -- --coverage && npm run test:browser -- --coverage",
     "upgrade": "npm-check -u",
     "bump": "bump --prompt --grep dist/* --tag --push --all",
-    "release": "npm run upgrade && npm run build && npm test && npm run bump && npm publish",
+    "release": "npm run upgrade && npm run build && npm test && npm run bump",
     "start": "http-server -o -c-1"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "codacy-coverage": "^3.1.0",
     "coveralls": "^3.0.2",
     "eslint": "^5.6.1",
     "eslint-config-modular": "^5.0.0",

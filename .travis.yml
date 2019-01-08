@@ -3,33 +3,24 @@
 # https://docs.travis-ci.com/user/customizing-the-build/
 # https://docs.travis-ci.com/user/migrating-from-legacy/
 
-dist: trusty
-sudo: required  # Required for headless Chrome
+filter_secrets: false
 language: node_js
 
-addons:
-  firefox: latest
-  chrome: stable
+node_js:
+  - 10
+  - 8
+  - 6
 
-matrix:
-  include:
-    # Node 10 + Browser tests
-    - node_js: 10
-      env: KARMA=true
-
-    # Node 8 + SauceLabs tests
-    - node_js: 8
-      env: KARMA=true SAUCE=true
-
-    # Node 6 tests
-    - node_js: 6
+os:
+  - linux
+  - osx
+  - windows
 
 before_script:
-  # Setup a virtual display for browser testing
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
+  - npm run lint
 
-script: npm run lint && npm run coverage
+script:
+  - npm run coverage
 
 after_success:
   # concatenate all code-coverage data into a single file
@@ -38,3 +29,37 @@ after_success:
 
   # send code-coverage data to Coveralls
   - cat ./coverage/lcov.info | node_modules/coveralls/bin/coveralls.js
+
+jobs:
+  include:
+    - name: Browser tests (Linux)
+      os: linux
+      script: npm run coverage:browser
+      addons:
+        firefox: latest
+        chrome: stable
+
+    - name: Browser tests (Mac)
+      os: osx
+      script: npm run coverage:browser
+      addons:
+        firefox: latest
+        chrome: stable
+
+    - name: Browser tests (Windows via SauceLabs)
+      os: linux
+      script: npm run coverage:browser
+      env: WINDOWS=true
+
+    - stage: Deploy
+      name: Publish to npm
+      script: npm run build
+      after_success: true
+      deploy:
+        provider: npm
+        email: $NPM_EMAIL
+        api_key: $NPM_API_KEY
+        skip_cleanup: true
+        on:
+          tags: true
+          branch: master
