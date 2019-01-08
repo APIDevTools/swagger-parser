@@ -36,8 +36,5 @@ after_success:
   - ls -R1 coverage/*/lcov.info
   - cat coverage/*/lcov.info > ./coverage/lcov.info
 
-  # send code-coverage data to Codacy
-  - cat ./coverage/lcov.info | node_modules/.bin/codacy-coverage -p .
-
   # send code-coverage data to Coveralls
   - cat ./coverage/lcov.info | node_modules/coveralls/bin/coveralls.js
