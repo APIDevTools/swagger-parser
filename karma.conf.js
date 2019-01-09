@@ -142,6 +142,7 @@ function configureSauceLabs (config) {
     "test/specs/invalid/*",
     "test/specs/unknown/*",
     "test/specs/validate-schema/*",
-    "test/specs/real-world/*"
+    "test/specs/real-world/*",
+    "test/specs/validate-spec/*"
   ];
 }
