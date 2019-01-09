@@ -1,0 +1,25 @@
+# Git attributes
+# https://git-scm.com/docs/gitattributes
+# https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes
+
+# Normalize line endings for all files that git determines to be text.
+# https://git-scm.com/docs/gitattributes#gitattributes-Settostringvalueauto
+* text=auto
+
+# Normalize line endings to LF on checkin, and do NOT convert to CRLF when checking-out on Windows.
+# https://git-scm.com/docs/gitattributes#gitattributes-Settostringvaluelf
+*.txt text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.map text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.xml text eol=lf
+*.svg text eol=lf
