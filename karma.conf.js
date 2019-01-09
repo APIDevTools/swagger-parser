@@ -133,7 +133,7 @@ function configureSauceLabs (config) {
   config.browserDisconnectTolerance = 5,
   config.browserDisconnectTimeout = 60000;
   config.browserNoActivityTimeout = 60000;
-  // config.logLevel = "debug";
+  config.logLevel = "debug";
 
   // Exclude these tests when running on SauceLabs.
   // For some reason, these tests seem to make SauceLabs unstable,

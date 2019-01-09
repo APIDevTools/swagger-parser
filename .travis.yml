@@ -12,8 +12,8 @@ node_js:
   - 6
 
 os:
-  - linux
-  - osx
+  # - linux
+  # - osx
   - windows
 
 before_script:
@@ -32,19 +32,19 @@ after_success:
 
 jobs:
   include:
-    - name: Browser tests (Linux)
-      os: linux
-      script: npm run coverage:browser
-      addons:
-        firefox: latest
-        chrome: stable
+    # - name: Browser tests (Linux)
+    #   os: linux
+    #   script: npm run coverage:browser
+    #   addons:
+    #     firefox: latest
+    #     chrome: stable
 
-    - name: Browser tests (Mac)
-      os: osx
-      script: npm run coverage:browser
-      addons:
-        firefox: latest
-        chrome: stable
+    # - name: Browser tests (Mac)
+    #   os: osx
+    #   script: npm run coverage:browser
+    #   addons:
+    #     firefox: latest
+    #     chrome: stable
 
     - name: Browser tests (Windows via SauceLabs)
       os: linux
