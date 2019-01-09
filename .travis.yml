@@ -32,19 +32,19 @@ after_success:
 
 jobs:
   include:
-    # - name: Browser tests (Linux)
-    #   os: linux
-    #   script: npm run coverage:browser
-    #   addons:
-    #     firefox: latest
-    #     chrome: stable
+    - name: Browser tests (Linux)
+      os: linux
+      script: npm run coverage:browser
+      addons:
+        firefox: latest
+        chrome: stable
 
-    # - name: Browser tests (Mac)
-    #   os: osx
-    #   script: npm run coverage:browser
-    #   addons:
-    #     firefox: latest
-    #     chrome: stable
+    - name: Browser tests (Mac)
+      os: osx
+      script: npm run coverage:browser
+      addons:
+        firefox: latest
+        chrome: stable
 
     - name: Browser tests (Windows via SauceLabs)
       os: linux
