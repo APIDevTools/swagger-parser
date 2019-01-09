@@ -1,38 +1,38 @@
 // Karma config
 // https://karma-runner.github.io/0.12/config/configuration-file.html
-'use strict';
+"use strict";
 
 
 module.exports = function (karma) {
   var config = {
-    frameworks: ['mocha', 'chai', 'host-environment'],
-    reporters: ['verbose'],
+    frameworks: ["mocha", "chai", "host-environment"],
+    reporters: ["verbose"],
 
     files: [
       // Third-Party Libraries
-      'https://cdn.rawgit.com/stephanebachelier/superagent-dist/1721239d/superagent.js',
+      "https://cdn.rawgit.com/stephanebachelier/superagent-dist/1721239d/superagent.js",
 
       // Polyfills for older browsers
-      'online/js/polyfills/promise.js',
-      'online/js/polyfills/typedarray.js',
+      "online/js/polyfills/promise.js",
+      "online/js/polyfills/typedarray.js",
 
       // Swagger Parser
-      'dist/swagger-parser.min.js',
-      { pattern: 'dist/*.map', included: false, served: true },
+      "dist/swagger-parser.min.js",
+      { pattern: "dist/*.map", included: false, served: true },
 
       // Test Fixtures
-      'test/fixtures/**/*.js',
+      "test/fixtures/**/*.js",
 
       // Tests
-      'test/specs/**/*.js',
-      { pattern: 'test/specs/**', included: false, served: true }
+      "test/specs/**/*.js",
+      { pattern: "test/specs/**", included: false, served: true }
     ]
   };
 
   configureCodeCoverage(config);
   configureBrowsers(config);
 
-  console.log('Karma Config:\n', JSON.stringify(config, null, 2));
+  console.log("Karma Config:\n", JSON.stringify(config, null, 2));
   karma.set(config);
 };
 
@@ -40,22 +40,22 @@ module.exports = function (karma) {
  * Configures the code-coverage reporter
  */
 function configureCodeCoverage (config) {
-  if (process.argv.indexOf('--coverage') === -1) {
-    console.warn('Code-coverage is not enabled');
+  if (process.argv.indexOf("--coverage") === -1) {
+    console.warn("Code-coverage is not enabled");
     return;
   }
 
-  config.reporters.push('coverage');
+  config.reporters.push("coverage");
   config.coverageReporter = {
     reporters: [
-      { type: 'text-summary' },
-      { type: 'lcov' }
+      { type: "text-summary" },
+      { type: "lcov" }
     ]
   };
 
   config.files = config.files.map(function (file) {
-    if (typeof file === 'string') {
-      file = file.replace(/^dist\/(.*)\.min\.js$/, 'dist/$1.coverage.js');
+    if (typeof file === "string") {
+      file = file.replace(/^dist\/(.*)\.min\.js$/, "dist/$1.coverage.js");
     }
     return file;
   });
@@ -72,7 +72,7 @@ function configureBrowsers (config) {
 
   if (isCI) {
     if (isWindows) {
-      // IE and Edge aren't available in CI, so use SauceLabs
+      // IE and Edge aren"t available in CI, so use SauceLabs
       configureSauceLabs(config);
     }
     else if (isMac) {
@@ -105,7 +105,7 @@ function configureSauceLabs (config) {
     throw new Error(`SAUCE_USERNAME and/or SAUCE_ACCESS_KEY is not set`);
   }
 
-  var project = require('./package.json');
+  var project = require("./package.json");
 
   config.sauceLabs = {
     build: `${project.name} v${project.version} Build #${process.env.TRAVIS_JOB_NUMBER}`,
@@ -126,22 +126,22 @@ function configureSauceLabs (config) {
     },
   };
 
-  config.reporters.push('saucelabs');
+  config.reporters.push("saucelabs");
   config.browsers = Object.keys(config.customLaunchers);
   config.concurrency = 1;
   config.captureTimeout = 60000;
   config.browserDisconnectTolerance = 5,
   config.browserDisconnectTimeout = 60000;
   config.browserNoActivityTimeout = 60000;
-  // config.logLevel = 'debug';
+  // config.logLevel = "debug";
 
   // Exclude these tests when running on SauceLabs.
   // For some reason, these tests seem to make SauceLabs unstable,
   // and it frequently loses connection to the CI server, which causes the build to fail
   config.exclude = [
-    'test/specs/invalid/*',
-    'test/specs/unknown/*',
-    'test/specs/validate-schema/*',
-    'test/specs/real-world/*'
+    "test/specs/invalid/*",
+    "test/specs/unknown/*",
+    "test/specs/validate-schema/*",
+    "test/specs/real-world/*"
   ];
 }
