@@ -128,7 +128,7 @@ function configureSauceLabs (config) {
 
   config.reporters.push("saucelabs");
   config.browsers = Object.keys(config.customLaunchers);
-  config.concurrency = 1;
+  // config.concurrency = 1;
   config.captureTimeout = 60000;
   config.browserDisconnectTolerance = 5,
   config.browserDisconnectTimeout = 60000;
