@@ -1,5 +1,5 @@
 /*!
- * Swagger Parser v6.0.1 (October 31st 2018)
+ * Swagger Parser v6.0.2 (January 10th 2019)
  * 
  * https://apidevtools.org/swagger-parser/
  * 
@@ -46,14 +46,14 @@ function format(fmt) {
 module.exports = format;
 
 },{}],2:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var format = require('format-util');
+var format = require("format-util");
 var slice = Array.prototype.slice;
-var protectedProperties = ['name', 'message', 'stack'];
+var protectedProperties = ["name", "message", "stack"];
 var errorPrototypeProperties = [
-  'name', 'message', 'description', 'number', 'code', 'fileName', 'lineNumber', 'columnNumber',
-  'sourceURL', 'line', 'column', 'stack'
+  "name", "message", "description", "number", "code", "fileName", "lineNumber", "columnNumber",
+  "sourceURL", "line", "column", "stack"
 ];
 
 module.exports = create(Error);
@@ -82,18 +82,18 @@ function create (Klass) {
    */
   return function onoFactory (err, props, message, params) {   // eslint-disable-line no-unused-vars
     var formatArgs = [];
-    var formattedMessage = '';
+    var formattedMessage = "";
 
     // Determine which arguments were actually specified
-    if (typeof err === 'string') {
+    if (typeof err === "string") {
       formatArgs = slice.call(arguments);
       err = props = undefined;
     }
-    else if (typeof props === 'string') {
+    else if (typeof props === "string") {
       formatArgs = slice.call(arguments, 1);
       props = undefined;
     }
-    else if (typeof message === 'string') {
+    else if (typeof message === "string") {
       formatArgs = slice.call(arguments, 2);
     }
 
@@ -104,7 +104,7 @@ function create (Klass) {
 
     if (err && err.message) {
       // The inner-error's message will be added to the new message
-      formattedMessage += (formattedMessage ? ' \n' : '') + err.message;
+      formattedMessage += (formattedMessage ? " \n" : "") + err.message;
     }
 
     // Create the new error
@@ -150,7 +150,7 @@ function extendToJSON (error) {
  * @param {?source} source - The object whose properties are copied
  */
 function extend (target, source) {
-  if (source && typeof source === 'object') {
+  if (source && typeof source === "object") {
     var keys = Object.keys(source);
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
@@ -190,7 +190,7 @@ function errorToJSON () {
     var key = keys[i];
     var value = this[key];
     var type = typeof value;
-    if (type !== 'undefined' && type !== 'function') {
+    if (type !== "undefined" && type !== "function") {
       json[key] = value;
     }
   }
@@ -204,7 +204,7 @@ function errorToJSON () {
  * @returns {string}
  */
 function errorToString () {
-  return JSON.stringify(this, null, 2).replace(/\\n/g, '\n');
+  return JSON.stringify(this, null, 2).replace(/\\n/g, "\n");
 }
 
 /**
@@ -243,7 +243,7 @@ function joinStacks (newStack, originalStack) {
   newStack = popStack(newStack);
 
   if (newStack && originalStack) {
-    return newStack + '\n\n' + originalStack;
+    return newStack + "\n\n" + originalStack;
   }
   else {
     return newStack || originalStack;
@@ -258,7 +258,7 @@ function joinStacks (newStack, originalStack) {
  */
 function popStack (stack) {
   if (stack) {
-    var lines = stack.split('\n');
+    var lines = stack.split("\n");
 
     if (lines.length < 2) {
       // The stack only has one line, so there's nothing we can remove
@@ -268,9 +268,9 @@ function popStack (stack) {
     // Find the `onoFactory` call in the stack, and remove it
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
-      if (line.indexOf('onoFactory') >= 0) {
+      if (line.indexOf("onoFactory") >= 0) {
         lines.splice(i, 1);
-        return lines.join('\n');
+        return lines.join("\n");
       }
     }
 
@@ -291,7 +291,7 @@ var supportsLazyStack = (function () {
     Object.getOwnPropertyDescriptor && Object.defineProperty &&
 
     // Chrome on Android doesn't support lazy stacks :(
-    (typeof navigator === 'undefined' || !/Android/.test(navigator.userAgent))
+    (typeof navigator === "undefined" || !/Android/.test(navigator.userAgent))
   );
 }());
 
@@ -306,11 +306,11 @@ function hasLazyStack (err) {
     return false;
   }
 
-  var descriptor = Object.getOwnPropertyDescriptor(err, 'stack');
+  var descriptor = Object.getOwnPropertyDescriptor(err, "stack");
   if (!descriptor) {
     return false;
   }
-  return typeof descriptor.get === 'function';
+  return typeof descriptor.get === "function";
 }
 
 /**
@@ -320,9 +320,9 @@ function hasLazyStack (err) {
  * @param {Error} sourceError
  */
 function lazyJoinStacks (targetError, sourceError) {
-  var targetStack = Object.getOwnPropertyDescriptor(targetError, 'stack');
+  var targetStack = Object.getOwnPropertyDescriptor(targetError, "stack");
 
-  Object.defineProperty(targetError, 'stack', {
+  Object.defineProperty(targetError, "stack", {
     get: function () {
       return joinStacks(targetStack.get.apply(targetError), sourceError.stack);
     },
@@ -337,9 +337,9 @@ function lazyJoinStacks (targetError, sourceError) {
  * @param {Error} error
  */
 function lazyPopStack (error) {
-  var targetStack = Object.getOwnPropertyDescriptor(error, 'stack');
+  var targetStack = Object.getOwnPropertyDescriptor(error, "stack");
 
-  Object.defineProperty(error, 'stack', {
+  Object.defineProperty(error, "stack", {
     get: function () {
       return popStack(targetStack.get.apply(error));
     },
@@ -528,9 +528,9 @@ exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
 },{"./decode":3,"./encode":4}],6:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var debug = location.hostname === 'localhost';
+var debug = location.hostname === "localhost";
 
 module.exports = analytics;
 
@@ -539,8 +539,8 @@ module.exports = analytics;
  */
 function analytics () {
   if (!debug) {
-    if (typeof gtag === 'undefined') {
-      console.warn('Google Analytics is not enabled');
+    if (typeof gtag === "undefined") {
+      console.warn("Google Analytics is not enabled");
     }
   }
 }
@@ -555,10 +555,10 @@ function analytics () {
  */
 analytics.trackEvent = function (category, action, label, value) {
   try {
-    console.log('Analytics event: ', category, action, label, value);
+    console.log("Analytics event: ", category, action, label, value);
 
     if (!debug) {
-      gtag('event', action, {
+      gtag("event", action, {
         event_category: category,   // eslint-disable-line camelcase
         event_label: label,         // eslint-disable-line camelcase
         value: value
@@ -577,11 +577,11 @@ analytics.trackEvent = function (category, action, label, value) {
  */
 analytics.trackError = function (err) {
   try {
-    console.error('Analytics error: ', err);
+    console.error("Analytics error: ", err);
 
     if (!debug) {
-      gtag('event', 'exception', {
-        name: err.name || 'Error',
+      gtag("event", "exception", {
+        name: err.name || "Error",
         description: err.message,
         stack: err.stack,
       });
@@ -593,10 +593,10 @@ analytics.trackError = function (err) {
 };
 
 },{}],7:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var form = require('./form'),
-    analytics = require('./analytics');
+var form = require("./form"),
+    analytics = require("./analytics");
 
 module.exports = dropdowns;
 
@@ -624,10 +624,10 @@ function dropdowns () {
   trackCheckbox(form.validate.spec);
 
   // Change the button text whenever a new method is selected
-  form.method.menu.find('a').on('click', function (event) {
-    form.method.menu.dropdown('toggle');
+  form.method.menu.find("a").on("click", function (event) {
+    form.method.menu.dropdown("toggle");
     event.stopPropagation();
-    var methodName = $(this).data('value');
+    var methodName = $(this).data("value");
     setSelectedMethod(methodName);
     trackButtonLabel(methodName);
   });
@@ -641,20 +641,20 @@ function dropdowns () {
  * @param {function} setLabel
  */
 function onChange (menu, setLabel) {
-  var dropdown = menu.parent('.dropdown');
+  var dropdown = menu.parent(".dropdown");
 
   // Don't auto-close the menu when items are clicked
-  menu.find('a').on('click', function (event) {
+  menu.find("a").on("click", function (event) {
     event.stopPropagation();
   });
 
   // Set the label immediately, and again whenever the menu is closed
   setLabel();
-  dropdown.on('hidden.bs.dropdown', setLabel);
+  dropdown.on("hidden.bs.dropdown", setLabel);
 
   // Track when a dropdown menu is shown
-  dropdown.on('shown.bs.dropdown', function () {
-    analytics.trackEvent('options', 'shown', menu.attr('id'));
+  dropdown.on("shown.bs.dropdown", function () {
+    analytics.trackEvent("options", "shown", menu.attr("id"));
   });
 }
 
@@ -667,22 +667,22 @@ function setAllowLabel () {
 
   switch (values.checked.length) {
     case 0:
-      form.allow.label.text('No file types allowed');
+      form.allow.label.text("No file types allowed");
       break;
     case 1:
-      form.allow.label.text('Only allow ' + values.checked[0] + ' files');
+      form.allow.label.text("Only allow " + values.checked[0] + " files");
       break;
     case 2:
-      form.allow.label.text('Only allow ' + values.checked[0] + ' and ' + values.checked[1]);
+      form.allow.label.text("Only allow " + values.checked[0] + " and " + values.checked[1]);
       break;
     case 3:
-      form.allow.label.text('Don\'t allow ' + values.unchecked[0] + ' or ' + values.unchecked[1]);
+      form.allow.label.text("Don't allow " + values.unchecked[0] + " or " + values.unchecked[1]);
       break;
     case 4:
-      form.allow.label.text('Don\'t allow ' + values.unchecked[0] + ' files');
+      form.allow.label.text("Don't allow " + values.unchecked[0] + " files");
       break;
     case 5:
-      form.allow.label.text('Allow all file types');
+      form.allow.label.text("Allow all file types");
   }
 }
 
@@ -694,13 +694,13 @@ function setRefsLabel () {
 
   switch (values.checked.length) {
     case 0:
-      form.refs.label.text('Only follow internal $refs');
+      form.refs.label.text("Only follow internal $refs");
       break;
     case 1:
-      form.refs.label.text('Don\'t follow ' + values.unchecked[0] + ' $refs');
+      form.refs.label.text("Don't follow " + values.unchecked[0] + " $refs");
       break;
     case 2:
-      form.refs.label.text('Follow all $refs');
+      form.refs.label.text("Follow all $refs");
   }
 }
 
@@ -712,13 +712,13 @@ function setValidateLabel () {
 
   switch (values.checked.length) {
     case 0:
-      form.validate.label.text('Don\'t validate anything');
+      form.validate.label.text("Don't validate anything");
       break;
     case 1:
-      form.validate.label.text('Don\'t validate Swagger ' + values.unchecked[0]);
+      form.validate.label.text("Don't validate Swagger " + values.unchecked[0]);
       break;
     case 2:
-      form.validate.label.text('Validate everything');
+      form.validate.label.text("Validate everything");
   }
 }
 
@@ -731,9 +731,9 @@ function setSelectedMethod (methodName) {
   form.method.button.val(methodName.toLowerCase());
 
   methodName = methodName[0].toUpperCase() + methodName.substr(1);
-  form.method.button.text(methodName + ' it!');
-  form.tabs.url.text(methodName + ' a URL');
-  form.tabs.text.text(methodName + ' Text');
+  form.method.button.text(methodName + " it!");
+  form.tabs.url.text(methodName + " a URL");
+  form.tabs.text.text(methodName + " Text");
 }
 
 /**
@@ -742,9 +742,9 @@ function setSelectedMethod (methodName) {
  * @param {jQuery} checkbox
  */
 function trackCheckbox (checkbox) {
-  checkbox.on('change', function () {
-    var value = checkbox.is(':checked') ? 1 : 0;
-    analytics.trackEvent('options', 'changed', checkbox.attr('name'), value);
+  checkbox.on("change", function () {
+    var value = checkbox.is(":checked") ? 1 : 0;
+    analytics.trackEvent("options", "changed", checkbox.attr("name"), value);
   });
 }
 
@@ -754,8 +754,8 @@ function trackCheckbox (checkbox) {
  * @param {string} methodName - The method name (e.g. "validate", "dereference", etc.)
  */
 function trackButtonLabel (methodName) {
-  var value = ['', 'parse', 'resolve', 'bundle', 'dereference', 'validate'].indexOf(methodName);
-  analytics.trackEvent('options', 'changed', 'method', value);
+  var value = ["", "parse", "resolve", "bundle", "dereference", "validate"].indexOf(methodName);
+  analytics.trackEvent("options", "changed", "method", value);
 }
 
 /**
@@ -768,22 +768,22 @@ function getCheckedAndUnchecked (checkboxes) {
   var checked = [], unchecked = [];
   for (var i = 0; i < arguments.length; i++) {
     var checkbox = arguments[i];
-    if (checkbox.is(':checked')) {
-      checked.push(checkbox.data('value'));
+    if (checkbox.is(":checked")) {
+      checked.push(checkbox.data("value"));
     }
     else {
-      unchecked.push(checkbox.data('value'));
+      unchecked.push(checkbox.data("value"));
     }
   }
   return { checked: checked, unchecked: unchecked };
 }
 
 },{"./analytics":6,"./form":9}],8:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var form = require('./form'),
-    ono = require('ono'),
-    ACE_THEME = 'ace/theme/terminal';
+var form = require("./form"),
+    ono = require("ono"),
+    ACE_THEME = "ace/theme/terminal";
 
 module.exports = editors;
 
@@ -791,22 +791,22 @@ module.exports = editors;
  * Initializes the ACE text editors
  */
 function editors () {
-  editors.textBox = form.textBox = ace.edit('text-box');
+  editors.textBox = form.textBox = ace.edit("text-box");
   form.textBox.setTheme(ACE_THEME);
   var session = form.textBox.getSession();
-  session.setMode('ace/mode/yaml');
+  session.setMode("ace/mode/yaml");
   session.setTabSize(2);
 
-  editors.results = $('#results');
-  editors.tabs = editors.results.find('.nav-tabs');
-  editors.panes = editors.results.find('.tab-content');
+  editors.results = $("#results");
+  editors.tabs = editors.results.find(".nav-tabs");
+  editors.panes = editors.results.find(".tab-content");
 }
 
 /**
  * Removes all results tabs and editors
  */
 editors.clearResults = function () {
-  editors.results.removeClass('error animated').addClass('hidden');
+  editors.results.removeClass("error animated").addClass("hidden");
   editors.tabs.children().remove();
   editors.panes.children().remove();
 };
@@ -818,8 +818,8 @@ editors.clearResults = function () {
  * @param {object|string} content - An object that will be displayed as JSON in the editor
  */
 editors.showResult = function (title, content) {
-  editors.results.removeClass('hidden');
-  editors.addResult(title || 'Sample API', content);
+  editors.results.removeClass("hidden");
+  editors.addResult(title || "Sample API", content);
   showResults();
 };
 
@@ -829,8 +829,8 @@ editors.showResult = function (title, content) {
  * @param {Error} err
  */
 editors.showError = function (err) {
-  editors.results.removeClass('hidden').addClass('error');
-  editors.addResult('Error!', err);
+  editors.results.removeClass("hidden").addClass("error");
+  editors.addResult("Error!", err);
   showResults();
 };
 
@@ -842,35 +842,35 @@ editors.showError = function (err) {
  */
 editors.addResult = function (title, content) {
   var index = editors.tabs.children().length;
-  var titleId = 'results-tab-' + index + '-title';
-  var editorId = 'results-' + index;
-  var active = index === 0 ? 'active' : '';
+  var titleId = "results-tab-" + index + "-title";
+  var editorId = "results-" + index;
+  var active = index === 0 ? "active" : "";
 
   // Add a tab and pane
   editors.tabs.append(
     '<li id="results-tab-' + index + '" class="' + active + '" role="presentation">' +
     ' <a id="' + titleId + '" href="#results-pane-' + index + '" role="tab" aria-controls="results-pane-' + index + '" data-toggle="tab"></a>' +
-    '</li>'
+    "</li>"
   );
   editors.panes.append(
     '<div id="results-pane-' + index + '" class="tab-pane ' + active + '" role="tabpanel">' +
     '  <pre id="' + editorId + '" class="editor"></pre>' +
-    '</div>'
+    "</div>"
   );
 
   // Set the tab title
   var shortTitle = getShortTitle(title);
-  editors.tabs.find('#' + titleId).text(shortTitle).attr('title', title);
+  editors.tabs.find("#" + titleId).text(shortTitle).attr("title", title);
 
   // Set the <pre> content
   content = toText(content);
-  editors.panes.find('#' + editorId).text(content.text);
+  editors.panes.find("#" + editorId).text(content.text);
 
   // Turn the <pre> into an Ace Editor
   var editor = ace.edit(editorId);
   editor.setTheme(ACE_THEME);
-  editor.session.setOption('useWorker', false);
-  content.isJSON && editor.getSession().setMode('ace/mode/json');
+  editor.session.setOption("useWorker", false);
+  content.isJSON && editor.getSession().setMode("ace/mode/json");
   editor.setReadOnly(true);
 };
 
@@ -882,14 +882,14 @@ editors.addResult = function (title, content) {
  */
 function getShortTitle (title) {
   // Get just the file name
-  var lastSlash = title.lastIndexOf('/');
+  var lastSlash = title.lastIndexOf("/");
   if (lastSlash !== -1) {
     title = title.substr(lastSlash + 1);
   }
 
   if (title.length > 15) {
     // It's still too long, so, just return the first 10 characters
-    title = title.substr(0, 10) + '...';
+    title = title.substr(0, 10) + "...";
   }
 
   return title;
@@ -903,11 +903,11 @@ function showResults () {
 
   setTimeout(function () {
     results[0].scrollIntoView();
-    results.addClass('animated')
-      .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () {
+    results.addClass("animated")
+      .one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", function () {
         // Remove the "animated" class when the animation ends,
         // so we can replay the animation again next time
-        results.removeClass('animated');
+        results.removeClass("animated");
       });
   });
 }
@@ -923,7 +923,7 @@ function toText (obj) {
   if (obj instanceof Error) {
     return {
       isJSON: false,
-      text: obj.message + '\n\n' + obj.stack
+      text: obj.message + "\n\n" + obj.stack
     };
   }
   else {
@@ -936,14 +936,14 @@ function toText (obj) {
     catch (e) {
       return {
         isJSON: false,
-        text: 'This API is valid, but it cannot be shown because it contains circular references\n\n' + e.stack
+        text: "This API is valid, but it cannot be shown because it contains circular references\n\n" + e.stack
       };
     }
   }
 }
 
 },{"./form":9,"ono":2}],9:[function(require,module,exports){
-'use strict';
+"use strict";
 
 module.exports = form;
 
@@ -951,56 +951,56 @@ module.exports = form;
  * Finds all form fields and exposes them as properties.
  */
 function form () {
-  form.form = $('#swagger-parser-form');
+  form.form = $("#swagger-parser-form");
 
   form.allow = {
-    label: form.form.find('#allow-label'),
-    menu: form.form.find('#allow-menu'),
-    json: form.form.find('input[name=allow-json]'),
-    yaml: form.form.find('input[name=allow-yaml]'),
-    text: form.form.find('input[name=allow-text]'),
-    empty: form.form.find('input[name=allow-empty]'),
-    unknown: form.form.find('input[name=allow-unknown]')
+    label: form.form.find("#allow-label"),
+    menu: form.form.find("#allow-menu"),
+    json: form.form.find("input[name=allow-json]"),
+    yaml: form.form.find("input[name=allow-yaml]"),
+    text: form.form.find("input[name=allow-text]"),
+    empty: form.form.find("input[name=allow-empty]"),
+    unknown: form.form.find("input[name=allow-unknown]")
   };
 
   form.refs = {
-    label: form.form.find('#refs-label'),
-    menu: form.form.find('#refs-menu'),
-    external: form.form.find('input[name=refs-external]'),
-    circular: form.form.find('input[name=refs-circular]')
+    label: form.form.find("#refs-label"),
+    menu: form.form.find("#refs-menu"),
+    external: form.form.find("input[name=refs-external]"),
+    circular: form.form.find("input[name=refs-circular]")
   };
 
   form.validate = {
-    label: form.form.find('#validate-label'),
-    menu: form.form.find('#validate-menu'),
-    schema: form.form.find('input[name=validate-schema]'),
-    spec: form.form.find('input[name=validate-spec]')
+    label: form.form.find("#validate-label"),
+    menu: form.form.find("#validate-menu"),
+    schema: form.form.find("input[name=validate-schema]"),
+    spec: form.form.find("input[name=validate-spec]")
   };
 
   form.tabs = {
-    url: form.form.find('#url-tab'),
-    text: form.form.find('#text-tab')
+    url: form.form.find("#url-tab"),
+    text: form.form.find("#text-tab")
   };
 
   form.method = {
-    button: form.form.find('button[name=method]'),
-    menu: form.form.find('#method-menu')
+    button: form.form.find("button[name=method]"),
+    menu: form.form.find("#method-menu")
   };
 
   form.samples = {
     url: {
-      container: form.form.find('#url-sample'),
-      link: form.form.find('#url-sample-link'),
+      container: form.form.find("#url-sample"),
+      link: form.form.find("#url-sample-link"),
     },
     text: {
-      container: form.form.find('#text-sample'),
-      link: form.form.find('#text-sample-link'),
+      container: form.form.find("#text-sample"),
+      link: form.form.find("#text-sample-link"),
     }
   };
 
-  form.url = form.form.find('input[name=url]');
+  form.url = form.form.find("input[name=url]");
   form.textBox = null; // This is set in editors.js
-  form.bookmark = form.form.find('#bookmark');
+  form.bookmark = form.form.find("#bookmark");
 }
 
 /**
@@ -1010,28 +1010,28 @@ function form () {
 form.getOptions = function () {
   return {
     parse: {
-      json: form.allow.json.is(':checked') ? {
-        allowEmpty: form.allow.empty.is(':checked'),
+      json: form.allow.json.is(":checked") ? {
+        allowEmpty: form.allow.empty.is(":checked"),
       } : false,
-      yaml: form.allow.yaml.is(':checked') ? {
-        allowEmpty: form.allow.empty.is(':checked'),
+      yaml: form.allow.yaml.is(":checked") ? {
+        allowEmpty: form.allow.empty.is(":checked"),
       } : false,
-      text: form.allow.text.is(':checked') ? {
-        allowEmpty: form.allow.empty.is(':checked'),
+      text: form.allow.text.is(":checked") ? {
+        allowEmpty: form.allow.empty.is(":checked"),
       } : false,
-      binary: form.allow.unknown.is(':checked') ? {
-        allowEmpty: form.allow.empty.is(':checked'),
+      binary: form.allow.unknown.is(":checked") ? {
+        allowEmpty: form.allow.empty.is(":checked"),
       } : false,
     },
     resolve: {
-      external: form.refs.external.is(':checked'),
+      external: form.refs.external.is(":checked"),
     },
     dereference: {
-      circular: form.refs.circular.is(':checked'),
+      circular: form.refs.circular.is(":checked"),
     },
     validate: {
-      schema: form.validate.schema.is(':checked'),
-      spec: form.validate.spec.is(':checked'),
+      schema: form.validate.schema.is(":checked"),
+      spec: form.validate.spec.is(":checked"),
     },
   };
 };
@@ -1041,39 +1041,39 @@ form.getOptions = function () {
  */
 form.getAPI = function () {
   // Determine which tab is selected
-  if (form.tabs.url.parent().attr('class').indexOf('active') >= 0) {
+  if (form.tabs.url.parent().attr("class").indexOf("active") >= 0) {
     var url = form.url.val();
     if (url) {
       return url;
     }
     else {
-      throw new URIError('Please specify the URL of your Swagger/OpenAPI definition');
+      throw new URIError("Please specify the URL of your Swagger/OpenAPI definition");
     }
   }
   else {
     var text = form.textBox.getValue();
-    if (form.allow.yaml.is(':checked')) {
+    if (form.allow.yaml.is(":checked")) {
       return SwaggerParser.YAML.parse(text);
     }
-    else if (form.allow.json.is(':checked')) {
+    else if (form.allow.json.is(":checked")) {
       return JSON.parse(text);
     }
     else {
-      throw new SyntaxError('Unable to parse the API. Neither YAML nor JSON are allowed.');
+      throw new SyntaxError("Unable to parse the API. Neither YAML nor JSON are allowed.");
     }
   }
 };
 
 },{}],10:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var form = require('./form'),
-    querystring = require('./querystring'),
-    dropdowns = require('./dropdowns'),
-    editors = require('./editors'),
-    samples = require('./samples'),
-    parser = require('./parser'),
-    analytics = require('./analytics');
+var form = require("./form"),
+    querystring = require("./querystring"),
+    dropdowns = require("./dropdowns"),
+    editors = require("./editors"),
+    samples = require("./samples"),
+    parser = require("./parser"),
+    analytics = require("./analytics");
 
 $(function () {
   form();
@@ -1086,12 +1086,12 @@ $(function () {
 });
 
 },{"./analytics":6,"./dropdowns":7,"./editors":8,"./form":9,"./parser":11,"./querystring":12,"./samples":13}],11:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var form = require('./form'),
-    editors = require('./editors'),
-    analytics = require('./analytics'),
-    ono = require('ono'),
+var form = require("./form"),
+    editors = require("./editors"),
+    analytics = require("./analytics"),
+    ono = require("ono"),
     swaggerParser = null,
     counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
 
@@ -1102,16 +1102,16 @@ module.exports = parser;
  */
 function parser () {
   // When the form is submitted, parse the Swagger API
-  form.form.on('submit', function (event) {
+  form.form.on("submit", function (event) {
     event.preventDefault();
     parseSwagger();
   });
 
   // When the "x" button is clicked, discard the results
-  $('#clear').on('click', function () {
+  $("#clear").on("click", function () {
     swaggerParser = null;
     editors.clearResults();
-    analytics.trackEvent('results', 'clear');
+    analytics.trackEvent("results", "clear");
   });
 }
 
@@ -1146,7 +1146,7 @@ function parseSwagger () {
 
     // Track the operation
     counters[method]++;
-    analytics.trackEvent('button', 'click', method, counters[method]);
+    analytics.trackEvent("button", "click", method, counters[method]);
   }
   catch (err) {
     editors.showError(ono(err));
@@ -1155,10 +1155,10 @@ function parseSwagger () {
 }
 
 },{"./analytics":6,"./editors":8,"./form":9,"ono":2}],12:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var qs = require('querystring'),
-    form = require('./form');
+var qs = require("querystring"),
+    form = require("./form");
 
 module.exports = querystring;
 
@@ -1168,7 +1168,7 @@ module.exports = querystring;
 function querystring () {
   setFormFields();
   setBookmarkURL();
-  form.bookmark.on('click focus mouseenter', setBookmarkURL);
+  form.bookmark.on("click focus mouseenter", setBookmarkURL);
 }
 
 /**
@@ -1177,15 +1177,15 @@ function querystring () {
 function setFormFields () {
   var query = qs.parse(window.location.search.substr(1));
 
-  setCheckbox(form.allow.json, query['allow-json']);
-  setCheckbox(form.allow.yaml, query['allow-yaml']);
-  setCheckbox(form.allow.text, query['allow-text']);
-  setCheckbox(form.allow.empty, query['allow-empty']);
-  setCheckbox(form.allow.unknown, query['allow-unknown']);
-  setCheckbox(form.refs.external, query['refs-external']);
-  setCheckbox(form.refs.circular, query['refs-circular']);
-  setCheckbox(form.validate.schema, query['validate-schema']);
-  setCheckbox(form.validate.spec, query['validate-spec']);
+  setCheckbox(form.allow.json, query["allow-json"]);
+  setCheckbox(form.allow.yaml, query["allow-yaml"]);
+  setCheckbox(form.allow.text, query["allow-text"]);
+  setCheckbox(form.allow.empty, query["allow-empty"]);
+  setCheckbox(form.allow.unknown, query["allow-unknown"]);
+  setCheckbox(form.refs.external, query["refs-external"]);
+  setCheckbox(form.refs.circular, query["refs-circular"]);
+  setCheckbox(form.validate.schema, query["validate-schema"]);
+  setCheckbox(form.validate.spec, query["validate-spec"]);
 
   // If a custom URL is specified, then show the "Your API" tab
   if (query.url) {
@@ -1195,7 +1195,7 @@ function setFormFields () {
   // If a method is specified, then change the "Validate!" button
   if (query.method) {
     query.method = query.method.toLowerCase();
-    if (['parse', 'resolve', 'bundle', 'dereference', 'validate'].indexOf(query.method) !== -1) {
+    if (["parse", "resolve", "bundle", "dereference", "validate"].indexOf(query.method) !== -1) {
       form.method.button.val(query.method);
     }
   }
@@ -1208,8 +1208,8 @@ function setFormFields () {
  * @param {*} value
  */
 function setCheckbox (input, value) {
-  if (!value || value === 'true' || value === 'on') {
-    value = 'yes';
+  if (!value || value === "true" || value === "on") {
+    value = "yes";
   }
   input.val([value]);
 }
@@ -1220,30 +1220,30 @@ function setCheckbox (input, value) {
 function setBookmarkURL () {
   var query = {};
   var options = form.getOptions();
-  options.parse.json || (query['allow-json'] = 'no');
-  options.parse.yaml || (query['allow-yaml'] = 'no');
-  options.parse.text || (query['allow-text'] = 'no');
-  options.parse.json.allowEmpty || (query['allow-empty'] = 'no');
-  options.parse.binary || (query['allow-unknown'] = 'no');
-  options.resolve.external || (query['refs-external'] = 'no');
-  options.dereference.circular || (query['refs-circular'] = 'no');
-  options.validate.schema || (query['validate-schema'] = 'no');
-  options.validate.spec || (query['validate-spec'] = 'no');
+  options.parse.json || (query["allow-json"] = "no");
+  options.parse.yaml || (query["allow-yaml"] = "no");
+  options.parse.text || (query["allow-text"] = "no");
+  options.parse.json.allowEmpty || (query["allow-empty"] = "no");
+  options.parse.binary || (query["allow-unknown"] = "no");
+  options.resolve.external || (query["refs-external"] = "no");
+  options.dereference.circular || (query["refs-circular"] = "no");
+  options.validate.schema || (query["validate-schema"] = "no");
+  options.validate.spec || (query["validate-spec"] = "no");
 
   var method = form.method.button.val();
-  method === 'validate' || (query.method = method);
+  method === "validate" || (query.method = method);
 
   var url = form.url.val();
-  url === '' || (query.url = url);
+  url === "" || (query.url = url);
 
-  var bookmark = '?' + qs.stringify(query);
-  form.bookmark.attr('href', bookmark);
+  var bookmark = "?" + qs.stringify(query);
+  form.bookmark.attr("href", bookmark);
 }
 
 },{"./form":9,"querystring":5}],13:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var form = require('./form');
+var form = require("./form");
 
 module.exports = samples;
 
@@ -1251,19 +1251,19 @@ module.exports = samples;
  * Allows the user to use a sample URL or sample API text
  */
 function samples () {
-  form.samples.url.link.on('click', function (event) {
+  form.samples.url.link.on("click", function (event) {
     event.preventDefault();
     form.url.val(samples.url);
   });
 
-  form.samples.text.link.on('click', function (event) {
+  form.samples.text.link.on("click", function (event) {
     event.preventDefault();
     form.textBox.setValue(samples.text, -1);
     form.samples.text.container.hide();
     form.textBox.focus();
   });
 
-  form.textBox.on('input', function () {
+  form.textBox.on("input", function () {
     if (form.textBox.session.getValue().length === 0) {
       form.samples.text.container.show();
     }
@@ -1273,78 +1273,78 @@ function samples () {
   });
 }
 
-samples.url = 'https://apidevtools.org/swagger-parser/online/sample/swagger.yaml';
+samples.url = "https://apidevtools.org/swagger-parser/online/sample/swagger.yaml";
 
 samples.text =
   'swagger: "2.0"\n' +
-  'info:\n' +
-  '  version: 1.0.0\n' +
-  '  title: Swagger Petstore\n' +
-  '  description: >\n' +
-  '    A sample API that uses a petstore as an example\n' +
-  '    to demonstrate features in the swagger-2.0 specification\n' +
-  'consumes:\n' +
-  '  - application/json\n' +
-  'produces:\n' +
-  '  - application/json\n' +
-  'paths:\n' +
-  '  /pets:\n' +
-  '    get:\n' +
-  '      description: Returns all pets from the petstore\n' +
-  '      responses:\n' +
+  "info:\n" +
+  "  version: 1.0.0\n" +
+  "  title: Swagger Petstore\n" +
+  "  description: >\n" +
+  "    A sample API that uses a petstore as an example\n" +
+  "    to demonstrate features in the swagger-2.0 specification\n" +
+  "consumes:\n" +
+  "  - application/json\n" +
+  "produces:\n" +
+  "  - application/json\n" +
+  "paths:\n" +
+  "  /pets:\n" +
+  "    get:\n" +
+  "      description: Returns all pets from the petstore\n" +
+  "      responses:\n" +
   '        "200":\n' +
-  '          description: pet response\n' +
-  '          schema:\n' +
-  '            type: array\n' +
-  '            items:\n' +
+  "          description: pet response\n" +
+  "          schema:\n" +
+  "            type: array\n" +
+  "            items:\n" +
   '              $ref: "#/definitions/pet"\n' +
-  '        default:\n' +
-  '          description: unexpected error\n' +
-  '          schema:\n' +
+  "        default:\n" +
+  "          description: unexpected error\n" +
+  "          schema:\n" +
   '            $ref: "#/definitions/errorModel"\n' +
-  '    post:\n' +
-  '      description: Creates a new pet in the store\n' +
-  '      parameters:\n' +
-  '        - name: pet\n' +
-  '          in: body\n' +
-  '          description: Pet to add to the store\n' +
-  '          required: true\n' +
-  '          schema:\n' +
+  "    post:\n" +
+  "      description: Creates a new pet in the store\n" +
+  "      parameters:\n" +
+  "        - name: pet\n" +
+  "          in: body\n" +
+  "          description: Pet to add to the store\n" +
+  "          required: true\n" +
+  "          schema:\n" +
   '            $ref: "#/definitions/pet"\n' +
-  '      responses:\n' +
+  "      responses:\n" +
   '        "200":\n' +
-  '          description: pet response\n' +
-  '          schema:\n' +
+  "          description: pet response\n" +
+  "          schema:\n" +
   '            $ref: "#/definitions/pet"\n' +
-  '        default:\n' +
-  '          description: unexpected error\n' +
-  '          schema:\n' +
+  "        default:\n" +
+  "          description: unexpected error\n" +
+  "          schema:\n" +
   '            $ref: "#/definitions/errorModel"\n' +
   '  "/pets/{name}":\n' +
-  '    get:\n' +
-  '      description: Returns a single pet by name\n' +
-  '      parameters:\n' +
-  '        - name: name\n' +
-  '          in: path\n' +
-  '          description: Name of the pet to fetch\n' +
-  '          required: true\n' +
-  '          type: string\n' +
-  '      responses:\n' +
+  "    get:\n" +
+  "      description: Returns a single pet by name\n" +
+  "      parameters:\n" +
+  "        - name: name\n" +
+  "          in: path\n" +
+  "          description: Name of the pet to fetch\n" +
+  "          required: true\n" +
+  "          type: string\n" +
+  "      responses:\n" +
   '        "200":\n' +
-  '          description: pet response\n' +
-  '          schema:\n' +
+  "          description: pet response\n" +
+  "          schema:\n" +
   '            $ref: "#/definitions/pet"\n' +
-  '        default:\n' +
-  '          description: unexpected error\n' +
-  '          schema:\n' +
+  "        default:\n" +
+  "          description: unexpected error\n" +
+  "          schema:\n" +
   '            $ref: "#/definitions/errorModel"\n' +
-  'definitions:\n' +
-  '  pet:\n' +
-  '    $ref: sample/pet.yaml\n' +
-  '  pet-owner:\n' +
-  '    $ref: sample/pet-owner.yaml\n' +
-  '  errorModel:\n' +
-  '    $ref: sample/error.json\n';
+  "definitions:\n" +
+  "  pet:\n" +
+  "    $ref: sample/pet.yaml\n" +
+  "  pet-owner:\n" +
+  "    $ref: sample/pet-owner.yaml\n" +
+  "  errorModel:\n" +
+  "    $ref: sample/error.json\n";
 
 },{"./form":9}]},{},[10])
 //# sourceMappingURL=bundle.js.map
