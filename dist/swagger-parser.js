@@ -1,5 +1,5 @@
 /*!
- * Swagger Parser v6.0.3 (January 10th 2019)
+ * Swagger Parser v6.0.4 (January 16th 2019)
  * 
  * https://apidevtools.org/swagger-parser/
  * 
@@ -262,7 +262,7 @@ function validateSchema (api) {
   // Choose the appropriate schema (Swagger or OpenAPI)
   var schema = api.swagger
     ? require("swagger-schema-official/schema.json")
-    : require("openapi-schema-validation/schema/openapi-3.0.json");
+    : require("openapi-schema-validator/dist/resources/openapi-3.0.json");
 
   var isValid = ZSchema.validate(api, schema);
 
@@ -305,7 +305,7 @@ function formatZSchemaError (errors, indent) {
   return message;
 }
 
-},{"../util":3,"ono":122,"openapi-schema-validation/schema/openapi-3.0.json":123,"swagger-schema-official/schema.json":145,"z-schema":241}],5:[function(require,module,exports){
+},{"../util":3,"ono":122,"openapi-schema-validator/dist/resources/openapi-3.0.json":123,"swagger-schema-official/schema.json":145,"z-schema":241}],5:[function(require,module,exports){
 "use strict";
 
 var util = require("../util"),

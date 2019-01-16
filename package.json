@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "version": "6.0.3",
+  "version": "6.0.4",
   "description": "Swagger 2.0 and OpenAPI 3.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
@@ -85,7 +85,7 @@
     "call-me-maybe": "^1.0.1",
     "json-schema-ref-parser": "^6.0.3",
     "ono": "^4.0.11",
-    "openapi-schema-validation": "^0.4.2",
+    "openapi-schema-validator": "^3.0.2",
     "swagger-methods": "^1.0.8",
     "swagger-schema-official": "2.0.0-bab6bed",
     "z-schema": "^3.24.2"
