@@ -60,7 +60,7 @@
     "eslint": "^5.12.0",
     "eslint-config-modular": "^6.0.0",
     "http-server": "^0.11.1",
-    "karma": "^3.1.4",
+    "karma": "^4.0.0",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-cli": "^2.0.0",
