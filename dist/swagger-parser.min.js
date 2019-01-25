@@ -1,5 +1,5 @@
 /*!
- * Swagger Parser v6.0.4 (January 25th 2019)
+ * Swagger Parser v6.0.5 (January 25th 2019)
  * 
  * https://apidevtools.org/swagger-parser/
  * 
