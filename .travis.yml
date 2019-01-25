@@ -28,7 +28,7 @@ after_success:
   - cat coverage/*/lcov.info > ./coverage/lcov.info
 
   # send code-coverage data to Coveralls
-  - cat ./coverage/lcov.info | node_modules/coveralls/bin/coveralls.js
+  - cat ./coverage/lcov.info | coveralls
 
 jobs:
   include:
