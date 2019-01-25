@@ -26,6 +26,12 @@ module.exports = function (karma) {
       // Tests
       "test/specs/**/*.js",
       { pattern: "test/specs/**", included: false, served: true }
+    ],
+
+    exclude: [
+      // Exclude these tests because some of the APIs are HUGE and cause timeouts.
+      // We still test them in Node though.
+      "test/specs/real-world/*",
     ]
   };
 
@@ -141,6 +147,6 @@ function configureSauceLabs (config) {
     "test/specs/invalid/*",
     "test/specs/unknown/*",
     "test/specs/validate-schema/*",
-    "test/specs/real-world/*"
+    "test/specs/real-world/*",
   ];
 }
