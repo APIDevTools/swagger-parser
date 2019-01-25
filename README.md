@@ -1,6 +1,5 @@
-Swagger/OpenAPI Parser
+Swagger 2.0 and OpenAPI 3.0 parser/validator
 ============================
-#### Swagger 2.0 and OpenAPI 3.0 parser and validator for Node and browsers
 
 [![Build Status](https://api.travis-ci.org/APIDevTools/swagger-parser.svg?branch=master)](https://travis-ci.org/APIDevTools/swagger-parser)
 [![Coverage Status](https://coveralls.io/repos/github/APIDevTools/swagger-parser/badge.svg?branch=master)](https://coveralls.io/github/APIDevTools/swagger-parser)
@@ -65,7 +64,7 @@ For more detailed examples, please see the [API Documentation](https://apidevtoo
 Installation
 --------------------------
 #### Node
-Install using [npm](https://docs.npmjs.com/getting-started/what-is-npm):
+Install using [npm](https://docs.npmjs.com/about-npm/):
 
 ```bash
 npm install swagger-parser
