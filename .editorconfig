@@ -11,14 +11,15 @@ root = true
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
+end_of_line = lf
 
 # 2 space indentation
 indent_style = space
 indent_size = 2
 
 # JavaScript-specific settings
-[*.js]
-quote_type = single
+[*.{js,ts}]
+quote_type = double
 continuation_indent_size = 2
 curly_bracket_next_line = false
 indent_brace_style = BSD
