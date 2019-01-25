@@ -1,15 +1,19 @@
 describe("Real-world APIs", function () {
   "use strict";
 
+  var MAX_APIS_TO_TEST = 1500;
+  var START_AT_INDEX = 0;
+  var MAX_DOWNLOAD_RETRIES = 3;
+
+  var apiIndex = START_AT_INDEX;
   var realWorldAPIs = [];
-  var apiIndex = 0;
   var knownApiErrors = getKnownApiErrors();
 
   before(function (done) {
     // This hook sometimes takes several seconds, due to the large download
     this.timeout(10000);
 
-    // Download a list of over 1500 real-world Swagger APIs from apis.guru
+    // Download a list of over 2000 real-world Swagger APIs from apis.guru
     superagent.get("https://api.apis.guru/v2/list.json")
       .end(function (err, res) {
         if (err || !res.ok) {
@@ -43,16 +47,18 @@ describe("Real-world APIs", function () {
   });
 
   beforeEach(function () {
-    // Some of these APIs are vary large, so we need to increase the timouts
-    // to allow time for them to be downloaded, dereferenced, and validated.
-    // so we need to increase the timeouts to allow for that
-    this.currentTest.timeout(60000);
+    // Increase the timeouts by A LOT because:
+    //   1) CI is really slow
+    //   2) Some API definitions are HUGE and take a while to download
+    //   3) If the download fails, we retry 2 times, which takes even more time
+    //   4) Really large API definitions take longer to pase, dereference, and validate
+    this.currentTest.timeout(host.env.CI ? 300000 : 60000);     // 5 minutes in CI, 1 minute locally
     this.currentTest.slow(5000);
   });
 
   // Mocha requires us to create our tests synchronously. But the list of APIs is downloaded asynchronously.
-  // So, we just create 1500 placeholder tests, and then rename them later to reflect which API they're testing.
-  for (var i = 1; i <= 1500; i++) {
+  // So, we just create a bunch of placeholder tests, and then rename them later to reflect which API they're testing.
+  for (var i = 1; i <= MAX_APIS_TO_TEST; i++) {
     it(i + ") ", testNextAPI);
   }
 
@@ -98,7 +104,7 @@ describe("Real-world APIs", function () {
         }
 
         if (knownError.whatToDo === "retry") {
-          if (attemptNumber >= 3) {
+          if (attemptNumber >= MAX_DOWNLOAD_RETRIES) {
             console.error("        failed to download.  giving up.");
             return null;
           }
