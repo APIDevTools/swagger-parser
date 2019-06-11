@@ -12,7 +12,7 @@ describe("Callback & Promise syntax", function () {
 
   function testCallbackSuccess (method) {
     return function (done) {
-      var parser = new SwaggerParser();
+      let parser = new SwaggerParser();
       parser[method](path.rel("specs/callbacks-promises/callbacks-promises.yaml"), function (err, result) {
         try {
           expect(err).to.be.null;
@@ -26,7 +26,7 @@ describe("Callback & Promise syntax", function () {
             expect(result).to.equal(parser.schema);
 
             // Make sure the API was parsed correctly
-            var expected = method === "validate" ? helper.dereferenced.callbacksPromises : helper[method + "d"].callbacksPromises;
+            let expected = method === "validate" ? helper.dereferenced.callbacksPromises : helper[method + "d"].callbacksPromises;
             expect(result).to.deep.equal(expected);
           }
           done();
@@ -55,7 +55,7 @@ describe("Callback & Promise syntax", function () {
 
   function testPromiseSuccess (method) {
     return function () {
-      var parser = new SwaggerParser();
+      let parser = new SwaggerParser();
       return parser[method](path.rel("specs/callbacks-promises/callbacks-promises.yaml"))
         .then(function (result) {
           expect(result).to.be.an("object").and.ok;
@@ -68,7 +68,7 @@ describe("Callback & Promise syntax", function () {
             expect(result).to.equal(parser.schema);
 
             // Make sure the API was parsed correctly
-            var expected = method === "validate" ? helper.dereferenced.callbacksPromises : helper[method + "d"].callbacksPromises;
+            let expected = method === "validate" ? helper.dereferenced.callbacksPromises : helper[method + "d"].callbacksPromises;
             expect(result).to.deep.equal(expected);
           }
         });

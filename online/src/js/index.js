@@ -1,6 +1,6 @@
 "use strict";
 
-var form = require("./form"),
+let form = require("./form"),
     querystring = require("./querystring"),
     dropdowns = require("./dropdowns"),
     editors = require("./editors"),
@@ -8,7 +8,7 @@ var form = require("./form"),
     parser = require("./parser"),
     analytics = require("./analytics");
 
-$(function () {
+$(() => {
   form();
   querystring();
   dropdowns();

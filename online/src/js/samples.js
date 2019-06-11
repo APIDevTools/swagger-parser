@@ -1,6 +1,6 @@
 "use strict";
 
-var form = require("./form");
+let form = require("./form");
 
 module.exports = samples;
 
@@ -8,19 +8,19 @@ module.exports = samples;
  * Allows the user to use a sample URL or sample API text
  */
 function samples () {
-  form.samples.url.link.on("click", function (event) {
+  form.samples.url.link.on("click", (event) => {
     event.preventDefault();
     form.url.val(samples.url);
   });
 
-  form.samples.text.link.on("click", function (event) {
+  form.samples.text.link.on("click", (event) => {
     event.preventDefault();
     form.textBox.setValue(samples.text, -1);
     form.samples.text.container.hide();
     form.textBox.focus();
   });
 
-  form.textBox.on("input", function () {
+  form.textBox.on("input", () => {
     if (form.textBox.session.getValue().length === 0) {
       form.samples.text.container.show();
     }

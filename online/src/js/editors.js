@@ -1,6 +1,6 @@
 "use strict";
 
-var form = require("./form"),
+let form = require("./form"),
     ono = require("ono"),
     ACE_THEME = "ace/theme/terminal";
 
@@ -12,7 +12,7 @@ module.exports = editors;
 function editors () {
   editors.textBox = form.textBox = ace.edit("text-box");
   form.textBox.setTheme(ACE_THEME);
-  var session = form.textBox.getSession();
+  let session = form.textBox.getSession();
   session.setMode("ace/mode/yaml");
   session.setTabSize(2);
 
@@ -60,10 +60,10 @@ editors.showError = function (err) {
  * @param {object|string} content - An object that will be displayed as JSON in the editor
  */
 editors.addResult = function (title, content) {
-  var index = editors.tabs.children().length;
-  var titleId = "results-tab-" + index + "-title";
-  var editorId = "results-" + index;
-  var active = index === 0 ? "active" : "";
+  let index = editors.tabs.children().length;
+  let titleId = "results-tab-" + index + "-title";
+  let editorId = "results-" + index;
+  let active = index === 0 ? "active" : "";
 
   // Add a tab and pane
   editors.tabs.append(
@@ -78,7 +78,7 @@ editors.addResult = function (title, content) {
   );
 
   // Set the tab title
-  var shortTitle = getShortTitle(title);
+  let shortTitle = getShortTitle(title);
   editors.tabs.find("#" + titleId).text(shortTitle).attr("title", title);
 
   // Set the <pre> content
@@ -86,7 +86,7 @@ editors.addResult = function (title, content) {
   editors.panes.find("#" + editorId).text(content.text);
 
   // Turn the <pre> into an Ace Editor
-  var editor = ace.edit(editorId);
+  let editor = ace.edit(editorId);
   editor.setTheme(ACE_THEME);
   editor.session.setOption("useWorker", false);
   content.isJSON && editor.getSession().setMode("ace/mode/json");
@@ -101,7 +101,7 @@ editors.addResult = function (title, content) {
  */
 function getShortTitle (title) {
   // Get just the file name
-  var lastSlash = title.lastIndexOf("/");
+  let lastSlash = title.lastIndexOf("/");
   if (lastSlash !== -1) {
     title = title.substr(lastSlash + 1);
   }
@@ -118,12 +118,12 @@ function getShortTitle (title) {
  * Ensures that the results are visible, and plays an animation to get the user's attention.
  */
 function showResults () {
-  var results = editors.results;
+  let results = editors.results;
 
-  setTimeout(function () {
+  setTimeout(() => {
     results[0].scrollIntoView();
     results.addClass("animated")
-      .one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", function () {
+      .one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", () => {
         // Remove the "animated" class when the animation ends,
         // so we can replay the animation again next time
         results.removeClass("animated");

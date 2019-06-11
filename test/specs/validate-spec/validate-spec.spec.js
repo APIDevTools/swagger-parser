@@ -1,7 +1,7 @@
 describe("Invalid APIs (Swagger 2.0 specification validation)", function () {
   "use strict";
 
-  var tests = [
+  let tests = [
     {
       name: "invalid response code",
       valid: false,
@@ -140,7 +140,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", function () {
   ];
 
   it('should pass validation if "options.validate.spec" is false', function () {
-    var invalid = tests[0];
+    let invalid = tests[0];
     expect(invalid.valid).to.be.false;
 
     return SwaggerParser

@@ -1,6 +1,6 @@
 "use strict";
 
-var form = require("./form"),
+let form = require("./form"),
     analytics = require("./analytics");
 
 module.exports = dropdowns;
@@ -32,7 +32,7 @@ function dropdowns () {
   form.method.menu.find("a").on("click", function (event) {
     form.method.menu.dropdown("toggle");
     event.stopPropagation();
-    var methodName = $(this).data("value");
+    let methodName = $(this).data("value");
     setSelectedMethod(methodName);
     trackButtonLabel(methodName);
   });
@@ -46,10 +46,10 @@ function dropdowns () {
  * @param {function} setLabel
  */
 function onChange (menu, setLabel) {
-  var dropdown = menu.parent(".dropdown");
+  let dropdown = menu.parent(".dropdown");
 
   // Don't auto-close the menu when items are clicked
-  menu.find("a").on("click", function (event) {
+  menu.find("a").on("click", (event) => {
     event.stopPropagation();
   });
 
@@ -58,7 +58,7 @@ function onChange (menu, setLabel) {
   dropdown.on("hidden.bs.dropdown", setLabel);
 
   // Track when a dropdown menu is shown
-  dropdown.on("shown.bs.dropdown", function () {
+  dropdown.on("shown.bs.dropdown", () => {
     analytics.trackEvent("options", "shown", menu.attr("id"));
   });
 }
@@ -67,7 +67,7 @@ function onChange (menu, setLabel) {
  * Sets the "allow" label, based on which options are selected
  */
 function setAllowLabel () {
-  var values = getCheckedAndUnchecked(
+  let values = getCheckedAndUnchecked(
     form.allow.json, form.allow.yaml, form.allow.text, form.allow.empty, form.allow.unknown);
 
   switch (values.checked.length) {
@@ -95,7 +95,7 @@ function setAllowLabel () {
  * Sets the "refs" label, based on which options are selected
  */
 function setRefsLabel () {
-  var values = getCheckedAndUnchecked(form.refs.external, form.refs.circular);
+  let values = getCheckedAndUnchecked(form.refs.external, form.refs.circular);
 
   switch (values.checked.length) {
     case 0:
@@ -113,7 +113,7 @@ function setRefsLabel () {
  * Sets the "validate" label, based on which options are selected
  */
 function setValidateLabel () {
-  var values = getCheckedAndUnchecked(form.validate.schema, form.validate.spec);
+  let values = getCheckedAndUnchecked(form.validate.schema, form.validate.spec);
 
   switch (values.checked.length) {
     case 0:
@@ -147,8 +147,8 @@ function setSelectedMethod (methodName) {
  * @param {jQuery} checkbox
  */
 function trackCheckbox (checkbox) {
-  checkbox.on("change", function () {
-    var value = checkbox.is(":checked") ? 1 : 0;
+  checkbox.on("change", () => {
+    let value = checkbox.is(":checked") ? 1 : 0;
     analytics.trackEvent("options", "changed", checkbox.attr("name"), value);
   });
 }
@@ -159,7 +159,7 @@ function trackCheckbox (checkbox) {
  * @param {string} methodName - The method name (e.g. "validate", "dereference", etc.)
  */
 function trackButtonLabel (methodName) {
-  var value = ["", "parse", "resolve", "bundle", "dereference", "validate"].indexOf(methodName);
+  let value = ["", "parse", "resolve", "bundle", "dereference", "validate"].indexOf(methodName);
   analytics.trackEvent("options", "changed", "method", value);
 }
 
@@ -170,9 +170,9 @@ function trackButtonLabel (methodName) {
  * @returns {{checked: string[], unchecked: string[]}}
  */
 function getCheckedAndUnchecked (checkboxes) {
-  var checked = [], unchecked = [];
-  for (var i = 0; i < arguments.length; i++) {
-    var checkbox = arguments[i];
+  let checked = [], unchecked = [];
+  for (let i = 0; i < arguments.length; i++) {
+    let checkbox = arguments[i];
     if (checkbox.is(":checked")) {
       checked.push(checkbox.data("value"));
     }
@@ -180,5 +180,5 @@ function getCheckedAndUnchecked (checkboxes) {
       unchecked.push(checkbox.data("value"));
     }
   }
-  return { checked: checked, unchecked: unchecked };
+  return { checked, unchecked };
 }

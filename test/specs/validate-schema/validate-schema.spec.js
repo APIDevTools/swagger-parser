@@ -1,7 +1,7 @@
 describe("Invalid APIs (Swagger 2.0 schema validation)", function () {
   "use strict";
 
-  var tests = [
+  let tests = [
     {
       name: "invalid response code",
       valid: false,
@@ -101,7 +101,7 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", function () {
   ];
 
   it('should pass validation if "options.validate.schema" is false', function () {
-    var invalid = tests[0];
+    let invalid = tests[0];
     expect(invalid.valid).to.be.false;
 
     return SwaggerParser
@@ -137,7 +137,7 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", function () {
             expect(err.details).to.be.an("array").with.length.above(0);
 
             // Make sure the ZSchema error details object is valid
-            var details = err.details[0];
+            let details = err.details[0];
             expect(details.code).to.be.a("string").and.match(/[A-Z_]+/);
             expect(details.message).to.be.a("string").and.not.empty;
             expect(details.path).to.be.an("array").with.length.above(0);

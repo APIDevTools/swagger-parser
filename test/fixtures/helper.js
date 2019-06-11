@@ -27,7 +27,7 @@
    * Throws an error if called.
    */
   helper.shouldNotGetCalled = function shouldNotGetCalled (done) {
-    var err = new Error("This function should not have gotten called.");
+    let err = new Error("This function should not have gotten called.");
     if (typeof done === "function") {
       return function (err2) {
         if (err2 instanceof Error) {
@@ -53,16 +53,16 @@
    * @returns {Function}
    */
   helper.testResolve = function testResolve (filePath, resolvedValue, params) {
-    var schemaFile = path.rel(arguments[0]);
-    var parsedSchema = arguments[1];
-    var expectedFiles = [], expectedValues = [];
-    for (var i = 0; i < arguments.length; i++) {
+    let schemaFile = path.rel(arguments[0]);
+    let parsedSchema = arguments[1];
+    let expectedFiles = [], expectedValues = [];
+    for (let i = 0; i < arguments.length; i++) {
       expectedFiles.push(path.abs(arguments[i]));
       expectedValues.push(arguments[++i]);
     }
 
     return function (done) {
-      var parser = new SwaggerParser();
+      let parser = new SwaggerParser();
       parser
         .resolve(schemaFile)
         .then(function ($refs) {
@@ -81,11 +81,11 @@
           }
 
           // Resolved values
-          var values = $refs.values();
+          let values = $refs.values();
           expect(values).to.have.keys(expectedFiles);
           expectedFiles.forEach(function (file, i) {
-            var actual = helper.convertNodeBuffersToPOJOs(values[file]);
-            var expected = expectedValues[i];
+            let actual = helper.convertNodeBuffersToPOJOs(values[file]);
+            let expected = expectedValues[i];
             expect(actual).to.deep.equal(expected, file);
           });
 
@@ -115,11 +115,11 @@
    * Creates a deep clone of the given value.
    */
   helper.cloneDeep = function cloneDeep (value) {
-    var clone = value;
+    let clone = value;
     if (value && typeof value === "object") {
       clone = value instanceof Array ? [] : {};
-      var keys = Object.keys(value);
-      for (var i = 0; i < keys.length; i++) {
+      let keys = Object.keys(value);
+      for (let i = 0; i < keys.length; i++) {
         clone[keys[i]] = helper.cloneDeep(value[keys[i]]);
       }
     }

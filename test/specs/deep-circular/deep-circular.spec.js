@@ -2,7 +2,7 @@ describe("API with deeply-nested circular $refs", function () {
   "use strict";
 
   it("should parse successfully", function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .parse(path.rel("specs/deep-circular/deep-circular.yaml"))
       .then(function (api) {
@@ -19,7 +19,7 @@ describe("API with deeply-nested circular $refs", function () {
   ));
 
   it("should dereference successfully", function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .dereference(path.rel("specs/deep-circular/deep-circular.yaml"))
       .then(function (api) {
@@ -36,7 +36,7 @@ describe("API with deeply-nested circular $refs", function () {
   });
 
   it("should validate successfully", function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .validate(path.rel("specs/deep-circular/deep-circular.yaml"))
       .then(function (api) {
@@ -53,7 +53,7 @@ describe("API with deeply-nested circular $refs", function () {
   });
 
   it("should bundle successfully", function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .bundle(path.rel("specs/deep-circular/deep-circular.yaml"))
       .then(function (api) {

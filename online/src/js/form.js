@@ -97,7 +97,7 @@ form.getOptions = function () {
 form.getAPI = function () {
   // Determine which tab is selected
   if (form.tabs.url.parent().attr("class").indexOf("active") >= 0) {
-    var url = form.url.val();
+    let url = form.url.val();
     if (url) {
       return url;
     }
@@ -106,7 +106,7 @@ form.getAPI = function () {
     }
   }
   else {
-    var text = form.textBox.getValue();
+    let text = form.textBox.getValue();
     if (form.allow.yaml.is(":checked")) {
       return SwaggerParser.YAML.parse(text);
     }

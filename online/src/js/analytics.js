@@ -1,6 +1,6 @@
 "use strict";
 
-var debug = location.hostname === "localhost";
+let debug = location.hostname === "localhost";
 
 module.exports = analytics;
 
@@ -31,7 +31,7 @@ analytics.trackEvent = function (category, action, label, value) {
       gtag("event", action, {
         event_category: category,   // eslint-disable-line camelcase
         event_label: label,         // eslint-disable-line camelcase
-        value: value
+        value
       });
     }
   }

@@ -2,7 +2,7 @@ describe("API with circular (recursive) $refs", function () {
   "use strict";
 
   it("should parse successfully", function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .parse(path.rel("specs/circular/circular.yaml"))
       .then(function (api) {
@@ -21,7 +21,7 @@ describe("API with circular (recursive) $refs", function () {
   ));
 
   it("should dereference successfully", function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .dereference(path.rel("specs/circular/circular.yaml"))
       .then(function (api) {
@@ -36,7 +36,7 @@ describe("API with circular (recursive) $refs", function () {
   });
 
   it("should validate successfully", function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .validate(path.rel("specs/circular/circular.yaml"))
       .then(function (api) {
@@ -51,7 +51,7 @@ describe("API with circular (recursive) $refs", function () {
   });
 
   it('should not dereference circular $refs if "options.dereference.circular" is "ignore"', function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .validate(path.rel("specs/circular/circular.yaml"), { dereference: { circular: "ignore" }})
       .then(function (api) {
@@ -64,7 +64,7 @@ describe("API with circular (recursive) $refs", function () {
   });
 
   it('should fail validation if "options.dereference.circular" is false', function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .validate(path.rel("specs/circular/circular.yaml"), { dereference: { circular: false }})
       .then(helper.shouldNotGetCalled)
@@ -75,7 +75,7 @@ describe("API with circular (recursive) $refs", function () {
   });
 
   it("should bundle successfully", function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .bundle(path.rel("specs/circular/circular.yaml"))
       .then(function (api) {

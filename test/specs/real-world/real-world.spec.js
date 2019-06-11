@@ -1,13 +1,13 @@
 describe("Real-world APIs", function () {
   "use strict";
 
-  var MAX_APIS_TO_TEST = 1500;
-  var START_AT_INDEX = 0;
-  var MAX_DOWNLOAD_RETRIES = 3;
+  let MAX_APIS_TO_TEST = 1500;
+  let START_AT_INDEX = 0;
+  let MAX_DOWNLOAD_RETRIES = 3;
 
-  var apiIndex = START_AT_INDEX;
-  var realWorldAPIs = [];
-  var knownApiErrors = getKnownApiErrors();
+  let apiIndex = START_AT_INDEX;
+  let realWorldAPIs = [];
+  let knownApiErrors = getKnownApiErrors();
 
   before(function (done) {
     // This hook sometimes takes several seconds, due to the large download
@@ -21,7 +21,7 @@ describe("Real-world APIs", function () {
         }
 
         // Remove certain APIs that are known to cause problems
-        var apis = res.body;
+        let apis = res.body;
 
         // GitHub's CORS policy blocks this request
         delete apis["googleapis.com:adsense"];
@@ -35,7 +35,7 @@ describe("Real-world APIs", function () {
         realWorldAPIs = [];
         Object.keys(apis).forEach(function (apiName) {
           Object.keys(apis[apiName].versions).forEach(function (version) {
-            var api = apis[apiName].versions[version];
+            let api = apis[apiName].versions[version];
             api.name = apiName;
             api.version = version;
             realWorldAPIs.push(api);
@@ -58,7 +58,7 @@ describe("Real-world APIs", function () {
 
   // Mocha requires us to create our tests synchronously. But the list of APIs is downloaded asynchronously.
   // So, we just create a bunch of placeholder tests, and then rename them later to reflect which API they're testing.
-  for (var i = 1; i <= MAX_APIS_TO_TEST; i++) {
+  for (let i = 1; i <= MAX_APIS_TO_TEST; i++) {
     it(i + ") ", testNextAPI);
   }
 
@@ -67,7 +67,7 @@ describe("Real-world APIs", function () {
    */
   function testNextAPI (done) {
     // Get the next API to test
-    var api = realWorldAPIs[apiIndex++];
+    let api = realWorldAPIs[apiIndex++];
 
     if (api) {
       this.test.title += api.name + " " + (api.version[0] === "v" ? api.version : "v" + api.version);
@@ -91,7 +91,7 @@ describe("Real-world APIs", function () {
         return null;
       })
       .catch(function (error) {
-        var knownError = findKnownApiError(api, error);
+        let knownError = findKnownApiError(api, error);
 
         if (!knownError) {
           console.error("\n\nERROR IN THIS API:", JSON.stringify(api, null, 2));
@@ -127,8 +127,8 @@ describe("Real-world APIs", function () {
    * Determines whether an API and error match a known error.
    */
   function findKnownApiError (api, error) {
-    for (var i = 0; i < knownApiErrors.length; i++) {
-      var knownError = knownApiErrors[i];
+    for (let i = 0; i < knownApiErrors.length; i++) {
+      let knownError = knownApiErrors[i];
 
       if (typeof knownError.api === "string" && api.name.indexOf(knownError.api) === -1) {
         continue;
@@ -150,7 +150,7 @@ describe("Real-world APIs", function () {
    * Returns a list of known validation errors in certain API definitions on APIs.guru.
    */
   function getKnownApiErrors () {
-    var knownErrors = [
+    let knownErrors = [
       // If the API definition failed to download, then retry
       {
         error: /Error downloading https?:.*swagger\.yaml/,

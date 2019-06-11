@@ -2,7 +2,7 @@ describe("Object sources (instead of file paths)", function () {
   "use strict";
 
   it("should dereference an object that references external files", function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .dereference(helper.cloneDeep(helper.parsed.objectSource.api))
       .then(function (api) {
@@ -10,7 +10,7 @@ describe("Object sources (instead of file paths)", function () {
         expect(api).to.deep.equal(helper.dereferenced.objectSource);
 
         // The API path should be the current directory, and all other paths should be absolute
-        var expectedPaths = [
+        let expectedPaths = [
           path.cwd(),
           path.abs("specs/object-source/definitions/definitions.json"),
           path.abs("specs/object-source/definitions/name.yaml"),
@@ -31,7 +31,7 @@ describe("Object sources (instead of file paths)", function () {
   });
 
   it("should bundle an object that references external files", function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .bundle(helper.cloneDeep(helper.parsed.objectSource.api))
       .then(function (api) {
@@ -39,7 +39,7 @@ describe("Object sources (instead of file paths)", function () {
         expect(api).to.deep.equal(helper.bundled.objectSource);
 
         // The API path should be the current directory, and all other paths should be absolute
-        var expectedPaths = [
+        let expectedPaths = [
           path.cwd(),
           path.abs("specs/object-source/definitions/definitions.json"),
           path.abs("specs/object-source/definitions/name.yaml"),
@@ -51,7 +51,7 @@ describe("Object sources (instead of file paths)", function () {
   });
 
   it("should validate an object that references external files", function () {
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     return parser
       .dereference(helper.cloneDeep(helper.parsed.objectSource.api))
       .then(function (api) {
@@ -59,7 +59,7 @@ describe("Object sources (instead of file paths)", function () {
         expect(api).to.deep.equal(helper.dereferenced.objectSource);
 
         // The API path should be the current directory, and all other paths should be absolute
-        var expectedPaths = [
+        let expectedPaths = [
           path.cwd(),
           path.abs("specs/object-source/definitions/definitions.json"),
           path.abs("specs/object-source/definitions/name.yaml"),

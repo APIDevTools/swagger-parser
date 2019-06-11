@@ -1,7 +1,7 @@
 describe("API with $refs to unknown file types", function () {
   "use strict";
 
-  var windowOnError, testDone;
+  let windowOnError, testDone;
 
   beforeEach(function () {
     // Some old Webkit browsers throw an error when downloading zero-byte files.
@@ -18,7 +18,7 @@ describe("API with $refs to unknown file types", function () {
 
   it("should parse successfully", function (done) {
     testDone = done;
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     parser
       .parse(path.rel("specs/unknown/unknown.yaml"))
       .then(function (api) {
@@ -43,7 +43,7 @@ describe("API with $refs to unknown file types", function () {
 
   it("should dereference successfully", function (done) {
     testDone = done;
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     parser
       .dereference(path.rel("specs/unknown/unknown.yaml"))
       .then(function (api) {
@@ -68,7 +68,7 @@ describe("API with $refs to unknown file types", function () {
 
   it("should validate successfully", function (done) {
     testDone = done;
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     parser
       .validate(path.rel("specs/unknown/unknown.yaml"))
       .then(function (api) {
@@ -93,7 +93,7 @@ describe("API with $refs to unknown file types", function () {
 
   it("should bundle successfully", function (done) {
     testDone = done;
-    var parser = new SwaggerParser();
+    let parser = new SwaggerParser();
     parser
       .bundle(path.rel("specs/unknown/unknown.yaml"))
       .then(function (api) {

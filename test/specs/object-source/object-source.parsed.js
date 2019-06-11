@@ -1,4 +1,4 @@
-var pathToTestsDirectory = host.karma ? "/base/test/" : "";
+let pathToTestsDirectory = host.karma ? "/base/test/" : "";
 
 helper.parsed.objectSource =
 {
