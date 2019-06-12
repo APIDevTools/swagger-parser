@@ -9606,7 +9606,7 @@ function crawl (parent, key, path, pathFromRoot, indirections, inventory, $refs,
         });
 
       // eslint-disable-next-line no-shadow
-      keys.forEach((key) => {
+      for (let key of keys) {
         let keyPath = Pointer.join(path, key);
         let keyPathFromRoot = Pointer.join(pathFromRoot, key);
         let value = obj[key];
@@ -9617,7 +9617,7 @@ function crawl (parent, key, path, pathFromRoot, indirections, inventory, $refs,
         else {
           crawl(obj, key, keyPath, keyPathFromRoot, indirections, inventory, $refs, options);
         }
-      });
+      }
     }
   }
 }
@@ -9743,7 +9743,7 @@ function remap (inventory) {
   });
 
   let file, hash, pathFromRoot;
-  inventory.forEach((entry) => {
+  for (let entry of inventory) {
     // console.log('Re-mapping $ref pointer "%s" at %s', entry.$ref.$ref, entry.pathFromRoot);
 
     if (!entry.external) {
@@ -9775,7 +9775,7 @@ function remap (inventory) {
     }
 
     // console.log('    new value: %s', (entry.$ref && entry.$ref.$ref) ? entry.$ref.$ref : '[object Object]');
-  });
+  }
 }
 
 /**
@@ -9846,7 +9846,7 @@ function crawl (obj, path, pathFromRoot, parents, $refs, options) {
       result.value = dereferenced.value;
     }
     else {
-      Object.keys(obj).forEach((key) => {
+      for (let key of Object.keys(obj)) {
         let keyPath = Pointer.join(path, key);
         let keyPathFromRoot = Pointer.join(pathFromRoot, key);
         let value = obj[key];
@@ -9870,7 +9870,7 @@ function crawl (obj, path, pathFromRoot, parents, $refs, options) {
 
         // Set the "isCircular" flag if this or any other property is circular
         result.circular = result.circular || circular;
-      });
+      }
     }
 
     parents.pop();
@@ -10016,7 +10016,7 @@ $RefParser.parse = function (path, schema, options, callback) {
  * @param {function} [callback] - An error-first callback. The second parameter is the parsed JSON schema object.
  * @returns {Promise} - The returned promise resolves with the parsed JSON schema object.
  */
-$RefParser.prototype.parse = function (path, schema, options, callback) {
+$RefParser.prototype.parse = async function (path, schema, options, callback) {
   let args = normalizeArgs(arguments);
   let promise;
 
@@ -10058,19 +10058,20 @@ $RefParser.prototype.parse = function (path, schema, options, callback) {
   }
 
   let me = this;
-  return promise
-    .then((result) => {
-      if (!result || typeof result !== "object" || Buffer.isBuffer(result)) {
-        throw ono.syntax(`"${me.$refs._root$Ref.path || result}" is not a valid JSON Schema`);
-      }
-      else {
-        me.schema = result;
-        return maybe(args.callback, Promise.resolve(me.schema));
-      }
-    })
-    .catch((e) => {
-      return maybe(args.callback, Promise.reject(e));
-    });
+  try {
+    let result = await promise;
+
+    if (!result || typeof result !== "object" || Buffer.isBuffer(result)) {
+      throw ono.syntax(`"${me.$refs._root$Ref.path || result}" is not a valid JSON Schema`);
+    }
+    else {
+      me.schema = result;
+      return maybe(args.callback, Promise.resolve(me.schema));
+    }
+  }
+  catch (e) {
+    return maybe(args.callback, Promise.reject(e));
+  }
 };
 
 /**
@@ -10105,20 +10106,18 @@ $RefParser.resolve = function (path, schema, options, callback) {
  * @returns {Promise}
  * The returned promise resolves with a {@link $Refs} object containing the resolved JSON references
  */
-$RefParser.prototype.resolve = function (path, schema, options, callback) {
+$RefParser.prototype.resolve = async function (path, schema, options, callback) {
   let me = this;
   let args = normalizeArgs(arguments);
 
-  return this.parse(args.path, args.schema, args.options)
-    .then(() => {
-      return resolveExternal(me, args.options);
-    })
-    .then(() => {
-      return maybe(args.callback, Promise.resolve(me.$refs));
-    })
-    .catch((err) => {
-      return maybe(args.callback, Promise.reject(err));
-    });
+  try {
+    await this.parse(args.path, args.schema, args.options);
+    await resolveExternal(me, args.options);
+    return maybe(args.callback, Promise.resolve(me.$refs));
+  }
+  catch (err) {
+    return maybe(args.callback, Promise.reject(err));
+  }
 };
 
 /**
@@ -10149,18 +10148,18 @@ $RefParser.bundle = function (path, schema, options, callback) {
  * @param {function} [callback] - An error-first callback. The second parameter is the bundled JSON schema object
  * @returns {Promise} - The returned promise resolves with the bundled JSON schema object.
  */
-$RefParser.prototype.bundle = function (path, schema, options, callback) {
+$RefParser.prototype.bundle = async function (path, schema, options, callback) {
   let me = this;
   let args = normalizeArgs(arguments);
 
-  return this.resolve(args.path, args.schema, args.options)
-    .then(() => {
-      bundle(me, args.options);
-      return maybe(args.callback, Promise.resolve(me.schema));
-    })
-    .catch((err) => {
-      return maybe(args.callback, Promise.reject(err));
-    });
+  try {
+    await this.resolve(args.path, args.schema, args.options);
+    bundle(me, args.options);
+    return maybe(args.callback, Promise.resolve(me.schema));
+  }
+  catch (err) {
+    return maybe(args.callback, Promise.reject(err));
+  }
 };
 
 /**
@@ -10189,18 +10188,18 @@ $RefParser.dereference = function (path, schema, options, callback) {
  * @param {function} [callback] - An error-first callback. The second parameter is the dereferenced JSON schema object
  * @returns {Promise} - The returned promise resolves with the dereferenced JSON schema object.
  */
-$RefParser.prototype.dereference = function (path, schema, options, callback) {
+$RefParser.prototype.dereference = async function (path, schema, options, callback) {
   let me = this;
   let args = normalizeArgs(arguments);
 
-  return this.resolve(args.path, args.schema, args.options)
-    .then(() => {
-      dereference(me, args.options);
-      return maybe(args.callback, Promise.resolve(me.schema));
-    })
-    .catch((err) => {
-      return maybe(args.callback, Promise.reject(err));
-    });
+  try {
+    await this.resolve(args.path, args.schema, args.options);
+    dereference(me, args.options);
+    return maybe(args.callback, Promise.resolve(me.schema));
+  }
+  catch (err) {
+    return maybe(args.callback, Promise.reject(err));
+  }
 };
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
@@ -10396,7 +10395,7 @@ module.exports = parse;
  * @returns {Promise}
  * The promise resolves with the parsed file contents, NOT the raw (Buffer) contents.
  */
-function parse (path, $refs, options) {
+async function parse (path, $refs, options) {
   try {
     // Remove the URL fragment, if any
     path = url.stripHash(path);
@@ -10412,16 +10411,14 @@ function parse (path, $refs, options) {
     };
 
     // Read the file and then parse the data
-    return readFile(file, options)
-      .then((resolver) => {
-        $ref.pathType = resolver.plugin.name;
-        file.data = resolver.result;
-        return parseFile(file, options);
-      })
-      .then((parser) => {
-        $ref.value = parser.result;
-        return parser.result;
-      });
+    const resolver = await readFile(file, options);
+    $ref.pathType = resolver.plugin.name;
+    file.data = resolver.result;
+
+    const parser = await parseFile(file, options);
+    $ref.value = parser.result;
+
+    return parser.result;
   }
   catch (e) {
     return Promise.reject(e);
@@ -10562,7 +10559,7 @@ module.exports = {
    * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
    * @returns {boolean}
    */
-  canParse: function isBinary (file) {
+  canParse (file) {
     // Use this parser if the file is a Buffer, and has a known binary extension
     return Buffer.isBuffer(file.data) && BINARY_REGEXP.test(file.url);
   },
@@ -10576,7 +10573,7 @@ module.exports = {
    * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
    * @returns {Promise<Buffer>}
    */
-  parse: function parseBinary (file) {
+  parse (file) {
     if (Buffer.isBuffer(file.data)) {
       return file.data;
     }
@@ -10627,7 +10624,7 @@ module.exports = {
    * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
    * @returns {Promise}
    */
-  parse: function parseJSON (file) {
+  parse (file) {
     return new Promise(((resolve, reject) => {
       let data = file.data;
       if (Buffer.isBuffer(data)) {
@@ -10692,7 +10689,7 @@ module.exports = {
    * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
    * @returns {boolean}
    */
-  canParse: function isText (file) {
+  canParse (file) {
     // Use this parser if the file is a string or Buffer, and has a known text-based extension
     return (typeof file.data === "string" || Buffer.isBuffer(file.data)) && TEXT_REGEXP.test(file.url);
   },
@@ -10706,7 +10703,7 @@ module.exports = {
    * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
    * @returns {Promise<string>}
    */
-  parse: function parseText (file) {
+  parse (file) {
     if (typeof file.data === "string") {
       return file.data;
     }
@@ -10761,7 +10758,7 @@ module.exports = {
    * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
    * @returns {Promise}
    */
-  parse: function parseYAML (file) {
+  parse (file) {
     return new Promise(((resolve, reject) => {
       let data = file.data;
       if (Buffer.isBuffer(data)) {
@@ -11269,16 +11266,18 @@ $Ref.isExtended$Ref = function (value) {
 $Ref.dereference = function ($ref, resolvedValue) {
   if (resolvedValue && typeof resolvedValue === "object" && $Ref.isExtended$Ref($ref)) {
     let merged = {};
-    Object.keys($ref).forEach((key) => {
+    for (let key of Object.keys($ref)) {
       if (key !== "$ref") {
         merged[key] = $ref[key];
       }
-    });
-    Object.keys(resolvedValue).forEach((key) => {
+    }
+
+    for (let key of Object.keys(resolvedValue)) {
       if (!(key in merged)) {
         merged[key] = resolvedValue[key];
       }
-    });
+    }
+
     return merged;
   }
   else {
@@ -11546,7 +11545,7 @@ function crawl (obj, path, $refs, options) {
       promises.push(resolve$Ref(obj, path, $refs, options));
     }
     else {
-      Object.keys(obj).forEach((key) => {
+      for (let key of Object.keys(obj)) {
         let keyPath = Pointer.join(path, key);
         let value = obj[key];
 
@@ -11556,7 +11555,7 @@ function crawl (obj, path, $refs, options) {
         else {
           promises = promises.concat(crawl(value, keyPath, $refs, options));
         }
-      });
+      }
     }
   }
 
@@ -11575,7 +11574,7 @@ function crawl (obj, path, $refs, options) {
  * The promise resolves once all JSON references in the object have been resolved,
  * including nested references that are contained in externally-referenced files.
  */
-function resolve$Ref ($ref, path, $refs, options) {
+async function resolve$Ref ($ref, path, $refs, options) {
   // console.log('Resolving $ref pointer "%s" at %s', $ref.$ref, path);
 
   let resolvedPath = url.resolve(path, $ref.$ref);
@@ -11589,13 +11588,13 @@ function resolve$Ref ($ref, path, $refs, options) {
   }
 
   // Parse the $referenced file/url
-  return parse(resolvedPath, $refs, options)
-    .then((result) => {
-      // Crawl the parsed value
-      // console.log('Resolving $ref pointers in %s', withoutHash);
-      let promises = crawl(result, withoutHash + "#", $refs, options);
-      return Promise.all(promises);
-    });
+  const result = await parse(resolvedPath, $refs, options);
+
+  // Crawl the parsed value
+  // console.log('Resolving $ref pointers in %s', withoutHash);
+  let promises = crawl(result, withoutHash + "#", $refs, options);
+
+  return Promise.all(promises);
 }
 
 },{"./parse":110,"./pointer":115,"./ref":116,"./util/url":122}],119:[function(require,module,exports){
@@ -11622,7 +11621,7 @@ module.exports = {
    * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
    * @returns {boolean}
    */
-  canRead: function isFile (file) {
+  canRead (file) {
     return url.isFileSystemPath(file.url);
   },
 
@@ -11634,7 +11633,7 @@ module.exports = {
    * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
    * @returns {Promise<Buffer>}
    */
-  read: function readFile (file) {
+  read (file) {
     return new Promise(((resolve, reject) => {
       let path;
       try {
@@ -11726,7 +11725,7 @@ module.exports = {
    * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
    * @returns {boolean}
    */
-  canRead: function isHttp (file) {
+  canRead (file) {
     return url.isHttp(file.url);
   },
 
@@ -11738,7 +11737,7 @@ module.exports = {
    * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
    * @returns {Promise<Buffer>}
    */
-  read: function readHttp (file) {
+  read (file) {
     let u = url.parse(file.url);
 
     if (process.browser && !u.protocol) {
@@ -11890,9 +11889,9 @@ exports.filter = function (plugins, method, file) {
  * @returns {object[]}
  */
 exports.sort = function (plugins) {
-  plugins.forEach((plugin) => {
+  for (let plugin of plugins) {
     plugin.order = plugin.order || Number.MAX_SAFE_INTEGER;
-  });
+  }
 
   return plugins.sort((a, b) => { return a.order - b.order; });
 };
@@ -12248,7 +12247,7 @@ module.exports = {
    * @param {function} [reviver] - Not currently supported. Provided for consistency with {@link JSON.parse}
    * @returns {*}
    */
-  parse: function yamlParse (text, reviver) {
+  parse (text, reviver) {
     try {
       return yaml.safeLoad(text);
     }
@@ -12271,7 +12270,7 @@ module.exports = {
    * @param   {string|number} space - The number of spaces to use for indentation, or a string containing the number of spaces.
    * @returns {string}
    */
-  stringify: function yamlStringify (value, replacer, space) {
+  stringify (value, replacer, space) {
     try {
       let indent = (typeof space === "string" ? space.length : space) || 2;
       return yaml.safeDump(value, { indent });
@@ -26290,18 +26289,32 @@ var FormatValidators = require("./FormatValidators"),
     Report           = require("./Report"),
     Utils            = require("./Utils");
 
+var shouldSkipValidate = function (options, errors) {
+    return options &&
+        Array.isArray(options.includeErrors) &&
+        options.includeErrors.length > 0 &&
+        !errors.some(function (err) { return options.includeErrors.includes(err);});
+};
+
 var JsonValidators = {
     multipleOf: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.1.1.2
+        if (shouldSkipValidate(this.validateOptions, ["MULTIPLE_OF"])) {
+            return;
+        }
         if (typeof json !== "number") {
             return;
         }
+
         if (Utils.whatIs(json / schema.multipleOf) !== "integer") {
             report.addError("MULTIPLE_OF", [json, schema.multipleOf], null, schema);
         }
     },
     maximum: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.1.2.2
+        if (shouldSkipValidate(this.validateOptions, ["MAXIMUM", "MAXIMUM_EXCLUSIVE"])) {
+            return;
+        }
         if (typeof json !== "number") {
             return;
         }
@@ -26320,6 +26333,9 @@ var JsonValidators = {
     },
     minimum: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.1.3.2
+        if (shouldSkipValidate(this.validateOptions, ["MINIMUM", "MINIMUM_EXCLUSIVE"])) {
+            return;
+        }
         if (typeof json !== "number") {
             return;
         }
@@ -26338,6 +26354,9 @@ var JsonValidators = {
     },
     maxLength: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.2.1.2
+        if (shouldSkipValidate(this.validateOptions, ["MAX_LENGTH"])) {
+            return;
+        }
         if (typeof json !== "string") {
             return;
         }
@@ -26347,6 +26366,9 @@ var JsonValidators = {
     },
     minLength: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.2.2.2
+        if (shouldSkipValidate(this.validateOptions, ["MIN_LENGTH"])) {
+            return;
+        }
         if (typeof json !== "string") {
             return;
         }
@@ -26356,6 +26378,9 @@ var JsonValidators = {
     },
     pattern: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.2.3.2
+        if (shouldSkipValidate(this.validateOptions, ["PATTERN"])) {
+            return;
+        }
         if (typeof json !== "string") {
             return;
         }
@@ -26365,6 +26390,9 @@ var JsonValidators = {
     },
     additionalItems: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.3.1.2
+        if (shouldSkipValidate(this.validateOptions, ["ARRAY_ADDITIONAL_ITEMS"])) {
+            return;
+        }
         if (!Array.isArray(json)) {
             return;
         }
@@ -26381,6 +26409,9 @@ var JsonValidators = {
     },
     maxItems: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.3.2.2
+        if (shouldSkipValidate(this.validateOptions, ["ARRAY_LENGTH_LONG"])) {
+            return;
+        }
         if (!Array.isArray(json)) {
             return;
         }
@@ -26390,6 +26421,9 @@ var JsonValidators = {
     },
     minItems: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.3.3.2
+        if (shouldSkipValidate(this.validateOptions, ["ARRAY_LENGTH_SHORT"])) {
+            return;
+        }
         if (!Array.isArray(json)) {
             return;
         }
@@ -26399,6 +26433,9 @@ var JsonValidators = {
     },
     uniqueItems: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.3.4.2
+        if (shouldSkipValidate(this.validateOptions, ["ARRAY_UNIQUE"])) {
+            return;
+        }
         if (!Array.isArray(json)) {
             return;
         }
@@ -26411,6 +26448,9 @@ var JsonValidators = {
     },
     maxProperties: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.4.1.2
+        if (shouldSkipValidate(this.validateOptions, ["OBJECT_PROPERTIES_MAXIMUM"])) {
+            return;
+        }
         if (Utils.whatIs(json) !== "object") {
             return;
         }
@@ -26421,6 +26461,9 @@ var JsonValidators = {
     },
     minProperties: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.4.2.2
+        if (shouldSkipValidate(this.validateOptions, ["OBJECT_PROPERTIES_MINIMUM"])) {
+            return;
+        }
         if (Utils.whatIs(json) !== "object") {
             return;
         }
@@ -26431,6 +26474,9 @@ var JsonValidators = {
     },
     required: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.4.3.2
+        if (shouldSkipValidate(this.validateOptions, ["OBJECT_MISSING_REQUIRED_PROPERTY"])) {
+            return;
+        }
         if (Utils.whatIs(json) !== "object") {
             return;
         }
@@ -26456,6 +26502,9 @@ var JsonValidators = {
     },
     properties: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.4.4.2
+        if (shouldSkipValidate(this.validateOptions, ["OBJECT_ADDITIONAL_PROPERTIES"])) {
+            return;
+        }
         if (Utils.whatIs(json) !== "object") {
             return;
         }
@@ -26504,6 +26553,9 @@ var JsonValidators = {
     },
     dependencies: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.4.5.2
+        if (shouldSkipValidate(this.validateOptions, ["OBJECT_DEPENDENCY_KEY"])) {
+            return;
+        }
         if (Utils.whatIs(json) !== "object") {
             return;
         }
@@ -26534,6 +26586,9 @@ var JsonValidators = {
     },
     enum: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.5.1.2
+        if (shouldSkipValidate(this.validateOptions, ["ENUM_CASE_MISMATCH", "ENUM_MISMATCH"])) {
+            return;
+        }
         var match = false,
             caseInsensitiveMatch = false,
             idx = schema.enum.length;
@@ -26553,6 +26608,9 @@ var JsonValidators = {
     },
     type: function (report, schema, json) {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.5.2.2
+        if (shouldSkipValidate(this.validateOptions, ["INVALID_TYPE"])) {
+            return;
+        }
         var jsonType = Utils.whatIs(json);
         if (typeof schema.type === "string") {
             if (jsonType !== schema.type && (jsonType !== "integer" || schema.type !== "number")) {
@@ -26625,6 +26683,9 @@ var JsonValidators = {
         // http://json-schema.org/latest/json-schema-validation.html#rfc.section.7.2
         var formatValidatorFn = FormatValidators[schema.format];
         if (typeof formatValidatorFn === "function") {
+            if (shouldSkipValidate(this.validateOptions, ["INVALID_FORMAT"])) {
+                return;
+            }
             if (formatValidatorFn.length === 2) {
                 // async - need to clone the path here, because it will change by the time async function reports back
                 var pathBeforeAsync = Utils.clone(report.path);
@@ -26662,13 +26723,13 @@ var recurseArray = function (report, schema, json) {
         while (idx--) {
             // equal to doesn't make sense here
             if (idx < schema.items.length) {
-                report.path.push(idx.toString());
+                report.path.push(idx);
                 exports.validate.call(this, report, schema.items[idx], json[idx]);
                 report.path.pop();
             } else {
                 // might be boolean, so check that it's an object
                 if (typeof schema.additionalItems === "object") {
-                    report.path.push(idx.toString());
+                    report.path.push(idx);
                     exports.validate.call(this, report, schema.additionalItems, json[idx]);
                     report.path.pop();
                 }
@@ -26680,7 +26741,7 @@ var recurseArray = function (report, schema, json) {
         // If items is a schema, then the child instance must be valid against this schema,
         // regardless of its index, and regardless of the value of "additionalItems".
         while (idx--) {
-            report.path.push(idx.toString());
+            report.path.push(idx);
             exports.validate.call(this, report, schema.items, json[idx]);
             report.path.pop();
         }
@@ -26917,6 +26978,16 @@ Report.prototype.addAsyncTask = function (fn, args, asyncTaskResultProcessFn) {
     this.asyncTasks.push([fn, args, asyncTaskResultProcessFn]);
 };
 
+Report.prototype.getAncestor = function (id) {
+    if (!this.parentReport) {
+        return undefined;
+    }
+    if (this.parentReport.getSchemaId() === id) {
+        return this.parentReport;
+    }
+    return this.parentReport.getAncestor(id);
+};
+
 /**
  *
  * @param {*} timeout
@@ -26990,6 +27061,7 @@ Report.prototype.getPath = function (returnPathAsString) {
     if (returnPathAsString !== true) {
         // Sanitize the path segments (http://tools.ietf.org/html/rfc6901#section-4)
         path = "#/" + path.map(function (segment) {
+            segment = segment.toString();
 
             if (Utils.isAbsoluteUri(segment)) {
                 return "uri(" + segment + ")";
@@ -27294,16 +27366,23 @@ exports.getSchemaByUri = function (report, uri, root) {
 
             report.path.push(remotePath);
 
-            var remoteReport = new Report(report);
-            if (SchemaCompilation.compileSchema.call(this, remoteReport, result)) {
-                var savedOptions = this.options;
-                try {
-                    // If custom validationOptions were provided to setRemoteReference(),
-                    // use them instead of the default options
-                    this.options = result.__$validationOptions || this.options;
-                    SchemaValidation.validateSchema.call(this, remoteReport, result);
-                } finally {
-                    this.options = savedOptions;
+            var remoteReport;
+
+            var anscestorReport = report.getAncestor(result.id);
+            if (anscestorReport) {
+                remoteReport = anscestorReport;
+            } else {
+                remoteReport = new Report(report);
+                if (SchemaCompilation.compileSchema.call(this, remoteReport, result)) {
+                    var savedOptions = this.options;
+                    try {
+                        // If custom validationOptions were provided to setRemoteReference(),
+                        // use them instead of the default options
+                        this.options = result.__$validationOptions || this.options;
+                        SchemaValidation.validateSchema.call(this, remoteReport, result);
+                    } finally {
+                        this.options = savedOptions;
+                    }
                 }
             }
             var remoteReportIsValid = remoteReport.isValid();

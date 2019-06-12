@@ -3,6 +3,23 @@ All notable changes will be documented in this file.
 Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [v7.0.0](https://github.com/APIDevTools/swagger-parser/tree/v7.0.0) (2019-06-12)
+
+#### Breaking Changes
+
+- Dropped support for Node 6
+
+- Updated all code to ES6+ syntax (async/await, template literals, arrow functions, etc.)
+
+- No longer including a pre-built bundle in the package. such as [Webpack](https://webpack.js.org/), [Rollup](https://rollupjs.org/), [Parcel](https://parceljs.org/), or [Browserify](http://browserify.org/) to include Swagger Parser in your app
+
+#### Other Changes
+
+- Added [TypeScript definitions](lib/index.d.ts)
+
+[Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v6.0.5...v7.0.0)
+
+
 ## [v6.0.0](https://github.com/APIDevTools/swagger-parser/tree/v6.0.0) (2018-10-05)
 
 - Dropped support for [Bower](https://www.npmjs.com/package/bower), since it has been deprecated

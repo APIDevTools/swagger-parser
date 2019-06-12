@@ -1,6 +1,6 @@
 {
   "name": "swagger-parser",
-  "version": "6.0.5",
+  "version": "7.0.0",
   "description": "Swagger 2.0 and OpenAPI 3.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
@@ -48,7 +48,7 @@
     "coverage:browser": "npm run test:browser -- --coverage",
     "upgrade": "npm-check -u",
     "bump": "bump --tag --push --all",
-    "release": "npm run upgrade && npm test && npm run bump"
+    "release": "npm run upgrade && npm run build && npm test && npm run bump"
   },
   "devDependencies": {
     "@babel/polyfill": "^7.4.4",
