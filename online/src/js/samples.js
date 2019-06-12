@@ -1,6 +1,6 @@
 "use strict";
 
-let form = require("./form");
+const form = require("./form");
 
 module.exports = samples;
 

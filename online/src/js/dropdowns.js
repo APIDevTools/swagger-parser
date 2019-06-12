@@ -1,7 +1,7 @@
 "use strict";
 
-let form = require("./form"),
-    analytics = require("./analytics");
+const form = require("./form");
+const analytics = require("./analytics");
 
 module.exports = dropdowns;
 

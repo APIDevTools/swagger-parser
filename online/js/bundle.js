@@ -1,8 +1,8 @@
 /*!
  * Swagger Parser v6.0.4 (January 25th 2019)
- * 
+ *
  * https://apidevtools.org/swagger-parser/
- * 
+ *
  * @author  James Messinger (https://jamesmessinger.com)
  * @license MIT
  */
@@ -25,7 +25,7 @@ function format(fmt) {
           break;
       }
       if(!escaped) {
-        return arg; 
+        return arg;
       }
       args.unshift(arg);
       return match;
@@ -595,8 +595,8 @@ analytics.trackError = function (err) {
 },{}],7:[function(require,module,exports){
 "use strict";
 
-var form = require("./form"),
-    analytics = require("./analytics");
+varconst form = require("./form");
+const analytics = require("./analytics");
 
 module.exports = dropdowns;
 
@@ -781,8 +781,8 @@ function getCheckedAndUnchecked (checkboxes) {
 },{"./analytics":6,"./form":9}],8:[function(require,module,exports){
 "use strict";
 
-var form = require("./form"),
-    ono = require("ono"),
+varconst form = require("./form");
+const { ono } = require("ono");
     ACE_THEME = "ace/theme/terminal";
 
 module.exports = editors;
@@ -1067,13 +1067,13 @@ form.getAPI = function () {
 },{}],10:[function(require,module,exports){
 "use strict";
 
-var form = require("./form"),
-    querystring = require("./querystring"),
-    dropdowns = require("./dropdowns"),
-    editors = require("./editors"),
-    samples = require("./samples"),
-    parser = require("./parser"),
-    analytics = require("./analytics");
+varconst form = require("./form");
+const querystring = require("./querystring");
+const dropdowns = require("./dropdowns");
+const editors = require("./editors");
+const samples = require("./samples");
+const parser = require("./parser");
+const analytics = require("./analytics");
 
 $(function () {
   form();
@@ -1088,10 +1088,10 @@ $(function () {
 },{"./analytics":6,"./dropdowns":7,"./editors":8,"./form":9,"./parser":11,"./querystring":12,"./samples":13}],11:[function(require,module,exports){
 "use strict";
 
-var form = require("./form"),
-    editors = require("./editors"),
-    analytics = require("./analytics"),
-    ono = require("ono"),
+varconst form = require("./form");
+const editors = require("./editors");
+const analytics = require("./analytics");
+const { ono } = require("ono");
     swaggerParser = null,
     counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
 
@@ -1157,8 +1157,8 @@ function parseSwagger () {
 },{"./analytics":6,"./editors":8,"./form":9,"ono":2}],12:[function(require,module,exports){
 "use strict";
 
-var qs = require("querystring"),
-    form = require("./form");
+varconst qs = require("querystring");
+const form = require("./form");
 
 module.exports = querystring;
 

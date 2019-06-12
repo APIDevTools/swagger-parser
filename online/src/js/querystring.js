@@ -1,7 +1,7 @@
 "use strict";
 
-let qs = require("querystring"),
-    form = require("./form");
+const qs = require("querystring");
+const form = require("./form");
 
 module.exports = querystring;
 
