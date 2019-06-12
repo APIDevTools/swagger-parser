@@ -88,7 +88,6 @@ describe("Real-world APIs", () => {
 
     try {
       await SwaggerParser.validate(api.swaggerYamlUrl);
-      throw new Error("boooooom");
     }
     catch (error) {
       let knownError = findKnownApiError(api, error);
