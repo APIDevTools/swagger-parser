@@ -1,7 +1,7 @@
 "use strict";
 
 const { host } = require("host-environment");
-const superagent = require("superagent");
+const fetch = require("node-fetch");
 const SwaggerParser = require("../../..");
 
 describe("Real-world APIs", () => {
@@ -13,41 +13,38 @@ describe("Real-world APIs", () => {
   let realWorldAPIs = [];
   let knownApiErrors = getKnownApiErrors();
 
-  before(function (done) {
+  before(async function () {
     // This hook sometimes takes several seconds, due to the large download
     this.timeout(10000);
 
     // Download a list of over 2000 real-world Swagger APIs from apis.guru
-    superagent.get("https://api.apis.guru/v2/list.json")
-      .end((err, res) => {
-        if (err || !res.ok) {
-          return done(err || new Error("Unable to downlaod real-world APIs from apis.guru"));
-        }
+    let response = await fetch("https://api.apis.guru/v2/list.json");
 
-        // Remove certain APIs that are known to cause problems
-        let apis = res.body;
+    if (!response.ok) {
+      throw new Error("Unable to downlaod real-world APIs from apis.guru");
+    }
 
-        // GitHub's CORS policy blocks this request
-        delete apis["googleapis.com:adsense"];
+    // Remove certain APIs that are known to cause problems
+    let apis = await response.json();
 
-        // These APIs cause infinite loops in json-schema-ref-parser.  Still investigating.
-        // https://github.com/APIDevTools/json-schema-ref-parser/issues/56
-        delete apis["bungie.net"];
-        delete apis["stripe.com"];
+    // GitHub's CORS policy blocks this request
+    delete apis["googleapis.com:adsense"];
 
-        // Flatten the list, so there's an API object for every API version
-        realWorldAPIs = [];
-        for (let apiName of Object.keys(apis)) {
-          for (let version of Object.keys(apis[apiName].versions)) {
-            let api = apis[apiName].versions[version];
-            api.name = apiName;
-            api.version = version;
-            realWorldAPIs.push(api);
-          }
-        }
+    // These APIs cause infinite loops in json-schema-ref-parser.  Still investigating.
+    // https://github.com/APIDevTools/json-schema-ref-parser/issues/56
+    delete apis["bungie.net"];
+    delete apis["stripe.com"];
 
-        done();
-      });
+    // Flatten the list, so there's an API object for every API version
+    realWorldAPIs = [];
+    for (let apiName of Object.keys(apis)) {
+      for (let version of Object.keys(apis[apiName].versions)) {
+        let api = apis[apiName].versions[version];
+        api.name = apiName;
+        api.version = version;
+        realWorldAPIs.push(api);
+      }
+    }
   });
 
   beforeEach(function () {
