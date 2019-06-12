@@ -148,7 +148,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
     expect(invalid.valid).to.be.false;
 
     const api = await SwaggerParser
-      .validate(path.rel("specs/validate-spec/invalid/" + invalid.file), { validate: { spec: false } });
+      .validate(path.rel("specs/validate-spec/invalid/" + invalid.file), { validate: { spec: false }});
     expect(api).to.be.an("object").and.ok;
   });
 

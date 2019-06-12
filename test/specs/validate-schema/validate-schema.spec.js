@@ -109,7 +109,7 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
     expect(invalid.valid).to.be.false;
 
     const api = await SwaggerParser
-      .validate(path.rel("specs/validate-schema/invalid/" + invalid.file), { validate: { schema: false } });
+      .validate(path.rel("specs/validate-schema/invalid/" + invalid.file), { validate: { schema: false }});
     expect(api).to.be.an("object").and.ok;
   });
 

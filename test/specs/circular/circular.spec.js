@@ -50,7 +50,7 @@ describe("API with circular (recursive) $refs", () => {
 
   it('should not dereference circular $refs if "options.dereference.circular" is "ignore"', async () => {
     let parser = new SwaggerParser();
-    const api = await parser.validate(path.rel("specs/circular/circular.yaml"), { dereference: { circular: "ignore" } });
+    const api = await parser.validate(path.rel("specs/circular/circular.yaml"), { dereference: { circular: "ignore" }});
     expect(api).to.equal(parser.api);
     expect(api).to.deep.equal(validatedAPI.ignoreCircular$Refs);
     // Reference equality
