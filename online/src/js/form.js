@@ -1,5 +1,7 @@
 "use strict";
 
+const SwaggerParser = require("../../../");
+
 module.exports = form;
 
 /**

@@ -9,8 +9,6 @@ env:
   jquery: true
 
 globals:
-  SwaggerParser: false
-
   # Google Analytics
   gtag: false
 
