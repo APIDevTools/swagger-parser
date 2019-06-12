@@ -5,8 +5,8 @@ const { expect } = require("chai");
 const SwaggerParser = require("../../..");
 const helper = require("../../utils/helper");
 const path = require("../../utils/path");
-const parsedSchema = require("./parsed");
-const dereferencedSchema = require("./dereferenced");
+const parsedAPI = require("./parsed");
+const dereferencedAPI = require("./dereferenced");
 
 describe("API with $refs to unknown file types", () => {
   let windowOnError, testDone;
@@ -31,7 +31,7 @@ describe("API with $refs to unknown file types", () => {
       .parse(path.rel("specs/unknown/unknown.yaml"))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(parsedSchema.api);
+        expect(api).to.deep.equal(parsedAPI.api);
         expect(parser.$refs.paths()).to.deep.equal([path.abs("specs/unknown/unknown.yaml")]);
         done();
       })
@@ -41,11 +41,11 @@ describe("API with $refs to unknown file types", () => {
   it("should resolve successfully", (done) => {
     testDone = done;
     helper.testResolve(
-      "specs/unknown/unknown.yaml", parsedSchema.api,
-      "specs/unknown/files/blank", parsedSchema.blank,
-      "specs/unknown/files/text.txt", parsedSchema.text,
-      "specs/unknown/files/page.html", parsedSchema.html,
-      "specs/unknown/files/binary.png", parsedSchema.binary
+      "specs/unknown/unknown.yaml", parsedAPI.api,
+      "specs/unknown/files/blank", parsedAPI.blank,
+      "specs/unknown/files/text.txt", parsedAPI.text,
+      "specs/unknown/files/page.html", parsedAPI.html,
+      "specs/unknown/files/binary.png", parsedAPI.binary
     )(done);
   });
 
@@ -58,16 +58,16 @@ describe("API with $refs to unknown file types", () => {
         expect(api).to.equal(parser.api);
 
         api.paths["/files/text"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/text"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/text"].get.responses["200"].default);
 
         api.paths["/files/html"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/html"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/html"].get.responses["200"].default);
 
         api.paths["/files/blank"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/blank"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/blank"].get.responses["200"].default);
 
         api.paths["/files/binary"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/binary"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/binary"].get.responses["200"].default);
 
         done();
       })
@@ -83,16 +83,16 @@ describe("API with $refs to unknown file types", () => {
         expect(api).to.equal(parser.api);
 
         api.paths["/files/text"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/text"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/text"].get.responses["200"].default);
 
         api.paths["/files/html"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/html"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/html"].get.responses["200"].default);
 
         api.paths["/files/blank"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/blank"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/blank"].get.responses["200"].default);
 
         api.paths["/files/binary"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/binary"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/binary"].get.responses["200"].default);
 
         done();
       })
@@ -108,16 +108,16 @@ describe("API with $refs to unknown file types", () => {
         expect(api).to.equal(parser.api);
 
         api.paths["/files/text"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/text"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/text"].get.responses["200"].default);
 
         api.paths["/files/html"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/html"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/html"].get.responses["200"].default);
 
         api.paths["/files/blank"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/blank"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/blank"].get.responses["200"].default);
 
         api.paths["/files/binary"].get.responses["200"].default =
-          helper.convertNodeBuffersToPOJOs(dereferencedSchema.paths["/files/binary"].get.responses["200"].default);
+          helper.convertNodeBuffersToPOJOs(dereferencedAPI.paths["/files/binary"].get.responses["200"].default);
 
         done();
       })

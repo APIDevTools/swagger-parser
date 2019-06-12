@@ -1,4 +1,6 @@
-helper.validated.circularExternal =
+"use strict";
+
+const validatedAPI = module.exports =
 {
   fullyDereferenced: {
     swagger: "2.0",
@@ -206,22 +208,22 @@ helper.validated.circularExternal =
   }
 };
 
-helper.validated.circularExternal.fullyDereferenced.paths["/pet"].get.responses["200"].schema =
-  helper.validated.circularExternal.fullyDereferenced.definitions.pet;
+validatedAPI.fullyDereferenced.paths["/pet"].get.responses["200"].schema =
+  validatedAPI.fullyDereferenced.definitions.pet;
 
-helper.validated.circularExternal.fullyDereferenced.paths["/thing"].get.responses["200"].schema =
-  helper.validated.circularExternal.fullyDereferenced.definitions.thing;
+validatedAPI.fullyDereferenced.paths["/thing"].get.responses["200"].schema =
+  validatedAPI.fullyDereferenced.definitions.thing;
 
-helper.validated.circularExternal.fullyDereferenced.paths["/person"].get.responses["200"].schema =
-  helper.validated.circularExternal.fullyDereferenced.definitions.person.properties.spouse =
-    helper.validated.circularExternal.fullyDereferenced.definitions.person;
+validatedAPI.fullyDereferenced.paths["/person"].get.responses["200"].schema =
+  validatedAPI.fullyDereferenced.definitions.person.properties.spouse =
+    validatedAPI.fullyDereferenced.definitions.person;
 
-helper.validated.circularExternal.fullyDereferenced.definitions.parent.properties.children.items =
-  helper.validated.circularExternal.fullyDereferenced.definitions.child;
+validatedAPI.fullyDereferenced.definitions.parent.properties.children.items =
+  validatedAPI.fullyDereferenced.definitions.child;
 
-helper.validated.circularExternal.fullyDereferenced.paths["/parent"].get.responses["200"].schema =
-  helper.validated.circularExternal.fullyDereferenced.definitions.child.properties.parents.items =
-    helper.validated.circularExternal.fullyDereferenced.definitions.parent;
+validatedAPI.fullyDereferenced.paths["/parent"].get.responses["200"].schema =
+  validatedAPI.fullyDereferenced.definitions.child.properties.parents.items =
+    validatedAPI.fullyDereferenced.definitions.parent;
 
-helper.validated.circularExternal.ignoreCircular$Refs.paths["/pet"].get.responses["200"].schema =
-  helper.validated.circularExternal.ignoreCircular$Refs.definitions.pet;
+validatedAPI.ignoreCircular$Refs.paths["/pet"].get.responses["200"].schema =
+  validatedAPI.ignoreCircular$Refs.definitions.pet;

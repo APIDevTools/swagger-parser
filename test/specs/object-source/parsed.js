@@ -1,6 +1,7 @@
-let pathToTestsDirectory = host.karma ? "/base/test/" : "";
-
 "use strict";
+
+const { host } = require("host-environment");
+let pathToTestsDirectory = host.karma ? "/base/test/" : "";
 
 module.exports =
 {

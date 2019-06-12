@@ -37,9 +37,7 @@ const helper = module.exports = {
    */
   testResolve (filePath, resolvedValue, params) {
     let schemaFile = path.rel(arguments[0]);
-    let "use strict";
-
-module.exports =  arguments[1];
+    let parsedAPI = arguments[1];
     let expectedFiles = [], expectedValues = [];
     for (let i = 0; i < arguments.length; i++) {
       expectedFiles.push(path.abs(arguments[i]));
@@ -51,7 +49,7 @@ module.exports =  arguments[1];
       parser
         .resolve(schemaFile)
         .then(function ($refs) {
-          expect(parser.api).to.deep.equal(parsedSchema);
+          expect(parser.api).to.deep.equal(parsedAPI);
           expect(parser.$refs).to.equal($refs);
 
           // Resolved file paths

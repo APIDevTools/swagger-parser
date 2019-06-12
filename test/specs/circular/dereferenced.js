@@ -1,6 +1,6 @@
 "use strict";
 
-const dereferencedSchema = module.exports =
+const dereferencedAPI = module.exports =
 {
   swagger: "2.0",
   info: {
@@ -114,19 +114,19 @@ const dereferencedSchema = module.exports =
   }
 };
 
-dereferencedSchema.paths["/pet"].get.responses["200"].schema =
-  dereferencedSchema.definitions.pet;
+dereferencedAPI.paths["/pet"].get.responses["200"].schema =
+  dereferencedAPI.definitions.pet;
 
-dereferencedSchema.paths["/thing"].get.responses["200"].schema =
-  dereferencedSchema.definitions.thing;
+dereferencedAPI.paths["/thing"].get.responses["200"].schema =
+  dereferencedAPI.definitions.thing;
 
-dereferencedSchema.paths["/person"].get.responses["200"].schema =
-  dereferencedSchema.definitions.person.properties.spouse =
-    dereferencedSchema.definitions.person;
+dereferencedAPI.paths["/person"].get.responses["200"].schema =
+  dereferencedAPI.definitions.person.properties.spouse =
+    dereferencedAPI.definitions.person;
 
-dereferencedSchema.definitions.parent.properties.children.items =
-  dereferencedSchema.definitions.child;
+dereferencedAPI.definitions.parent.properties.children.items =
+  dereferencedAPI.definitions.child;
 
-dereferencedSchema.paths["/parent"].get.responses["200"].schema =
-  dereferencedSchema.definitions.child.properties.parents.items =
-    dereferencedSchema.definitions.parent;
+dereferencedAPI.paths["/parent"].get.responses["200"].schema =
+  dereferencedAPI.definitions.child.properties.parents.items =
+    dereferencedAPI.definitions.parent;

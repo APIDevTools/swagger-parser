@@ -38,7 +38,7 @@ let name = {
 
 "use strict";
 
-const dereferencedSchema = module.exports =
+const dereferencedAPI = module.exports =
 {
   swagger: "2.0",
   info: {
@@ -329,7 +329,7 @@ const dereferencedSchema = module.exports =
   }
 };
 
-dereferencedSchema.paths["/family-tree"].get.responses["200"].schema
+dereferencedAPI.paths["/family-tree"].get.responses["200"].schema
   .properties.level1
   .properties.level2
   .properties.level3
@@ -359,4 +359,4 @@ dereferencedSchema.paths["/family-tree"].get.responses["200"].schema
   .properties.level27
   .properties.level28
   .properties.level29
-  .properties.level30 = dereferencedSchema.paths["/family-tree"].get.responses["200"].schema;
+  .properties.level30 = dereferencedAPI.paths["/family-tree"].get.responses["200"].schema;

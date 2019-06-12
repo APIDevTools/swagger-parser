@@ -4,9 +4,9 @@ const { expect } = require("chai");
 const SwaggerParser = require("../../..");
 const helper = require("../../utils/helper");
 const path = require("../../utils/path");
-const parsedSchema = require("./parsed");
-const dereferencedSchema = require("./dereferenced");
-const bundledSchema = require("./bundled");
+const parsedAPI = require("./parsed");
+const dereferencedAPI = require("./dereferenced");
+const bundledAPI = require("./bundled");
 
 describe("Callback & Promise syntax", () => {
   ["parse", "resolve", "dereference", "bundle", "validate"].forEach(function (method) {
@@ -96,12 +96,12 @@ describe("Callback & Promise syntax", () => {
   function getSchema (method) {
     switch (method) {
       case "parse":
-        return parsedSchema;
+        return parsedAPI;
       case "dereference":
       case "validate":
-        return dereferencedSchema;
+        return dereferencedAPI;
       case "bundle":
-        return bundledSchema;
+        return bundledAPI;
     }
   }
 

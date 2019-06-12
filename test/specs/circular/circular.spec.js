@@ -4,9 +4,10 @@ const { expect } = require("chai");
 const SwaggerParser = require("../../..");
 const helper = require("../../utils/helper");
 const path = require("../../utils/path");
-const parsedSchema = require("./parsed");
-const dereferencedSchema = require("./dereferenced");
-const bundledSchema = require("./bundled");
+const parsedAPI = require("./parsed");
+const dereferencedAPI = require("./dereferenced");
+const bundledAPI = require("./bundled");
+const validatedAPI = require("./validated");
 
 describe("API with circular (recursive) $refs", () => {
   it("should parse successfully", () => {
@@ -15,17 +16,17 @@ describe("API with circular (recursive) $refs", () => {
       .parse(path.rel("specs/circular/circular.yaml"))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(parsedSchema.api);
+        expect(api).to.deep.equal(parsedAPI.api);
         expect(parser.$refs.paths()).to.deep.equal([path.abs("specs/circular/circular.yaml")]);
       });
   });
 
   it("should resolve successfully", helper.testResolve(
-    "specs/circular/circular.yaml", parsedSchema.api,
-    "specs/circular/definitions/pet.yaml", parsedSchema.pet,
-    "specs/circular/definitions/child.yaml", parsedSchema.child,
-    "specs/circular/definitions/parent.yaml", parsedSchema.parent,
-    "specs/circular/definitions/person.yaml", parsedSchema.person
+    "specs/circular/circular.yaml", parsedAPI.api,
+    "specs/circular/definitions/pet.yaml", parsedAPI.pet,
+    "specs/circular/definitions/child.yaml", parsedAPI.child,
+    "specs/circular/definitions/parent.yaml", parsedAPI.parent,
+    "specs/circular/definitions/person.yaml", parsedAPI.person
   ));
 
   it("should dereference successfully", () => {
@@ -34,7 +35,7 @@ describe("API with circular (recursive) $refs", () => {
       .dereference(path.rel("specs/circular/circular.yaml"))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(dereferencedSchema);
+        expect(api).to.deep.equal(dereferencedAPI);
 
         // Reference equality
         expect(api.definitions.person.properties.spouse).to.equal(api.definitions.person);
@@ -49,7 +50,7 @@ describe("API with circular (recursive) $refs", () => {
       .validate(path.rel("specs/circular/circular.yaml"))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(helper.validated.circularExternal.fullyDereferenced);
+        expect(api).to.deep.equal(validatedAPI.fullyDereferenced);
 
         // Reference equality
         expect(api.definitions.person.properties.spouse).to.equal(api.definitions.person);
@@ -64,7 +65,7 @@ describe("API with circular (recursive) $refs", () => {
       .validate(path.rel("specs/circular/circular.yaml"), { dereference: { circular: "ignore" }})
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(helper.validated.circularExternal.ignoreCircular$Refs);
+        expect(api).to.deep.equal(validatedAPI.ignoreCircular$Refs);
 
         // Reference equality
         expect(api.paths["/pet"].get.responses["200"].schema).to.equal(api.definitions.pet);
@@ -88,7 +89,7 @@ describe("API with circular (recursive) $refs", () => {
       .bundle(path.rel("specs/circular/circular.yaml"))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(bundledSchema);
+        expect(api).to.deep.equal(bundledAPI);
       });
   });
 });
