@@ -104,50 +104,47 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
     },
   ];
 
-  it('should pass validation if "options.validate.schema" is false', () => {
+  it('should pass validation if "options.validate.schema" is false', async () => {
     let invalid = tests[0];
     expect(invalid.valid).to.be.false;
 
-    return SwaggerParser
-      .validate(path.rel("specs/validate-schema/invalid/" + invalid.file), { validate: { schema: false }})
-      .then(function (api) {
-        expect(api).to.be.an("object").and.ok;
-      });
+    const api = await SwaggerParser
+      .validate(path.rel("specs/validate-schema/invalid/" + invalid.file), { validate: { schema: false } });
+    expect(api).to.be.an("object").and.ok;
   });
 
-  tests.forEach(function (test) {
+  for (let test of tests) {
     if (test.valid) {
-      it(test.name, () => {
-        return SwaggerParser
-          .validate(path.rel("specs/validate-schema/valid/" + test.file))
-          .then(function (api) {
-            expect(api).to.be.an("object").and.ok;
-          })
-          .catch(function (err) {
-            throw new Error("Validation should have succeeded, but it failed!\n" + err.stack);
-          });
+      it(test.name, async () => {
+        try {
+          const api = await SwaggerParser
+            .validate(path.rel("specs/validate-schema/valid/" + test.file));
+          expect(api).to.be.an("object").and.ok;
+        }
+        catch (err) {
+          throw new Error("Validation should have succeeded, but it failed!\n" + err.stack);
+        }
       });
     }
     else {
-      it(test.name, () => {
-        return SwaggerParser
-          .validate(path.rel("specs/validate-schema/invalid/" + test.file))
-          .then(function (api) {
-            throw new Error("Validation should have failed, but it succeeded!");
-          })
-          .catch(function (err) {
-            expect(err).to.be.an.instanceOf(SyntaxError);
-            expect(err.message).to.match(/^Swagger schema validation failed. \n  \w+/);
-            expect(err.details).to.be.an("array").with.length.above(0);
-
-            // Make sure the ZSchema error details object is valid
-            let details = err.details[0];
-            expect(details.code).to.be.a("string").and.match(/[A-Z_]+/);
-            expect(details.message).to.be.a("string").and.not.empty;
-            expect(details.path).to.be.an("array").with.length.above(0);
-            expect(details.params).to.be.an("array");
-          });
+      it(test.name, async () => {
+        try {
+          const api = await SwaggerParser
+            .validate(path.rel("specs/validate-schema/invalid/" + test.file));
+          throw new Error("Validation should have failed, but it succeeded!");
+        }
+        catch (err) {
+          expect(err).to.be.an.instanceOf(SyntaxError);
+          expect(err.message).to.match(/^Swagger schema validation failed. \n  \w+/);
+          expect(err.details).to.be.an("array").with.length.above(0);
+          // Make sure the ZSchema error details object is valid
+          let details = err.details[0];
+          expect(details.code).to.be.a("string").and.match(/[A-Z_]+/);
+          expect(details.message).to.be.a("string").and.not.empty;
+          expect(details.path).to.be.an("array").with.length.above(0);
+          expect(details.params).to.be.an("array");
+        }
       });
     }
-  });
+  }
 });

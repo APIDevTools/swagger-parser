@@ -143,43 +143,41 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
     }
   ];
 
-  it('should pass validation if "options.validate.spec" is false', () => {
+  it('should pass validation if "options.validate.spec" is false', async () => {
     let invalid = tests[0];
     expect(invalid.valid).to.be.false;
 
-    return SwaggerParser
-      .validate(path.rel("specs/validate-spec/invalid/" + invalid.file), { validate: { spec: false }})
-      .then(function (api) {
-        expect(api).to.be.an("object").and.ok;
-      });
+    const api = await SwaggerParser
+      .validate(path.rel("specs/validate-spec/invalid/" + invalid.file), { validate: { spec: false } });
+    expect(api).to.be.an("object").and.ok;
   });
 
-  tests.forEach(function (test) {
+  for (let test of tests) {
     if (test.valid) {
-      it(test.name, () => {
-        return SwaggerParser
-          .validate(path.rel("specs/validate-spec/valid/" + test.file))
-          .then(function (api) {
-            expect(api).to.be.an("object").and.ok;
-          })
-          .catch(function (err) {
-            throw new Error("Validation should have succeeded, but it failed!\n" + err.stack);
-          });
+      it(test.name, async () => {
+        try {
+          const api = await SwaggerParser
+            .validate(path.rel("specs/validate-spec/valid/" + test.file));
+          expect(api).to.be.an("object").and.ok;
+        }
+        catch (err) {
+          throw new Error("Validation should have succeeded, but it failed!\n" + err.stack);
+        }
       });
     }
     else {
-      it(test.name, () => {
-        return SwaggerParser
-          .validate(path.rel("specs/validate-spec/invalid/" + test.file))
-          .then(function (api) {
-            throw new Error("Validation should have failed, but it succeeded!");
-          })
-          .catch(function (err) {
-            expect(err).to.be.an.instanceOf(SyntaxError);
-            expect(err.message).to.equal(test.error);
-            expect(err.message).to.match(/^Validation failed. \S+/);
-          });
+      it(test.name, async () => {
+        try {
+          const api = await SwaggerParser
+            .validate(path.rel("specs/validate-spec/invalid/" + test.file));
+          throw new Error("Validation should have failed, but it succeeded!");
+        }
+        catch (err) {
+          expect(err).to.be.an.instanceOf(SyntaxError);
+          expect(err.message).to.equal(test.error);
+          expect(err.message).to.match(/^Validation failed. \S+/);
+        }
       });
     }
-  });
+  }
 });

@@ -19,7 +19,7 @@ describe("Real-world APIs", () => {
 
     // Download a list of over 2000 real-world Swagger APIs from apis.guru
     superagent.get("https://api.apis.guru/v2/list.json")
-      .end(function (err, res) {
+      .end((err, res) => {
         if (err || !res.ok) {
           return done(err || new Error("Unable to downlaod real-world APIs from apis.guru"));
         }
@@ -37,14 +37,14 @@ describe("Real-world APIs", () => {
 
         // Flatten the list, so there's an API object for every API version
         realWorldAPIs = [];
-        Object.keys(apis).forEach(function (apiName) {
-          Object.keys(apis[apiName].versions).forEach(function (version) {
+        for (let apiName of Object.keys(apis)) {
+          for (let version of Object.keys(apis[apiName].versions)) {
             let api = apis[apiName].versions[version];
             api.name = apiName;
             api.version = version;
             realWorldAPIs.push(api);
-          });
-        });
+          }
+        }
 
         done();
       });
@@ -87,44 +87,41 @@ describe("Real-world APIs", () => {
   /**
    * Downloads an API definition and validates it.  Automatically retries if the download fails.
    */
-  function validateApi (api, attemptNumber) {
+  async function validateApi (api, attemptNumber) {
     attemptNumber = attemptNumber || 1;
 
-    return SwaggerParser.validate(api.swaggerYamlUrl)
-      .then(function () {
+    try {
+      await SwaggerParser.validate(api.swaggerYamlUrl);
+    }
+    catch (error) {
+      let knownError = findKnownApiError(api, error);
+
+      if (!knownError) {
+        console.error("\n\nERROR IN THIS API:", JSON.stringify(api, null, 2));
+        throw error;
+      }
+
+      if (knownError.whatToDo === "ignore") {
+        // Ignore the error.  It's a known problem with this API
         return null;
-      })
-      .catch(function (error) {
-        let knownError = findKnownApiError(api, error);
+      }
 
-        if (!knownError) {
-          console.error("\n\nERROR IN THIS API:", JSON.stringify(api, null, 2));
-          throw error;
-        }
-
-        if (knownError.whatToDo === "ignore") {
-          // Ignore the error.  It's a known problem with this API
+      if (knownError.whatToDo === "retry") {
+        if (attemptNumber >= MAX_DOWNLOAD_RETRIES) {
+          console.error("        failed to download.  giving up.");
           return null;
         }
+        else {
+          // Wait a few seconds, then try the download again
+          await new Promise((resolve) => {
+            console.error("        failed to download.  trying again...");
+            setTimeout(resolve, 2000);
+          });
 
-        if (knownError.whatToDo === "retry") {
-          if (attemptNumber >= MAX_DOWNLOAD_RETRIES) {
-            console.error("        failed to download.  giving up.");
-            return null;
-          }
-          else {
-            // Wait a few seconds, then try the download again
-            return new Promise(
-              function (resolve) {
-                console.error("        failed to download.  trying again...");
-                setTimeout(resolve, 2000);
-              })
-              .then(function () {
-                return validateApi(api, attemptNumber + 1);
-              });
-          }
+          await validateApi(api, attemptNumber + 1);
         }
-      });
+      }
+    }
   }
 
   /**
