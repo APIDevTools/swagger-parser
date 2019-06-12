@@ -5,7 +5,7 @@ const fetch = require("node-fetch");
 const SwaggerParser = require("../../..");
 
 describe("Real-world APIs", () => {
-  let MAX_APIS_TO_TEST = 3000;
+  let MAX_APIS_TO_TEST = 1500;
   let START_AT_INDEX = 0;
   let MAX_DOWNLOAD_RETRIES = 3;
 
