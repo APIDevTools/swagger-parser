@@ -8,9 +8,9 @@ const parsedSchema = require("./parsed");
 const dereferencedSchema = require("./dereferenced");
 const bundledSchema = require("./bundled");
 
-describe("Callback & Promise syntax", function () {
+describe("Callback & Promise syntax", () => {
   ["parse", "resolve", "dereference", "bundle", "validate"].forEach(function (method) {
-    describe(method + " method", function () {
+    describe(method + " method", () => {
       it("should call the callback function upon success", testCallbackSuccess(method));
       it("should call the callback function upon failure", testCallbackError(method));
       it("should resolve the Promise upon success", testPromiseSuccess(method));

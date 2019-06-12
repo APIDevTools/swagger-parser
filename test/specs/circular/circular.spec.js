@@ -8,8 +8,8 @@ const parsedSchema = require("./parsed");
 const dereferencedSchema = require("./dereferenced");
 const bundledSchema = require("./bundled");
 
-describe("API with circular (recursive) $refs", function () {
-  it("should parse successfully", function () {
+describe("API with circular (recursive) $refs", () => {
+  it("should parse successfully", () => {
     let parser = new SwaggerParser();
     return parser
       .parse(path.rel("specs/circular/circular.yaml"))
@@ -28,7 +28,7 @@ describe("API with circular (recursive) $refs", function () {
     "specs/circular/definitions/person.yaml", parsedSchema.person
   ));
 
-  it("should dereference successfully", function () {
+  it("should dereference successfully", () => {
     let parser = new SwaggerParser();
     return parser
       .dereference(path.rel("specs/circular/circular.yaml"))
@@ -43,7 +43,7 @@ describe("API with circular (recursive) $refs", function () {
       });
   });
 
-  it("should validate successfully", function () {
+  it("should validate successfully", () => {
     let parser = new SwaggerParser();
     return parser
       .validate(path.rel("specs/circular/circular.yaml"))
@@ -58,7 +58,7 @@ describe("API with circular (recursive) $refs", function () {
       });
   });
 
-  it('should not dereference circular $refs if "options.dereference.circular" is "ignore"', function () {
+  it('should not dereference circular $refs if "options.dereference.circular" is "ignore"', () => {
     let parser = new SwaggerParser();
     return parser
       .validate(path.rel("specs/circular/circular.yaml"), { dereference: { circular: "ignore" }})
@@ -71,7 +71,7 @@ describe("API with circular (recursive) $refs", function () {
       });
   });
 
-  it('should fail validation if "options.dereference.circular" is false', function () {
+  it('should fail validation if "options.dereference.circular" is false', () => {
     let parser = new SwaggerParser();
     return parser
       .validate(path.rel("specs/circular/circular.yaml"), { dereference: { circular: false }})
@@ -82,7 +82,7 @@ describe("API with circular (recursive) $refs", function () {
       });
   });
 
-  it("should bundle successfully", function () {
+  it("should bundle successfully", () => {
     let parser = new SwaggerParser();
     return parser
       .bundle(path.rel("specs/circular/circular.yaml"))

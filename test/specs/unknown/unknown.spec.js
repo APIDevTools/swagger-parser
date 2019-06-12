@@ -8,7 +8,7 @@ const path = require("../../utils/path");
 const parsedSchema = require("./parsed");
 const dereferencedSchema = require("./dereferenced");
 
-describe("API with $refs to unknown file types", function () {
+describe("API with $refs to unknown file types", () => {
   let windowOnError, testDone;
 
   beforeEach(function () {
@@ -24,7 +24,7 @@ describe("API with $refs to unknown file types", function () {
     host.global.onerror = windowOnError;
   });
 
-  it("should parse successfully", function (done) {
+  it("should parse successfully", (done) => {
     testDone = done;
     let parser = new SwaggerParser();
     parser
@@ -38,7 +38,7 @@ describe("API with $refs to unknown file types", function () {
       .catch(done);
   });
 
-  it("should resolve successfully", function (done) {
+  it("should resolve successfully", (done) => {
     testDone = done;
     helper.testResolve(
       "specs/unknown/unknown.yaml", parsedSchema.api,
@@ -49,7 +49,7 @@ describe("API with $refs to unknown file types", function () {
     )(done);
   });
 
-  it("should dereference successfully", function (done) {
+  it("should dereference successfully", (done) => {
     testDone = done;
     let parser = new SwaggerParser();
     parser
@@ -74,7 +74,7 @@ describe("API with $refs to unknown file types", function () {
       .catch(done);
   });
 
-  it("should validate successfully", function (done) {
+  it("should validate successfully", (done) => {
     testDone = done;
     let parser = new SwaggerParser();
     parser
@@ -99,7 +99,7 @@ describe("API with $refs to unknown file types", function () {
       .catch(done);
   });
 
-  it("should bundle successfully", function (done) {
+  it("should bundle successfully", (done) => {
     testDone = done;
     let parser = new SwaggerParser();
     parser

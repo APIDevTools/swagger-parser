@@ -277,7 +277,7 @@
   function handleForeignThenable (promise, thenable, then$$1) {
     asap(function (promise) {
       var sealed = false;
-      var error = tryThen(then$$1, thenable, function (value) {
+      var error = tryThen(then$$1, thenable, (value) => {
         if (sealed) {
           return;
         }
@@ -288,7 +288,7 @@
         else {
           fulfill(promise, value);
         }
-      }, function (reason) {
+      }, (reason) => {
         if (sealed) {
           return;
         }
@@ -312,9 +312,9 @@
       reject(promise, thenable._result);
     }
     else {
-      subscribe(thenable, undefined, function (value) {
+      subscribe(thenable, undefined, (value) => {
         return resolve(promise, value);
-      }, function (reason) {
+      }, (reason) => {
         return reject(promise, reason);
       });
     }
@@ -605,9 +605,9 @@
   Enumerator$1.prototype._willSettleAt = function (promise, i) {
     var enumerator = this;
 
-    subscribe(promise, undefined, function (value) {
+    subscribe(promise, undefined, (value) => {
       return enumerator._settledAt(FULFILLED, i, value);
-    }, function (reason) {
+    }, (reason) => {
       return enumerator._settledAt(REJECTED, i, reason);
     });
   };
@@ -945,7 +945,7 @@
     ```js
     findUser().then(function (user) {
       return user.name;
-    }, function (reason) {
+    }, (reason) => {
       return 'default name';
     }).then(function (userName) {
       // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
@@ -954,11 +954,11 @@
 
     findUser().then(function (user) {
       throw new Error('Found user, but still unhappy');
-    }, function (reason) {
+    }, (reason) => {
       throw new Error('`findUser` rejected and we're unhappy');
     }).then(function (value) {
       // never reached
-    }, function (reason) {
+    }, (reason) => {
       // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
       // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
     });
@@ -972,7 +972,7 @@
       // never reached
     }).then(function (value) {
       // never reached
-    }, function (reason) {
+    }, (reason) => {
       // The `PedgagocialException` is propagated all the way down to here
     });
     ```
@@ -1000,7 +1000,7 @@
       return findCommentsByAuthor(user);
     }).then(function (comments) {
       // If `findCommentsByAuthor` fulfills, we'll have the value here
-    }, function (reason) {
+    }, (reason) => {
       // If `findCommentsByAuthor` rejects, we'll have the reason here
     });
     ```

@@ -29,7 +29,7 @@ function dropdowns () {
   trackCheckbox(form.validate.spec);
 
   // Change the button text whenever a new method is selected
-  form.method.menu.find("a").on("click", function (event) {
+  form.method.menu.find("a").on("click", (event) => {
     form.method.menu.dropdown("toggle");
     event.stopPropagation();
     let methodName = $(this).data("value");

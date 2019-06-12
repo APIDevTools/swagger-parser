@@ -4,7 +4,7 @@ const { expect } = require("chai");
 const SwaggerParser = require("../../..");
 const path = require("../../utils/path");
 
-describe("Invalid APIs (Swagger 2.0 specification validation)", function () {
+describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
   let tests = [
     {
       name: "invalid response code",
@@ -143,7 +143,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", function () {
     }
   ];
 
-  it('should pass validation if "options.validate.spec" is false', function () {
+  it('should pass validation if "options.validate.spec" is false', () => {
     let invalid = tests[0];
     expect(invalid.valid).to.be.false;
 
@@ -156,7 +156,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", function () {
 
   tests.forEach(function (test) {
     if (test.valid) {
-      it(test.name, function () {
+      it(test.name, () => {
         return SwaggerParser
           .validate(path.rel("specs/validate-spec/valid/" + test.file))
           .then(function (api) {
@@ -168,7 +168,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", function () {
       });
     }
     else {
-      it(test.name, function () {
+      it(test.name, () => {
         return SwaggerParser
           .validate(path.rel("specs/validate-spec/invalid/" + test.file))
           .then(function (api) {

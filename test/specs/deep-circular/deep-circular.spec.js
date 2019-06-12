@@ -8,8 +8,8 @@ const parsedSchema = require("./parsed");
 const dereferencedSchema = require("./dereferenced");
 const bundledSchema = require("./bundled");
 
-describe("API with deeply-nested circular $refs", function () {
-  it("should parse successfully", function () {
+describe("API with deeply-nested circular $refs", () => {
+  it("should parse successfully", () => {
     let parser = new SwaggerParser();
     return parser
       .parse(path.rel("specs/deep-circular/deep-circular.yaml"))
@@ -26,7 +26,7 @@ describe("API with deeply-nested circular $refs", function () {
     "specs/deep-circular/definitions/required-string.yaml", parsedSchema.requiredString
   ));
 
-  it("should dereference successfully", function () {
+  it("should dereference successfully", () => {
     let parser = new SwaggerParser();
     return parser
       .dereference(path.rel("specs/deep-circular/deep-circular.yaml"))
@@ -43,7 +43,7 @@ describe("API with deeply-nested circular $refs", function () {
       });
   });
 
-  it("should validate successfully", function () {
+  it("should validate successfully", () => {
     let parser = new SwaggerParser();
     return parser
       .validate(path.rel("specs/deep-circular/deep-circular.yaml"))
@@ -60,7 +60,7 @@ describe("API with deeply-nested circular $refs", function () {
       });
   });
 
-  it("should bundle successfully", function () {
+  it("should bundle successfully", () => {
     let parser = new SwaggerParser();
     return parser
       .bundle(path.rel("specs/deep-circular/deep-circular.yaml"))

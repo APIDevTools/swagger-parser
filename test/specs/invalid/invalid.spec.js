@@ -5,8 +5,8 @@ const SwaggerParser = require("../../..");
 const helper = require("../../utils/helper");
 const path = require("../../utils/path");
 
-describe("Invalid APIs (can't be parsed)", function () {
-  it("not a Swagger API", function () {
+describe("Invalid APIs (can't be parsed)", () => {
+  it("not a Swagger API", () => {
     return SwaggerParser
       .parse(path.rel("specs/invalid/not-swagger.yaml"))
       .then(helper.shouldNotGetCalled)
@@ -16,7 +16,7 @@ describe("Invalid APIs (can't be parsed)", function () {
       });
   });
 
-  it("invalid Swagger version (1.2)", function () {
+  it("invalid Swagger version (1.2)", () => {
     return SwaggerParser
       .dereference(path.rel("specs/invalid/old-version.yaml"))
       .then(helper.shouldNotGetCalled)
@@ -26,7 +26,7 @@ describe("Invalid APIs (can't be parsed)", function () {
       });
   });
 
-  it("invalid Swagger version (3.0)", function () {
+  it("invalid Swagger version (3.0)", () => {
     return SwaggerParser
       .bundle(path.rel("specs/invalid/newer-version.yaml"))
       .then(helper.shouldNotGetCalled)
@@ -36,7 +36,7 @@ describe("Invalid APIs (can't be parsed)", function () {
       });
   });
 
-  it("numeric Swagger version (instead of a string)", function () {
+  it("numeric Swagger version (instead of a string)", () => {
     return SwaggerParser
       .validate(path.rel("specs/invalid/numeric-version.yaml"))
       .then(helper.shouldNotGetCalled)
@@ -46,7 +46,7 @@ describe("Invalid APIs (can't be parsed)", function () {
       });
   });
 
-  it("numeric API version (instead of a string)", function () {
+  it("numeric API version (instead of a string)", () => {
     return SwaggerParser
       .validate(path.rel("specs/invalid/numeric-info-version.yaml"))
       .then(helper.shouldNotGetCalled)

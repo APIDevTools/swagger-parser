@@ -8,8 +8,8 @@ const parsedSchema = require("./parsed");
 const dereferencedSchema = require("./dereferenced");
 const bundledSchema = require("./bundled");
 
-describe("Object sources (instead of file paths)", function () {
-  it("should dereference an object that references external files", function () {
+describe("Object sources (instead of file paths)", () => {
+  it("should dereference an object that references external files", () => {
     let parser = new SwaggerParser();
     return parser
       .dereference(helper.cloneDeep(parsedSchema.api))
@@ -38,7 +38,7 @@ describe("Object sources (instead of file paths)", function () {
       });
   });
 
-  it("should bundle an object that references external files", function () {
+  it("should bundle an object that references external files", () => {
     let parser = new SwaggerParser();
     return parser
       .bundle(helper.cloneDeep(parsedSchema.api))
@@ -58,7 +58,7 @@ describe("Object sources (instead of file paths)", function () {
       });
   });
 
-  it("should validate an object that references external files", function () {
+  it("should validate an object that references external files", () => {
     let parser = new SwaggerParser();
     return parser
       .dereference(helper.cloneDeep(parsedSchema.api))

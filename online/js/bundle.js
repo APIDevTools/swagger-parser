@@ -624,7 +624,7 @@ function dropdowns () {
   trackCheckbox(form.validate.spec);
 
   // Change the button text whenever a new method is selected
-  form.method.menu.find("a").on("click", function (event) {
+  form.method.menu.find("a").on("click", (event) => {
     form.method.menu.dropdown("toggle");
     event.stopPropagation();
     var methodName = $(this).data("value");
@@ -644,7 +644,7 @@ function onChange (menu, setLabel) {
   var dropdown = menu.parent(".dropdown");
 
   // Don't auto-close the menu when items are clicked
-  menu.find("a").on("click", function (event) {
+  menu.find("a").on("click", (event) => {
     event.stopPropagation();
   });
 
@@ -653,7 +653,7 @@ function onChange (menu, setLabel) {
   dropdown.on("hidden.bs.dropdown", setLabel);
 
   // Track when a dropdown menu is shown
-  dropdown.on("shown.bs.dropdown", function () {
+  dropdown.on("shown.bs.dropdown", () => {
     analytics.trackEvent("options", "shown", menu.attr("id"));
   });
 }
@@ -742,7 +742,7 @@ function setSelectedMethod (methodName) {
  * @param {jQuery} checkbox
  */
 function trackCheckbox (checkbox) {
-  checkbox.on("change", function () {
+  checkbox.on("change", () => {
     var value = checkbox.is(":checked") ? 1 : 0;
     analytics.trackEvent("options", "changed", checkbox.attr("name"), value);
   });
@@ -904,7 +904,7 @@ function showResults () {
   setTimeout(function () {
     results[0].scrollIntoView();
     results.addClass("animated")
-      .one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", function () {
+      .one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", () => {
         // Remove the "animated" class when the animation ends,
         // so we can replay the animation again next time
         results.removeClass("animated");
@@ -1102,13 +1102,13 @@ module.exports = parser;
  */
 function parser () {
   // When the form is submitted, parse the Swagger API
-  form.form.on("submit", function (event) {
+  form.form.on("submit", (event) => {
     event.preventDefault();
     parseSwagger();
   });
 
   // When the "x" button is clicked, discard the results
-  $("#clear").on("click", function () {
+  $("#clear").on("click", () => {
     swaggerParser = null;
     editors.clearResults();
     analytics.trackEvent("results", "clear");
@@ -1251,19 +1251,19 @@ module.exports = samples;
  * Allows the user to use a sample URL or sample API text
  */
 function samples () {
-  form.samples.url.link.on("click", function (event) {
+  form.samples.url.link.on("click", (event) => {
     event.preventDefault();
     form.url.val(samples.url);
   });
 
-  form.samples.text.link.on("click", function (event) {
+  form.samples.text.link.on("click", (event) => {
     event.preventDefault();
     form.textBox.setValue(samples.text, -1);
     form.samples.text.container.hide();
     form.textBox.focus();
   });
 
-  form.textBox.on("input", function () {
+  form.textBox.on("input", () => {
     if (form.textBox.session.getValue().length === 0) {
       form.samples.text.container.show();
     }
