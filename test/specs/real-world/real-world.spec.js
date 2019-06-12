@@ -1,6 +1,10 @@
-describe("Real-world APIs", function () {
-  "use strict";
+"use strict";
 
+const { host } = require("host-environment");
+const superagent = require("superagent");
+const SwaggerParser = require("../../..");
+
+describe("Real-world APIs", function () {
   let MAX_APIS_TO_TEST = 1500;
   let START_AT_INDEX = 0;
   let MAX_DOWNLOAD_RETRIES = 3;

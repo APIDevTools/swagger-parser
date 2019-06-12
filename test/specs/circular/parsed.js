@@ -1,4 +1,6 @@
-helper.parsed.circularExternal =
+"use strict";
+
+module.exports =
 {
   api: {
     info: {

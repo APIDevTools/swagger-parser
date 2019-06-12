@@ -1,8 +1,7 @@
 "use strict";
 
 const form = require("./form");
-const { ono } = require("ono");
-    ACE_THEME = "ace/theme/terminal";
+const ACE_THEME = "ace/theme/terminal";
 
 module.exports = editors;
 

@@ -1,4 +1,6 @@
-helper.dereferenced.objectSource =
+"use strict";
+
+module.exports =
 {
   swagger: "2.0",
   info: {

@@ -1,4 +1,6 @@
-helper.bundled.deepCircular =
+"use strict";
+
+module.exports =
 {
   swagger: "2.0",
   info: {

@@ -1,4 +1,6 @@
-helper.bundled.circularExternal =
+"use strict";
+
+const dereferencedSchema = module.exports =
 {
   swagger: "2.0",
   info: {
@@ -12,9 +14,7 @@ helper.bundled.circularExternal =
         responses: {
           200: {
             description: "Returns a pet",
-            schema: {
-              $ref: "#/definitions/pet"
-            }
+            schema: null
           }
         }
       }
@@ -24,9 +24,7 @@ helper.bundled.circularExternal =
         responses: {
           200: {
             description: "Returns a thing",
-            schema: {
-              $ref: "#/definitions/thing"
-            }
+            schema: null
           }
         }
       }
@@ -36,9 +34,7 @@ helper.bundled.circularExternal =
         responses: {
           200: {
             description: "Returns a person",
-            schema: {
-              $ref: "#/definitions/person"
-            }
+            schema: null
           }
         }
       }
@@ -48,9 +44,7 @@ helper.bundled.circularExternal =
         responses: {
           200: {
             description: "Returns a parent",
-            schema: {
-              $ref: "#/definitions/parent"
-            }
+            schema: null
           }
         }
       }
@@ -85,9 +79,7 @@ helper.bundled.circularExternal =
       title: "person",
       type: "object",
       properties: {
-        spouse: {
-          $ref: "#/definitions/person"
-        },
+        spouse: null,
         name: {
           type: "string"
         }
@@ -101,9 +93,7 @@ helper.bundled.circularExternal =
           type: "string"
         },
         children: {
-          items: {
-            $ref: "#/definitions/child"
-          },
+          items: null,
           type: "array"
         }
       }
@@ -113,9 +103,7 @@ helper.bundled.circularExternal =
       type: "object",
       properties: {
         parents: {
-          items: {
-            $ref: "#/definitions/parent"
-          },
+          items: null,
           type: "array"
         },
         name: {
@@ -125,3 +113,20 @@ helper.bundled.circularExternal =
     }
   }
 };
+
+dereferencedSchema.paths["/pet"].get.responses["200"].schema =
+  dereferencedSchema.definitions.pet;
+
+dereferencedSchema.paths["/thing"].get.responses["200"].schema =
+  dereferencedSchema.definitions.thing;
+
+dereferencedSchema.paths["/person"].get.responses["200"].schema =
+  dereferencedSchema.definitions.person.properties.spouse =
+    dereferencedSchema.definitions.person;
+
+dereferencedSchema.definitions.parent.properties.children.items =
+  dereferencedSchema.definitions.child;
+
+dereferencedSchema.paths["/parent"].get.responses["200"].schema =
+  dereferencedSchema.definitions.child.properties.parents.items =
+    dereferencedSchema.definitions.parent;

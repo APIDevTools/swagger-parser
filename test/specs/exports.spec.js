@@ -1,6 +1,9 @@
-describe("Exports", function () {
-  "use strict";
+"use strict";
 
+const { expect } = require("chai");
+const SwaggerParser = require("../..");
+
+describe("Exports", function () {
   it("should export the SwaggerParser class", function (done) {
     expect(SwaggerParser).to.be.a("function");
     done();

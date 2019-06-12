@@ -1,4 +1,6 @@
-helper.dereferenced.callbacksPromises =
+"use strict";
+
+module.exports =
 {
   definitions: {
     requiredString: {

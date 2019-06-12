@@ -1,4 +1,6 @@
-helper.bundled.callbacksPromises =
+"use strict";
+
+module.exports =
 {
   definitions: {
     requiredString: {

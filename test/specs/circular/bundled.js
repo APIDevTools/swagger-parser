@@ -1,4 +1,6 @@
-helper.dereferenced.circularExternal =
+"use strict";
+
+module.exports =
 {
   swagger: "2.0",
   info: {
@@ -12,7 +14,9 @@ helper.dereferenced.circularExternal =
         responses: {
           200: {
             description: "Returns a pet",
-            schema: null
+            schema: {
+              $ref: "#/definitions/pet"
+            }
           }
         }
       }
@@ -22,7 +26,9 @@ helper.dereferenced.circularExternal =
         responses: {
           200: {
             description: "Returns a thing",
-            schema: null
+            schema: {
+              $ref: "#/definitions/thing"
+            }
           }
         }
       }
@@ -32,7 +38,9 @@ helper.dereferenced.circularExternal =
         responses: {
           200: {
             description: "Returns a person",
-            schema: null
+            schema: {
+              $ref: "#/definitions/person"
+            }
           }
         }
       }
@@ -42,7 +50,9 @@ helper.dereferenced.circularExternal =
         responses: {
           200: {
             description: "Returns a parent",
-            schema: null
+            schema: {
+              $ref: "#/definitions/parent"
+            }
           }
         }
       }
@@ -77,7 +87,9 @@ helper.dereferenced.circularExternal =
       title: "person",
       type: "object",
       properties: {
-        spouse: null,
+        spouse: {
+          $ref: "#/definitions/person"
+        },
         name: {
           type: "string"
         }
@@ -91,7 +103,9 @@ helper.dereferenced.circularExternal =
           type: "string"
         },
         children: {
-          items: null,
+          items: {
+            $ref: "#/definitions/child"
+          },
           type: "array"
         }
       }
@@ -101,7 +115,9 @@ helper.dereferenced.circularExternal =
       type: "object",
       properties: {
         parents: {
-          items: null,
+          items: {
+            $ref: "#/definitions/parent"
+          },
           type: "array"
         },
         name: {
@@ -111,20 +127,3 @@ helper.dereferenced.circularExternal =
     }
   }
 };
-
-helper.dereferenced.circularExternal.paths["/pet"].get.responses["200"].schema =
-  helper.dereferenced.circularExternal.definitions.pet;
-
-helper.dereferenced.circularExternal.paths["/thing"].get.responses["200"].schema =
-  helper.dereferenced.circularExternal.definitions.thing;
-
-helper.dereferenced.circularExternal.paths["/person"].get.responses["200"].schema =
-  helper.dereferenced.circularExternal.definitions.person.properties.spouse =
-    helper.dereferenced.circularExternal.definitions.person;
-
-helper.dereferenced.circularExternal.definitions.parent.properties.children.items =
-  helper.dereferenced.circularExternal.definitions.child;
-
-helper.dereferenced.circularExternal.paths["/parent"].get.responses["200"].schema =
-  helper.dereferenced.circularExternal.definitions.child.properties.parents.items =
-    helper.dereferenced.circularExternal.definitions.parent;

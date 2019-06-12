@@ -1,4 +1,6 @@
-helper.parsed.callbacksPromises =
+"use strict";
+
+module.exports =
 {
   swagger: "2.0",
   info: {
@@ -30,38 +32,43 @@ helper.parsed.callbacksPromises =
   },
   definitions: {
     requiredString: {
-      minLength: 1,
+      title: "requiredString",
       type: "string",
-      title: "requiredString"
+      minLength: 1
+    },
+    string: {
+      $ref: "#/definitions/requiredString/type"
     },
     name: {
+      title: "name",
+      type: "object",
       required: [
         "first",
         "last"
       ],
-      type: "object",
       properties: {
-        middle: {
-          type: "string",
-          enum: [
-            { $ref: "#/definitions/name/properties/first/type" },
-            { $ref: "#/definitions/name/properties/last/title" }
-          ]
-        },
-        prefix: {
-          minLength: 3,
-          $ref: "#/definitions/name/properties/last"
+        first: {
+          $ref: "#/definitions/requiredString"
         },
         last: {
-          $ref: "#/definitions/name/properties/first"
+          $ref: "#/definitions/requiredString"
+        },
+        middle: {
+          type: {
+            $ref: "#/definitions/requiredString/type"
+          },
+          minLength: {
+            $ref: "#/definitions/requiredString/minLength"
+          }
+        },
+        prefix: {
+          $ref: "#/definitions/requiredString",
+          minLength: 3
         },
         suffix: {
           $ref: "#/definitions/name/properties/prefix",
           type: "string",
           maxLength: 3
-        },
-        first: {
-          $ref: "#/definitions/requiredString"
         }
       }
     }

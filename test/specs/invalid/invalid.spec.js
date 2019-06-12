@@ -1,6 +1,11 @@
-describe("Invalid APIs (can't be parsed)", function () {
-  "use strict";
+"use strict";
 
+const { expect } = require("chai");
+const SwaggerParser = require("../../..");
+const helper = require("../../utils/helper");
+const path = require("../../utils/path");
+
+describe("Invalid APIs (can't be parsed)", function () {
   it("not a Swagger API", function () {
     return SwaggerParser
       .parse(path.rel("specs/invalid/not-swagger.yaml"))

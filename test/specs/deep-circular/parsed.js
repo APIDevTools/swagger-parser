@@ -1,4 +1,6 @@
-helper.parsed.deepCircular =
+"use strict";
+
+module.exports =
 {
   api: {
     swagger: "2.0",

@@ -1,21 +1,29 @@
-describe("API with deeply-nested circular $refs", function () {
-  "use strict";
+"use strict";
 
+const { expect } = require("chai");
+const SwaggerParser = require("../../..");
+const helper = require("../../utils/helper");
+const path = require("../../utils/path");
+const parsedSchema = require("./parsed");
+const dereferencedSchema = require("./dereferenced");
+const bundledSchema = require("./bundled");
+
+describe("API with deeply-nested circular $refs", function () {
   it("should parse successfully", function () {
     let parser = new SwaggerParser();
     return parser
       .parse(path.rel("specs/deep-circular/deep-circular.yaml"))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(helper.parsed.deepCircular.api);
+        expect(api).to.deep.equal(parsedSchema.api);
         expect(parser.$refs.paths()).to.deep.equal([path.abs("specs/deep-circular/deep-circular.yaml")]);
       });
   });
 
   it("should resolve successfully", helper.testResolve(
-    "specs/deep-circular/deep-circular.yaml", helper.parsed.deepCircular.api,
-    "specs/deep-circular/definitions/name.yaml", helper.parsed.deepCircular.name,
-    "specs/deep-circular/definitions/required-string.yaml", helper.parsed.deepCircular.requiredString
+    "specs/deep-circular/deep-circular.yaml", parsedSchema.api,
+    "specs/deep-circular/definitions/name.yaml", parsedSchema.name,
+    "specs/deep-circular/definitions/required-string.yaml", parsedSchema.requiredString
   ));
 
   it("should dereference successfully", function () {
@@ -24,7 +32,7 @@ describe("API with deeply-nested circular $refs", function () {
       .dereference(path.rel("specs/deep-circular/deep-circular.yaml"))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(helper.dereferenced.deepCircular);
+        expect(api).to.deep.equal(dereferencedSchema);
 
         // Reference equality
         expect(api.paths["/family-tree"].get.responses["200"].schema.properties.name.type)
@@ -41,7 +49,7 @@ describe("API with deeply-nested circular $refs", function () {
       .validate(path.rel("specs/deep-circular/deep-circular.yaml"))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(helper.dereferenced.deepCircular);
+        expect(api).to.deep.equal(dereferencedSchema);
 
         // Reference equality
         expect(api.paths["/family-tree"].get.responses["200"].schema.properties.name.type)
@@ -58,7 +66,7 @@ describe("API with deeply-nested circular $refs", function () {
       .bundle(path.rel("specs/deep-circular/deep-circular.yaml"))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(helper.bundled.deepCircular);
+        expect(api).to.deep.equal(bundledSchema);
       });
   });
 });

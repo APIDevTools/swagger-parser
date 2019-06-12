@@ -1,4 +1,6 @@
-helper.dereferenced.unknown =
+"use strict";
+
+module.exports =
 {
   swagger: "2.0",
   info: {

@@ -1,6 +1,8 @@
 let pathToTestsDirectory = host.karma ? "/base/test/" : "";
 
-helper.parsed.objectSource =
+"use strict";
+
+module.exports =
 {
   api: {
     swagger: "2.0",

@@ -4,8 +4,9 @@ const form = require("./form");
 const editors = require("./editors");
 const analytics = require("./analytics");
 const { ono } = require("ono");
-    swaggerParser = null,
-    counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
+
+let swaggerParser = null;
+let counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
 
 module.exports = parser;
 

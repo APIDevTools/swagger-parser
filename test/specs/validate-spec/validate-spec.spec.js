@@ -1,6 +1,10 @@
-describe("Invalid APIs (Swagger 2.0 specification validation)", function () {
-  "use strict";
+"use strict";
 
+const { expect } = require("chai");
+const SwaggerParser = require("../../..");
+const path = require("../../utils/path");
+
+describe("Invalid APIs (Swagger 2.0 specification validation)", function () {
   let tests = [
     {
       name: "invalid response code",

@@ -1,13 +1,21 @@
-describe("Object sources (instead of file paths)", function () {
-  "use strict";
+"use strict";
 
+const { expect } = require("chai");
+const SwaggerParser = require("../../..");
+const helper = require("../../utils/helper");
+const path = require("../../utils/path");
+const parsedSchema = require("./parsed");
+const dereferencedSchema = require("./dereferenced");
+const bundledSchema = require("./bundled");
+
+describe("Object sources (instead of file paths)", function () {
   it("should dereference an object that references external files", function () {
     let parser = new SwaggerParser();
     return parser
-      .dereference(helper.cloneDeep(helper.parsed.objectSource.api))
+      .dereference(helper.cloneDeep(parsedSchema.api))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(helper.dereferenced.objectSource);
+        expect(api).to.deep.equal(dereferencedSchema);
 
         // The API path should be the current directory, and all other paths should be absolute
         let expectedPaths = [
@@ -33,10 +41,10 @@ describe("Object sources (instead of file paths)", function () {
   it("should bundle an object that references external files", function () {
     let parser = new SwaggerParser();
     return parser
-      .bundle(helper.cloneDeep(helper.parsed.objectSource.api))
+      .bundle(helper.cloneDeep(parsedSchema.api))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(helper.bundled.objectSource);
+        expect(api).to.deep.equal(bundledSchema);
 
         // The API path should be the current directory, and all other paths should be absolute
         let expectedPaths = [
@@ -53,10 +61,10 @@ describe("Object sources (instead of file paths)", function () {
   it("should validate an object that references external files", function () {
     let parser = new SwaggerParser();
     return parser
-      .dereference(helper.cloneDeep(helper.parsed.objectSource.api))
+      .dereference(helper.cloneDeep(parsedSchema.api))
       .then(function (api) {
         expect(api).to.equal(parser.api);
-        expect(api).to.deep.equal(helper.dereferenced.objectSource);
+        expect(api).to.deep.equal(dereferencedSchema);
 
         // The API path should be the current directory, and all other paths should be absolute
         let expectedPaths = [

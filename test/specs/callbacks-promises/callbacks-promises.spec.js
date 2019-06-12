@@ -1,6 +1,14 @@
-describe("Callback & Promise syntax", function () {
-  "use strict";
+"use strict";
 
+const { expect } = require("chai");
+const SwaggerParser = require("../../..");
+const helper = require("../../utils/helper");
+const path = require("../../utils/path");
+const parsedSchema = require("./parsed");
+const dereferencedSchema = require("./dereferenced");
+const bundledSchema = require("./bundled");
+
+describe("Callback & Promise syntax", function () {
   ["parse", "resolve", "dereference", "bundle", "validate"].forEach(function (method) {
     describe(method + " method", function () {
       it("should call the callback function upon success", testCallbackSuccess(method));
@@ -26,7 +34,7 @@ describe("Callback & Promise syntax", function () {
             expect(result).to.equal(parser.schema);
 
             // Make sure the API was parsed correctly
-            let expected = method === "validate" ? helper.dereferenced.callbacksPromises : helper[method + "d"].callbacksPromises;
+            let expected = getSchema(method);
             expect(result).to.deep.equal(expected);
           }
           done();
@@ -68,7 +76,7 @@ describe("Callback & Promise syntax", function () {
             expect(result).to.equal(parser.schema);
 
             // Make sure the API was parsed correctly
-            let expected = method === "validate" ? helper.dereferenced.callbacksPromises : helper[method + "d"].callbacksPromises;
+            let expected = getSchema(method);
             expect(result).to.deep.equal(expected);
           }
         });
@@ -83,6 +91,18 @@ describe("Callback & Promise syntax", function () {
           expect(err).to.be.an.instanceOf(SyntaxError);
         });
     };
+  }
+
+  function getSchema (method) {
+    switch (method) {
+      case "parse":
+        return parsedSchema;
+      case "dereference":
+      case "validate":
+        return dereferencedSchema;
+      case "bundle":
+        return bundledSchema;
+    }
   }
 
 });

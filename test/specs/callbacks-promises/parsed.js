@@ -1,4 +1,6 @@
-helper.bundled.objectSource =
+"use strict";
+
+module.exports =
 {
   swagger: "2.0",
   info: {
@@ -30,43 +32,38 @@ helper.bundled.objectSource =
   },
   definitions: {
     requiredString: {
-      title: "requiredString",
+      minLength: 1,
       type: "string",
-      minLength: 1
-    },
-    string: {
-      $ref: "#/definitions/requiredString/type"
+      title: "requiredString"
     },
     name: {
-      title: "name",
-      type: "object",
       required: [
         "first",
         "last"
       ],
+      type: "object",
       properties: {
-        first: {
-          $ref: "#/definitions/requiredString"
-        },
-        last: {
-          $ref: "#/definitions/requiredString"
-        },
         middle: {
-          type: {
-            $ref: "#/definitions/requiredString/type"
-          },
-          minLength: {
-            $ref: "#/definitions/requiredString/minLength"
-          }
+          type: "string",
+          enum: [
+            { $ref: "#/definitions/name/properties/first/type" },
+            { $ref: "#/definitions/name/properties/last/title" }
+          ]
         },
         prefix: {
-          $ref: "#/definitions/requiredString",
-          minLength: 3
+          minLength: 3,
+          $ref: "#/definitions/name/properties/last"
+        },
+        last: {
+          $ref: "#/definitions/name/properties/first"
         },
         suffix: {
           $ref: "#/definitions/name/properties/prefix",
           type: "string",
           maxLength: 3
+        },
+        first: {
+          $ref: "#/definitions/requiredString"
         }
       }
     }
