@@ -32,7 +32,7 @@ describe("Invalid APIs (can't be parsed)", () => {
       .then(helper.shouldNotGetCalled)
       .catch(function (err) {
         expect(err).to.be.an.instanceOf(SyntaxError);
-        expect(err.message).to.equal("Unrecognized Swagger version: 3. Expected 2.0");
+        expect(err.message).to.equal("Unrecognized Swagger version: 3.0. Expected 2.0");
       });
   });
 
