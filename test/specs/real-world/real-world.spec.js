@@ -5,7 +5,7 @@ const fetch = require("node-fetch");
 const SwaggerParser = require("../../..");
 
 describe("Real-world APIs", () => {
-  let MAX_APIS_TO_TEST = 1500;
+  let MAX_APIS_TO_TEST = 3000;
   let START_AT_INDEX = 0;
   let MAX_DOWNLOAD_RETRIES = 3;
 
@@ -66,18 +66,17 @@ describe("Real-world APIs", () => {
   /**
    * This Mocha test is repeated for each API in the APIs.guru registry
    */
-  function testNextAPI (done) {
+  async function testNextAPI () {
     // Get the next API to test
     let api = realWorldAPIs[apiIndex++];
 
     if (api) {
       this.test.title += api.name + " " + (api.version[0] === "v" ? api.version : "v" + api.version);
-      validateApi(api).then(done, done);
+      await validateApi(api);
     }
     else {
       // There are no more APIs to test
       this.test.title += "more APIs coming soon...";
-      done();
     }
   }
 
@@ -89,6 +88,7 @@ describe("Real-world APIs", () => {
 
     try {
       await SwaggerParser.validate(api.swaggerYamlUrl);
+      throw new Error("boooooom");
     }
     catch (error) {
       let knownError = findKnownApiError(api, error);
