@@ -45,7 +45,7 @@ SwaggerParser.validate("my-api.yaml");
 ... is the same as this:
 
 ```javascript
-var parser = new SwaggerParser();
+let parser = new SwaggerParser();
 parser.validate("my-api.yaml");
 ```
 
@@ -53,15 +53,15 @@ The difference is that in the second example you now have a reference to `parser
 
 
 ### Callbacks vs. Promises
-Many people prefer [ES6 Promise syntax](http://javascriptplayground.com/blog/2015/02/promises/) instead of callbacks.  Swagger Parser allows you to use whichever one you prefer.
+Many people prefer `async`/`await` or [Promise](http://javascriptplayground.com/blog/2015/02/promises/) syntax instead of callbacks.  Swagger Parser allows you to use whichever one you prefer.
 
-If you pass a callback function to any method, then the method will call the callback using the Node.js error-first convention.  If you do _not_ pass a callback function, then the method will return an ES6 Promise.
+If you pass a callback function to any method, then the method will call the callback using the Node.js error-first convention.  If you do _not_ pass a callback function, then the method will return a Promise.
 
 The following two examples are equivalent:
 
 ```javascript
 // Callback syntax
-SwaggerParser.validate(mySchema, function(err, api) {
+SwaggerParser.validate(mySchema, (err, api) => {
     if (err) {
         // Error
     }
@@ -72,14 +72,15 @@ SwaggerParser.validate(mySchema, function(err, api) {
 ```
 
 ```javascript
-// ES6 Promise syntax
-SwaggerParser.validate(mySchema)
-    .then(function(api) {
-        // Success
-    })
-    .catch(function(err) {
-        // Error
-    });
+try {
+    // async/await syntax
+    let api = await SwaggerParser.validate(mySchema);
+
+    // Success
+}
+catch(err) {
+    // Error
+}
 ```
 
 

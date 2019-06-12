@@ -16,8 +16,8 @@ Returns the parsed value, which can be any valid JSON type (object, array, strin
 This method is similar to [`JSON.parse()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse), but it supports YAML _in addition_ to JSON (since any JSON document is also a valid YAML document).
 
 ```javascript
-var YAML = SwaggerParser.YAML;
-var text = "title: person \n" +
+let YAML = SwaggerParser.YAML;
+let text = "title: person \n" +
            "required: \n" +
            "  - name \n" +
            "  - age \n" +
@@ -27,7 +27,7 @@ var text = "title: person \n" +
            "  age: \n" +
            "    type: number"
 
-var obj = YAML.parse(text);
+let obj = YAML.parse(text);
 
 // {
 //   title: "person",
@@ -55,8 +55,8 @@ Returns the a YAML string containing the serialized value
 This method is similar to [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify), except that it converts a value to a YAML string instead of a JSON string.
 
 ```javascript
-var YAML = SwaggerParser.YAML;
-var obj = {
+let YAML = SwaggerParser.YAML;
+let obj = {
   title: "person",
   required: ["name", "age"],
   properties: {
@@ -70,7 +70,7 @@ var obj = {
 };
 
 
-var string = YAML.stringify(obj);
+let string = YAML.stringify(obj);
 
 // title: person
 // required:
@@ -82,4 +82,3 @@ var string = YAML.stringify(obj);
 //   age:
 //     type: number
 ```
-
