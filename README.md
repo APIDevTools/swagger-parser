@@ -61,37 +61,39 @@ SwaggerParser.validate(myAPI)
 For more detailed examples, please see the [API Documentation](https://apidevtools.org/swagger-parser/docs/)
 
 
+
 Installation
 --------------------------
-#### Node
 Install using [npm](https://docs.npmjs.com/about-npm/):
 
 ```bash
 npm install swagger-parser
 ```
 
-Then require it in your code:
+
+
+Usage
+--------------------------
+When using Swagger Parser in Node.js apps, you'll probably want to use **CommonJS** syntax:
 
 ```javascript
-var SwaggerParser = require('swagger-parser');
+const SwaggerParser = require("swagger-parser");
 ```
 
-#### Web Browsers
-Reference [`swagger-parser.js`](dist/swagger-parser.js) or [`swagger-parser.min.js`](dist/swagger-parser.min.js) in your HTML:
+When using a transpiler such as [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/), or a bundler such as [Webpack](https://webpack.js.org/) or [Rollup](https://rollupjs.org/), you can use **ECMAScript modules** syntax instead:
 
-```html
-<script src="https://cdn.rawgit.com/JS-DevTools/swagger-parser/dist/swagger-parser.js"></script>
-<script>
-  SwaggerParser.validate(myAPI, function(err, api) {
-    if (err) {
-      console.error(err);
-    }
-    else {
-      console.log("API name: %s, Version: %s", api.info.title, api.info.version);
-    }
-  });
-</script>
+```javascript
+import SwaggerParser from "swagger-parser";
 ```
+
+
+
+Browser support
+--------------------------
+Swagger Parser supports recent versions of every major web browser.  Older browsers may require [Babel](https://babeljs.io/) and/or [polyfills](https://babeljs.io/docs/en/next/babel-polyfill).
+
+To use Swagger Parser in a browser, you'll need to use a bundling tool such as [Webpack](https://webpack.js.org/), [Rollup](https://rollupjs.org/), [Parcel](https://parceljs.org/), or [Browserify](http://browserify.org/). Some bundlers may require a bit of configuration, such as setting `browser: true` in [rollup-plugin-resolve](https://github.com/rollup/rollup-plugin-node-resolve).
+
 
 
 API Documentation
