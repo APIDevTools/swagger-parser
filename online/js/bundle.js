@@ -29680,6 +29680,8 @@ function toText (obj) {
 },{"./form":253}],253:[function(require,module,exports){
 "use strict";
 
+const SwaggerParser = require("../../../");
+
 module.exports = form;
 
 /**
@@ -29799,7 +29801,7 @@ form.getAPI = function () {
   }
 };
 
-},{}],254:[function(require,module,exports){
+},{"../../../":1}],254:[function(require,module,exports){
 "use strict";
 
 const form = require("./form");
