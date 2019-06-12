@@ -37,7 +37,7 @@ editors.clearResults = function () {
  */
 editors.showResult = function (title, content) {
   editors.results.removeClass("hidden");
-  editors.addResult(title || "Sample API", content);
+  editors.addResult(title, content);
   showResults();
 };
 
@@ -77,7 +77,7 @@ editors.addResult = function (title, content) {
   );
 
   // Set the tab title
-  let shortTitle = getShortTitle(title);
+  let shortTitle = getShortTitle(title) || "Sample API";
   editors.tabs.find("#" + titleId).text(shortTitle).attr("title", title);
 
   // Set the <pre> content
