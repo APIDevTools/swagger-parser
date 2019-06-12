@@ -21,6 +21,7 @@ before_script:
   - npm run build
 
 script:
+  - npm run test:typescript
   - npm run coverage:node
 
 after_success:
