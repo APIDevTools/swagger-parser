@@ -255,6 +255,22 @@ declare namespace SwaggerParser {
        */
       circular?: boolean | 'ignore'
     }
+
+    /**
+     * The `validate` options control how Swagger Parser will validate the API.
+     */
+    validate?: {
+
+      /**
+       * If set to `false`, then validating against the Swagger 2.0 Schema or OpenAPI 3.0 Schema is disabled.
+       */
+      schema?: boolean,
+
+      /**
+       * If set to `false`, then validating against the Swagger 2.0 Specification is disabled.
+       */
+      spec?: boolean,
+    }
   }
 
   export interface HTTPResolverOptions extends Partial<ResolverOptions> {
