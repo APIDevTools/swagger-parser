@@ -67,12 +67,12 @@
     "npm-check": "^5.9.0",
     "nyc": "^14.1.1",
     "simplifyify": "^7.0.2",
-    "typescript": "^3.5.1",
-    "version-bump-prompt": "^5.0.2"
+    "typescript": "^3.5.2",
+    "version-bump-prompt": "^5.0.3"
   },
   "dependencies": {
     "call-me-maybe": "^1.0.1",
-    "json-schema-ref-parser": "^7.0.1",
+    "json-schema-ref-parser": "^7.1.0",
     "ono": "^5.0.1",
     "openapi-schema-validation": "^0.4.2",
     "openapi-types": "^1.3.5",
