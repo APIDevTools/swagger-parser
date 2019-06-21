@@ -10411,11 +10411,11 @@ async function parse (path, $refs, options) {
     };
 
     // Read the file and then parse the data
-    const resolver = await readFile(file, options);
+    const resolver = await readFile(file, options, $refs);
     $ref.pathType = resolver.plugin.name;
     file.data = resolver.result;
 
-    const parser = await parseFile(file, options);
+    const parser = await parseFile(file, options, $refs);
     $ref.value = parser.result;
 
     return parser.result;
@@ -10436,7 +10436,7 @@ async function parse (path, $refs, options) {
  * @returns {Promise}
  * The promise resolves with the raw file contents and the resolver that was used.
  */
-function readFile (file, options) {
+function readFile (file, options, $refs) {
   return new Promise(((resolve, reject) => {
     // console.log('Reading %s', file.url);
 
@@ -10446,7 +10446,7 @@ function readFile (file, options) {
 
     // Run the resolvers, in order, until one of them succeeds
     plugins.sort(resolvers);
-    plugins.run(resolvers, "read", file)
+    plugins.run(resolvers, "read", file, $refs)
       .then(resolve, onError);
 
     function onError (err) {
@@ -10474,7 +10474,7 @@ function readFile (file, options) {
  * @returns {Promise}
  * The promise resolves with the parsed file contents and the parser that was used.
  */
-function parseFile (file, options) {
+function parseFile (file, options, $refs) {
   return new Promise(((resolve, reject) => {
     // console.log('Parsing %s', file.url);
 
@@ -10487,7 +10487,7 @@ function parseFile (file, options) {
 
     // Run the parsers, in order, until one of them succeeds
     plugins.sort(parsers);
-    plugins.run(parsers, "parse", file)
+    plugins.run(parsers, "parse", file, $refs)
       .then(onParsed, onError);
 
     function onParsed (parser) {
@@ -11909,7 +11909,7 @@ exports.sort = function (plugins) {
  * @param {object}    file    - A file info object, which will be passed to each method
  * @returns {Promise}
  */
-exports.run = function (plugins, method, file) {
+exports.run = function (plugins, method, file, $refs) {
   let plugin, lastError, index = 0;
 
   return new Promise(((resolve, reject) => {
@@ -11924,7 +11924,7 @@ exports.run = function (plugins, method, file) {
 
       try {
         // console.log('  %s', plugin.name);
-        let result = getResult(plugin, method, file, callback);
+        let result = getResult(plugin, method, file, callback, $refs);
         if (result && typeof result.then === "function") {
           // A promise was returned
           result.then(onSuccess, onError);
@@ -11977,11 +11977,11 @@ exports.run = function (plugins, method, file) {
  * @param   {function} [callback] - A callback function, which will be passed to the method
  * @returns {*}
  */
-function getResult (obj, prop, file, callback) {
+function getResult (obj, prop, file, callback, $refs) {
   let value = obj[prop];
 
   if (typeof value === "function") {
-    return value.apply(obj, [file, callback]);
+    return value.apply(obj, [file, callback, $refs]);
   }
 
   if (!callback) {
