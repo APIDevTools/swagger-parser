@@ -74,10 +74,9 @@
     "call-me-maybe": "^1.0.1",
     "json-schema-ref-parser": "^7.1.0",
     "ono": "^5.0.1",
-    "openapi-schema-validation": "^0.4.2",
+    "openapi-schemas": "^1.0.0",
     "openapi-types": "^1.3.5",
     "swagger-methods": "^2.0.0",
-    "swagger-schema-official": "2.0.0-bab6bed",
     "z-schema": "^4.1.0"
   }
 }
