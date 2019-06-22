@@ -16,12 +16,12 @@ Swagger 2.0 and OpenAPI 3.0 parser/validator
 Features
 --------------------------
 - Parses Swagger specs in **JSON** or **YAML** format
-- Validates against the [Swagger 2.0 schema](https://github.com/swagger-api/swagger-spec/blob/master/schemas/v2.0/schema.json) or [OpenAPI 3.0 Schema](https://github.com/kogosoftwarellc/open-api/blob/master/packages/openapi-schema-validation/schema/openapi-3.0.json)
+- Validates against the [Swagger 2.0 schema](https://github.com/OAI/OpenAPI-Specification/blob/master/schemas/v2.0/schema.json) or [OpenAPI 3.0 Schema](https://github.com/OAI/OpenAPI-Specification/blob/master/schemas/v3.0/schema.json)
 - [Resolves](https://apidevtools.org/swagger-parser/docs/swagger-parser.html#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
 - Can [bundle](https://apidevtools.org/swagger-parser/docs/swagger-parser.html#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
 - Can [dereference](https://apidevtools.org/swagger-parser/docs/swagger-parser.html#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
 - **[Tested](https://travis-ci.com/APIDevTools/swagger-parser)** in Node.js and all modern web browsers on Mac, Windows, and Linux
-- Tested on **[over 1,000 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
+- Tested on **[over 1,500 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
 - Supports [circular references](https://apidevtools.org/swagger-parser/docs/#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
 

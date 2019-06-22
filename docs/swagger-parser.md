@@ -50,27 +50,27 @@ parser.$refs.paths();       // => ["my-api.json"]
 ### `validate(api, [options], [callback])`
 
 - **api** (_required_) - `string` or `object`<br>
-A [Swagger Object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object), or the file path or URL of your Swagger API.  See the [`parse`](#parseapi-options-callback) method for more info.
+A [Swagger Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object), or the file path or URL of your Swagger API.  See the [`parse`](#parseapi-options-callback) method for more info.
 
 - **options** (_optional_) - `object`<br>
 See [options](options.md) for the full list of options
 
 - **callback** (_optional_) - `function(err, api)`<br>
-A callback that will receive the dereferenced and validated [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object).
+A callback that will receive the dereferenced and validated [Swagger object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object).
 
 - **Return Value:** `Promise`<br>
 See [Callbacks vs. Promises](README.md#callbacks-vs-promises)
 
-Validates the Swagger API against the [Swagger 2.0 schema](https://github.com/swagger-api/swagger-spec/blob/master/schemas/v2.0/schema.json) or [OpenAPI 3.0 Schema](https://github.com/kogosoftwarellc/open-api/blob/master/packages/openapi-schema-validation/schema/openapi-3.0.json).
+Validates the Swagger API against the [Swagger 2.0 schema](https://github.com/OAI/OpenAPI-Specification/blob/master/schemas/v2.0/schema.json) or [OpenAPI 3.0 Schema](https://github.com/OAI/OpenAPI-Specification/blob/master/schemas/v3.0/schema.json).
 
-If [the `validate.spec` option](options.md#validate-options) is enabled, then this method also validates against the [Swagger 2.0 spec](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md). The specification validator will catch some things that aren't covered by the Swagger 2.0 Schema, such as duplicate parameters, invalid MIME types, etc.
+If [the `validate.spec` option](options.md#validate-options) is enabled, then this method also validates against the [Swagger 2.0 spec](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md). The specification validator will catch some things that aren't covered by the Swagger 2.0 Schema, such as duplicate parameters, invalid MIME types, etc.
 
 > **Note:** Validating against the [OpenAPI 3.0 Specification](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md) is not (yet) supported.  For now, the `validate.spec` option is ignored if your API is in OpenAPI 3.0 format.
 
 
 If validation fails, then an error will be passed to the callback function, or the Promise will reject. Either way, the error will contain information about why the API is invalid.
 
-This method calls [`dereference`](#dereferenceapi-options-callback) internally, so the returned [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object) is fully dereferenced.
+This method calls [`dereference`](#dereferenceapi-options-callback) internally, so the returned [Swagger object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object) is fully dereferenced.
 
 ```javascript
 try {
@@ -86,18 +86,18 @@ catch(err) {
 ### `dereference(api, [options], [callback])`
 
 - **api** (_required_) - `string` or `object`<br>
-A [Swagger Object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object), or the file path or URL of your Swagger API.  See the [`parse`](#parseapi-options-callback) method for more info.
+A [Swagger Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object), or the file path or URL of your Swagger API.  See the [`parse`](#parseapi-options-callback) method for more info.
 
 - **options** (_optional_) - `object`<br>
 See [options](options.md) for the full list of options
 
 - **callback** (_optional_) - `function(err, api)`<br>
-A callback that will receive the dereferenced [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object).
+A callback that will receive the dereferenced [Swagger object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object).
 
 - **Return Value:** `Promise`<br>
 See [Callbacks vs. Promises](README.md#callbacks-vs-promises)
 
-Dereferences all `$ref` pointers in the Swagger API, replacing each reference with its resolved value.  This results in a [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object) that does not contain _any_ `$ref` pointers.  Instead, it's a normal JavaScript object tree that can easily be crawled and used just like any other JavaScript object.  This is great for programmatic usage, especially when using tools that don't understand JSON references.
+Dereferences all `$ref` pointers in the Swagger API, replacing each reference with its resolved value.  This results in a [Swagger object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object) that does not contain _any_ `$ref` pointers.  Instead, it's a normal JavaScript object tree that can easily be crawled and used just like any other JavaScript object.  This is great for programmatic usage, especially when using tools that don't understand JSON references.
 
 The `dereference` method maintains object reference equality, meaning that all `$ref` pointers that point to the same object will be replaced with references to the same object.  Again, this is great for programmatic usage, but it does introduce the risk of [circular references](README.md#circular-refs), so be careful if you intend to serialize the API using [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).  Consider using the [`bundle`](#bundleapi-options-callback) method instead, which does not create circular references.
 
@@ -113,13 +113,13 @@ console.log(api.definitions.person.properties.firstName); // => {type: "string"}
 ### `bundle(api, [options], [callback])`
 
 - **api** (_required_) - `string` or `object`<br>
-A [Swagger Object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object), or the file path or URL of your Swagger API.  See the [`parse`](#parseapi-options-callback) method for more info.
+A [Swagger Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object), or the file path or URL of your Swagger API.  See the [`parse`](#parseapi-options-callback) method for more info.
 
 - **options** (_optional_) - `object`<br>
 See [options](options.md) for the full list of options
 
 - **callback** (_optional_) - `function(err, api)`<br>
-A callback that will receive the bundled [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object).
+A callback that will receive the bundled [Swagger object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object).
 
 - **Return Value:** `Promise`<br>
 See [Callbacks vs. Promises](README.md#callbacks-vs-promises)
@@ -137,7 +137,7 @@ console.log(api.definitions.person); // => {$ref: "#/definitions/schemas~1person
 ### `parse(api, [options], [callback])`
 
 - **api** (_required_) - `string` or `object`<br>
-A [Swagger Object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object), or the file path or URL of your Swagger API.
+A [Swagger Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object), or the file path or URL of your Swagger API.
 <br><br>
 The path can be absolute or relative.  In Node, the path is relative to `process.cwd()`.  In the browser, it's relative to the URL of the page.
 
@@ -145,7 +145,7 @@ The path can be absolute or relative.  In Node, the path is relative to `process
 See [options](options.md) for the full list of options
 
 - **callback** (_optional_) - `function(err, api)`<br>
-A callback that will receive the parsed [Swagger object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object), or an error.
+A callback that will receive the parsed [Swagger object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object), or an error.
 
 - **Return Value:** `Promise`<br>
 See [Callbacks vs. Promises](README.md#callbacks-vs-promises)
@@ -163,7 +163,7 @@ console.log("API name: %s, Version: %s", api.info.title, api.info.version);
 ### `resolve(api, [options], [callback])`
 
 - **api** (_required_) - `string` or `object`<br>
-A [Swagger Object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object), or the file path or URL of your Swagger API.  See the [`parse`](#parseapi-options-callback) method for more info.
+A [Swagger Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object), or the file path or URL of your Swagger API.  See the [`parse`](#parseapi-options-callback) method for more info.
 
 - **options** (_optional_) - `object`<br>
 See [options](options.md) for the full list of options
