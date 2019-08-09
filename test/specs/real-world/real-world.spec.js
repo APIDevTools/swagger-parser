@@ -33,7 +33,7 @@ describe("Real-world APIs", () => {
 
   // Mocha requires us to create our tests synchronously. But the list of APIs is downloaded asynchronously.
   // So, we just create a bunch of placeholder tests, and then rename them later to reflect which API they're testing.
-  for (let index = START_AT_INDEX; index < MAX_APIS_TO_TEST; index++) {
+  for (let index = START_AT_INDEX; index < (START_AT_INDEX + MAX_APIS_TO_TEST); index++) {
     it(`${index + 1}) `, testAPI(index));
   }
 
