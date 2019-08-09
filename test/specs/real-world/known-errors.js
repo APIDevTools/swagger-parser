@@ -66,6 +66,13 @@ function getKnownApiErrors () {
       whatToDo: "ignore",
     },
 
+    // Figshare.com's API definition contains arrays without "items" schemas
+    {
+      api: "figshare.com",
+      error: 'is an array, so it must include an "items" schema',
+      whatToDo: "ignore",
+    },
+
     // Stoplight.io's API definition uses multi-type schemas, which isn't allowed by Swagger 2.0
     {
       api: "stoplight.io",
