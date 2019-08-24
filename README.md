@@ -9,20 +9,20 @@ Swagger 2.0 and OpenAPI 3.0 parser/validator
 [![Dependencies](https://david-dm.org/APIDevTools/swagger-parser.svg)](https://david-dm.org/APIDevTools/swagger-parser)
 [![License](https://img.shields.io/npm/l/swagger-parser.svg)](LICENSE)
 
-[![OS and Browser Compatibility](https://apidevtools.org/img/badges/ci-badges-with-ie.svg)](https://travis-ci.com/APIDevTools/swagger-parser)
+[![OS and Browser Compatibility](https://apitools.dev/img/badges/ci-badges-with-ie.svg)](https://travis-ci.com/APIDevTools/swagger-parser)
 
-[![Online Demo](https://apidevtools.org/swagger-parser/online/img/demo.svg)](https://apidevtools.org/swagger-parser/online/)
+[![Online Demo](https://apitools.dev/swagger-parser/online/img/demo.svg)](https://apitools.dev/swagger-parser/online/)
 
 Features
 --------------------------
 - Parses Swagger specs in **JSON** or **YAML** format
 - Validates against the [Swagger 2.0 schema](https://github.com/OAI/OpenAPI-Specification/blob/master/schemas/v2.0/schema.json) or [OpenAPI 3.0 Schema](https://github.com/OAI/OpenAPI-Specification/blob/master/schemas/v3.0/schema.json)
-- [Resolves](https://apidevtools.org/swagger-parser/docs/swagger-parser.html#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
-- Can [bundle](https://apidevtools.org/swagger-parser/docs/swagger-parser.html#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
-- Can [dereference](https://apidevtools.org/swagger-parser/docs/swagger-parser.html#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
+- [Resolves](https://apitools.dev/swagger-parser/docs/swagger-parser.html#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
+- Can [bundle](https://apitools.dev/swagger-parser/docs/swagger-parser.html#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
+- Can [dereference](https://apitools.dev/swagger-parser/docs/swagger-parser.html#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
 - **[Tested](https://travis-ci.com/APIDevTools/swagger-parser)** in Node.js and all modern web browsers on Mac, Windows, and Linux
 - Tested on **[over 1,500 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
-- Supports [circular references](https://apidevtools.org/swagger-parser/docs/#circular-refs), nested references, back-references, and cross-references
+- Supports [circular references](https://apitools.dev/swagger-parser/docs/#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
 
 
@@ -58,7 +58,7 @@ catch(err) {
 }
 ```
 
-For more detailed examples, please see the [API Documentation](https://apidevtools.org/swagger-parser/docs/)
+For more detailed examples, please see the [API Documentation](https://apitools.dev/swagger-parser/docs/)
 
 
 
@@ -98,7 +98,7 @@ To use Swagger Parser in a browser, you'll need to use a bundling tool such as [
 
 API Documentation
 --------------------------
-Full API documentation is available [right here](https://apidevtools.org/swagger-parser/docs/)
+Full API documentation is available [right here](https://apitools.dev/swagger-parser/docs/)
 
 
 Contributing

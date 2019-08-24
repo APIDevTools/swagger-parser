@@ -23,7 +23,7 @@
     "name": "James Messinger",
     "url": "https://jamesmessinger.com"
   },
-  "homepage": "https://apidevtools.org/swagger-parser/",
+  "homepage": "https://apitools.dev/swagger-parser/",
   "repository": {
     "type": "git",
     "url": "https://github.com/APIDevTools/swagger-parser.git"

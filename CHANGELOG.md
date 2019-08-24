@@ -7,7 +7,7 @@ Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 
 #### Potentially Breaking Changes
 
-- [The `validate()` function](https://apidevtools.org/swagger-parser/docs/swagger-parser.html#validateapi-options-callback) now uses [the official JSON Schemas](https://github.com/OAI/OpenAPI-Specification/tree/master/schemas) for Swagger 2.0 and OpenAPI 3.0 schema validation.  We tested this change on [over 1,500 real-world APIs](https://apis.guru/browse-apis/) and there were **no breaking changes**, but we're bumped the major version number just to be safe.
+- [The `validate()` function](https://apitools.dev/swagger-parser/docs/swagger-parser.html#validateapi-options-callback) now uses [the official JSON Schemas](https://github.com/OAI/OpenAPI-Specification/tree/master/schemas) for Swagger 2.0 and OpenAPI 3.0 schema validation.  We tested this change on [over 1,500 real-world APIs](https://apis.guru/browse-apis/) and there were **no breaking changes**, but we're bumped the major version number just to be safe.
 
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v7.0.1...v8.0.0)
 
