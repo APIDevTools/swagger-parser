@@ -299,7 +299,7 @@ declare namespace SwaggerParser {
   /**
    * JSON Schema `$Ref` Parser comes with built-in resolvers for HTTP and HTTPS URLs, as well as local filesystem paths (when running in Node.js). You can add your own custom resolvers to support additional protocols, or even replace any of the built-in resolvers with your own custom implementation.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/plugins/resolvers.md
+   * See https://apitools.dev/json-schema-ref-parser/docs/plugins/resolvers.html
    */
   export interface ResolverOptions {
 
@@ -355,7 +355,7 @@ declare namespace SwaggerParser {
    *
    * The file info object currently only consists of a few properties, but it may grow in the future if plug-ins end up needing more information.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/plugins/file-info-object.md
+   * See https://apitools.dev/json-schema-ref-parser/docs/plugins/file-info-object.html
    */
   export interface FileInfo {
 

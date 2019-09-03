@@ -1,6 +1,6 @@
 # ESLint config
 # http://eslint.org/docs/user-guide/configuring
-# https://github.com/JS-DevTools/eslint-config-modular
+# https://jstools.dev/eslint-config-modular/
 
 root: true
 
