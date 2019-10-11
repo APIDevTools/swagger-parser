@@ -73,6 +73,13 @@ function getKnownApiErrors () {
       whatToDo: "ignore",
     },
 
+    // APIs.guru is missing one of Nexmo's API definitions, which causes a 404 error
+    {
+      api: "nexmo.com",
+      error: /Error downloading .*\.yml\s+HTTP ERROR 404/,
+      whatToDo: "ignore",
+    },
+
     // Stoplight.io's API definition uses multi-type schemas, which isn't allowed by Swagger 2.0
     {
       api: "stoplight.io",
