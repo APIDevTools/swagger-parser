@@ -9,7 +9,7 @@ language: node_js
 node_js:
   - 8
   - 10
-  - 12.10     # HACK: Nyc + Mocha fails on Node 12.11 on Windows. Awaiting a fix
+  - 12
 
 os:
   - linux
