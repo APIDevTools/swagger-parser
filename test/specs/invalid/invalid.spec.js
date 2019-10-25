@@ -13,7 +13,7 @@ describe("Invalid APIs (can't be parsed)", () => {
     }
     catch (err) {
       expect(err).to.be.an.instanceOf(SyntaxError);
-      expect(err.message).to.contain("not-swagger.yaml is not a valid Openapi API definition");
+      expect(err.message).to.contain("Unsupported OpenAPI version: undefined. Swagger Parser only supports versions 3.0.0, 3.0.1, 3.0.2");
     }
   });
 
