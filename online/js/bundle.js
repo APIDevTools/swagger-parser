@@ -187,7 +187,7 @@ SwaggerParser.prototype.validate = async function (path, api, options, callback)
  * @typedef {{swagger: string, info: {}, paths: {}}} SwaggerObject
  */
 
-},{"./options":2,"./util":3,"./validators/schema":4,"./validators/spec":5,"call-me-maybe":34,"json-schema-ref-parser":71,"json-schema-ref-parser/lib/dereference":70,"json-schema-ref-parser/lib/normalize-args":72,"ono":91}],2:[function(require,module,exports){
+},{"./options":2,"./util":3,"./validators/schema":4,"./validators/spec":5,"call-me-maybe":34,"json-schema-ref-parser":71,"json-schema-ref-parser/lib/dereference":70,"json-schema-ref-parser/lib/normalize-args":72,"ono":92}],2:[function(require,module,exports){
 "use strict";
 
 const $RefParserOptions = require("json-schema-ref-parser/lib/options");
@@ -309,7 +309,7 @@ function formatZSchemaError (errors, indent) {
   return message;
 }
 
-},{"../util":3,"ono":91,"openapi-schemas":96,"z-schema":199}],5:[function(require,module,exports){
+},{"../util":3,"ono":92,"openapi-schemas":98,"z-schema":201}],5:[function(require,module,exports){
 "use strict";
 
 const util = require("../util");
@@ -655,7 +655,7 @@ function validateRequiredPropertiesExist (schema, schemaId) {
   }
 }
 
-},{"../util":3,"ono":91,"swagger-methods":106}],6:[function(require,module,exports){
+},{"../util":3,"ono":92,"swagger-methods":108}],6:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -3767,7 +3767,7 @@ http.METHODS = [
 ]
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./lib/request":13,"./lib/response":14,"builtin-status-codes":33,"url":107,"xtend":189}],12:[function(require,module,exports){
+},{"./lib/request":13,"./lib/response":14,"builtin-status-codes":33,"url":109,"xtend":191}],12:[function(require,module,exports){
 (function (global){
 exports.fetch = isFunction(global.fetch) && isFunction(global.ReadableStream)
 
@@ -4151,7 +4151,7 @@ var unsafeHeaders = [
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 
-},{"./capability":12,"./response":14,"_process":100,"buffer":8,"inherits":37,"readable-stream":29}],14:[function(require,module,exports){
+},{"./capability":12,"./response":14,"_process":102,"buffer":8,"inherits":37,"readable-stream":29}],14:[function(require,module,exports){
 (function (process,global,Buffer){
 var capability = require('./capability')
 var inherits = require('inherits')
@@ -4363,7 +4363,7 @@ IncomingMessage.prototype._onXHRProgress = function () {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 
-},{"./capability":12,"_process":100,"buffer":8,"inherits":37,"readable-stream":29}],15:[function(require,module,exports){
+},{"./capability":12,"_process":102,"buffer":8,"inherits":37,"readable-stream":29}],15:[function(require,module,exports){
 'use strict';
 
 function _inheritsLoose(subClass, superClass) { subClass.prototype = Object.create(superClass.prototype); subClass.prototype.constructor = subClass; subClass.__proto__ = superClass; }
@@ -4514,7 +4514,7 @@ module.exports.emitExperimentalWarning = process.emitWarning
 
 }).call(this,require('_process'))
 
-},{"_process":100}],17:[function(require,module,exports){
+},{"_process":102}],17:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4657,7 +4657,7 @@ Object.defineProperty(Duplex.prototype, 'destroyed', {
 });
 }).call(this,require('_process'))
 
-},{"./_stream_readable":19,"./_stream_writable":21,"_process":100,"inherits":37}],18:[function(require,module,exports){
+},{"./_stream_readable":19,"./_stream_writable":21,"_process":102,"inherits":37}],18:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5788,7 +5788,7 @@ function indexOf(xs, x) {
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../errors":15,"../experimentalWarning":16,"./_stream_duplex":17,"./internal/streams/async_iterator":22,"./internal/streams/buffer_list":23,"./internal/streams/destroy":24,"./internal/streams/state":27,"./internal/streams/stream":28,"_process":100,"buffer":8,"events":9,"inherits":37,"string_decoder/":104,"util":7}],20:[function(require,module,exports){
+},{"../errors":15,"../experimentalWarning":16,"./_stream_duplex":17,"./internal/streams/async_iterator":22,"./internal/streams/buffer_list":23,"./internal/streams/destroy":24,"./internal/streams/state":27,"./internal/streams/stream":28,"_process":102,"buffer":8,"events":9,"inherits":37,"string_decoder/":106,"util":7}],20:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6677,7 +6677,7 @@ Writable.prototype._destroy = function (err, cb) {
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../errors":15,"./_stream_duplex":17,"./internal/streams/destroy":24,"./internal/streams/state":27,"./internal/streams/stream":28,"_process":100,"buffer":8,"inherits":37,"util-deprecate":109}],22:[function(require,module,exports){
+},{"../errors":15,"./_stream_duplex":17,"./internal/streams/destroy":24,"./internal/streams/state":27,"./internal/streams/stream":28,"_process":102,"buffer":8,"inherits":37,"util-deprecate":111}],22:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -6888,7 +6888,7 @@ var createReadableStreamAsyncIterator = function createReadableStreamAsyncIterat
 module.exports = createReadableStreamAsyncIterator;
 }).call(this,require('_process'))
 
-},{"./end-of-stream":25,"_process":100}],23:[function(require,module,exports){
+},{"./end-of-stream":25,"_process":102}],23:[function(require,module,exports){
 'use strict';
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
@@ -7167,7 +7167,7 @@ module.exports = {
 };
 }).call(this,require('_process'))
 
-},{"_process":100}],25:[function(require,module,exports){
+},{"_process":102}],25:[function(require,module,exports){
 // Ported from https://github.com/mafintosh/end-of-stream with
 // permission from the author, Mathias Buus (@mafintosh).
 'use strict';
@@ -8035,7 +8035,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":31,"_process":100,"inherits":30}],33:[function(require,module,exports){
+},{"./support/isBuffer":31,"_process":102,"inherits":30}],33:[function(require,module,exports){
 module.exports = {
   "100": "Continue",
   "101": "Switching Protocols",
@@ -8126,7 +8126,7 @@ module.exports = function maybe (cb, promise) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":100}],35:[function(require,module,exports){
+},{"_process":102}],35:[function(require,module,exports){
 var http = require('http')
 var url = require('url')
 
@@ -8159,7 +8159,7 @@ function validateParams (params) {
   return params
 }
 
-},{"http":11,"url":107}],36:[function(require,module,exports){
+},{"http":11,"url":109}],36:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -12649,7 +12649,7 @@ function foundCircularReference (keyPath, $refs, options) {
   return true;
 }
 
-},{"./pointer":79,"./ref":80,"./util/url":86,"ono":91}],71:[function(require,module,exports){
+},{"./pointer":79,"./ref":80,"./util/url":86,"ono":92}],71:[function(require,module,exports){
 (function (Buffer){
 "use strict";
 
@@ -12907,7 +12907,7 @@ $RefParser.prototype.dereference = async function (path, schema, options, callba
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
 
-},{"../../is-buffer/index.js":38,"./bundle":69,"./dereference":70,"./normalize-args":72,"./options":73,"./parse":74,"./refs":81,"./resolve-external":82,"./util/url":86,"./util/yaml":87,"call-me-maybe":34,"ono":91}],72:[function(require,module,exports){
+},{"../../is-buffer/index.js":38,"./bundle":69,"./dereference":70,"./normalize-args":72,"./options":73,"./parse":74,"./refs":81,"./resolve-external":82,"./util/url":86,"./util/yaml":87,"call-me-maybe":34,"ono":92}],72:[function(require,module,exports){
 "use strict";
 
 const Options = require("./options");
@@ -13229,7 +13229,7 @@ function isEmpty (value) {
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
 
-},{"../../is-buffer/index.js":38,"./util/plugins":85,"./util/url":86,"ono":91}],75:[function(require,module,exports){
+},{"../../is-buffer/index.js":38,"./util/plugins":85,"./util/url":86,"ono":92}],75:[function(require,module,exports){
 (function (Buffer){
 "use strict";
 
@@ -13753,7 +13753,7 @@ function setValue (pointer, token, value) {
   return value;
 }
 
-},{"./ref":80,"./util/url":86,"ono":91}],80:[function(require,module,exports){
+},{"./ref":80,"./util/url":86,"ono":92}],80:[function(require,module,exports){
 "use strict";
 
 module.exports = $Ref;
@@ -14187,7 +14187,7 @@ function getPaths ($refs, types) {
   });
 }
 
-},{"./ref":80,"./util/url":86,"ono":91}],82:[function(require,module,exports){
+},{"./ref":80,"./util/url":86,"ono":92}],82:[function(require,module,exports){
 "use strict";
 
 const $Ref = require("./ref");
@@ -14365,7 +14365,7 @@ module.exports = {
   }
 };
 
-},{"../util/url":86,"fs":7,"ono":91}],84:[function(require,module,exports){
+},{"../util/url":86,"fs":7,"ono":92}],84:[function(require,module,exports){
 (function (process,Buffer){
 "use strict";
 
@@ -14549,7 +14549,7 @@ function get (u, httpOptions) {
 
 }).call(this,require('_process'),require("buffer").Buffer)
 
-},{"../util/url":86,"_process":100,"buffer":8,"http":11,"https":35,"ono":91}],85:[function(require,module,exports){
+},{"../util/url":86,"_process":102,"buffer":8,"http":11,"https":35,"ono":92}],85:[function(require,module,exports){
 "use strict";
 
 /**
@@ -14932,7 +14932,7 @@ exports.toFileSystemPath = function toFileSystemPath (path, keepFileProtocol) {
 
 }).call(this,require('_process'))
 
-},{"_process":100,"url":107}],87:[function(require,module,exports){
+},{"_process":102,"url":109}],87:[function(require,module,exports){
 /* eslint lines-around-comment: [2, {beforeBlockComment: false}] */
 "use strict";
 
@@ -14990,7 +14990,7 @@ module.exports = {
   }
 };
 
-},{"js-yaml":39,"ono":91}],88:[function(require,module,exports){
+},{"js-yaml":39,"ono":92}],88:[function(require,module,exports){
 (function (global){
 /**
  * lodash (Custom Build) <https://lodash.com/>
@@ -17782,6 +17782,39 @@ module.exports = isEqual;
 },{}],90:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const extend_error_1 = require("./extend-error");
+const normalize_1 = require("./normalize");
+const to_json_1 = require("./to-json");
+const constructor = Ono;
+exports.Ono = constructor;
+/**
+ * Returns an object containing all properties of the given Error object,
+ * which can be used with `JSON.stringify()`.
+ */
+Ono.toJSON = function toJSON(error) {
+    return to_json_1.toJSON.call(error);
+};
+/**
+ * Creates an `Ono` instance for a specifc error type.
+ */
+// tslint:disable-next-line: variable-name
+function Ono(ErrorConstructor, options) {
+    options = normalize_1.normalizeOptions(options);
+    function ono(...args) {
+        let { originalError, props, message } = normalize_1.normalizeArgs(args, options);
+        // Create a new error of the specified type
+        let newError = new ErrorConstructor(message);
+        // Extend the error with the properties of the original error and the `props` object
+        extend_error_1.extendError(newError, originalError, props);
+        return newError;
+    }
+    ono[Symbol.species] = ErrorConstructor;
+    return ono;
+}
+
+},{"./extend-error":91,"./normalize":94,"./to-json":97}],91:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const isomorphic_node_1 = require("./isomorphic.node");
 const stack_1 = require("./stack");
 const to_json_1 = require("./to-json");
@@ -17817,10 +17850,11 @@ exports.extendError = extendError;
  * Extend the error stack to include its cause
  */
 function extendStack(newError, originalError) {
-    if (stack_1.hasLazyStack(newError)) {
-        stack_1.lazyJoinStacks(newError, originalError);
+    let stackProp = Object.getOwnPropertyDescriptor(newError, "stack");
+    if (stack_1.isLazyStack(stackProp)) {
+        stack_1.lazyJoinStacks(stackProp, newError, originalError);
     }
-    else {
+    else if (stack_1.isWritableStack(stackProp)) {
         newError.stack = stack_1.joinStacks(newError, originalError);
     }
 }
@@ -17853,39 +17887,21 @@ function mergeErrors(newError, originalError) {
     }
 }
 
-},{"./isomorphic.node":92,"./stack":94,"./to-json":95}],91:[function(require,module,exports){
+},{"./isomorphic.node":93,"./stack":96,"./to-json":97}],92:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const isomorphic_node_1 = require("./isomorphic.node");
-const ono_1 = require("./ono");
-exports.Ono = ono_1.Ono;
-exports.ono = ono_1.ono;
-const to_json_1 = require("./to-json");
-// Create Ono instances for each of the JavaScript error types
-ono_1.ono.error = new ono_1.Ono(Error);
-ono_1.ono.eval = new ono_1.Ono(EvalError);
-ono_1.ono.range = new ono_1.Ono(RangeError);
-ono_1.ono.reference = new ono_1.Ono(ReferenceError);
-ono_1.ono.syntax = new ono_1.Ono(SyntaxError);
-ono_1.ono.type = new ono_1.Ono(TypeError);
-ono_1.ono.uri = new ono_1.Ono(URIError);
-// Default to Node's `util.format()` functionality, but allow users to substitute their own
-ono_1.ono.formatter = isomorphic_node_1.formatter;
-/**
- * Returns an object containing all properties of the given Error object,
- * which can be used with `JSON.stringify()`.
- */
-ono_1.Ono.toJSON = function toJSON(error) {
-    return to_json_1.toJSON.call(error);
-};
+const singleton_1 = require("./singleton");
+exports.ono = singleton_1.ono;
+var constructor_1 = require("./constructor");
+exports.Ono = constructor_1.Ono;
 // tslint:disable-next-line: no-default-export
-exports.default = ono_1.ono;
+exports.default = singleton_1.ono;
 // CommonJS default export hack
 if (typeof module === "object" && typeof module.exports === "object") {
     module.exports = Object.assign(module.exports.default, module.exports); // tslint:disable-line: no-unsafe-any
 }
 
-},{"./isomorphic.node":92,"./ono":93,"./to-json":95}],92:[function(require,module,exports){
+},{"./constructor":90,"./singleton":95}],93:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
@@ -17897,98 +17913,134 @@ Object.defineProperty(exports, "__esModule", { value: true });
  *
  * @see https://github.com/tmpfs/format-util
  */
-function formatter(...args) {
-    return args.join(" ");
-}
-exports.formatter = formatter;
+exports.format = false;
 /**
  * The `util.inspect()` functionality only applies to Node.js.
  * We return the constant `false` here so that the Node-specific code gets removed by tree-shaking.
  */
 exports.addInspectMethod = false;
 
-},{}],93:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const extend_error_1 = require("./extend-error");
-const onoConstructor = Ono;
-exports.Ono = onoConstructor;
-const onoSingleton = Ono(Error);
-exports.ono = onoSingleton;
+const isomorphic_node_1 = require("./isomorphic.node");
 /**
- * Creates an `Ono` instance for a specifc error type.
+ * Normalizes Ono options, accounting for defaults and optional options.
  */
-function Ono(klass) {
-    // tslint:disable-next-line: no-shadowed-variable
-    return function ono(...args) {
-        let originalError;
-        let props;
-        let formatArgs;
-        let formattedMessage = "";
-        // Determine which arguments were actually specified
-        if (typeof args[0] === "string") {
-            formatArgs = args;
-        }
-        else if (typeof args[1] === "string") {
-            if (args[0] instanceof Error) {
-                originalError = args[0];
-            }
-            else {
-                props = args[0];
-            }
-            formatArgs = args.slice(1);
-        }
-        else {
-            originalError = args[0];
-            props = args[1];
-            formatArgs = args.slice(2);
-        }
-        // If there are any format arguments, then format the error message
-        if (formatArgs.length > 0) {
-            formattedMessage = onoSingleton.formatter.apply(undefined, formatArgs);
-        }
-        if (originalError && originalError.message) {
-            // The inner-error's message will be added to the new message
-            formattedMessage += (formattedMessage ? " \n" : "") + originalError.message;
-        }
-        // @ts-ignore
-        // Create the new error
-        // NOTE: DON'T move this line to a separate function! We don't want to pollute the stack trace
-        let newError = new klass(formattedMessage);
-        // Extend the error with the properties of the original error and the `props` object
-        extend_error_1.extendError(newError, originalError, props);
-        return newError;
+function normalizeOptions(options) {
+    options = options || {};
+    return {
+        concatMessages: options.concatMessages === undefined ? true : Boolean(options.concatMessages),
+        format: options.format === undefined ? isomorphic_node_1.format
+            : (typeof options.format === "function" ? options.format : false),
     };
 }
+exports.normalizeOptions = normalizeOptions;
+/**
+ * Normalizes the Ono arguments, accounting for defaults, options, and optional arguments.
+ */
+function normalizeArgs(args, options) {
+    let originalError;
+    let props;
+    let formatArgs;
+    let message = "";
+    // Determine which arguments were actually specified
+    if (typeof args[0] === "string") {
+        formatArgs = args;
+    }
+    else if (typeof args[1] === "string") {
+        if (args[0] instanceof Error) {
+            originalError = args[0];
+        }
+        else {
+            props = args[0];
+        }
+        formatArgs = args.slice(1);
+    }
+    else {
+        originalError = args[0];
+        props = args[1];
+        formatArgs = args.slice(2);
+    }
+    // If there are any format arguments, then format the error message
+    if (formatArgs.length > 0) {
+        if (options.format) {
+            message = options.format.apply(undefined, formatArgs);
+        }
+        else {
+            message = formatArgs.join(" ");
+        }
+    }
+    if (options.concatMessages && originalError && originalError.message) {
+        // The inner-error's message will be added to the new message
+        message += (message ? " \n" : "") + originalError.message;
+    }
+    return { originalError, props, message };
+}
+exports.normalizeArgs = normalizeArgs;
 
-},{"./extend-error":90}],94:[function(require,module,exports){
+},{"./isomorphic.node":93}],95:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const constructor_1 = require("./constructor");
+const singleton = ono;
+exports.ono = singleton;
+ono.error = new constructor_1.Ono(Error);
+ono.eval = new constructor_1.Ono(EvalError);
+ono.range = new constructor_1.Ono(RangeError);
+ono.reference = new constructor_1.Ono(ReferenceError);
+ono.syntax = new constructor_1.Ono(SyntaxError);
+ono.type = new constructor_1.Ono(TypeError);
+ono.uri = new constructor_1.Ono(URIError);
+const onoMap = ono;
+/**
+ * Creates a new error with the specified message, properties, and/or inner error.
+ * If an inner error is provided, then the new error will match its type, if possible.
+ */
+function ono(...args) {
+    let originalError = args[0];
+    // Is the first argument an Error-like object?
+    if (typeof originalError === "object" && typeof originalError.name === "string") {
+        // Try to find an Ono singleton method that matches this error type
+        for (let typedOno of Object.values(onoMap)) {
+            if (typeof typedOno === "function" && typedOno.name === "ono") {
+                let species = typedOno[Symbol.species];
+                if (species && species !== Error && (originalError instanceof species || originalError.name === species.name)) {
+                    // Create an error of the same type
+                    return typedOno.apply(undefined, args);
+                }
+            }
+        }
+    }
+    // By default, create a base Error object
+    return ono.error.apply(undefined, args);
+}
+
+},{"./constructor":90}],96:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const newline = /\r?\n/;
-const onoCall = /\bono\b/;
+const onoCall = /(^| )ono[ @]/;
 /**
- * Does a one-time determination of whether this JavaScript engine
- * supports lazy `Error.stack` properties.
+ * Is the property lazily computed?
  */
-exports.supportsLazyStack = Boolean(
-// ES5 property descriptors must be supported
-Object.getOwnPropertyDescriptor && Object.defineProperty &&
-    // Chrome on Android doesn't support lazy stacks :(
-    (typeof navigator === "undefined" || !/Android/.test(navigator.userAgent)));
-/**
- * Does this error have a lazy stack property?
- */
-function hasLazyStack(error) {
-    if (!exports.supportsLazyStack) {
-        return false;
-    }
-    let descriptor = Object.getOwnPropertyDescriptor(error, "stack");
-    if (!descriptor) {
-        return false;
-    }
-    return typeof descriptor.get === "function";
+function isLazyStack(stackProp) {
+    return Boolean(stackProp &&
+        stackProp.configurable &&
+        typeof stackProp.get === "function");
 }
-exports.hasLazyStack = hasLazyStack;
+exports.isLazyStack = isLazyStack;
+/**
+ * Is the stack property writable?
+ */
+function isWritableStack(stackProp) {
+    return Boolean(
+    // If there is no stack property, then it's writable, since assigning it will create it
+    !stackProp ||
+        stackProp.writable ||
+        typeof stackProp.set === "function");
+}
+exports.isWritableStack = isWritableStack;
 /**
  * Appends the original `Error.stack` property to the new Error's stack.
  */
@@ -18006,12 +18058,11 @@ exports.joinStacks = joinStacks;
 /**
  * Calls `joinStacks` lazily, when the `Error.stack` property is accessed.
  */
-function lazyJoinStacks(newError, originalError) {
-    let descriptor = Object.getOwnPropertyDescriptor(newError, "stack");
-    if (originalError && descriptor && typeof descriptor.get === "function") {
+function lazyJoinStacks(lazyStack, newError, originalError) {
+    if (originalError) {
         Object.defineProperty(newError, "stack", {
             get: () => {
-                let newStack = descriptor.get.apply(newError);
+                let newStack = lazyStack.get.apply(newError);
                 return joinStacks({ stack: newStack }, originalError);
             },
             enumerable: false,
@@ -18019,7 +18070,7 @@ function lazyJoinStacks(newError, originalError) {
         });
     }
     else {
-        lazyPopStack(newError);
+        lazyPopStack(newError, lazyStack);
     }
 }
 exports.lazyJoinStacks = lazyJoinStacks;
@@ -18027,19 +18078,27 @@ exports.lazyJoinStacks = lazyJoinStacks;
  * Removes Ono from the stack, so that the stack starts at the original error location
  */
 function popStack(stack) {
-    if (stack === undefined) {
-        return undefined;
-    }
-    let lines = stack.split(newline);
-    if (lines.length < 2) {
-        // The stack only has one line, so there's nothing we can remove
-        return stack;
-    }
-    // Find the `ono` call in the stack, and remove it
-    for (let i = 0; i < lines.length; i++) {
-        let line = lines[i];
-        if (onoCall.test(line)) {
-            lines.splice(i, 1);
+    if (stack) {
+        let lines = stack.split(newline);
+        // Find the Ono call(s) in the stack, and remove them
+        let onoStart;
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            if (onoCall.test(line)) {
+                if (onoStart === undefined) {
+                    // We found the first Ono call in the stack trace.
+                    // There may be other subsequent Ono calls as well.
+                    onoStart = i;
+                }
+            }
+            else if (onoStart !== undefined) {
+                // We found the first non-Ono call after one or more Ono calls.
+                // So remove the Ono call lines from the stack trace
+                lines.splice(onoStart, i - onoStart);
+                break;
+            }
+        }
+        if (lines.length > 0) {
             return lines.join("\n");
         }
     }
@@ -18051,18 +18110,15 @@ function popStack(stack) {
 /**
  * Calls `popStack` lazily, when the `Error.stack` property is accessed.
  */
-function lazyPopStack(error) {
-    let descriptor = Object.getOwnPropertyDescriptor(error, "stack");
-    if (descriptor && typeof descriptor.get === "function") {
-        Object.defineProperty(error, "stack", {
-            get: () => popStack(descriptor.get.apply(error)),
-            enumerable: false,
-            configurable: true
-        });
-    }
+function lazyPopStack(error, lazyStack) {
+    Object.defineProperty(error, "stack", {
+        get: () => popStack(lazyStack.get.apply(error)),
+        enumerable: false,
+        configurable: true
+    });
 }
 
-},{}],95:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const nonJsonTypes = ["function", "symbol", "undefined"];
@@ -18112,7 +18168,7 @@ function getDeepKeys(obj, omit = []) {
 }
 exports.getDeepKeys = getDeepKeys;
 
-},{}],96:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
@@ -18143,7 +18199,7 @@ if (typeof module === "object" && typeof module.exports === "object") {
     module.exports = Object.assign(module.exports.default, module.exports); // tslint:disable-line: no-unsafe-any
 }
 
-},{"../schemas/v1.2/apiDeclaration.json":97,"../schemas/v2.0/schema.json":98,"../schemas/v3.0/schema.json":99}],97:[function(require,module,exports){
+},{"../schemas/v1.2/apiDeclaration.json":99,"../schemas/v2.0/schema.json":100,"../schemas/v3.0/schema.json":101}],99:[function(require,module,exports){
 module.exports={
     "id": "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v1.2/apiDeclaration.json#",
     "$schema": "http://json-schema.org/draft-04/schema#",
@@ -18206,7 +18262,7 @@ module.exports={
     }
 }
 
-},{}],98:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 module.exports={
   "title": "A JSON Schema for Swagger 2.0 API.",
   "id": "http://swagger.io/v2/schema.json#",
@@ -19814,7 +19870,7 @@ module.exports={
     }
   }
 }
-},{}],99:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 module.exports={
   "id": "https://spec.openapis.org/oas/3.0/schema/2019-04-02",
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -21469,7 +21525,7 @@ module.exports={
     }
   }
 }
-},{}],100:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -21655,7 +21711,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],101:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21741,7 +21797,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],102:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21828,13 +21884,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],103:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":101,"./encode":102}],104:[function(require,module,exports){
+},{"./decode":103,"./encode":104}],106:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22131,7 +22187,7 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"safe-buffer":105}],105:[function(require,module,exports){
+},{"safe-buffer":107}],107:[function(require,module,exports){
 /* eslint-disable node/no-deprecated-api */
 var buffer = require('buffer')
 var Buffer = buffer.Buffer
@@ -22195,14 +22251,14 @@ SafeBuffer.allocUnsafeSlow = function (size) {
   return buffer.SlowBuffer(size)
 }
 
-},{"buffer":8}],106:[function(require,module,exports){
+},{"buffer":8}],108:[function(require,module,exports){
 "use strict";
 
 module.exports = [
   "get", "put", "post", "delete", "options", "head", "patch"
 ];
 
-},{}],107:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22936,7 +22992,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":108,"punycode":10,"querystring":103}],108:[function(require,module,exports){
+},{"./util":110,"punycode":10,"querystring":105}],110:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -22954,7 +23010,7 @@ module.exports = {
   }
 };
 
-},{}],109:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 (function (global){
 
 /**
@@ -23026,7 +23082,7 @@ function config (name) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],110:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23271,7 +23327,7 @@ var _default = validator;
 exports.default = _default;
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./lib/blacklist":112,"./lib/contains":113,"./lib/equals":114,"./lib/escape":115,"./lib/isAfter":116,"./lib/isAlpha":117,"./lib/isAlphanumeric":118,"./lib/isAscii":119,"./lib/isBase32":120,"./lib/isBase64":121,"./lib/isBefore":122,"./lib/isBoolean":123,"./lib/isByteLength":124,"./lib/isCreditCard":125,"./lib/isCurrency":126,"./lib/isDataURI":127,"./lib/isDecimal":128,"./lib/isDivisibleBy":129,"./lib/isEmail":130,"./lib/isEmpty":131,"./lib/isFQDN":132,"./lib/isFloat":133,"./lib/isFullWidth":134,"./lib/isHalfWidth":135,"./lib/isHash":136,"./lib/isHexColor":137,"./lib/isHexadecimal":138,"./lib/isIP":139,"./lib/isIPRange":140,"./lib/isISBN":141,"./lib/isISIN":142,"./lib/isISO31661Alpha2":143,"./lib/isISO31661Alpha3":144,"./lib/isISO8601":145,"./lib/isISRC":146,"./lib/isISSN":147,"./lib/isIdentityCard":148,"./lib/isIn":149,"./lib/isInt":150,"./lib/isJSON":151,"./lib/isJWT":152,"./lib/isLatLong":153,"./lib/isLength":154,"./lib/isLowercase":155,"./lib/isMACAddress":156,"./lib/isMD5":157,"./lib/isMagnetURI":158,"./lib/isMimeType":159,"./lib/isMobilePhone":160,"./lib/isMongoId":161,"./lib/isMultibyte":162,"./lib/isNumeric":163,"./lib/isPort":164,"./lib/isPostalCode":165,"./lib/isRFC3339":166,"./lib/isSurrogatePair":167,"./lib/isURL":168,"./lib/isUUID":169,"./lib/isUppercase":170,"./lib/isVariableWidth":171,"./lib/isWhitelisted":172,"./lib/ltrim":173,"./lib/matches":174,"./lib/normalizeEmail":175,"./lib/rtrim":176,"./lib/stripLow":177,"./lib/toBoolean":178,"./lib/toDate":179,"./lib/toFloat":180,"./lib/toInt":181,"./lib/trim":182,"./lib/unescape":183,"./lib/whitelist":188}],111:[function(require,module,exports){
+},{"./lib/blacklist":114,"./lib/contains":115,"./lib/equals":116,"./lib/escape":117,"./lib/isAfter":118,"./lib/isAlpha":119,"./lib/isAlphanumeric":120,"./lib/isAscii":121,"./lib/isBase32":122,"./lib/isBase64":123,"./lib/isBefore":124,"./lib/isBoolean":125,"./lib/isByteLength":126,"./lib/isCreditCard":127,"./lib/isCurrency":128,"./lib/isDataURI":129,"./lib/isDecimal":130,"./lib/isDivisibleBy":131,"./lib/isEmail":132,"./lib/isEmpty":133,"./lib/isFQDN":134,"./lib/isFloat":135,"./lib/isFullWidth":136,"./lib/isHalfWidth":137,"./lib/isHash":138,"./lib/isHexColor":139,"./lib/isHexadecimal":140,"./lib/isIP":141,"./lib/isIPRange":142,"./lib/isISBN":143,"./lib/isISIN":144,"./lib/isISO31661Alpha2":145,"./lib/isISO31661Alpha3":146,"./lib/isISO8601":147,"./lib/isISRC":148,"./lib/isISSN":149,"./lib/isIdentityCard":150,"./lib/isIn":151,"./lib/isInt":152,"./lib/isJSON":153,"./lib/isJWT":154,"./lib/isLatLong":155,"./lib/isLength":156,"./lib/isLowercase":157,"./lib/isMACAddress":158,"./lib/isMD5":159,"./lib/isMagnetURI":160,"./lib/isMimeType":161,"./lib/isMobilePhone":162,"./lib/isMongoId":163,"./lib/isMultibyte":164,"./lib/isNumeric":165,"./lib/isPort":166,"./lib/isPostalCode":167,"./lib/isRFC3339":168,"./lib/isSurrogatePair":169,"./lib/isURL":170,"./lib/isUUID":171,"./lib/isUppercase":172,"./lib/isVariableWidth":173,"./lib/isWhitelisted":174,"./lib/ltrim":175,"./lib/matches":176,"./lib/normalizeEmail":177,"./lib/rtrim":178,"./lib/stripLow":179,"./lib/toBoolean":180,"./lib/toDate":181,"./lib/toFloat":182,"./lib/toInt":183,"./lib/trim":184,"./lib/unescape":185,"./lib/whitelist":190}],113:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23381,7 +23437,7 @@ decimal['pt-BR'] = decimal['pt-PT']; // see #862
 alpha['pl-Pl'] = alpha['pl-PL'];
 alphanumeric['pl-Pl'] = alphanumeric['pl-PL'];
 decimal['pl-Pl'] = decimal['pl-PL'];
-},{}],112:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23400,7 +23456,7 @@ function blacklist(str, chars) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],113:[function(require,module,exports){
+},{"./util/assertString":186}],115:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23421,7 +23477,7 @@ function contains(str, elem) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184,"./util/toString":187}],114:[function(require,module,exports){
+},{"./util/assertString":186,"./util/toString":189}],116:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23440,7 +23496,7 @@ function equals(str, comparison) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],115:[function(require,module,exports){
+},{"./util/assertString":186}],117:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23459,7 +23515,7 @@ function escape(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],116:[function(require,module,exports){
+},{"./util/assertString":186}],118:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23483,7 +23539,7 @@ function isAfter(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./toDate":179,"./util/assertString":184}],117:[function(require,module,exports){
+},{"./toDate":181,"./util/assertString":186}],119:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23511,7 +23567,7 @@ function isAlpha(str) {
 
 var locales = Object.keys(_alpha.alpha);
 exports.locales = locales;
-},{"./alpha":111,"./util/assertString":184}],118:[function(require,module,exports){
+},{"./alpha":113,"./util/assertString":186}],120:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23539,7 +23595,7 @@ function isAlphanumeric(str) {
 
 var locales = Object.keys(_alpha.alphanumeric);
 exports.locales = locales;
-},{"./alpha":111,"./util/assertString":184}],119:[function(require,module,exports){
+},{"./alpha":113,"./util/assertString":186}],121:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23562,7 +23618,7 @@ function isAscii(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],120:[function(require,module,exports){
+},{"./util/assertString":186}],122:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23589,7 +23645,7 @@ function isBase32(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],121:[function(require,module,exports){
+},{"./util/assertString":186}],123:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23617,7 +23673,7 @@ function isBase64(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],122:[function(require,module,exports){
+},{"./util/assertString":186}],124:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23641,7 +23697,7 @@ function isBefore(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./toDate":179,"./util/assertString":184}],123:[function(require,module,exports){
+},{"./toDate":181,"./util/assertString":186}],125:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23660,7 +23716,7 @@ function isBoolean(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],124:[function(require,module,exports){
+},{"./util/assertString":186}],126:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23695,7 +23751,7 @@ function isByteLength(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],125:[function(require,module,exports){
+},{"./util/assertString":186}],127:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23748,7 +23804,7 @@ function isCreditCard(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],126:[function(require,module,exports){
+},{"./util/assertString":186}],128:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23838,7 +23894,7 @@ function isCurrency(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184,"./util/merge":186}],127:[function(require,module,exports){
+},{"./util/assertString":186,"./util/merge":188}],129:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23893,7 +23949,7 @@ function isDataURI(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],128:[function(require,module,exports){
+},{"./util/assertString":186}],130:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23936,7 +23992,7 @@ function isDecimal(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./alpha":111,"./util/assertString":184,"./util/includes":185,"./util/merge":186}],129:[function(require,module,exports){
+},{"./alpha":113,"./util/assertString":186,"./util/includes":187,"./util/merge":188}],131:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23957,7 +24013,7 @@ function isDivisibleBy(str, num) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./toFloat":180,"./util/assertString":184}],130:[function(require,module,exports){
+},{"./toFloat":182,"./util/assertString":186}],132:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24155,7 +24211,7 @@ function isEmail(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./isByteLength":124,"./isFQDN":132,"./isIP":139,"./util/assertString":184,"./util/merge":186}],131:[function(require,module,exports){
+},{"./isByteLength":126,"./isFQDN":134,"./isIP":141,"./util/assertString":186,"./util/merge":188}],133:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24181,7 +24237,7 @@ function isEmpty(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184,"./util/merge":186}],132:[function(require,module,exports){
+},{"./util/assertString":186,"./util/merge":188}],134:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24257,7 +24313,7 @@ function isFQDN(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184,"./util/merge":186}],133:[function(require,module,exports){
+},{"./util/assertString":186,"./util/merge":188}],135:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24287,7 +24343,7 @@ function isFloat(str, options) {
 
 var locales = Object.keys(_alpha.decimal);
 exports.locales = locales;
-},{"./alpha":111,"./util/assertString":184}],134:[function(require,module,exports){
+},{"./alpha":113,"./util/assertString":186}],136:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24307,7 +24363,7 @@ function isFullWidth(str) {
   (0, _assertString.default)(str);
   return fullWidth.test(str);
 }
-},{"./util/assertString":184}],135:[function(require,module,exports){
+},{"./util/assertString":186}],137:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24327,7 +24383,7 @@ function isHalfWidth(str) {
   (0, _assertString.default)(str);
   return halfWidth.test(str);
 }
-},{"./util/assertString":184}],136:[function(require,module,exports){
+},{"./util/assertString":186}],138:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24363,7 +24419,7 @@ function isHash(str, algorithm) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],137:[function(require,module,exports){
+},{"./util/assertString":186}],139:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24384,7 +24440,7 @@ function isHexColor(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],138:[function(require,module,exports){
+},{"./util/assertString":186}],140:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24405,7 +24461,7 @@ function isHexadecimal(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],139:[function(require,module,exports){
+},{"./util/assertString":186}],141:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24492,7 +24548,7 @@ function isIP(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],140:[function(require,module,exports){
+},{"./util/assertString":186}],142:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24530,7 +24586,7 @@ function isIPRange(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./isIP":139,"./util/assertString":184}],141:[function(require,module,exports){
+},{"./isIP":141,"./util/assertString":186}],143:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24596,7 +24652,7 @@ function isISBN(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],142:[function(require,module,exports){
+},{"./util/assertString":186}],144:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24649,7 +24705,7 @@ function isISIN(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],143:[function(require,module,exports){
+},{"./util/assertString":186}],145:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24673,7 +24729,7 @@ function isISO31661Alpha2(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184,"./util/includes":185}],144:[function(require,module,exports){
+},{"./util/assertString":186,"./util/includes":187}],146:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24697,7 +24753,7 @@ function isISO31661Alpha3(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184,"./util/includes":185}],145:[function(require,module,exports){
+},{"./util/assertString":186,"./util/includes":187}],147:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24755,7 +24811,7 @@ function isISO8601(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],146:[function(require,module,exports){
+},{"./util/assertString":186}],148:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24777,7 +24833,7 @@ function isISRC(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],147:[function(require,module,exports){
+},{"./util/assertString":186}],149:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24815,7 +24871,7 @@ function isISSN(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],148:[function(require,module,exports){
+},{"./util/assertString":186}],150:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24943,7 +24999,7 @@ function isIdentityCard(str, locale) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],149:[function(require,module,exports){
+},{"./util/assertString":186}],151:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24986,7 +25042,7 @@ function isIn(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184,"./util/toString":187}],150:[function(require,module,exports){
+},{"./util/assertString":186,"./util/toString":189}],152:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25017,7 +25073,7 @@ function isInt(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],151:[function(require,module,exports){
+},{"./util/assertString":186}],153:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25046,7 +25102,7 @@ function isJSON(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],152:[function(require,module,exports){
+},{"./util/assertString":186}],154:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25067,7 +25123,7 @@ function isJWT(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],153:[function(require,module,exports){
+},{"./util/assertString":186}],155:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25091,7 +25147,7 @@ function _default(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],154:[function(require,module,exports){
+},{"./util/assertString":186}],156:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25127,7 +25183,7 @@ function isLength(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],155:[function(require,module,exports){
+},{"./util/assertString":186}],157:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25146,7 +25202,7 @@ function isLowercase(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],156:[function(require,module,exports){
+},{"./util/assertString":186}],158:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25173,7 +25229,7 @@ function isMACAddress(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],157:[function(require,module,exports){
+},{"./util/assertString":186}],159:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25194,7 +25250,7 @@ function isMD5(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],158:[function(require,module,exports){
+},{"./util/assertString":186}],160:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25215,7 +25271,7 @@ function isMagnetURI(url) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],159:[function(require,module,exports){
+},{"./util/assertString":186}],161:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25267,7 +25323,7 @@ function isMimeType(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],160:[function(require,module,exports){
+},{"./util/assertString":186}],162:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25409,7 +25465,7 @@ function isMobilePhone(str, locale, options) {
 
 var locales = Object.keys(phones);
 exports.locales = locales;
-},{"./util/assertString":184}],161:[function(require,module,exports){
+},{"./util/assertString":186}],163:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25430,7 +25486,7 @@ function isMongoId(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./isHexadecimal":138,"./util/assertString":184}],162:[function(require,module,exports){
+},{"./isHexadecimal":140,"./util/assertString":186}],164:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25453,7 +25509,7 @@ function isMultibyte(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],163:[function(require,module,exports){
+},{"./util/assertString":186}],165:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25480,7 +25536,7 @@ function isNumeric(str, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],164:[function(require,module,exports){
+},{"./util/assertString":186}],166:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25501,7 +25557,7 @@ function isPort(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./isInt":150}],165:[function(require,module,exports){
+},{"./isInt":152}],167:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25598,7 +25654,7 @@ function _default(str, locale) {
 
   throw new Error("Invalid locale '".concat(locale, "'"));
 }
-},{"./util/assertString":184}],166:[function(require,module,exports){
+},{"./util/assertString":186}],168:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25632,7 +25688,7 @@ function isRFC3339(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],167:[function(require,module,exports){
+},{"./util/assertString":186}],169:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25653,7 +25709,7 @@ function isSurrogatePair(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],168:[function(require,module,exports){
+},{"./util/assertString":186}],170:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25806,7 +25862,7 @@ function isURL(url, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./isFQDN":132,"./isIP":139,"./util/assertString":184,"./util/merge":186}],169:[function(require,module,exports){
+},{"./isFQDN":134,"./isIP":141,"./util/assertString":186,"./util/merge":188}],171:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25834,7 +25890,7 @@ function isUUID(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],170:[function(require,module,exports){
+},{"./util/assertString":186}],172:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25853,7 +25909,7 @@ function isUppercase(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],171:[function(require,module,exports){
+},{"./util/assertString":186}],173:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25876,7 +25932,7 @@ function isVariableWidth(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./isFullWidth":134,"./isHalfWidth":135,"./util/assertString":184}],172:[function(require,module,exports){
+},{"./isFullWidth":136,"./isHalfWidth":137,"./util/assertString":186}],174:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25902,7 +25958,7 @@ function isWhitelisted(str, chars) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],173:[function(require,module,exports){
+},{"./util/assertString":186}],175:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25923,7 +25979,7 @@ function ltrim(str, chars) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],174:[function(require,module,exports){
+},{"./util/assertString":186}],176:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25947,7 +26003,7 @@ function matches(str, pattern, modifiers) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],175:[function(require,module,exports){
+},{"./util/assertString":186}],177:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26099,7 +26155,7 @@ function normalizeEmail(email, options) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/merge":186}],176:[function(require,module,exports){
+},{"./util/merge":188}],178:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26120,7 +26176,7 @@ function rtrim(str, chars) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],177:[function(require,module,exports){
+},{"./util/assertString":186}],179:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26142,7 +26198,7 @@ function stripLow(str, keep_new_lines) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./blacklist":112,"./util/assertString":184}],178:[function(require,module,exports){
+},{"./blacklist":114,"./util/assertString":186}],180:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26166,7 +26222,7 @@ function toBoolean(str, strict) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],179:[function(require,module,exports){
+},{"./util/assertString":186}],181:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26186,7 +26242,7 @@ function toDate(date) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],180:[function(require,module,exports){
+},{"./util/assertString":186}],182:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26205,7 +26261,7 @@ function toFloat(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],181:[function(require,module,exports){
+},{"./util/assertString":186}],183:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26224,7 +26280,7 @@ function toInt(str, radix) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],182:[function(require,module,exports){
+},{"./util/assertString":186}],184:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26244,7 +26300,7 @@ function trim(str, chars) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./ltrim":173,"./rtrim":176}],183:[function(require,module,exports){
+},{"./ltrim":175,"./rtrim":178}],185:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26263,7 +26319,7 @@ function unescape(str) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],184:[function(require,module,exports){
+},{"./util/assertString":186}],186:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26297,7 +26353,7 @@ function assertString(input) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{}],185:[function(require,module,exports){
+},{}],187:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26315,7 +26371,7 @@ var _default = includes;
 exports.default = _default;
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{}],186:[function(require,module,exports){
+},{}],188:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26338,7 +26394,7 @@ function merge() {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{}],187:[function(require,module,exports){
+},{}],189:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26364,7 +26420,7 @@ function toString(input) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{}],188:[function(require,module,exports){
+},{}],190:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26383,7 +26439,7 @@ function whitelist(str, chars) {
 
 module.exports = exports.default;
 module.exports.default = exports.default;
-},{"./util/assertString":184}],189:[function(require,module,exports){
+},{"./util/assertString":186}],191:[function(require,module,exports){
 module.exports = extend
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -26404,7 +26460,7 @@ function extend() {
     return target
 }
 
-},{}],190:[function(require,module,exports){
+},{}],192:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -26466,7 +26522,7 @@ module.exports = {
 
 };
 
-},{}],191:[function(require,module,exports){
+},{}],193:[function(require,module,exports){
 /*jshint maxlen: false*/
 
 var validator = require("validator");
@@ -26597,7 +26653,7 @@ var FormatValidators = {
 
 module.exports = FormatValidators;
 
-},{"validator":110}],192:[function(require,module,exports){
+},{"validator":112}],194:[function(require,module,exports){
 "use strict";
 
 var FormatValidators = require("./FormatValidators"),
@@ -26621,7 +26677,9 @@ var JsonValidators = {
             return;
         }
 
-        if (Utils.whatIs(json / schema.multipleOf) !== "integer") {
+        var stringMultipleOf = String(schema.multipleOf);
+        var scale = Math.pow(10, stringMultipleOf.length - stringMultipleOf.indexOf(".") - 1);
+        if (Utils.whatIs((json * scale) / (schema.multipleOf * scale)) !== "integer") {
             report.addError("MULTIPLE_OF", [json, schema.multipleOf], null, schema);
         }
     },
@@ -27218,7 +27276,7 @@ exports.validate = function (report, schema, json) {
 
 };
 
-},{"./FormatValidators":191,"./Report":194,"./Utils":198}],193:[function(require,module,exports){
+},{"./FormatValidators":193,"./Report":196,"./Utils":200}],195:[function(require,module,exports){
 // Number.isFinite polyfill
 // http://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.isfinite
 if (typeof Number.isFinite !== "function") {
@@ -27236,7 +27294,7 @@ if (typeof Number.isFinite !== "function") {
     };
 }
 
-},{}],194:[function(require,module,exports){
+},{}],196:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -27540,7 +27598,7 @@ module.exports = Report;
 
 }).call(this,require('_process'))
 
-},{"./Errors":190,"./Utils":198,"_process":100,"lodash.get":88}],195:[function(require,module,exports){
+},{"./Errors":192,"./Utils":200,"_process":102,"lodash.get":88}],197:[function(require,module,exports){
 "use strict";
 
 var isequal             = require("lodash.isequal");
@@ -27730,7 +27788,7 @@ exports.getSchemaByUri = function (report, uri, root) {
 
 exports.getRemotePath = getRemotePath;
 
-},{"./Report":194,"./SchemaCompilation":196,"./SchemaValidation":197,"./Utils":198,"lodash.isequal":89}],196:[function(require,module,exports){
+},{"./Report":196,"./SchemaCompilation":198,"./SchemaValidation":199,"./Utils":200,"lodash.isequal":89}],198:[function(require,module,exports){
 "use strict";
 
 var Report      = require("./Report");
@@ -28031,7 +28089,7 @@ exports.compileSchema = function (report, schema) {
 
 };
 
-},{"./Report":194,"./SchemaCache":195,"./Utils":198}],197:[function(require,module,exports){
+},{"./Report":196,"./SchemaCache":197,"./Utils":200}],199:[function(require,module,exports){
 "use strict";
 
 var FormatValidators = require("./FormatValidators"),
@@ -28652,7 +28710,7 @@ exports.validateSchema = function (report, schema) {
     return isValid;
 };
 
-},{"./FormatValidators":191,"./JsonValidation":192,"./Report":194,"./Utils":198}],198:[function(require,module,exports){
+},{"./FormatValidators":193,"./JsonValidation":194,"./Report":196,"./Utils":200}],200:[function(require,module,exports){
 "use strict";
 
 exports.jsonSymbol = Symbol.for("z-schema/json");
@@ -28928,7 +28986,7 @@ exports.ucs2decode = function (string) {
 };
 /*jshint +W016*/
 
-},{}],199:[function(require,module,exports){
+},{}],201:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -29342,7 +29400,7 @@ module.exports = ZSchema;
 
 }).call(this,require('_process'))
 
-},{"./FormatValidators":191,"./JsonValidation":192,"./Polyfills":193,"./Report":194,"./SchemaCache":195,"./SchemaCompilation":196,"./SchemaValidation":197,"./Utils":198,"./schemas/hyper-schema.json":200,"./schemas/schema.json":201,"_process":100,"lodash.get":88}],200:[function(require,module,exports){
+},{"./FormatValidators":193,"./JsonValidation":194,"./Polyfills":195,"./Report":196,"./SchemaCache":197,"./SchemaCompilation":198,"./SchemaValidation":199,"./Utils":200,"./schemas/hyper-schema.json":202,"./schemas/schema.json":203,"_process":102,"lodash.get":88}],202:[function(require,module,exports){
 module.exports={
     "$schema": "http://json-schema.org/draft-04/hyper-schema#",
     "id": "http://json-schema.org/draft-04/hyper-schema#",
@@ -29502,7 +29560,7 @@ module.exports={
 }
 
 
-},{}],201:[function(require,module,exports){
+},{}],203:[function(require,module,exports){
 module.exports={
     "id": "http://json-schema.org/draft-04/schema#",
     "$schema": "http://json-schema.org/draft-04/schema#",
@@ -29655,7 +29713,7 @@ module.exports={
     "default": {}
 }
 
-},{}],202:[function(require,module,exports){
+},{}],204:[function(require,module,exports){
 "use strict";
 
 let debug = location.hostname === "localhost";
@@ -29720,7 +29778,7 @@ analytics.trackError = function (err) {
   }
 };
 
-},{}],203:[function(require,module,exports){
+},{}],205:[function(require,module,exports){
 "use strict";
 
 const form = require("./form");
@@ -29906,7 +29964,7 @@ function getCheckedAndUnchecked (checkboxes) {
   return { checked, unchecked };
 }
 
-},{"./analytics":202,"./form":205}],204:[function(require,module,exports){
+},{"./analytics":204,"./form":207}],206:[function(require,module,exports){
 "use strict";
 
 const form = require("./form");
@@ -30069,7 +30127,7 @@ function toText (obj) {
   }
 }
 
-},{"./form":205}],205:[function(require,module,exports){
+},{"./form":207}],207:[function(require,module,exports){
 "use strict";
 
 const SwaggerParser = require("../../../");
@@ -30193,7 +30251,7 @@ form.getAPI = function () {
   }
 };
 
-},{"../../../":1}],206:[function(require,module,exports){
+},{"../../../":1}],208:[function(require,module,exports){
 "use strict";
 
 const form = require("./form");
@@ -30214,7 +30272,7 @@ $(() => {
   analytics();
 });
 
-},{"./analytics":202,"./dropdowns":203,"./editors":204,"./form":205,"./parser":207,"./querystring":208,"./samples":209}],207:[function(require,module,exports){
+},{"./analytics":204,"./dropdowns":205,"./editors":206,"./form":207,"./parser":209,"./querystring":210,"./samples":211}],209:[function(require,module,exports){
 "use strict";
 
 const form = require("./form");
@@ -30285,7 +30343,7 @@ function parseSwagger () {
   }
 }
 
-},{"../../../":1,"./analytics":202,"./editors":204,"./form":205,"ono":91}],208:[function(require,module,exports){
+},{"../../../":1,"./analytics":204,"./editors":206,"./form":207,"ono":92}],210:[function(require,module,exports){
 "use strict";
 
 const qs = require("querystring");
@@ -30371,7 +30429,7 @@ function setBookmarkURL () {
   form.bookmark.attr("href", bookmark);
 }
 
-},{"./form":205,"querystring":103}],209:[function(require,module,exports){
+},{"./form":207,"querystring":105}],211:[function(require,module,exports){
 "use strict";
 
 const form = require("./form");
@@ -30477,5 +30535,5 @@ samples.text =
   "  errorModel:\n" +
   "    $ref: sample/error.json\n";
 
-},{"./form":205}]},{},[206])
+},{"./form":207}]},{},[208])
 //# sourceMappingURL=bundle.js.map
