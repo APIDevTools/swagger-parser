@@ -73,6 +73,13 @@ function getKnownApiErrors () {
       whatToDo: "ignore",
     },
 
+    // Some of Google's APIs have query parameters with conflicting names, which is invalid
+    {
+      api: "googleapis.com",
+      error: "Array items are not unique",
+      whatToDo: "ignore",
+    },
+
     // APIs.guru is missing one of Nexmo's API definitions, which causes a 404 error
     {
       api: "nexmo.com",
