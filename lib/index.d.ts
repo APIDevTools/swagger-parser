@@ -5,14 +5,14 @@ export = SwaggerParser
 /**
  * This is the default export of Swagger Parser. You can creates instances of this class using new SwaggerParser(), or you can just call its static methods.
  *
- * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md
+ * See https://apitools.dev/swagger-parser/docs/swagger-parser.html
  */
 declare class SwaggerParser {
 
   /**
    * The `api` property is the parsed/bundled/dereferenced OpenAPI definition. This is the same value that is passed to the callback function (or Promise) when calling the parse, bundle, or dereference methods.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#api
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#api
    */
   api: OpenAPI.Document;
 
@@ -21,7 +21,7 @@ declare class SwaggerParser {
    *
    * This is the same value that is passed to the callback function (or Promise) when calling the `resolve` method.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#refs
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#refs
    */
   $refs: SwaggerParser.$Refs;
 
@@ -29,7 +29,7 @@ declare class SwaggerParser {
    * Parses, dereferences, and validates the given Swagger API.
    * Depending on the options, validation can include JSON Schema validation and/or Swagger Spec validation.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#validateapi-options-callback
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#validateapi-options-callback
    *
    * @param api An OpenAPI definition, or the file path or URL of an OpenAPI definition. See the `parse` method for more info.
    * @param options (optional)
@@ -46,7 +46,7 @@ declare class SwaggerParser {
    * Parses, dereferences, and validates the given Swagger API.
    * Depending on the options, validation can include JSON Schema validation and/or Swagger Spec validation.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#validateapi-options-callback
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#validateapi-options-callback
    *
    * @param api An OpenAPI definition, or the file path or URL of an OpenAPI definition. See the `parse` method for more info.
    * @param options (optional)
@@ -64,7 +64,7 @@ declare class SwaggerParser {
    *
    * The dereference method maintains object reference equality, meaning that all `$ref` pointers that point to the same object will be replaced with references to the same object. Again, this is great for programmatic usage, but it does introduce the risk of circular references, so be careful if you intend to serialize the API definition using `JSON.stringify()`. Consider using the bundle method instead, which does not create circular references.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#dereferenceapi-options-callback
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#dereferenceapi-options-callback
    *
    * @param api An OpenAPI definition, or the file path or URL of an OpenAPI definition. See the `parse` method for more info.
    * @param options (optional)
@@ -82,7 +82,7 @@ declare class SwaggerParser {
    *
    * The dereference method maintains object reference equality, meaning that all `$ref` pointers that point to the same object will be replaced with references to the same object. Again, this is great for programmatic usage, but it does introduce the risk of circular references, so be careful if you intend to serialize the API definition using `JSON.stringify()`. Consider using the bundle method instead, which does not create circular references.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#dereferenceapi-options-callback
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#dereferenceapi-options-callback
    *
    * @param api An OpenAPI definition, or the file path or URL of an OpenAPI definition. See the `parse` method for more info.
    * @param options (optional)
@@ -100,7 +100,7 @@ declare class SwaggerParser {
    *
    * This also eliminates the risk of circular references, so the API definition can be safely serialized using `JSON.stringify()`.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#bundleapi-options-callback
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#bundleapi-options-callback
    *
    * @param api An OpenAPI definition, or the file path or URL of an OpenAPI definition. See the `parse` method for more info.
    * @param options (optional)
@@ -118,7 +118,7 @@ declare class SwaggerParser {
    *
    * This also eliminates the risk of circular references, so the API definition can be safely serialized using `JSON.stringify()`.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#bundleapi-options-callback
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#bundleapi-options-callback
    *
    * @param api An OpenAPI definition, or the file path or URL of an OpenAPI definition. See the `parse` method for more info.
    * @param options (optional)
@@ -136,7 +136,7 @@ declare class SwaggerParser {
    *
    * Parses the given OpenAPI definition file (in JSON or YAML format), and returns it as a JavaScript object. This method `does not` resolve `$ref` pointers or dereference anything. It simply parses one file and returns it.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#parseapi-options-callback
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#parseapi-options-callback
    *
    * @param api An OpenAPI definition, or the file path or URL of an OpenAPI definition. The path can be absolute or relative. In Node, the path is relative to `process.cwd()`. In the browser, it's relative to the URL of the page.
    * @param options (optional)
@@ -154,7 +154,7 @@ declare class SwaggerParser {
    *
    * Parses the given OpenAPI definition file (in JSON or YAML format), and returns it as a JavaScript object. This method `does not` resolve `$ref` pointers or dereference anything. It simply parses one file and returns it.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#parseapi-options-callback
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#parseapi-options-callback
    *
    * @param api An OpenAPI definition, or the file path or URL of an OpenAPI definition. The path can be absolute or relative. In Node, the path is relative to `process.cwd()`. In the browser, it's relative to the URL of the page.
    * @param options (optional)
@@ -172,7 +172,7 @@ declare class SwaggerParser {
    *
    * Resolves all JSON references (`$ref` pointers) in the given OpenAPI definition file. If it references any other files/URLs, then they will be downloaded and resolved as well. This method **does not** dereference anything. It simply gives you a `$Refs` object, which is a map of all the resolved references and their values.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#resolveapi-options-callback
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#resolveapi-options-callback
    *
    * @param api An OpenAPI definition, or the file path or URL of an OpenAPI definition. See the `parse` method for more info.
    * @param options (optional)
@@ -190,7 +190,7 @@ declare class SwaggerParser {
    *
    * Resolves all JSON references (`$ref` pointers) in the given OpenAPI definition file. If it references any other files/URLs, then they will be downloaded and resolved as well. This method **does not** dereference anything. It simply gives you a `$Refs` object, which is a map of all the resolved references and their values.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#resolveapi-options-callback
+   * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#resolveapi-options-callback
    *
    * @param api An OpenAPI definition, or the file path or URL of an OpenAPI definition. See the `parse` method for more info.
    * @param options (optional)
@@ -210,7 +210,7 @@ declare namespace SwaggerParser {
   export type $RefsCallback = (err: Error | null, $refs?: $Refs) => any;
 
   /**
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/options.md
+   * See https://apitools.dev/swagger-parser/docs/options.html
    */
   export type Options = {
 
@@ -380,20 +380,20 @@ declare namespace SwaggerParser {
    *
    * This object is a map of JSON References and their resolved values. It also has several convenient helper methods that make it easy for you to navigate and manipulate the JSON References.
    *
-   * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/refs.md
+   * See https://apitools.dev/swagger-parser/docs/refs.html
    */
   export class $Refs {
     /**
      * This property is true if the API definition contains any circular references. You may want to check this property before serializing the dereferenced API definition as JSON, since JSON.stringify() does not support circular references by default.
      *
-     * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/refs.md#circular
+     * See https://apitools.dev/swagger-parser/docs/refs.html#circular
      */
     circular: boolean
 
     /**
      * Returns the paths/URLs of all the files in your API definition (including the main API definition file).
      *
-     * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/refs.md#pathstypes
+     * See https://apitools.dev/swagger-parser/docs/refs.html#pathstypes
      *
      * @param types (optional) Optionally only return certain types of paths ("file", "http", etc.)
      */
@@ -402,7 +402,7 @@ declare namespace SwaggerParser {
     /**
      * Returns a map of paths/URLs and their correspond values.
      *
-     * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/refs.md#valuestypes
+     * See https://apitools.dev/swagger-parser/docs/refs.html#valuestypes
      *
      * @param types (optional) Optionally only return values from certain locations ("file", "http", etc.)
      */
@@ -411,7 +411,7 @@ declare namespace SwaggerParser {
     /**
      * Returns `true` if the given path exists in the OpenAPI definition; otherwise, returns `false`
      *
-     * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/refs.md#existsref
+     * See https://apitools.dev/swagger-parser/docs/refs.html#existsref
      *
      * @param $ref The JSON Reference path, optionally with a JSON Pointer in the hash
      */
@@ -420,7 +420,7 @@ declare namespace SwaggerParser {
     /**
      * Gets the value at the given path in the OpenAPI definition. Throws an error if the path does not exist.
      *
-     * See https://github.com/APIDevTools/swagger-parser/blob/master/docs/refs.md#getref
+     * See https://apitools.dev/swagger-parser/docs/refs.html#getref
      *
      * @param $ref The JSON Reference path, optionally with a JSON Pointer in the hash
      */
