@@ -52,31 +52,30 @@
   },
   "devDependencies": {
     "@babel/polyfill": "^7.7.0",
+    "@jsdevtools/eslint-config-modular": "^8.0.0",
+    "@jsdevtools/host-environment": "^2.0.2",
+    "@jsdevtools/karma-config": "^3.1.2",
+    "@jsdevtools/version-bump-prompt": "^6.0.2",
     "@types/node": "^13.1.2",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.9",
     "eslint": "^6.8.0",
-    "eslint-config-modular": "^7.0.1",
-    "host-environment": "^1.1.4",
     "karma": "^4.3.0",
     "karma-cli": "^2.0.0",
-    "karma-config": "^1.5.8",
-    "mocha": "^6.2.1",
+    "mocha": "^7.1.0",
     "node-fetch": "^2.6.0",
     "node-sass": "^4.12.0",
     "npm-check": "^5.9.0",
     "nyc": "^15.0.0",
-    "simplifyify": "^7.0.6",
-    "typescript": "^3.7.4",
-    "version-bump-prompt": "^5.0.7"
+    "simplifyify": "^8.0.0",
+    "typescript": "^3.7.4"
   },
   "dependencies": {
     "call-me-maybe": "^1.0.1",
-    "json-schema-ref-parser": "^7.1.3",
-    "ono": "^6.0.0",
-    "openapi-schemas": "^1.0.2",
+    "@apidevtools/json-schema-ref-parser": "^8.0.0",
+    "@jsdevtools/ono": "^7.1.0",
+    "@apidevtools/openapi-schemas": "^2.0.0",
     "openapi-types": "^1.3.5",
-    "swagger-methods": "^2.0.1",
+    "@apidevtools/swagger-methods": "^3.0.0",
     "z-schema": "^4.2.2"
   }
 }
