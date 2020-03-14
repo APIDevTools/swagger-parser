@@ -1,6 +1,6 @@
 "use strict";
 
-const { host } = require("host-environment");
+const { host } = require("@jsdevtools/host-environment");
 const { expect } = require("chai");
 const SwaggerParser = require("../../..");
 const helper = require("../../utils/helper");

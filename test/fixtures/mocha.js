@@ -1,6 +1,6 @@
 "use strict";
 
-const { host } = require("host-environment");
+const { host } = require("@jsdevtools/host-environment");
 
 if (host.browser) {
   mocha.setup("bdd");

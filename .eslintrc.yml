@@ -5,11 +5,11 @@
 root: true
 
 extends:
-  - modular/best-practices
-  - modular/style
-  - modular/browser
-  - modular/node
-  - modular/es6
+  - "@jsdevtools/modular/best-practices"
+  - "@jsdevtools/modular/style"
+  - "@jsdevtools/modular/browser"
+  - "@jsdevtools/modular/node"
+  - "@jsdevtools/modular/es6"
 
 globals:
   Promise: false

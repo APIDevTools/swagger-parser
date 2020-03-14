@@ -1,7 +1,7 @@
 "use strict";
 
 const SwaggerParser = require("../..");
-const { host } = require("host-environment");
+const { host } = require("@jsdevtools/host-environment");
 const { expect } = require("chai");
 const path = require("./path");
 

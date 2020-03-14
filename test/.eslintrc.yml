@@ -3,4 +3,4 @@
 # https://jstools.dev/eslint-config-modular/
 
 extends:
-  - modular/test
+  - "@jsdevtools/modular/test"
