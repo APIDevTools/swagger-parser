@@ -49,7 +49,7 @@
     "coverage:browser": "npm run test:browser -- --coverage",
     "upgrade": "npm-check -u && npm audit fix",
     "bump": "bump --tag --push --all",
-    "release": "npm run upgrade && npm run build && npm test && npm run bump"
+    "release": "npm run upgrade && npm run clean && npm test && npm run bump"
   },
   "devDependencies": {
     "@babel/polyfill": "^7.7.0",

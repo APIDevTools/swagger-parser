@@ -1,0 +1,10 @@
+# NYC config
+# https://github.com/istanbuljs/nyc#configuration-files
+
+extension:
+  - .js
+  - .ts
+
+reporter:
+  - text
+  - lcov
