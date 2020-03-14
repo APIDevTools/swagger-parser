@@ -3,13 +3,13 @@
 
 const validateSchema = require("./validators/schema");
 const validateSpec = require("./validators/spec");
-const normalizeArgs = require("json-schema-ref-parser/lib/normalize-args");
+const normalizeArgs = require("@apidevtools/json-schema-ref-parser/lib/normalize-args");
 const util = require("./util");
 const Options = require("./options");
 const maybe = require("call-me-maybe");
-const { ono } = require("ono");
-const $RefParser = require("json-schema-ref-parser");
-const dereference = require("json-schema-ref-parser/lib/dereference");
+const { ono } = require("@jsdevtools/ono");
+const $RefParser = require("@apidevtools/json-schema-ref-parser");
+const dereference = require("@apidevtools/json-schema-ref-parser/lib/dereference");
 
 module.exports = SwaggerParser;
 
@@ -187,10 +187,10 @@ SwaggerParser.prototype.validate = async function (path, api, options, callback)
  * @typedef {{swagger: string, info: {}, paths: {}}} SwaggerObject
  */
 
-},{"./options":2,"./util":3,"./validators/schema":4,"./validators/spec":5,"call-me-maybe":34,"json-schema-ref-parser":71,"json-schema-ref-parser/lib/dereference":70,"json-schema-ref-parser/lib/normalize-args":72,"ono":92}],2:[function(require,module,exports){
+},{"./options":2,"./util":3,"./validators/schema":4,"./validators/spec":5,"@apidevtools/json-schema-ref-parser":8,"@apidevtools/json-schema-ref-parser/lib/dereference":7,"@apidevtools/json-schema-ref-parser/lib/normalize-args":9,"@jsdevtools/ono":32,"call-me-maybe":66}],2:[function(require,module,exports){
 "use strict";
 
-const $RefParserOptions = require("json-schema-ref-parser/lib/options");
+const $RefParserOptions = require("@apidevtools/json-schema-ref-parser/lib/options");
 const schemaValidator = require("./validators/schema");
 const specValidator = require("./validators/spec");
 const util = require("util");
@@ -224,7 +224,7 @@ ParserOptions.defaults = {
 
 util.inherits(ParserOptions, $RefParserOptions);
 
-},{"./validators/schema":4,"./validators/spec":5,"json-schema-ref-parser/lib/options":73,"util":32}],3:[function(require,module,exports){
+},{"./validators/schema":4,"./validators/spec":5,"@apidevtools/json-schema-ref-parser/lib/options":10,"util":64}],3:[function(require,module,exports){
 "use strict";
 
 const util = require("util");
@@ -237,13 +237,13 @@ exports.inherits = util.inherits;
  */
 exports.swaggerParamRegExp = /\{([^/}]+)}/g;
 
-},{"util":32}],4:[function(require,module,exports){
+},{"util":64}],4:[function(require,module,exports){
 "use strict";
 
 const util = require("../util");
-const { ono } = require("ono");
+const { ono } = require("@jsdevtools/ono");
 const ZSchema = require("z-schema");
-const { openapi } = require("openapi-schemas");
+const { openapi } = require("@apidevtools/openapi-schemas");
 
 module.exports = validateSchema;
 
@@ -309,12 +309,12 @@ function formatZSchemaError (errors, indent) {
   return message;
 }
 
-},{"../util":3,"ono":92,"openapi-schemas":98,"z-schema":201}],5:[function(require,module,exports){
+},{"../util":3,"@apidevtools/openapi-schemas":25,"@jsdevtools/ono":32,"z-schema":201}],5:[function(require,module,exports){
 "use strict";
 
 const util = require("../util");
-const { ono } = require("ono");
-const swaggerMethods = require("swagger-methods");
+const { ono } = require("@jsdevtools/ono");
+const swaggerMethods = require("@apidevtools/swagger-methods");
 const primitiveTypes = ["array", "boolean", "integer", "number", "string"];
 const schemaTypes = ["array", "boolean", "integer", "number", "string", "object", "null", undefined];
 
@@ -655,7 +655,6537 @@ function validateRequiredPropertiesExist (schema, schemaId) {
   }
 }
 
-},{"../util":3,"ono":92,"swagger-methods":108}],6:[function(require,module,exports){
+},{"../util":3,"@apidevtools/swagger-methods":29,"@jsdevtools/ono":32}],6:[function(require,module,exports){
+"use strict";
+
+const $Ref = require("./ref");
+const Pointer = require("./pointer");
+const url = require("./util/url");
+
+module.exports = bundle;
+
+/**
+ * Bundles all external JSON references into the main JSON schema, thus resulting in a schema that
+ * only has *internal* references, not any *external* references.
+ * This method mutates the JSON schema object, adding new references and re-mapping existing ones.
+ *
+ * @param {$RefParser} parser
+ * @param {$RefParserOptions} options
+ */
+function bundle (parser, options) {
+  // console.log('Bundling $ref pointers in %s', parser.$refs._root$Ref.path);
+
+  // Build an inventory of all $ref pointers in the JSON Schema
+  let inventory = [];
+  crawl(parser, "schema", parser.$refs._root$Ref.path + "#", "#", 0, inventory, parser.$refs, options);
+
+  // Remap all $ref pointers
+  remap(inventory);
+}
+
+/**
+ * Recursively crawls the given value, and inventories all JSON references.
+ *
+ * @param {object} parent - The object containing the value to crawl. If the value is not an object or array, it will be ignored.
+ * @param {string} key - The property key of `parent` to be crawled
+ * @param {string} path - The full path of the property being crawled, possibly with a JSON Pointer in the hash
+ * @param {string} pathFromRoot - The path of the property being crawled, from the schema root
+ * @param {object[]} inventory - An array of already-inventoried $ref pointers
+ * @param {$Refs} $refs
+ * @param {$RefParserOptions} options
+ */
+function crawl (parent, key, path, pathFromRoot, indirections, inventory, $refs, options) {
+  let obj = key === null ? parent : parent[key];
+
+  if (obj && typeof obj === "object") {
+    if ($Ref.isAllowed$Ref(obj)) {
+      inventory$Ref(parent, key, path, pathFromRoot, indirections, inventory, $refs, options);
+    }
+    else {
+      // Crawl the object in a specific order that's optimized for bundling.
+      // This is important because it determines how `pathFromRoot` gets built,
+      // which later determines which keys get dereferenced and which ones get remapped
+      let keys = Object.keys(obj)
+        .sort((a, b) => {
+          // Most people will expect references to be bundled into the the "definitions" property,
+          // so we always crawl that property first, if it exists.
+          if (a === "definitions") {
+            return -1;
+          }
+          else if (b === "definitions") {
+            return 1;
+          }
+          else {
+            // Otherwise, crawl the keys based on their length.
+            // This produces the shortest possible bundled references
+            return a.length - b.length;
+          }
+        });
+
+      // eslint-disable-next-line no-shadow
+      for (let key of keys) {
+        let keyPath = Pointer.join(path, key);
+        let keyPathFromRoot = Pointer.join(pathFromRoot, key);
+        let value = obj[key];
+
+        if ($Ref.isAllowed$Ref(value)) {
+          inventory$Ref(obj, key, path, keyPathFromRoot, indirections, inventory, $refs, options);
+        }
+        else {
+          crawl(obj, key, keyPath, keyPathFromRoot, indirections, inventory, $refs, options);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Inventories the given JSON Reference (i.e. records detailed information about it so we can
+ * optimize all $refs in the schema), and then crawls the resolved value.
+ *
+ * @param {object} $refParent - The object that contains a JSON Reference as one of its keys
+ * @param {string} $refKey - The key in `$refParent` that is a JSON Reference
+ * @param {string} path - The full path of the JSON Reference at `$refKey`, possibly with a JSON Pointer in the hash
+ * @param {string} pathFromRoot - The path of the JSON Reference at `$refKey`, from the schema root
+ * @param {object[]} inventory - An array of already-inventoried $ref pointers
+ * @param {$Refs} $refs
+ * @param {$RefParserOptions} options
+ */
+function inventory$Ref ($refParent, $refKey, path, pathFromRoot, indirections, inventory, $refs, options) {
+  let $ref = $refKey === null ? $refParent : $refParent[$refKey];
+  let $refPath = url.resolve(path, $ref.$ref);
+  let pointer = $refs._resolve($refPath, options);
+  let depth = Pointer.parse(pathFromRoot).length;
+  let file = url.stripHash(pointer.path);
+  let hash = url.getHash(pointer.path);
+  let external = file !== $refs._root$Ref.path;
+  let extended = $Ref.isExtended$Ref($ref);
+  indirections += pointer.indirections;
+
+  let existingEntry = findInInventory(inventory, $refParent, $refKey);
+  if (existingEntry) {
+    // This $Ref has already been inventoried, so we don't need to process it again
+    if (depth < existingEntry.depth || indirections < existingEntry.indirections) {
+      removeFromInventory(inventory, existingEntry);
+    }
+    else {
+      return;
+    }
+  }
+
+  inventory.push({
+    $ref,                   // The JSON Reference (e.g. {$ref: string})
+    parent: $refParent,           // The object that contains this $ref pointer
+    key: $refKey,                 // The key in `parent` that is the $ref pointer
+    pathFromRoot,   // The path to the $ref pointer, from the JSON Schema root
+    depth,                 // How far from the JSON Schema root is this $ref pointer?
+    file,                   // The file that the $ref pointer resolves to
+    hash,                   // The hash within `file` that the $ref pointer resolves to
+    value: pointer.value,         // The resolved value of the $ref pointer
+    circular: pointer.circular,   // Is this $ref pointer DIRECTLY circular? (i.e. it references itself)
+    extended,           // Does this $ref extend its resolved value? (i.e. it has extra properties, in addition to "$ref")
+    external,           // Does this $ref pointer point to a file other than the main JSON Schema file?
+    indirections,   // The number of indirect references that were traversed to resolve the value
+  });
+
+  // Recursively crawl the resolved value
+  crawl(pointer.value, null, pointer.path, pathFromRoot, indirections + 1, inventory, $refs, options);
+}
+
+/**
+ * Re-maps every $ref pointer, so that they're all relative to the root of the JSON Schema.
+ * Each referenced value is dereferenced EXACTLY ONCE.  All subsequent references to the same
+ * value are re-mapped to point to the first reference.
+ *
+ * @example:
+ *  {
+ *    first: { $ref: somefile.json#/some/part },
+ *    second: { $ref: somefile.json#/another/part },
+ *    third: { $ref: somefile.json },
+ *    fourth: { $ref: somefile.json#/some/part/sub/part }
+ *  }
+ *
+ * In this example, there are four references to the same file, but since the third reference points
+ * to the ENTIRE file, that's the only one we need to dereference.  The other three can just be
+ * remapped to point inside the third one.
+ *
+ * On the other hand, if the third reference DIDN'T exist, then the first and second would both need
+ * to be dereferenced, since they point to different parts of the file. The fourth reference does NOT
+ * need to be dereferenced, because it can be remapped to point inside the first one.
+ *
+ * @param {object[]} inventory
+ */
+function remap (inventory) {
+  // Group & sort all the $ref pointers, so they're in the order that we need to dereference/remap them
+  inventory.sort((a, b) => {
+    if (a.file !== b.file) {
+      // Group all the $refs that point to the same file
+      return a.file < b.file ? -1 : +1;
+    }
+    else if (a.hash !== b.hash) {
+      // Group all the $refs that point to the same part of the file
+      return a.hash < b.hash ? -1 : +1;
+    }
+    else if (a.circular !== b.circular) {
+      // If the $ref points to itself, then sort it higher than other $refs that point to this $ref
+      return a.circular ? -1 : +1;
+    }
+    else if (a.extended !== b.extended) {
+      // If the $ref extends the resolved value, then sort it lower than other $refs that don't extend the value
+      return a.extended ? +1 : -1;
+    }
+    else if (a.indirections !== b.indirections) {
+      // Sort direct references higher than indirect references
+      return a.indirections - b.indirections;
+    }
+    else if (a.depth !== b.depth) {
+      // Sort $refs by how close they are to the JSON Schema root
+      return a.depth - b.depth;
+    }
+    else {
+      // Determine how far each $ref is from the "definitions" property.
+      // Most people will expect references to be bundled into the the "definitions" property if possible.
+      let aDefinitionsIndex = a.pathFromRoot.lastIndexOf("/definitions");
+      let bDefinitionsIndex = b.pathFromRoot.lastIndexOf("/definitions");
+
+      if (aDefinitionsIndex !== bDefinitionsIndex) {
+        // Give higher priority to the $ref that's closer to the "definitions" property
+        return bDefinitionsIndex - aDefinitionsIndex;
+      }
+      else {
+        // All else is equal, so use the shorter path, which will produce the shortest possible reference
+        return a.pathFromRoot.length - b.pathFromRoot.length;
+      }
+    }
+  });
+
+  let file, hash, pathFromRoot;
+  for (let entry of inventory) {
+    // console.log('Re-mapping $ref pointer "%s" at %s', entry.$ref.$ref, entry.pathFromRoot);
+
+    if (!entry.external) {
+      // This $ref already resolves to the main JSON Schema file
+      entry.$ref.$ref = entry.hash;
+    }
+    else if (entry.file === file && entry.hash === hash) {
+      // This $ref points to the same value as the prevous $ref, so remap it to the same path
+      entry.$ref.$ref = pathFromRoot;
+    }
+    else if (entry.file === file && entry.hash.indexOf(hash + "/") === 0) {
+      // This $ref points to a sub-value of the prevous $ref, so remap it beneath that path
+      entry.$ref.$ref = Pointer.join(pathFromRoot, Pointer.parse(entry.hash.replace(hash, "#")));
+    }
+    else {
+      // We've moved to a new file or new hash
+      file = entry.file;
+      hash = entry.hash;
+      pathFromRoot = entry.pathFromRoot;
+
+      // This is the first $ref to point to this value, so dereference the value.
+      // Any other $refs that point to the same value will point to this $ref instead
+      entry.$ref = entry.parent[entry.key] = $Ref.dereference(entry.$ref, entry.value);
+
+      if (entry.circular) {
+        // This $ref points to itself
+        entry.$ref.$ref = entry.pathFromRoot;
+      }
+    }
+
+    // console.log('    new value: %s', (entry.$ref && entry.$ref.$ref) ? entry.$ref.$ref : '[object Object]');
+  }
+}
+
+/**
+ * TODO
+ */
+function findInInventory (inventory, $refParent, $refKey) {
+  for (let i = 0; i < inventory.length; i++) {
+    let existingEntry = inventory[i];
+    if (existingEntry.parent === $refParent && existingEntry.key === $refKey) {
+      return existingEntry;
+    }
+  }
+}
+
+function removeFromInventory (inventory, entry) {
+  let index = inventory.indexOf(entry);
+  inventory.splice(index, 1);
+}
+
+},{"./pointer":16,"./ref":17,"./util/url":23}],7:[function(require,module,exports){
+"use strict";
+
+const $Ref = require("./ref");
+const Pointer = require("./pointer");
+const { ono } = require("@jsdevtools/ono");
+const url = require("./util/url");
+
+module.exports = dereference;
+
+/**
+ * Crawls the JSON schema, finds all JSON references, and dereferences them.
+ * This method mutates the JSON schema object, replacing JSON references with their resolved value.
+ *
+ * @param {$RefParser} parser
+ * @param {$RefParserOptions} options
+ */
+function dereference (parser, options) {
+  // console.log('Dereferencing $ref pointers in %s', parser.$refs._root$Ref.path);
+  let dereferenced = crawl(parser.schema, parser.$refs._root$Ref.path, "#", [], parser.$refs, options);
+  parser.$refs.circular = dereferenced.circular;
+  parser.schema = dereferenced.value;
+}
+
+/**
+ * Recursively crawls the given value, and dereferences any JSON references.
+ *
+ * @param {*} obj - The value to crawl. If it's not an object or array, it will be ignored.
+ * @param {string} path - The full path of `obj`, possibly with a JSON Pointer in the hash
+ * @param {string} pathFromRoot - The path of `obj` from the schema root
+ * @param {object[]} parents - An array of the parent objects that have already been dereferenced
+ * @param {$Refs} $refs
+ * @param {$RefParserOptions} options
+ * @returns {{value: object, circular: boolean}}
+ */
+function crawl (obj, path, pathFromRoot, parents, $refs, options) {
+  let dereferenced;
+  let result = {
+    value: obj,
+    circular: false
+  };
+
+  if (obj && typeof obj === "object") {
+    parents.push(obj);
+
+    if ($Ref.isAllowed$Ref(obj, options)) {
+      dereferenced = dereference$Ref(obj, path, pathFromRoot, parents, $refs, options);
+      result.circular = dereferenced.circular;
+      result.value = dereferenced.value;
+    }
+    else {
+      for (let key of Object.keys(obj)) {
+        let keyPath = Pointer.join(path, key);
+        let keyPathFromRoot = Pointer.join(pathFromRoot, key);
+        let value = obj[key];
+        let circular = false;
+
+        if ($Ref.isAllowed$Ref(value, options)) {
+          dereferenced = dereference$Ref(value, keyPath, keyPathFromRoot, parents, $refs, options);
+          circular = dereferenced.circular;
+          obj[key] = dereferenced.value;
+        }
+        else {
+          if (parents.indexOf(value) === -1) {
+            dereferenced = crawl(value, keyPath, keyPathFromRoot, parents, $refs, options);
+            circular = dereferenced.circular;
+            obj[key] = dereferenced.value;
+          }
+          else {
+            circular = foundCircularReference(keyPath, $refs, options);
+          }
+        }
+
+        // Set the "isCircular" flag if this or any other property is circular
+        result.circular = result.circular || circular;
+      }
+    }
+
+    parents.pop();
+  }
+
+  return result;
+}
+
+/**
+ * Dereferences the given JSON Reference, and then crawls the resulting value.
+ *
+ * @param {{$ref: string}} $ref - The JSON Reference to resolve
+ * @param {string} path - The full path of `$ref`, possibly with a JSON Pointer in the hash
+ * @param {string} pathFromRoot - The path of `$ref` from the schema root
+ * @param {object[]} parents - An array of the parent objects that have already been dereferenced
+ * @param {$Refs} $refs
+ * @param {$RefParserOptions} options
+ * @returns {{value: object, circular: boolean}}
+ */
+function dereference$Ref ($ref, path, pathFromRoot, parents, $refs, options) {
+  // console.log('Dereferencing $ref pointer "%s" at %s', $ref.$ref, path);
+
+  let $refPath = url.resolve(path, $ref.$ref);
+  let pointer = $refs._resolve($refPath, options);
+
+  // Check for circular references
+  let directCircular = pointer.circular;
+  let circular = directCircular || parents.indexOf(pointer.value) !== -1;
+  circular && foundCircularReference(path, $refs, options);
+
+  // Dereference the JSON reference
+  let dereferencedValue = $Ref.dereference($ref, pointer.value);
+
+  // Crawl the dereferenced value (unless it's circular)
+  if (!circular) {
+    // Determine if the dereferenced value is circular
+    let dereferenced = crawl(dereferencedValue, pointer.path, pathFromRoot, parents, $refs, options);
+    circular = dereferenced.circular;
+    dereferencedValue = dereferenced.value;
+  }
+
+  if (circular && !directCircular && options.dereference.circular === "ignore") {
+    // The user has chosen to "ignore" circular references, so don't change the value
+    dereferencedValue = $ref;
+  }
+
+  if (directCircular) {
+    // The pointer is a DIRECT circular reference (i.e. it references itself).
+    // So replace the $ref path with the absolute path from the JSON Schema root
+    dereferencedValue.$ref = pathFromRoot;
+  }
+
+  return {
+    circular,
+    value: dereferencedValue
+  };
+}
+
+/**
+ * Called when a circular reference is found.
+ * It sets the {@link $Refs#circular} flag, and throws an error if options.dereference.circular is false.
+ *
+ * @param {string} keyPath - The JSON Reference path of the circular reference
+ * @param {$Refs} $refs
+ * @param {$RefParserOptions} options
+ * @returns {boolean} - always returns true, to indicate that a circular reference was found
+ */
+function foundCircularReference (keyPath, $refs, options) {
+  $refs.circular = true;
+  if (!options.dereference.circular) {
+    throw ono.reference(`Circular $ref pointer found at ${keyPath}`);
+  }
+  return true;
+}
+
+},{"./pointer":16,"./ref":17,"./util/url":23,"@jsdevtools/ono":32}],8:[function(require,module,exports){
+(function (Buffer){
+"use strict";
+
+const Options = require("./options");
+const $Refs = require("./refs");
+const parse = require("./parse");
+const normalizeArgs = require("./normalize-args");
+const resolveExternal = require("./resolve-external");
+const bundle = require("./bundle");
+const dereference = require("./dereference");
+const url = require("./util/url");
+const maybe = require("call-me-maybe");
+const { ono } = require("@jsdevtools/ono");
+
+module.exports = $RefParser;
+module.exports.YAML = require("./util/yaml");
+
+/**
+ * This class parses a JSON schema, builds a map of its JSON references and their resolved values,
+ * and provides methods for traversing, manipulating, and dereferencing those references.
+ *
+ * @constructor
+ */
+function $RefParser () {
+  /**
+   * The parsed (and possibly dereferenced) JSON schema object
+   *
+   * @type {object}
+   * @readonly
+   */
+  this.schema = null;
+
+  /**
+   * The resolved JSON references
+   *
+   * @type {$Refs}
+   * @readonly
+   */
+  this.$refs = new $Refs();
+}
+
+/**
+ * Parses the given JSON schema.
+ * This method does not resolve any JSON references.
+ * It just reads a single file in JSON or YAML format, and parse it as a JavaScript object.
+ *
+ * @param {string} [path] - The file path or URL of the JSON schema
+ * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
+ * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed
+ * @param {function} [callback] - An error-first callback. The second parameter is the parsed JSON schema object.
+ * @returns {Promise} - The returned promise resolves with the parsed JSON schema object.
+ */
+$RefParser.parse = function (path, schema, options, callback) {
+  let Class = this; // eslint-disable-line consistent-this
+  let instance = new Class();
+  return instance.parse.apply(instance, arguments);
+};
+
+/**
+ * Parses the given JSON schema.
+ * This method does not resolve any JSON references.
+ * It just reads a single file in JSON or YAML format, and parse it as a JavaScript object.
+ *
+ * @param {string} [path] - The file path or URL of the JSON schema
+ * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
+ * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed
+ * @param {function} [callback] - An error-first callback. The second parameter is the parsed JSON schema object.
+ * @returns {Promise} - The returned promise resolves with the parsed JSON schema object.
+ */
+$RefParser.prototype.parse = async function (path, schema, options, callback) {
+  let args = normalizeArgs(arguments);
+  let promise;
+
+  if (!args.path && !args.schema) {
+    let err = ono(`Expected a file path, URL, or object. Got ${args.path || args.schema}`);
+    return maybe(args.callback, Promise.reject(err));
+  }
+
+  // Reset everything
+  this.schema = null;
+  this.$refs = new $Refs();
+
+  // If the path is a filesystem path, then convert it to a URL.
+  // NOTE: According to the JSON Reference spec, these should already be URLs,
+  // but, in practice, many people use local filesystem paths instead.
+  // So we're being generous here and doing the conversion automatically.
+  // This is not intended to be a 100% bulletproof solution.
+  // If it doesn't work for your use-case, then use a URL instead.
+  let pathType = "http";
+  if (url.isFileSystemPath(args.path)) {
+    args.path = url.fromFileSystemPath(args.path);
+    pathType = "file";
+  }
+
+  // Resolve the absolute path of the schema
+  args.path = url.resolve(url.cwd(), args.path);
+
+  if (args.schema && typeof args.schema === "object") {
+    // A schema object was passed-in.
+    // So immediately add a new $Ref with the schema object as its value
+    let $ref = this.$refs._add(args.path);
+    $ref.value = args.schema;
+    $ref.pathType = pathType;
+    promise = Promise.resolve(args.schema);
+  }
+  else {
+    // Parse the schema file/url
+    promise = parse(args.path, this.$refs, args.options);
+  }
+
+  let me = this;
+  try {
+    let result = await promise;
+
+    if (!result || typeof result !== "object" || Buffer.isBuffer(result)) {
+      throw ono.syntax(`"${me.$refs._root$Ref.path || result}" is not a valid JSON Schema`);
+    }
+    else {
+      me.schema = result;
+      return maybe(args.callback, Promise.resolve(me.schema));
+    }
+  }
+  catch (e) {
+    return maybe(args.callback, Promise.reject(e));
+  }
+};
+
+/**
+ * Parses the given JSON schema and resolves any JSON references, including references in
+ * externally-referenced files.
+ *
+ * @param {string} [path] - The file path or URL of the JSON schema
+ * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
+ * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed and resolved
+ * @param {function} [callback]
+ * - An error-first callback. The second parameter is a {@link $Refs} object containing the resolved JSON references
+ *
+ * @returns {Promise}
+ * The returned promise resolves with a {@link $Refs} object containing the resolved JSON references
+ */
+$RefParser.resolve = function (path, schema, options, callback) {
+  let Class = this; // eslint-disable-line consistent-this
+  let instance = new Class();
+  return instance.resolve.apply(instance, arguments);
+};
+
+/**
+ * Parses the given JSON schema and resolves any JSON references, including references in
+ * externally-referenced files.
+ *
+ * @param {string} [path] - The file path or URL of the JSON schema
+ * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
+ * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed and resolved
+ * @param {function} [callback]
+ * - An error-first callback. The second parameter is a {@link $Refs} object containing the resolved JSON references
+ *
+ * @returns {Promise}
+ * The returned promise resolves with a {@link $Refs} object containing the resolved JSON references
+ */
+$RefParser.prototype.resolve = async function (path, schema, options, callback) {
+  let me = this;
+  let args = normalizeArgs(arguments);
+
+  try {
+    await this.parse(args.path, args.schema, args.options);
+    await resolveExternal(me, args.options);
+    return maybe(args.callback, Promise.resolve(me.$refs));
+  }
+  catch (err) {
+    return maybe(args.callback, Promise.reject(err));
+  }
+};
+
+/**
+ * Parses the given JSON schema, resolves any JSON references, and bundles all external references
+ * into the main JSON schema. This produces a JSON schema that only has *internal* references,
+ * not any *external* references.
+ *
+ * @param {string} [path] - The file path or URL of the JSON schema
+ * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
+ * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed, resolved, and dereferenced
+ * @param {function} [callback] - An error-first callback. The second parameter is the bundled JSON schema object
+ * @returns {Promise} - The returned promise resolves with the bundled JSON schema object.
+ */
+$RefParser.bundle = function (path, schema, options, callback) {
+  let Class = this; // eslint-disable-line consistent-this
+  let instance = new Class();
+  return instance.bundle.apply(instance, arguments);
+};
+
+/**
+ * Parses the given JSON schema, resolves any JSON references, and bundles all external references
+ * into the main JSON schema. This produces a JSON schema that only has *internal* references,
+ * not any *external* references.
+ *
+ * @param {string} [path] - The file path or URL of the JSON schema
+ * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
+ * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed, resolved, and dereferenced
+ * @param {function} [callback] - An error-first callback. The second parameter is the bundled JSON schema object
+ * @returns {Promise} - The returned promise resolves with the bundled JSON schema object.
+ */
+$RefParser.prototype.bundle = async function (path, schema, options, callback) {
+  let me = this;
+  let args = normalizeArgs(arguments);
+
+  try {
+    await this.resolve(args.path, args.schema, args.options);
+    bundle(me, args.options);
+    return maybe(args.callback, Promise.resolve(me.schema));
+  }
+  catch (err) {
+    return maybe(args.callback, Promise.reject(err));
+  }
+};
+
+/**
+ * Parses the given JSON schema, resolves any JSON references, and dereferences the JSON schema.
+ * That is, all JSON references are replaced with their resolved values.
+ *
+ * @param {string} [path] - The file path or URL of the JSON schema
+ * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
+ * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed, resolved, and dereferenced
+ * @param {function} [callback] - An error-first callback. The second parameter is the dereferenced JSON schema object
+ * @returns {Promise} - The returned promise resolves with the dereferenced JSON schema object.
+ */
+$RefParser.dereference = function (path, schema, options, callback) {
+  let Class = this; // eslint-disable-line consistent-this
+  let instance = new Class();
+  return instance.dereference.apply(instance, arguments);
+};
+
+/**
+ * Parses the given JSON schema, resolves any JSON references, and dereferences the JSON schema.
+ * That is, all JSON references are replaced with their resolved values.
+ *
+ * @param {string} [path] - The file path or URL of the JSON schema
+ * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
+ * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed, resolved, and dereferenced
+ * @param {function} [callback] - An error-first callback. The second parameter is the dereferenced JSON schema object
+ * @returns {Promise} - The returned promise resolves with the dereferenced JSON schema object.
+ */
+$RefParser.prototype.dereference = async function (path, schema, options, callback) {
+  let me = this;
+  let args = normalizeArgs(arguments);
+
+  try {
+    await this.resolve(args.path, args.schema, args.options);
+    dereference(me, args.options);
+    return maybe(args.callback, Promise.resolve(me.schema));
+  }
+  catch (err) {
+    return maybe(args.callback, Promise.reject(err));
+  }
+};
+
+}).call(this,{"isBuffer":require("../../../is-buffer/index.js")})
+
+},{"../../../is-buffer/index.js":70,"./bundle":6,"./dereference":7,"./normalize-args":9,"./options":10,"./parse":11,"./refs":18,"./resolve-external":19,"./util/url":23,"./util/yaml":24,"@jsdevtools/ono":32,"call-me-maybe":66}],9:[function(require,module,exports){
+"use strict";
+
+const Options = require("./options");
+
+module.exports = normalizeArgs;
+
+/**
+ * Normalizes the given arguments, accounting for optional args.
+ *
+ * @param {Arguments} args
+ * @returns {object}
+ */
+function normalizeArgs (args) {
+  let path, schema, options, callback;
+  args = Array.prototype.slice.call(args);
+
+  if (typeof args[args.length - 1] === "function") {
+    // The last parameter is a callback function
+    callback = args.pop();
+  }
+
+  if (typeof args[0] === "string") {
+    // The first parameter is the path
+    path = args[0];
+    if (typeof args[2] === "object") {
+      // The second parameter is the schema, and the third parameter is the options
+      schema = args[1];
+      options = args[2];
+    }
+    else {
+      // The second parameter is the options
+      schema = undefined;
+      options = args[1];
+    }
+  }
+  else {
+    // The first parameter is the schema
+    path = "";
+    schema = args[0];
+    options = args[1];
+  }
+
+  if (!(options instanceof Options)) {
+    options = new Options(options);
+  }
+
+  return {
+    path,
+    schema,
+    options,
+    callback
+  };
+}
+
+},{"./options":10}],10:[function(require,module,exports){
+/* eslint lines-around-comment: [2, {beforeBlockComment: false}] */
+"use strict";
+
+const jsonParser = require("./parsers/json");
+const yamlParser = require("./parsers/yaml");
+const textParser = require("./parsers/text");
+const binaryParser = require("./parsers/binary");
+const fileResolver = require("./resolvers/file");
+const httpResolver = require("./resolvers/http");
+
+module.exports = $RefParserOptions;
+
+/**
+ * Options that determine how JSON schemas are parsed, resolved, and dereferenced.
+ *
+ * @param {object|$RefParserOptions} [options] - Overridden options
+ * @constructor
+ */
+function $RefParserOptions (options) {
+  merge(this, $RefParserOptions.defaults);
+  merge(this, options);
+}
+
+$RefParserOptions.defaults = {
+  /**
+   * Determines how different types of files will be parsed.
+   *
+   * You can add additional parsers of your own, replace an existing one with
+   * your own implemenation, or disable any parser by setting it to false.
+   */
+  parse: {
+    json: jsonParser,
+    yaml: yamlParser,
+    text: textParser,
+    binary: binaryParser,
+  },
+
+  /**
+   * Determines how JSON References will be resolved.
+   *
+   * You can add additional resolvers of your own, replace an existing one with
+   * your own implemenation, or disable any resolver by setting it to false.
+   */
+  resolve: {
+    file: fileResolver,
+    http: httpResolver,
+
+    /**
+     * Determines whether external $ref pointers will be resolved.
+     * If this option is disabled, then none of above resolvers will be called.
+     * Instead, external $ref pointers will simply be ignored.
+     *
+     * @type {boolean}
+     */
+    external: true,
+  },
+
+  /**
+   * Determines the types of JSON references that are allowed.
+   */
+  dereference: {
+    /**
+     * Dereference circular (recursive) JSON references?
+     * If false, then a {@link ReferenceError} will be thrown if a circular reference is found.
+     * If "ignore", then circular references will not be dereferenced.
+     *
+     * @type {boolean|string}
+     */
+    circular: true
+  },
+};
+
+/**
+ * Merges the properties of the source object into the target object.
+ *
+ * @param {object} target - The object that we're populating
+ * @param {?object} source - The options that are being merged
+ * @returns {object}
+ */
+function merge (target, source) {
+  if (isMergeable(source)) {
+    let keys = Object.keys(source);
+    for (let i = 0; i < keys.length; i++) {
+      let key = keys[i];
+      let sourceSetting = source[key];
+      let targetSetting = target[key];
+
+      if (isMergeable(sourceSetting)) {
+        // It's a nested object, so merge it recursively
+        target[key] = merge(targetSetting || {}, sourceSetting);
+      }
+      else if (sourceSetting !== undefined) {
+        // It's a scalar value, function, or array. No merging necessary. Just overwrite the target value.
+        target[key] = sourceSetting;
+      }
+    }
+  }
+  return target;
+}
+
+/**
+ * Determines whether the given value can be merged,
+ * or if it is a scalar value that should just override the target value.
+ *
+ * @param   {*}  val
+ * @returns {Boolean}
+ */
+function isMergeable (val) {
+  return val &&
+    (typeof val === "object") &&
+    !Array.isArray(val) &&
+    !(val instanceof RegExp) &&
+    !(val instanceof Date);
+}
+
+},{"./parsers/binary":12,"./parsers/json":13,"./parsers/text":14,"./parsers/yaml":15,"./resolvers/file":20,"./resolvers/http":21}],11:[function(require,module,exports){
+(function (Buffer){
+"use strict";
+
+const { ono } = require("@jsdevtools/ono");
+const url = require("./util/url");
+const plugins = require("./util/plugins");
+
+module.exports = parse;
+
+/**
+ * Reads and parses the specified file path or URL.
+ *
+ * @param {string} path - This path MUST already be resolved, since `read` doesn't know the resolution context
+ * @param {$Refs} $refs
+ * @param {$RefParserOptions} options
+ *
+ * @returns {Promise}
+ * The promise resolves with the parsed file contents, NOT the raw (Buffer) contents.
+ */
+async function parse (path, $refs, options) {
+  try {
+    // Remove the URL fragment, if any
+    path = url.stripHash(path);
+
+    // Add a new $Ref for this file, even though we don't have the value yet.
+    // This ensures that we don't simultaneously read & parse the same file multiple times
+    let $ref = $refs._add(path);
+
+    // This "file object" will be passed to all resolvers and parsers.
+    let file = {
+      url: path,
+      extension: url.getExtension(path),
+    };
+
+    // Read the file and then parse the data
+    const resolver = await readFile(file, options, $refs);
+    $ref.pathType = resolver.plugin.name;
+    file.data = resolver.result;
+
+    const parser = await parseFile(file, options, $refs);
+    $ref.value = parser.result;
+
+    return parser.result;
+  }
+  catch (e) {
+    return Promise.reject(e);
+  }
+}
+
+/**
+ * Reads the given file, using the configured resolver plugins
+ *
+ * @param {object} file           - An object containing information about the referenced file
+ * @param {string} file.url       - The full URL of the referenced file
+ * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+ * @param {$RefParserOptions} options
+ *
+ * @returns {Promise}
+ * The promise resolves with the raw file contents and the resolver that was used.
+ */
+function readFile (file, options, $refs) {
+  return new Promise(((resolve, reject) => {
+    // console.log('Reading %s', file.url);
+
+    // Find the resolvers that can read this file
+    let resolvers = plugins.all(options.resolve);
+    resolvers = plugins.filter(resolvers, "canRead", file);
+
+    // Run the resolvers, in order, until one of them succeeds
+    plugins.sort(resolvers);
+    plugins.run(resolvers, "read", file, $refs)
+      .then(resolve, onError);
+
+    function onError (err) {
+      // Throw the original error, if it's one of our own (user-friendly) errors.
+      // Otherwise, throw a generic, friendly error.
+      if (err && !(err instanceof SyntaxError)) {
+        reject(err);
+      }
+      else {
+        reject(ono.syntax(`Unable to resolve $ref pointer "${file.url}"`));
+      }
+    }
+  }));
+}
+
+/**
+ * Parses the given file's contents, using the configured parser plugins.
+ *
+ * @param {object} file           - An object containing information about the referenced file
+ * @param {string} file.url       - The full URL of the referenced file
+ * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+ * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+ * @param {$RefParserOptions} options
+ *
+ * @returns {Promise}
+ * The promise resolves with the parsed file contents and the parser that was used.
+ */
+function parseFile (file, options, $refs) {
+  return new Promise(((resolve, reject) => {
+    // console.log('Parsing %s', file.url);
+
+    // Find the parsers that can read this file type.
+    // If none of the parsers are an exact match for this file, then we'll try ALL of them.
+    // This handles situations where the file IS a supported type, just with an unknown extension.
+    let allParsers = plugins.all(options.parse);
+    let filteredParsers = plugins.filter(allParsers, "canParse", file);
+    let parsers = filteredParsers.length > 0 ? filteredParsers : allParsers;
+
+    // Run the parsers, in order, until one of them succeeds
+    plugins.sort(parsers);
+    plugins.run(parsers, "parse", file, $refs)
+      .then(onParsed, onError);
+
+    function onParsed (parser) {
+      if (!parser.plugin.allowEmpty && isEmpty(parser.result)) {
+        reject(ono.syntax(`Error parsing "${file.url}" as ${parser.plugin.name}. \nParsed value is empty`));
+      }
+      else {
+        resolve(parser);
+      }
+    }
+
+    function onError (err) {
+      if (err) {
+        err = err instanceof Error ? err : new Error(err);
+        reject(ono.syntax(err, `Error parsing ${file.url}`));
+      }
+      else {
+        reject(ono.syntax(`Unable to parse ${file.url}`));
+      }
+    }
+  }));
+}
+
+/**
+ * Determines whether the parsed value is "empty".
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isEmpty (value) {
+  return value === undefined ||
+    (typeof value === "object" && Object.keys(value).length === 0) ||
+    (typeof value === "string" && value.trim().length === 0) ||
+    (Buffer.isBuffer(value) && value.length === 0);
+}
+
+}).call(this,{"isBuffer":require("../../../is-buffer/index.js")})
+
+},{"../../../is-buffer/index.js":70,"./util/plugins":22,"./util/url":23,"@jsdevtools/ono":32}],12:[function(require,module,exports){
+(function (Buffer){
+"use strict";
+
+let BINARY_REGEXP = /\.(jpeg|jpg|gif|png|bmp|ico)$/i;
+
+module.exports = {
+  /**
+   * The order that this parser will run, in relation to other parsers.
+   *
+   * @type {number}
+   */
+  order: 400,
+
+  /**
+   * Whether to allow "empty" files (zero bytes).
+   *
+   * @type {boolean}
+   */
+  allowEmpty: true,
+
+  /**
+   * Determines whether this parser can parse a given file reference.
+   * Parsers that return true will be tried, in order, until one successfully parses the file.
+   * Parsers that return false will be skipped, UNLESS all parsers returned false, in which case
+   * every parser will be tried.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {boolean}
+   */
+  canParse (file) {
+    // Use this parser if the file is a Buffer, and has a known binary extension
+    return Buffer.isBuffer(file.data) && BINARY_REGEXP.test(file.url);
+  },
+
+  /**
+   * Parses the given data as a Buffer (byte array).
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {Promise<Buffer>}
+   */
+  parse (file) {
+    if (Buffer.isBuffer(file.data)) {
+      return file.data;
+    }
+    else {
+      // This will reject if data is anything other than a string or typed array
+      return Buffer.from(file.data);
+    }
+  }
+};
+
+}).call(this,require("buffer").Buffer)
+
+},{"buffer":40}],13:[function(require,module,exports){
+(function (Buffer){
+"use strict";
+
+module.exports = {
+  /**
+   * The order that this parser will run, in relation to other parsers.
+   *
+   * @type {number}
+   */
+  order: 100,
+
+  /**
+   * Whether to allow "empty" files. This includes zero-byte files, as well as empty JSON objects.
+   *
+   * @type {boolean}
+   */
+  allowEmpty: true,
+
+  /**
+   * Determines whether this parser can parse a given file reference.
+   * Parsers that match will be tried, in order, until one successfully parses the file.
+   * Parsers that don't match will be skipped, UNLESS none of the parsers match, in which case
+   * every parser will be tried.
+   *
+   * @type {RegExp|string[]|function}
+   */
+  canParse: ".json",
+
+  /**
+   * Parses the given file as JSON
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {Promise}
+   */
+  parse (file) {
+    return new Promise(((resolve, reject) => {
+      let data = file.data;
+      if (Buffer.isBuffer(data)) {
+        data = data.toString();
+      }
+
+      if (typeof data === "string") {
+        if (data.trim().length === 0) {
+          resolve(undefined);  // This mirrors the YAML behavior
+        }
+        else {
+          resolve(JSON.parse(data));
+        }
+      }
+      else {
+        // data is already a JavaScript value (object, array, number, null, NaN, etc.)
+        resolve(data);
+      }
+    }));
+  }
+};
+
+}).call(this,{"isBuffer":require("../../../../is-buffer/index.js")})
+
+},{"../../../../is-buffer/index.js":70}],14:[function(require,module,exports){
+(function (Buffer){
+"use strict";
+
+let TEXT_REGEXP = /\.(txt|htm|html|md|xml|js|min|map|css|scss|less|svg)$/i;
+
+module.exports = {
+  /**
+   * The order that this parser will run, in relation to other parsers.
+   *
+   * @type {number}
+   */
+  order: 300,
+
+  /**
+   * Whether to allow "empty" files (zero bytes).
+   *
+   * @type {boolean}
+   */
+  allowEmpty: true,
+
+  /**
+   * The encoding that the text is expected to be in.
+   *
+   * @type {string}
+   */
+  encoding: "utf8",
+
+  /**
+   * Determines whether this parser can parse a given file reference.
+   * Parsers that return true will be tried, in order, until one successfully parses the file.
+   * Parsers that return false will be skipped, UNLESS all parsers returned false, in which case
+   * every parser will be tried.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {boolean}
+   */
+  canParse (file) {
+    // Use this parser if the file is a string or Buffer, and has a known text-based extension
+    return (typeof file.data === "string" || Buffer.isBuffer(file.data)) && TEXT_REGEXP.test(file.url);
+  },
+
+  /**
+   * Parses the given file as text
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {Promise<string>}
+   */
+  parse (file) {
+    if (typeof file.data === "string") {
+      return file.data;
+    }
+    else if (Buffer.isBuffer(file.data)) {
+      return file.data.toString(this.encoding);
+    }
+    else {
+      throw new Error("data is not text");
+    }
+  }
+};
+
+}).call(this,{"isBuffer":require("../../../../is-buffer/index.js")})
+
+},{"../../../../is-buffer/index.js":70}],15:[function(require,module,exports){
+(function (Buffer){
+"use strict";
+
+const YAML = require("../util/yaml");
+
+module.exports = {
+  /**
+   * The order that this parser will run, in relation to other parsers.
+   *
+   * @type {number}
+   */
+  order: 200,
+
+  /**
+   * Whether to allow "empty" files. This includes zero-byte files, as well as empty JSON objects.
+   *
+   * @type {boolean}
+   */
+  allowEmpty: true,
+
+  /**
+   * Determines whether this parser can parse a given file reference.
+   * Parsers that match will be tried, in order, until one successfully parses the file.
+   * Parsers that don't match will be skipped, UNLESS none of the parsers match, in which case
+   * every parser will be tried.
+   *
+   * @type {RegExp|string[]|function}
+   */
+  canParse: [".yaml", ".yml", ".json"],  // JSON is valid YAML
+
+  /**
+   * Parses the given file as YAML
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
+   * @returns {Promise}
+   */
+  parse (file) {
+    return new Promise(((resolve, reject) => {
+      let data = file.data;
+      if (Buffer.isBuffer(data)) {
+        data = data.toString();
+      }
+
+      if (typeof data === "string") {
+        resolve(YAML.parse(data));
+      }
+      else {
+        // data is already a JavaScript value (object, array, number, null, NaN, etc.)
+        resolve(data);
+      }
+    }));
+  }
+};
+
+}).call(this,{"isBuffer":require("../../../../is-buffer/index.js")})
+
+},{"../../../../is-buffer/index.js":70,"../util/yaml":24}],16:[function(require,module,exports){
+"use strict";
+
+module.exports = Pointer;
+
+const $Ref = require("./ref");
+const url = require("./util/url");
+const { ono } = require("@jsdevtools/ono");
+const slashes = /\//g;
+const tildes = /~/g;
+const escapedSlash = /~1/g;
+const escapedTilde = /~0/g;
+
+/**
+ * This class represents a single JSON pointer and its resolved value.
+ *
+ * @param {$Ref} $ref
+ * @param {string} path
+ * @param {string} [friendlyPath] - The original user-specified path (used for error messages)
+ * @constructor
+ */
+function Pointer ($ref, path, friendlyPath) {
+  /**
+   * The {@link $Ref} object that contains this {@link Pointer} object.
+   * @type {$Ref}
+   */
+  this.$ref = $ref;
+
+  /**
+   * The file path or URL, containing the JSON pointer in the hash.
+   * This path is relative to the path of the main JSON schema file.
+   * @type {string}
+   */
+  this.path = path;
+
+  /**
+   * The original path or URL, used for error messages.
+   * @type {string}
+   */
+  this.originalPath = friendlyPath || path;
+
+  /**
+   * The value of the JSON pointer.
+   * Can be any JSON type, not just objects. Unknown file types are represented as Buffers (byte arrays).
+   * @type {?*}
+   */
+  this.value = undefined;
+
+  /**
+   * Indicates whether the pointer references itself.
+   * @type {boolean}
+   */
+  this.circular = false;
+
+  /**
+   * The number of indirect references that were traversed to resolve the value.
+   * Resolving a single pointer may require resolving multiple $Refs.
+   * @type {number}
+   */
+  this.indirections = 0;
+}
+
+/**
+ * Resolves the value of a nested property within the given object.
+ *
+ * @param {*} obj - The object that will be crawled
+ * @param {$RefParserOptions} options
+ *
+ * @returns {Pointer}
+ * Returns a JSON pointer whose {@link Pointer#value} is the resolved value.
+ * If resolving this value required resolving other JSON references, then
+ * the {@link Pointer#$ref} and {@link Pointer#path} will reflect the resolution path
+ * of the resolved value.
+ */
+Pointer.prototype.resolve = function (obj, options) {
+  let tokens = Pointer.parse(this.path);
+
+  // Crawl the object, one token at a time
+  this.value = obj;
+  for (let i = 0; i < tokens.length; i++) {
+    if (resolveIf$Ref(this, options)) {
+      // The $ref path has changed, so append the remaining tokens to the path
+      this.path = Pointer.join(this.path, tokens.slice(i));
+    }
+
+    let token = tokens[i];
+    if (this.value[token] === undefined) {
+      throw ono.syntax(`Error resolving $ref pointer "${this.originalPath}". \nToken "${token}" does not exist.`);
+    }
+    else {
+      this.value = this.value[token];
+    }
+  }
+
+  // Resolve the final value
+  resolveIf$Ref(this, options);
+  return this;
+};
+
+/**
+ * Sets the value of a nested property within the given object.
+ *
+ * @param {*} obj - The object that will be crawled
+ * @param {*} value - the value to assign
+ * @param {$RefParserOptions} options
+ *
+ * @returns {*}
+ * Returns the modified object, or an entirely new object if the entire object is overwritten.
+ */
+Pointer.prototype.set = function (obj, value, options) {
+  let tokens = Pointer.parse(this.path);
+  let token;
+
+  if (tokens.length === 0) {
+    // There are no tokens, replace the entire object with the new value
+    this.value = value;
+    return value;
+  }
+
+  // Crawl the object, one token at a time
+  this.value = obj;
+  for (let i = 0; i < tokens.length - 1; i++) {
+    resolveIf$Ref(this, options);
+
+    token = tokens[i];
+    if (this.value && this.value[token] !== undefined) {
+      // The token exists
+      this.value = this.value[token];
+    }
+    else {
+      // The token doesn't exist, so create it
+      this.value = setValue(this, token, {});
+    }
+  }
+
+  // Set the value of the final token
+  resolveIf$Ref(this, options);
+  token = tokens[tokens.length - 1];
+  setValue(this, token, value);
+
+  // Return the updated object
+  return obj;
+};
+
+/**
+ * Parses a JSON pointer (or a path containing a JSON pointer in the hash)
+ * and returns an array of the pointer's tokens.
+ * (e.g. "schema.json#/definitions/person/name" => ["definitions", "person", "name"])
+ *
+ * The pointer is parsed according to RFC 6901
+ * {@link https://tools.ietf.org/html/rfc6901#section-3}
+ *
+ * @param {string} path
+ * @returns {string[]}
+ */
+Pointer.parse = function (path) {
+  // Get the JSON pointer from the path's hash
+  let pointer = url.getHash(path).substr(1);
+
+  // If there's no pointer, then there are no tokens,
+  // so return an empty array
+  if (!pointer) {
+    return [];
+  }
+
+  // Split into an array
+  pointer = pointer.split("/");
+
+  // Decode each part, according to RFC 6901
+  for (let i = 0; i < pointer.length; i++) {
+    pointer[i] = decodeURIComponent(pointer[i].replace(escapedSlash, "/").replace(escapedTilde, "~"));
+  }
+
+  if (pointer[0] !== "") {
+    throw ono.syntax(`Invalid $ref pointer "${pointer}". Pointers must begin with "#/"`);
+  }
+
+  return pointer.slice(1);
+};
+
+/**
+ * Creates a JSON pointer path, by joining one or more tokens to a base path.
+ *
+ * @param {string} base - The base path (e.g. "schema.json#/definitions/person")
+ * @param {string|string[]} tokens - The token(s) to append (e.g. ["name", "first"])
+ * @returns {string}
+ */
+Pointer.join = function (base, tokens) {
+  // Ensure that the base path contains a hash
+  if (base.indexOf("#") === -1) {
+    base += "#";
+  }
+
+  // Append each token to the base path
+  tokens = Array.isArray(tokens) ? tokens : [tokens];
+  for (let i = 0; i < tokens.length; i++) {
+    let token = tokens[i];
+    // Encode the token, according to RFC 6901
+    base += "/" + encodeURIComponent(token.replace(tildes, "~0").replace(slashes, "~1"));
+  }
+
+  return base;
+};
+
+/**
+ * If the given pointer's {@link Pointer#value} is a JSON reference,
+ * then the reference is resolved and {@link Pointer#value} is replaced with the resolved value.
+ * In addition, {@link Pointer#path} and {@link Pointer#$ref} are updated to reflect the
+ * resolution path of the new value.
+ *
+ * @param {Pointer} pointer
+ * @param {$RefParserOptions} options
+ * @returns {boolean} - Returns `true` if the resolution path changed
+ */
+function resolveIf$Ref (pointer, options) {
+  // Is the value a JSON reference? (and allowed?)
+
+  if ($Ref.isAllowed$Ref(pointer.value, options)) {
+    let $refPath = url.resolve(pointer.path, pointer.value.$ref);
+
+    if ($refPath === pointer.path) {
+      // The value is a reference to itself, so there's nothing to do.
+      pointer.circular = true;
+    }
+    else {
+      let resolved = pointer.$ref.$refs._resolve($refPath, options);
+      pointer.indirections += resolved.indirections + 1;
+
+      if ($Ref.isExtended$Ref(pointer.value)) {
+        // This JSON reference "extends" the resolved value, rather than simply pointing to it.
+        // So the resolved path does NOT change.  Just the value does.
+        pointer.value = $Ref.dereference(pointer.value, resolved.value);
+        return false;
+      }
+      else {
+        // Resolve the reference
+        pointer.$ref = resolved.$ref;
+        pointer.path = resolved.path;
+        pointer.value = resolved.value;
+      }
+
+      return true;
+    }
+  }
+}
+
+/**
+ * Sets the specified token value of the {@link Pointer#value}.
+ *
+ * The token is evaluated according to RFC 6901.
+ * {@link https://tools.ietf.org/html/rfc6901#section-4}
+ *
+ * @param {Pointer} pointer - The JSON Pointer whose value will be modified
+ * @param {string} token - A JSON Pointer token that indicates how to modify `obj`
+ * @param {*} value - The value to assign
+ * @returns {*} - Returns the assigned value
+ */
+function setValue (pointer, token, value) {
+  if (pointer.value && typeof pointer.value === "object") {
+    if (token === "-" && Array.isArray(pointer.value)) {
+      pointer.value.push(value);
+    }
+    else {
+      pointer.value[token] = value;
+    }
+  }
+  else {
+    throw ono.syntax(`Error assigning $ref pointer "${pointer.path}". \nCannot set "${token}" of a non-object.`);
+  }
+  return value;
+}
+
+},{"./ref":17,"./util/url":23,"@jsdevtools/ono":32}],17:[function(require,module,exports){
+"use strict";
+
+module.exports = $Ref;
+
+const Pointer = require("./pointer");
+
+/**
+ * This class represents a single JSON reference and its resolved value.
+ *
+ * @constructor
+ */
+function $Ref () {
+  /**
+   * The file path or URL of the referenced file.
+   * This path is relative to the path of the main JSON schema file.
+   *
+   * This path does NOT contain document fragments (JSON pointers). It always references an ENTIRE file.
+   * Use methods such as {@link $Ref#get}, {@link $Ref#resolve}, and {@link $Ref#exists} to get
+   * specific JSON pointers within the file.
+   *
+   * @type {string}
+   */
+  this.path = undefined;
+
+  /**
+   * The resolved value of the JSON reference.
+   * Can be any JSON type, not just objects. Unknown file types are represented as Buffers (byte arrays).
+   * @type {?*}
+   */
+  this.value = undefined;
+
+  /**
+   * The {@link $Refs} object that contains this {@link $Ref} object.
+   * @type {$Refs}
+   */
+  this.$refs = undefined;
+
+  /**
+   * Indicates the type of {@link $Ref#path} (e.g. "file", "http", etc.)
+   * @type {?string}
+   */
+  this.pathType = undefined;
+}
+
+/**
+ * Determines whether the given JSON reference exists within this {@link $Ref#value}.
+ *
+ * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
+ * @param {$RefParserOptions} options
+ * @returns {boolean}
+ */
+$Ref.prototype.exists = function (path, options) {
+  try {
+    this.resolve(path, options);
+    return true;
+  }
+  catch (e) {
+    return false;
+  }
+};
+
+/**
+ * Resolves the given JSON reference within this {@link $Ref#value} and returns the resolved value.
+ *
+ * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
+ * @param {$RefParserOptions} options
+ * @returns {*} - Returns the resolved value
+ */
+$Ref.prototype.get = function (path, options) {
+  return this.resolve(path, options).value;
+};
+
+/**
+ * Resolves the given JSON reference within this {@link $Ref#value}.
+ *
+ * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
+ * @param {$RefParserOptions} options
+ * @param {string} [friendlyPath] - The original user-specified path (used for error messages)
+ * @returns {Pointer}
+ */
+$Ref.prototype.resolve = function (path, options, friendlyPath) {
+  let pointer = new Pointer(this, path, friendlyPath);
+  return pointer.resolve(this.value, options);
+};
+
+/**
+ * Sets the value of a nested property within this {@link $Ref#value}.
+ * If the property, or any of its parents don't exist, they will be created.
+ *
+ * @param {string} path - The full path of the property to set, optionally with a JSON pointer in the hash
+ * @param {*} value - The value to assign
+ */
+$Ref.prototype.set = function (path, value) {
+  let pointer = new Pointer(this, path);
+  this.value = pointer.set(this.value, value);
+};
+
+/**
+ * Determines whether the given value is a JSON reference.
+ *
+ * @param {*} value - The value to inspect
+ * @returns {boolean}
+ */
+$Ref.is$Ref = function (value) {
+  return value && typeof value === "object" && typeof value.$ref === "string" && value.$ref.length > 0;
+};
+
+/**
+ * Determines whether the given value is an external JSON reference.
+ *
+ * @param {*} value - The value to inspect
+ * @returns {boolean}
+ */
+$Ref.isExternal$Ref = function (value) {
+  return $Ref.is$Ref(value) && value.$ref[0] !== "#";
+};
+
+/**
+ * Determines whether the given value is a JSON reference, and whether it is allowed by the options.
+ * For example, if it references an external file, then options.resolve.external must be true.
+ *
+ * @param {*} value - The value to inspect
+ * @param {$RefParserOptions} options
+ * @returns {boolean}
+ */
+$Ref.isAllowed$Ref = function (value, options) {
+  if ($Ref.is$Ref(value)) {
+    if (value.$ref.substr(0, 2) === "#/" || value.$ref === "#") {
+      // It's a JSON Pointer reference, which is always allowed
+      return true;
+    }
+    else if (value.$ref[0] !== "#" && (!options || options.resolve.external)) {
+      // It's an external reference, which is allowed by the options
+      return true;
+    }
+  }
+};
+
+/**
+ * Determines whether the given value is a JSON reference that "extends" its resolved value.
+ * That is, it has extra properties (in addition to "$ref"), so rather than simply pointing to
+ * an existing value, this $ref actually creates a NEW value that is a shallow copy of the resolved
+ * value, plus the extra properties.
+ *
+ * @example:
+ *  {
+ *    person: {
+ *      properties: {
+ *        firstName: { type: string }
+ *        lastName: { type: string }
+ *      }
+ *    }
+ *    employee: {
+ *      properties: {
+ *        $ref: #/person/properties
+ *        salary: { type: number }
+ *      }
+ *    }
+ *  }
+ *
+ *  In this example, "employee" is an extended $ref, since it extends "person" with an additional
+ *  property (salary).  The result is a NEW value that looks like this:
+ *
+ *  {
+ *    properties: {
+ *      firstName: { type: string }
+ *      lastName: { type: string }
+ *      salary: { type: number }
+ *    }
+ *  }
+ *
+ * @param {*} value - The value to inspect
+ * @returns {boolean}
+ */
+$Ref.isExtended$Ref = function (value) {
+  return $Ref.is$Ref(value) && Object.keys(value).length > 1;
+};
+
+/**
+ * Returns the resolved value of a JSON Reference.
+ * If necessary, the resolved value is merged with the JSON Reference to create a new object
+ *
+ * @example:
+ *  {
+ *    person: {
+ *      properties: {
+ *        firstName: { type: string }
+ *        lastName: { type: string }
+ *      }
+ *    }
+ *    employee: {
+ *      properties: {
+ *        $ref: #/person/properties
+ *        salary: { type: number }
+ *      }
+ *    }
+ *  }
+ *
+ *  When "person" and "employee" are merged, you end up with the following object:
+ *
+ *  {
+ *    properties: {
+ *      firstName: { type: string }
+ *      lastName: { type: string }
+ *      salary: { type: number }
+ *    }
+ *  }
+ *
+ * @param {object} $ref - The JSON reference object (the one with the "$ref" property)
+ * @param {*} resolvedValue - The resolved value, which can be any type
+ * @returns {*} - Returns the dereferenced value
+ */
+$Ref.dereference = function ($ref, resolvedValue) {
+  if (resolvedValue && typeof resolvedValue === "object" && $Ref.isExtended$Ref($ref)) {
+    let merged = {};
+    for (let key of Object.keys($ref)) {
+      if (key !== "$ref") {
+        merged[key] = $ref[key];
+      }
+    }
+
+    for (let key of Object.keys(resolvedValue)) {
+      if (!(key in merged)) {
+        merged[key] = resolvedValue[key];
+      }
+    }
+
+    return merged;
+  }
+  else {
+    // Completely replace the original reference with the resolved value
+    return resolvedValue;
+  }
+};
+
+},{"./pointer":16}],18:[function(require,module,exports){
+"use strict";
+
+const { ono } = require("@jsdevtools/ono");
+const $Ref = require("./ref");
+const url = require("./util/url");
+
+module.exports = $Refs;
+
+/**
+ * This class is a map of JSON references and their resolved values.
+ */
+function $Refs () {
+  /**
+   * Indicates whether the schema contains any circular references.
+   *
+   * @type {boolean}
+   */
+  this.circular = false;
+
+  /**
+   * A map of paths/urls to {@link $Ref} objects
+   *
+   * @type {object}
+   * @protected
+   */
+  this._$refs = {};
+
+  /**
+   * The {@link $Ref} object that is the root of the JSON schema.
+   *
+   * @type {$Ref}
+   * @protected
+   */
+  this._root$Ref = null;
+}
+
+/**
+ * Returns the paths of all the files/URLs that are referenced by the JSON schema,
+ * including the schema itself.
+ *
+ * @param {...string|string[]} [types] - Only return paths of the given types ("file", "http", etc.)
+ * @returns {string[]}
+ */
+$Refs.prototype.paths = function (types) {
+  let paths = getPaths(this._$refs, arguments);
+  return paths.map((path) => {
+    return path.decoded;
+  });
+};
+
+/**
+ * Returns the map of JSON references and their resolved values.
+ *
+ * @param {...string|string[]} [types] - Only return references of the given types ("file", "http", etc.)
+ * @returns {object}
+ */
+$Refs.prototype.values = function (types) {
+  let $refs = this._$refs;
+  let paths = getPaths($refs, arguments);
+  return paths.reduce((obj, path) => {
+    obj[path.decoded] = $refs[path.encoded].value;
+    return obj;
+  }, {});
+};
+
+/**
+ * Returns a POJO (plain old JavaScript object) for serialization as JSON.
+ *
+ * @returns {object}
+ */
+$Refs.prototype.toJSON = $Refs.prototype.values;
+
+/**
+ * Determines whether the given JSON reference exists.
+ *
+ * @param {string} path - The path being resolved, optionally with a JSON pointer in the hash
+ * @param {$RefParserOptions} [options]
+ * @returns {boolean}
+ */
+$Refs.prototype.exists = function (path, options) {
+  try {
+    this._resolve(path, options);
+    return true;
+  }
+  catch (e) {
+    return false;
+  }
+};
+
+/**
+ * Resolves the given JSON reference and returns the resolved value.
+ *
+ * @param {string} path - The path being resolved, with a JSON pointer in the hash
+ * @param {$RefParserOptions} [options]
+ * @returns {*} - Returns the resolved value
+ */
+$Refs.prototype.get = function (path, options) {
+  return this._resolve(path, options).value;
+};
+
+/**
+ * Sets the value of a nested property within this {@link $Ref#value}.
+ * If the property, or any of its parents don't exist, they will be created.
+ *
+ * @param {string} path - The path of the property to set, optionally with a JSON pointer in the hash
+ * @param {*} value - The value to assign
+ */
+$Refs.prototype.set = function (path, value) {
+  let absPath = url.resolve(this._root$Ref.path, path);
+  let withoutHash = url.stripHash(absPath);
+  let $ref = this._$refs[withoutHash];
+
+  if (!$ref) {
+    throw ono(`Error resolving $ref pointer "${path}". \n"${withoutHash}" not found.`);
+  }
+
+  $ref.set(absPath, value);
+};
+
+/**
+ * Creates a new {@link $Ref} object and adds it to this {@link $Refs} object.
+ *
+ * @param {string} path  - The file path or URL of the referenced file
+ */
+$Refs.prototype._add = function (path) {
+  let withoutHash = url.stripHash(path);
+
+  let $ref = new $Ref();
+  $ref.path = withoutHash;
+  $ref.$refs = this;
+
+  this._$refs[withoutHash] = $ref;
+  this._root$Ref = this._root$Ref || $ref;
+
+  return $ref;
+};
+
+/**
+ * Resolves the given JSON reference.
+ *
+ * @param {string} path - The path being resolved, optionally with a JSON pointer in the hash
+ * @param {$RefParserOptions} [options]
+ * @returns {Pointer}
+ * @protected
+ */
+$Refs.prototype._resolve = function (path, options) {
+  let absPath = url.resolve(this._root$Ref.path, path);
+  let withoutHash = url.stripHash(absPath);
+  let $ref = this._$refs[withoutHash];
+
+  if (!$ref) {
+    throw ono(`Error resolving $ref pointer "${path}". \n"${withoutHash}" not found.`);
+  }
+
+  return $ref.resolve(absPath, options, path);
+};
+
+/**
+ * Returns the specified {@link $Ref} object, or undefined.
+ *
+ * @param {string} path - The path being resolved, optionally with a JSON pointer in the hash
+ * @returns {$Ref|undefined}
+ * @protected
+ */
+$Refs.prototype._get$Ref = function (path) {
+  path = url.resolve(this._root$Ref.path, path);
+  let withoutHash = url.stripHash(path);
+  return this._$refs[withoutHash];
+};
+
+/**
+ * Returns the encoded and decoded paths keys of the given object.
+ *
+ * @param {object} $refs - The object whose keys are URL-encoded paths
+ * @param {...string|string[]} [types] - Only return paths of the given types ("file", "http", etc.)
+ * @returns {object[]}
+ */
+function getPaths ($refs, types) {
+  let paths = Object.keys($refs);
+
+  // Filter the paths by type
+  types = Array.isArray(types[0]) ? types[0] : Array.prototype.slice.call(types);
+  if (types.length > 0 && types[0]) {
+    paths = paths.filter((key) => {
+      return types.indexOf($refs[key].pathType) !== -1;
+    });
+  }
+
+  // Decode local filesystem paths
+  return paths.map((path) => {
+    return {
+      encoded: path,
+      decoded: $refs[path].pathType === "file" ? url.toFileSystemPath(path, true) : path
+    };
+  });
+}
+
+},{"./ref":17,"./util/url":23,"@jsdevtools/ono":32}],19:[function(require,module,exports){
+"use strict";
+
+const $Ref = require("./ref");
+const Pointer = require("./pointer");
+const parse = require("./parse");
+const url = require("./util/url");
+
+module.exports = resolveExternal;
+
+/**
+ * Crawls the JSON schema, finds all external JSON references, and resolves their values.
+ * This method does not mutate the JSON schema. The resolved values are added to {@link $RefParser#$refs}.
+ *
+ * NOTE: We only care about EXTERNAL references here. INTERNAL references are only relevant when dereferencing.
+ *
+ * @param {$RefParser} parser
+ * @param {$RefParserOptions} options
+ *
+ * @returns {Promise}
+ * The promise resolves once all JSON references in the schema have been resolved,
+ * including nested references that are contained in externally-referenced files.
+ */
+function resolveExternal (parser, options) {
+  if (!options.resolve.external) {
+    // Nothing to resolve, so exit early
+    return Promise.resolve();
+  }
+
+  try {
+    // console.log('Resolving $ref pointers in %s', parser.$refs._root$Ref.path);
+    let promises = crawl(parser.schema, parser.$refs._root$Ref.path + "#", parser.$refs, options);
+    return Promise.all(promises);
+  }
+  catch (e) {
+    return Promise.reject(e);
+  }
+}
+
+/**
+ * Recursively crawls the given value, and resolves any external JSON references.
+ *
+ * @param {*} obj - The value to crawl. If it's not an object or array, it will be ignored.
+ * @param {string} path - The full path of `obj`, possibly with a JSON Pointer in the hash
+ * @param {$Refs} $refs
+ * @param {$RefParserOptions} options
+ *
+ * @returns {Promise[]}
+ * Returns an array of promises. There will be one promise for each JSON reference in `obj`.
+ * If `obj` does not contain any JSON references, then the array will be empty.
+ * If any of the JSON references point to files that contain additional JSON references,
+ * then the corresponding promise will internally reference an array of promises.
+ */
+function crawl (obj, path, $refs, options) {
+  let promises = [];
+
+  if (obj && typeof obj === "object") {
+    if ($Ref.isExternal$Ref(obj)) {
+      promises.push(resolve$Ref(obj, path, $refs, options));
+    }
+    else {
+      for (let key of Object.keys(obj)) {
+        let keyPath = Pointer.join(path, key);
+        let value = obj[key];
+
+        if ($Ref.isExternal$Ref(value)) {
+          promises.push(resolve$Ref(value, keyPath, $refs, options));
+        }
+        else {
+          promises = promises.concat(crawl(value, keyPath, $refs, options));
+        }
+      }
+    }
+  }
+
+  return promises;
+}
+
+/**
+ * Resolves the given JSON Reference, and then crawls the resulting value.
+ *
+ * @param {{$ref: string}} $ref - The JSON Reference to resolve
+ * @param {string} path - The full path of `$ref`, possibly with a JSON Pointer in the hash
+ * @param {$Refs} $refs
+ * @param {$RefParserOptions} options
+ *
+ * @returns {Promise}
+ * The promise resolves once all JSON references in the object have been resolved,
+ * including nested references that are contained in externally-referenced files.
+ */
+async function resolve$Ref ($ref, path, $refs, options) {
+  // console.log('Resolving $ref pointer "%s" at %s', $ref.$ref, path);
+
+  let resolvedPath = url.resolve(path, $ref.$ref);
+  let withoutHash = url.stripHash(resolvedPath);
+
+  // Do we already have this $ref?
+  $ref = $refs._$refs[withoutHash];
+  if ($ref) {
+    // We've already parsed this $ref, so use the existing value
+    return Promise.resolve($ref.value);
+  }
+
+  // Parse the $referenced file/url
+  const result = await parse(resolvedPath, $refs, options);
+
+  // Crawl the parsed value
+  // console.log('Resolving $ref pointers in %s', withoutHash);
+  let promises = crawl(result, withoutHash + "#", $refs, options);
+
+  return Promise.all(promises);
+}
+
+},{"./parse":11,"./pointer":16,"./ref":17,"./util/url":23}],20:[function(require,module,exports){
+"use strict";
+const fs = require("fs");
+const { ono } = require("@jsdevtools/ono");
+const url = require("../util/url");
+
+module.exports = {
+  /**
+   * The order that this resolver will run, in relation to other resolvers.
+   *
+   * @type {number}
+   */
+  order: 100,
+
+  /**
+   * Determines whether this resolver can read a given file reference.
+   * Resolvers that return true will be tried, in order, until one successfully resolves the file.
+   * Resolvers that return false will not be given a chance to resolve the file.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @returns {boolean}
+   */
+  canRead (file) {
+    return url.isFileSystemPath(file.url);
+  },
+
+  /**
+   * Reads the given file and returns its raw contents as a Buffer.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @returns {Promise<Buffer>}
+   */
+  read (file) {
+    return new Promise(((resolve, reject) => {
+      let path;
+      try {
+        path = url.toFileSystemPath(file.url);
+      }
+      catch (err) {
+        reject(ono.uri(err, `Malformed URI: ${file.url}`));
+      }
+
+      // console.log('Opening file: %s', path);
+
+      try {
+        fs.readFile(path, (err, data) => {
+          if (err) {
+            reject(ono(err, `Error opening file "${path}"`));
+          }
+          else {
+            resolve(data);
+          }
+        });
+      }
+      catch (err) {
+        reject(ono(err, `Error opening file "${path}"`));
+      }
+    }));
+  }
+};
+
+},{"../util/url":23,"@jsdevtools/ono":32,"fs":39}],21:[function(require,module,exports){
+(function (process,Buffer){
+"use strict";
+
+const http = require("http");
+const https = require("https");
+const { ono } = require("@jsdevtools/ono");
+const url = require("../util/url");
+
+module.exports = {
+  /**
+   * The order that this resolver will run, in relation to other resolvers.
+   *
+   * @type {number}
+   */
+  order: 200,
+
+  /**
+   * HTTP headers to send when downloading files.
+   *
+   * @example:
+   * {
+   *   "User-Agent": "JSON Schema $Ref Parser",
+   *   Accept: "application/json"
+   * }
+   *
+   * @type {object}
+   */
+  headers: null,
+
+  /**
+   * HTTP request timeout (in milliseconds).
+   *
+   * @type {number}
+   */
+  timeout: 5000, // 5 seconds
+
+  /**
+   * The maximum number of HTTP redirects to follow.
+   * To disable automatic following of redirects, set this to zero.
+   *
+   * @type {number}
+   */
+  redirects: 5,
+
+  /**
+   * The `withCredentials` option of XMLHttpRequest.
+   * Set this to `true` if you're downloading files from a CORS-enabled server that requires authentication
+   *
+   * @type {boolean}
+   */
+  withCredentials: false,
+
+  /**
+   * Determines whether this resolver can read a given file reference.
+   * Resolvers that return true will be tried in order, until one successfully resolves the file.
+   * Resolvers that return false will not be given a chance to resolve the file.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @returns {boolean}
+   */
+  canRead (file) {
+    return url.isHttp(file.url);
+  },
+
+  /**
+   * Reads the given URL and returns its raw contents as a Buffer.
+   *
+   * @param {object} file           - An object containing information about the referenced file
+   * @param {string} file.url       - The full URL of the referenced file
+   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
+   * @returns {Promise<Buffer>}
+   */
+  read (file) {
+    let u = url.parse(file.url);
+
+    if (process.browser && !u.protocol) {
+      // Use the protocol of the current page
+      u.protocol = url.parse(location.href).protocol;
+    }
+
+    return download(u, this);
+  }
+};
+
+/**
+ * Downloads the given file.
+ *
+ * @param {Url|string} u        - The url to download (can be a parsed {@link Url} object)
+ * @param {object} httpOptions  - The `options.resolve.http` object
+ * @param {number} [redirects]  - The redirect URLs that have already been followed
+ *
+ * @returns {Promise<Buffer>}
+ * The promise resolves with the raw downloaded data, or rejects if there is an HTTP error.
+ */
+function download (u, httpOptions, redirects) {
+  return new Promise(((resolve, reject) => {
+    u = url.parse(u);
+    redirects = redirects || [];
+    redirects.push(u.href);
+
+    get(u, httpOptions)
+      .then((res) => {
+        if (res.statusCode >= 400) {
+          throw ono({ status: res.statusCode }, `HTTP ERROR ${res.statusCode}`);
+        }
+        else if (res.statusCode >= 300) {
+          if (redirects.length > httpOptions.redirects) {
+            reject(ono({ status: res.statusCode },
+              `Error downloading ${redirects[0]}. \nToo many redirects: \n  ${redirects.join(" \n  ")}`));
+          }
+          else if (!res.headers.location) {
+            throw ono({ status: res.statusCode }, `HTTP ${res.statusCode} redirect with no location header`);
+          }
+          else {
+            // console.log('HTTP %d redirect %s -> %s', res.statusCode, u.href, res.headers.location);
+            let redirectTo = url.resolve(u, res.headers.location);
+            download(redirectTo, httpOptions, redirects).then(resolve, reject);
+          }
+        }
+        else {
+          resolve(res.body || Buffer.alloc(0));
+        }
+      })
+      .catch((err) => {
+        reject(ono(err, `Error downloading ${u.href}`));
+      });
+  }));
+}
+
+/**
+ * Sends an HTTP GET request.
+ *
+ * @param {Url} u - A parsed {@link Url} object
+ * @param {object} httpOptions - The `options.resolve.http` object
+ *
+ * @returns {Promise<Response>}
+ * The promise resolves with the HTTP Response object.
+ */
+function get (u, httpOptions) {
+  return new Promise(((resolve, reject) => {
+    // console.log('GET', u.href);
+
+    let protocol = u.protocol === "https:" ? https : http;
+    let req = protocol.get({
+      hostname: u.hostname,
+      port: u.port,
+      path: u.path,
+      auth: u.auth,
+      protocol: u.protocol,
+      headers: httpOptions.headers || {},
+      withCredentials: httpOptions.withCredentials
+    });
+
+    if (typeof req.setTimeout === "function") {
+      req.setTimeout(httpOptions.timeout);
+    }
+
+    req.on("timeout", () => {
+      req.abort();
+    });
+
+    req.on("error", reject);
+
+    req.once("response", (res) => {
+      res.body = Buffer.alloc(0);
+
+      res.on("data", (data) => {
+        res.body = Buffer.concat([res.body, Buffer.from(data)]);
+      });
+
+      res.on("error", reject);
+
+      res.on("end", () => {
+        resolve(res);
+      });
+    });
+  }));
+}
+
+}).call(this,require('_process'),require("buffer").Buffer)
+
+},{"../util/url":23,"@jsdevtools/ono":32,"_process":103,"buffer":40,"http":43,"https":67}],22:[function(require,module,exports){
+"use strict";
+
+/**
+ * Returns the given plugins as an array, rather than an object map.
+ * All other methods in this module expect an array of plugins rather than an object map.
+ *
+ * @param  {object} plugins - A map of plugin objects
+ * @return {object[]}
+ */
+exports.all = function (plugins) {
+  return Object.keys(plugins)
+    .filter((key) => {
+      return typeof plugins[key] === "object";
+    })
+    .map((key) => {
+      plugins[key].name = key;
+      return plugins[key];
+    });
+};
+
+/**
+ * Filters the given plugins, returning only the ones return `true` for the given method.
+ *
+ * @param  {object[]} plugins - An array of plugin objects
+ * @param  {string}   method  - The name of the filter method to invoke for each plugin
+ * @param  {object}   file    - A file info object, which will be passed to each method
+ * @return {object[]}
+ */
+exports.filter = function (plugins, method, file) {
+  return plugins
+    .filter((plugin) => {
+      return !!getResult(plugin, method, file);
+    });
+};
+
+/**
+ * Sorts the given plugins, in place, by their `order` property.
+ *
+ * @param {object[]} plugins - An array of plugin objects
+ * @returns {object[]}
+ */
+exports.sort = function (plugins) {
+  for (let plugin of plugins) {
+    plugin.order = plugin.order || Number.MAX_SAFE_INTEGER;
+  }
+
+  return plugins.sort((a, b) => { return a.order - b.order; });
+};
+
+/**
+ * Runs the specified method of the given plugins, in order, until one of them returns a successful result.
+ * Each method can return a synchronous value, a Promise, or call an error-first callback.
+ * If the promise resolves successfully, or the callback is called without an error, then the result
+ * is immediately returned and no further plugins are called.
+ * If the promise rejects, or the callback is called with an error, then the next plugin is called.
+ * If ALL plugins fail, then the last error is thrown.
+ *
+ * @param {object[]}  plugins - An array of plugin objects
+ * @param {string}    method  - The name of the method to invoke for each plugin
+ * @param {object}    file    - A file info object, which will be passed to each method
+ * @returns {Promise}
+ */
+exports.run = function (plugins, method, file, $refs) {
+  let plugin, lastError, index = 0;
+
+  return new Promise(((resolve, reject) => {
+    runNextPlugin();
+
+    function runNextPlugin () {
+      plugin = plugins[index++];
+      if (!plugin) {
+        // There are no more functions, so re-throw the last error
+        return reject(lastError);
+      }
+
+      try {
+        // console.log('  %s', plugin.name);
+        let result = getResult(plugin, method, file, callback, $refs);
+        if (result && typeof result.then === "function") {
+          // A promise was returned
+          result.then(onSuccess, onError);
+        }
+        else if (result !== undefined) {
+          // A synchronous result was returned
+          onSuccess(result);
+        }
+        // else { the callback will be called }
+      }
+      catch (e) {
+        onError(e);
+      }
+    }
+
+    function callback (err, result) {
+      if (err) {
+        onError(err);
+      }
+      else {
+        onSuccess(result);
+      }
+    }
+
+    function onSuccess (result) {
+      // console.log('    success');
+      resolve({
+        plugin,
+        result
+      });
+    }
+
+    function onError (err) {
+      // console.log('    %s', err.message || err);
+      lastError = err;
+      runNextPlugin();
+    }
+  }));
+};
+
+/**
+ * Returns the value of the given property.
+ * If the property is a function, then the result of the function is returned.
+ * If the value is a RegExp, then it will be tested against the file URL.
+ * If the value is an aray, then it will be compared against the file extension.
+ *
+ * @param   {object}   obj        - The object whose property/method is called
+ * @param   {string}   prop       - The name of the property/method to invoke
+ * @param   {object}   file       - A file info object, which will be passed to the method
+ * @param   {function} [callback] - A callback function, which will be passed to the method
+ * @returns {*}
+ */
+function getResult (obj, prop, file, callback, $refs) {
+  let value = obj[prop];
+
+  if (typeof value === "function") {
+    return value.apply(obj, [file, callback, $refs]);
+  }
+
+  if (!callback) {
+    // The synchronous plugin functions (canParse and canRead)
+    // allow a "shorthand" syntax, where the user can match
+    // files by RegExp or by file extension.
+    if (value instanceof RegExp) {
+      return value.test(file.url);
+    }
+    else if (typeof value === "string") {
+      return value === file.extension;
+    }
+    else if (Array.isArray(value)) {
+      return value.indexOf(file.extension) !== -1;
+    }
+  }
+
+  return value;
+}
+
+},{}],23:[function(require,module,exports){
+(function (process){
+"use strict";
+
+let isWindows = /^win/.test(process.platform),
+    forwardSlashPattern = /\//g,
+    protocolPattern = /^(\w{2,}):\/\//i,
+    url = module.exports;
+
+// RegExp patterns to URL-encode special characters in local filesystem paths
+let urlEncodePatterns = [
+  /\?/g, "%3F",
+  /\#/g, "%23",
+];
+
+// RegExp patterns to URL-decode special characters for local filesystem paths
+let urlDecodePatterns = [
+  /\%23/g, "#",
+  /\%24/g, "$",
+  /\%26/g, "&",
+  /\%2C/g, ",",
+  /\%40/g, "@"
+];
+
+exports.parse = require("url").parse;
+exports.resolve = require("url").resolve;
+
+/**
+ * Returns the current working directory (in Node) or the current page URL (in browsers).
+ *
+ * @returns {string}
+ */
+exports.cwd = function cwd () {
+  if (process.browser) {
+    return location.href;
+  }
+
+  let path = process.cwd();
+
+  let lastChar = path.slice(-1);
+  if (lastChar === "/" || lastChar === "\\") {
+    return path;
+  }
+  else {
+    return path + "/";
+  }
+};
+
+/**
+ * Returns the protocol of the given URL, or `undefined` if it has no protocol.
+ *
+ * @param   {string} path
+ * @returns {?string}
+ */
+exports.getProtocol = function getProtocol (path) {
+  let match = protocolPattern.exec(path);
+  if (match) {
+    return match[1].toLowerCase();
+  }
+};
+
+/**
+ * Returns the lowercased file extension of the given URL,
+ * or an empty string if it has no extension.
+ *
+ * @param   {string} path
+ * @returns {string}
+ */
+exports.getExtension = function getExtension (path) {
+  let lastDot = path.lastIndexOf(".");
+  if (lastDot >= 0) {
+    return path.substr(lastDot).toLowerCase();
+  }
+  return "";
+};
+
+/**
+ * Returns the hash (URL fragment), of the given path.
+ * If there is no hash, then the root hash ("#") is returned.
+ *
+ * @param   {string} path
+ * @returns {string}
+ */
+exports.getHash = function getHash (path) {
+  let hashIndex = path.indexOf("#");
+  if (hashIndex >= 0) {
+    return path.substr(hashIndex);
+  }
+  return "#";
+};
+
+/**
+ * Removes the hash (URL fragment), if any, from the given path.
+ *
+ * @param   {string} path
+ * @returns {string}
+ */
+exports.stripHash = function stripHash (path) {
+  let hashIndex = path.indexOf("#");
+  if (hashIndex >= 0) {
+    path = path.substr(0, hashIndex);
+  }
+  return path;
+};
+
+/**
+ * Determines whether the given path is an HTTP(S) URL.
+ *
+ * @param   {string} path
+ * @returns {boolean}
+ */
+exports.isHttp = function isHttp (path) {
+  let protocol = url.getProtocol(path);
+  if (protocol === "http" || protocol === "https") {
+    return true;
+  }
+  else if (protocol === undefined) {
+    // There is no protocol.  If we're running in a browser, then assume it's HTTP.
+    return process.browser;
+  }
+  else {
+    // It's some other protocol, such as "ftp://", "mongodb://", etc.
+    return false;
+  }
+};
+
+/**
+ * Determines whether the given path is a filesystem path.
+ * This includes "file://" URLs.
+ *
+ * @param   {string} path
+ * @returns {boolean}
+ */
+exports.isFileSystemPath = function isFileSystemPath (path) {
+  if (process.browser) {
+    // We're running in a browser, so assume that all paths are URLs.
+    // This way, even relative paths will be treated as URLs rather than as filesystem paths
+    return false;
+  }
+
+  let protocol = url.getProtocol(path);
+  return protocol === undefined || protocol === "file";
+};
+
+/**
+ * Converts a filesystem path to a properly-encoded URL.
+ *
+ * This is intended to handle situations where JSON Schema $Ref Parser is called
+ * with a filesystem path that contains characters which are not allowed in URLs.
+ *
+ * @example
+ * The following filesystem paths would be converted to the following URLs:
+ *
+ *    <"!@#$%^&*+=?'>.json              ==>   %3C%22!@%23$%25%5E&*+=%3F\'%3E.json
+ *    C:\\My Documents\\File (1).json   ==>   C:/My%20Documents/File%20(1).json
+ *    file://Project #42/file.json      ==>   file://Project%20%2342/file.json
+ *
+ * @param {string} path
+ * @returns {string}
+ */
+exports.fromFileSystemPath = function fromFileSystemPath (path) {
+  // Step 1: On Windows, replace backslashes with forward slashes,
+  // rather than encoding them as "%5C"
+  if (isWindows) {
+    path = path.replace(/\\/g, "/");
+  }
+
+  // Step 2: `encodeURI` will take care of MOST characters
+  path = encodeURI(path);
+
+  // Step 3: Manually encode characters that are not encoded by `encodeURI`.
+  // This includes characters such as "#" and "?", which have special meaning in URLs,
+  // but are just normal characters in a filesystem path.
+  for (let i = 0; i < urlEncodePatterns.length; i += 2) {
+    path = path.replace(urlEncodePatterns[i], urlEncodePatterns[i + 1]);
+  }
+
+  return path;
+};
+
+/**
+ * Converts a URL to a local filesystem path.
+ *
+ * @param {string}  path
+ * @param {boolean} [keepFileProtocol] - If true, then "file://" will NOT be stripped
+ * @returns {string}
+ */
+exports.toFileSystemPath = function toFileSystemPath (path, keepFileProtocol) {
+  // Step 1: `decodeURI` will decode characters such as Cyrillic characters, spaces, etc.
+  path = decodeURI(path);
+
+  // Step 2: Manually decode characters that are not decoded by `decodeURI`.
+  // This includes characters such as "#" and "?", which have special meaning in URLs,
+  // but are just normal characters in a filesystem path.
+  for (let i = 0; i < urlDecodePatterns.length; i += 2) {
+    path = path.replace(urlDecodePatterns[i], urlDecodePatterns[i + 1]);
+  }
+
+  // Step 3: If it's a "file://" URL, then format it consistently
+  // or convert it to a local filesystem path
+  let isFileUrl = path.substr(0, 7).toLowerCase() === "file://";
+  if (isFileUrl) {
+    // Strip-off the protocol, and the initial "/", if there is one
+    path = path[7] === "/" ? path.substr(8) : path.substr(7);
+
+    // insert a colon (":") after the drive letter on Windows
+    if (isWindows && path[1] === "/") {
+      path = path[0] + ":" + path.substr(1);
+    }
+
+    if (keepFileProtocol) {
+      // Return the consistently-formatted "file://" URL
+      path = "file:///" + path;
+    }
+    else {
+      // Convert the "file://" URL to a local filesystem path.
+      // On Windows, it will start with something like "C:/".
+      // On Posix, it will start with "/"
+      isFileUrl = false;
+      path = isWindows ? path : "/" + path;
+    }
+  }
+
+  // Step 4: Normalize Windows paths (unless it's a "file://" URL)
+  if (isWindows && !isFileUrl) {
+    // Replace forward slashes with backslashes
+    path = path.replace(forwardSlashPattern, "\\");
+
+    // Capitalize the drive letter
+    if (path.substr(1, 2) === ":\\") {
+      path = path[0].toUpperCase() + path.substr(1);
+    }
+  }
+
+  return path;
+};
+
+}).call(this,require('_process'))
+
+},{"_process":103,"url":109}],24:[function(require,module,exports){
+/* eslint lines-around-comment: [2, {beforeBlockComment: false}] */
+"use strict";
+
+const yaml = require("js-yaml");
+const { ono } = require("@jsdevtools/ono");
+
+/**
+ * Simple YAML parsing functions, similar to {@link JSON.parse} and {@link JSON.stringify}
+ */
+module.exports = {
+  /**
+   * Parses a YAML string and returns the value.
+   *
+   * @param {string} text - The YAML string to be parsed
+   * @param {function} [reviver] - Not currently supported. Provided for consistency with {@link JSON.parse}
+   * @returns {*}
+   */
+  parse (text, reviver) {
+    try {
+      return yaml.safeLoad(text);
+    }
+    catch (e) {
+      if (e instanceof Error) {
+        throw e;
+      }
+      else {
+        // https://github.com/nodeca/js-yaml/issues/153
+        throw ono(e, e.message);
+      }
+    }
+  },
+
+  /**
+   * Converts a JavaScript value to a YAML string.
+   *
+   * @param   {*} value - The value to convert to YAML
+   * @param   {function|array} replacer - Not currently supported. Provided for consistency with {@link JSON.stringify}
+   * @param   {string|number} space - The number of spaces to use for indentation, or a string containing the number of spaces.
+   * @returns {string}
+   */
+  stringify (value, replacer, space) {
+    try {
+      let indent = (typeof space === "string" ? space.length : space) || 2;
+      return yaml.safeDump(value, { indent });
+    }
+    catch (e) {
+      if (e instanceof Error) {
+        throw e;
+      }
+      else {
+        // https://github.com/nodeca/js-yaml/issues/153
+        throw ono(e, e.message);
+      }
+    }
+  }
+};
+
+},{"@jsdevtools/ono":32,"js-yaml":71}],25:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * JSON Schema for OpenAPI Specification v1.2
+ */
+exports.openapiV1 = require("../schemas/v1.2/apiDeclaration.json");
+/**
+ * JSON Schema for OpenAPI Specification v2.0
+ */
+exports.openapiV2 = require("../schemas/v2.0/schema.json");
+/**
+ * JSON Schema for OpenAPI Specification v3.0
+ */
+exports.openapiV3 = require("../schemas/v3.0/schema.json");
+/**
+ * JSON Schemas for every version of the OpenAPI Specification
+ */
+exports.openapi = {
+    v1: exports.openapiV1,
+    v2: exports.openapiV2,
+    v3: exports.openapiV3,
+};
+// Export `openapi` as the default export
+// tslint:disable: no-default-export
+exports.default = exports.openapi;
+// CommonJS default export hack
+if (typeof module === "object" && typeof module.exports === "object") {
+    module.exports = Object.assign(module.exports.default, module.exports); // tslint:disable-line: no-unsafe-any
+}
+
+},{"../schemas/v1.2/apiDeclaration.json":26,"../schemas/v2.0/schema.json":27,"../schemas/v3.0/schema.json":28}],26:[function(require,module,exports){
+module.exports={
+    "id": "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v1.2/apiDeclaration.json#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [ "swaggerVersion", "basePath", "apis" ],
+    "properties": {
+        "swaggerVersion": { "enum": [ "1.2" ] },
+        "apiVersion": { "type": "string" },
+        "basePath": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://"
+        },
+        "resourcePath": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^/"
+        },
+        "apis": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/apiObject" }
+        },
+        "models": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "modelsObject.json#"
+            }
+        },
+        "produces": { "$ref": "#/definitions/mimeTypeArray" },
+        "consumes": { "$ref": "#/definitions/mimeTypeArray" },
+        "authorizations": { "$ref": "authorizationObject.json#" }
+    },
+    "additionalProperties": false,
+    "definitions": {
+        "apiObject": {
+            "type": "object",
+            "required": [ "path", "operations" ],
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "format": "uri-template",
+                    "pattern": "^/"
+                },
+                "description": { "type": "string" },
+                "operations": {
+                    "type": "array",
+                    "items": { "$ref": "operationObject.json#" }
+                }
+            },
+            "additionalProperties": false
+        },
+        "mimeTypeArray": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "format": "mime-type"
+            },
+            "uniqueItems": true
+        }
+    }
+}
+
+},{}],27:[function(require,module,exports){
+module.exports={
+  "title": "A JSON Schema for Swagger 2.0 API.",
+  "id": "http://swagger.io/v2/schema.json#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "required": [
+    "swagger",
+    "info",
+    "paths"
+  ],
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-": {
+      "$ref": "#/definitions/vendorExtension"
+    }
+  },
+  "properties": {
+    "swagger": {
+      "type": "string",
+      "enum": [
+        "2.0"
+      ],
+      "description": "The Swagger version of this document."
+    },
+    "info": {
+      "$ref": "#/definitions/info"
+    },
+    "host": {
+      "type": "string",
+      "pattern": "^[^{}/ :\\\\]+(?::\\d+)?$",
+      "description": "The host (name or ip) of the API. Example: 'swagger.io'"
+    },
+    "basePath": {
+      "type": "string",
+      "pattern": "^/",
+      "description": "The base path to the API. Example: '/api'."
+    },
+    "schemes": {
+      "$ref": "#/definitions/schemesList"
+    },
+    "consumes": {
+      "description": "A list of MIME types accepted by the API.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/mediaTypeList"
+        }
+      ]
+    },
+    "produces": {
+      "description": "A list of MIME types the API can produce.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/mediaTypeList"
+        }
+      ]
+    },
+    "paths": {
+      "$ref": "#/definitions/paths"
+    },
+    "definitions": {
+      "$ref": "#/definitions/definitions"
+    },
+    "parameters": {
+      "$ref": "#/definitions/parameterDefinitions"
+    },
+    "responses": {
+      "$ref": "#/definitions/responseDefinitions"
+    },
+    "security": {
+      "$ref": "#/definitions/security"
+    },
+    "securityDefinitions": {
+      "$ref": "#/definitions/securityDefinitions"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/tag"
+      },
+      "uniqueItems": true
+    },
+    "externalDocs": {
+      "$ref": "#/definitions/externalDocs"
+    }
+  },
+  "definitions": {
+    "info": {
+      "type": "object",
+      "description": "General information about the API.",
+      "required": [
+        "version",
+        "title"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "A unique and precise title of the API."
+        },
+        "version": {
+          "type": "string",
+          "description": "A semantic version number of the API."
+        },
+        "description": {
+          "type": "string",
+          "description": "A longer description of the API. Should be different from the title.  GitHub Flavored Markdown is allowed."
+        },
+        "termsOfService": {
+          "type": "string",
+          "description": "The terms of service for the API."
+        },
+        "contact": {
+          "$ref": "#/definitions/contact"
+        },
+        "license": {
+          "$ref": "#/definitions/license"
+        }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "description": "Contact information for the owners of the API.",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The identifying name of the contact person/organization."
+        },
+        "url": {
+          "type": "string",
+          "description": "The URL pointing to the contact information.",
+          "format": "uri"
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the contact person/organization.",
+          "format": "email"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "license": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the license type. It's encouraged to use an OSI compatible license."
+        },
+        "url": {
+          "type": "string",
+          "description": "The URL pointing to the license.",
+          "format": "uri"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "paths": {
+      "type": "object",
+      "description": "Relative paths to the individual endpoints. They must be relative to the 'basePath'.",
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        },
+        "^/": {
+          "$ref": "#/definitions/pathItem"
+        }
+      },
+      "additionalProperties": false
+    },
+    "definitions": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/schema"
+      },
+      "description": "One or more JSON objects describing the schemas being consumed and produced by the API."
+    },
+    "parameterDefinitions": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/parameter"
+      },
+      "description": "One or more JSON representations for parameters"
+    },
+    "responseDefinitions": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/response"
+      },
+      "description": "One or more JSON representations for responses"
+    },
+    "externalDocs": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "information about external documentation",
+      "required": [
+        "url"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "examples": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "mimeType": {
+      "type": "string",
+      "description": "The MIME type of the HTTP message."
+    },
+    "operation": {
+      "type": "object",
+      "required": [
+        "responses"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "summary": {
+          "type": "string",
+          "description": "A brief summary of the operation."
+        },
+        "description": {
+          "type": "string",
+          "description": "A longer description of the operation, GitHub Flavored Markdown is allowed."
+        },
+        "externalDocs": {
+          "$ref": "#/definitions/externalDocs"
+        },
+        "operationId": {
+          "type": "string",
+          "description": "A unique identifier of the operation."
+        },
+        "produces": {
+          "description": "A list of MIME types the API can produce.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/mediaTypeList"
+            }
+          ]
+        },
+        "consumes": {
+          "description": "A list of MIME types the API can consume.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/mediaTypeList"
+            }
+          ]
+        },
+        "parameters": {
+          "$ref": "#/definitions/parametersList"
+        },
+        "responses": {
+          "$ref": "#/definitions/responses"
+        },
+        "schemes": {
+          "$ref": "#/definitions/schemesList"
+        },
+        "deprecated": {
+          "type": "boolean",
+          "default": false
+        },
+        "security": {
+          "$ref": "#/definitions/security"
+        }
+      }
+    },
+    "pathItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "$ref": {
+          "type": "string"
+        },
+        "get": {
+          "$ref": "#/definitions/operation"
+        },
+        "put": {
+          "$ref": "#/definitions/operation"
+        },
+        "post": {
+          "$ref": "#/definitions/operation"
+        },
+        "delete": {
+          "$ref": "#/definitions/operation"
+        },
+        "options": {
+          "$ref": "#/definitions/operation"
+        },
+        "head": {
+          "$ref": "#/definitions/operation"
+        },
+        "patch": {
+          "$ref": "#/definitions/operation"
+        },
+        "parameters": {
+          "$ref": "#/definitions/parametersList"
+        }
+      }
+    },
+    "responses": {
+      "type": "object",
+      "description": "Response objects names can either be any valid HTTP status code or 'default'.",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "patternProperties": {
+        "^([0-9]{3})$|^(default)$": {
+          "$ref": "#/definitions/responseValue"
+        },
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "not": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": {
+          "^x-": {
+            "$ref": "#/definitions/vendorExtension"
+          }
+        }
+      }
+    },
+    "responseValue": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/response"
+        },
+        {
+          "$ref": "#/definitions/jsonReference"
+        }
+      ]
+    },
+    "response": {
+      "type": "object",
+      "required": [
+        "description"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "schema": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/schema"
+            },
+            {
+              "$ref": "#/definitions/fileSchema"
+            }
+          ]
+        },
+        "headers": {
+          "$ref": "#/definitions/headers"
+        },
+        "examples": {
+          "$ref": "#/definitions/examples"
+        }
+      },
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "headers": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/header"
+      }
+    },
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "array"
+          ]
+        },
+        "format": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/primitivesItems"
+        },
+        "collectionFormat": {
+          "$ref": "#/definitions/collectionFormat"
+        },
+        "default": {
+          "$ref": "#/definitions/default"
+        },
+        "maximum": {
+          "$ref": "#/definitions/maximum"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/exclusiveMaximum"
+        },
+        "minimum": {
+          "$ref": "#/definitions/minimum"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/exclusiveMinimum"
+        },
+        "maxLength": {
+          "$ref": "#/definitions/maxLength"
+        },
+        "minLength": {
+          "$ref": "#/definitions/minLength"
+        },
+        "pattern": {
+          "$ref": "#/definitions/pattern"
+        },
+        "maxItems": {
+          "$ref": "#/definitions/maxItems"
+        },
+        "minItems": {
+          "$ref": "#/definitions/minItems"
+        },
+        "uniqueItems": {
+          "$ref": "#/definitions/uniqueItems"
+        },
+        "enum": {
+          "$ref": "#/definitions/enum"
+        },
+        "multipleOf": {
+          "$ref": "#/definitions/multipleOf"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "vendorExtension": {
+      "description": "Any property starting with x- is valid.",
+      "additionalProperties": true,
+      "additionalItems": true
+    },
+    "bodyParameter": {
+      "type": "object",
+      "required": [
+        "name",
+        "in",
+        "schema"
+      ],
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the parameter."
+        },
+        "in": {
+          "type": "string",
+          "description": "Determines the location of the parameter.",
+          "enum": [
+            "body"
+          ]
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Determines whether or not this parameter is required or optional.",
+          "default": false
+        },
+        "schema": {
+          "$ref": "#/definitions/schema"
+        }
+      },
+      "additionalProperties": false
+    },
+    "headerParameterSubSchema": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "description": "Determines whether or not this parameter is required or optional.",
+          "default": false
+        },
+        "in": {
+          "type": "string",
+          "description": "Determines the location of the parameter.",
+          "enum": [
+            "header"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the parameter."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "integer",
+            "array"
+          ]
+        },
+        "format": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/primitivesItems"
+        },
+        "collectionFormat": {
+          "$ref": "#/definitions/collectionFormat"
+        },
+        "default": {
+          "$ref": "#/definitions/default"
+        },
+        "maximum": {
+          "$ref": "#/definitions/maximum"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/exclusiveMaximum"
+        },
+        "minimum": {
+          "$ref": "#/definitions/minimum"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/exclusiveMinimum"
+        },
+        "maxLength": {
+          "$ref": "#/definitions/maxLength"
+        },
+        "minLength": {
+          "$ref": "#/definitions/minLength"
+        },
+        "pattern": {
+          "$ref": "#/definitions/pattern"
+        },
+        "maxItems": {
+          "$ref": "#/definitions/maxItems"
+        },
+        "minItems": {
+          "$ref": "#/definitions/minItems"
+        },
+        "uniqueItems": {
+          "$ref": "#/definitions/uniqueItems"
+        },
+        "enum": {
+          "$ref": "#/definitions/enum"
+        },
+        "multipleOf": {
+          "$ref": "#/definitions/multipleOf"
+        }
+      }
+    },
+    "queryParameterSubSchema": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "description": "Determines whether or not this parameter is required or optional.",
+          "default": false
+        },
+        "in": {
+          "type": "string",
+          "description": "Determines the location of the parameter.",
+          "enum": [
+            "query"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the parameter."
+        },
+        "allowEmptyValue": {
+          "type": "boolean",
+          "default": false,
+          "description": "allows sending a parameter by name only or with an empty value."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "integer",
+            "array"
+          ]
+        },
+        "format": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/primitivesItems"
+        },
+        "collectionFormat": {
+          "$ref": "#/definitions/collectionFormatWithMulti"
+        },
+        "default": {
+          "$ref": "#/definitions/default"
+        },
+        "maximum": {
+          "$ref": "#/definitions/maximum"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/exclusiveMaximum"
+        },
+        "minimum": {
+          "$ref": "#/definitions/minimum"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/exclusiveMinimum"
+        },
+        "maxLength": {
+          "$ref": "#/definitions/maxLength"
+        },
+        "minLength": {
+          "$ref": "#/definitions/minLength"
+        },
+        "pattern": {
+          "$ref": "#/definitions/pattern"
+        },
+        "maxItems": {
+          "$ref": "#/definitions/maxItems"
+        },
+        "minItems": {
+          "$ref": "#/definitions/minItems"
+        },
+        "uniqueItems": {
+          "$ref": "#/definitions/uniqueItems"
+        },
+        "enum": {
+          "$ref": "#/definitions/enum"
+        },
+        "multipleOf": {
+          "$ref": "#/definitions/multipleOf"
+        }
+      }
+    },
+    "formDataParameterSubSchema": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "description": "Determines whether or not this parameter is required or optional.",
+          "default": false
+        },
+        "in": {
+          "type": "string",
+          "description": "Determines the location of the parameter.",
+          "enum": [
+            "formData"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the parameter."
+        },
+        "allowEmptyValue": {
+          "type": "boolean",
+          "default": false,
+          "description": "allows sending a parameter by name only or with an empty value."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "integer",
+            "array",
+            "file"
+          ]
+        },
+        "format": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/primitivesItems"
+        },
+        "collectionFormat": {
+          "$ref": "#/definitions/collectionFormatWithMulti"
+        },
+        "default": {
+          "$ref": "#/definitions/default"
+        },
+        "maximum": {
+          "$ref": "#/definitions/maximum"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/exclusiveMaximum"
+        },
+        "minimum": {
+          "$ref": "#/definitions/minimum"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/exclusiveMinimum"
+        },
+        "maxLength": {
+          "$ref": "#/definitions/maxLength"
+        },
+        "minLength": {
+          "$ref": "#/definitions/minLength"
+        },
+        "pattern": {
+          "$ref": "#/definitions/pattern"
+        },
+        "maxItems": {
+          "$ref": "#/definitions/maxItems"
+        },
+        "minItems": {
+          "$ref": "#/definitions/minItems"
+        },
+        "uniqueItems": {
+          "$ref": "#/definitions/uniqueItems"
+        },
+        "enum": {
+          "$ref": "#/definitions/enum"
+        },
+        "multipleOf": {
+          "$ref": "#/definitions/multipleOf"
+        }
+      }
+    },
+    "pathParameterSubSchema": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "required": [
+        "required"
+      ],
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "enum": [
+            true
+          ],
+          "description": "Determines whether or not this parameter is required or optional."
+        },
+        "in": {
+          "type": "string",
+          "description": "Determines the location of the parameter.",
+          "enum": [
+            "path"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the parameter."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "integer",
+            "array"
+          ]
+        },
+        "format": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/primitivesItems"
+        },
+        "collectionFormat": {
+          "$ref": "#/definitions/collectionFormat"
+        },
+        "default": {
+          "$ref": "#/definitions/default"
+        },
+        "maximum": {
+          "$ref": "#/definitions/maximum"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/exclusiveMaximum"
+        },
+        "minimum": {
+          "$ref": "#/definitions/minimum"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/exclusiveMinimum"
+        },
+        "maxLength": {
+          "$ref": "#/definitions/maxLength"
+        },
+        "minLength": {
+          "$ref": "#/definitions/minLength"
+        },
+        "pattern": {
+          "$ref": "#/definitions/pattern"
+        },
+        "maxItems": {
+          "$ref": "#/definitions/maxItems"
+        },
+        "minItems": {
+          "$ref": "#/definitions/minItems"
+        },
+        "uniqueItems": {
+          "$ref": "#/definitions/uniqueItems"
+        },
+        "enum": {
+          "$ref": "#/definitions/enum"
+        },
+        "multipleOf": {
+          "$ref": "#/definitions/multipleOf"
+        }
+      }
+    },
+    "nonBodyParameter": {
+      "type": "object",
+      "required": [
+        "name",
+        "in",
+        "type"
+      ],
+      "oneOf": [
+        {
+          "$ref": "#/definitions/headerParameterSubSchema"
+        },
+        {
+          "$ref": "#/definitions/formDataParameterSubSchema"
+        },
+        {
+          "$ref": "#/definitions/queryParameterSubSchema"
+        },
+        {
+          "$ref": "#/definitions/pathParameterSubSchema"
+        }
+      ]
+    },
+    "parameter": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/bodyParameter"
+        },
+        {
+          "$ref": "#/definitions/nonBodyParameter"
+        }
+      ]
+    },
+    "schema": {
+      "type": "object",
+      "description": "A deterministic version of a JSON Schema object.",
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "properties": {
+        "$ref": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string"
+        },
+        "title": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/title"
+        },
+        "description": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/description"
+        },
+        "default": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/default"
+        },
+        "multipleOf": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/multipleOf"
+        },
+        "maximum": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/maximum"
+        },
+        "exclusiveMaximum": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMaximum"
+        },
+        "minimum": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/minimum"
+        },
+        "exclusiveMinimum": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMinimum"
+        },
+        "maxLength": {
+          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+        },
+        "minLength": {
+          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+        },
+        "pattern": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/pattern"
+        },
+        "maxItems": {
+          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+        },
+        "minItems": {
+          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+        },
+        "uniqueItems": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/uniqueItems"
+        },
+        "maxProperties": {
+          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+        },
+        "minProperties": {
+          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+        },
+        "required": {
+          "$ref": "http://json-schema.org/draft-04/schema#/definitions/stringArray"
+        },
+        "enum": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
+        },
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/schema"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "default": {}
+        },
+        "type": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/type"
+        },
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/schema"
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/schema"
+              }
+            }
+          ],
+          "default": {}
+        },
+        "allOf": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/schema"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/schema"
+          },
+          "default": {}
+        },
+        "discriminator": {
+          "type": "string"
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false
+        },
+        "xml": {
+          "$ref": "#/definitions/xml"
+        },
+        "externalDocs": {
+          "$ref": "#/definitions/externalDocs"
+        },
+        "example": {}
+      },
+      "additionalProperties": false
+    },
+    "fileSchema": {
+      "type": "object",
+      "description": "A deterministic version of a JSON Schema object.",
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "format": {
+          "type": "string"
+        },
+        "title": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/title"
+        },
+        "description": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/description"
+        },
+        "default": {
+          "$ref": "http://json-schema.org/draft-04/schema#/properties/default"
+        },
+        "required": {
+          "$ref": "http://json-schema.org/draft-04/schema#/definitions/stringArray"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "file"
+          ]
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false
+        },
+        "externalDocs": {
+          "$ref": "#/definitions/externalDocs"
+        },
+        "example": {}
+      },
+      "additionalProperties": false
+    },
+    "primitivesItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "array"
+          ]
+        },
+        "format": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/primitivesItems"
+        },
+        "collectionFormat": {
+          "$ref": "#/definitions/collectionFormat"
+        },
+        "default": {
+          "$ref": "#/definitions/default"
+        },
+        "maximum": {
+          "$ref": "#/definitions/maximum"
+        },
+        "exclusiveMaximum": {
+          "$ref": "#/definitions/exclusiveMaximum"
+        },
+        "minimum": {
+          "$ref": "#/definitions/minimum"
+        },
+        "exclusiveMinimum": {
+          "$ref": "#/definitions/exclusiveMinimum"
+        },
+        "maxLength": {
+          "$ref": "#/definitions/maxLength"
+        },
+        "minLength": {
+          "$ref": "#/definitions/minLength"
+        },
+        "pattern": {
+          "$ref": "#/definitions/pattern"
+        },
+        "maxItems": {
+          "$ref": "#/definitions/maxItems"
+        },
+        "minItems": {
+          "$ref": "#/definitions/minItems"
+        },
+        "uniqueItems": {
+          "$ref": "#/definitions/uniqueItems"
+        },
+        "enum": {
+          "$ref": "#/definitions/enum"
+        },
+        "multipleOf": {
+          "$ref": "#/definitions/multipleOf"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "security": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/securityRequirement"
+      },
+      "uniqueItems": true
+    },
+    "securityRequirement": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "uniqueItems": true
+      }
+    },
+    "xml": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "attribute": {
+          "type": "boolean",
+          "default": false
+        },
+        "wrapped": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "tag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "externalDocs": {
+          "$ref": "#/definitions/externalDocs"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "securityDefinitions": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/basicAuthenticationSecurity"
+          },
+          {
+            "$ref": "#/definitions/apiKeySecurity"
+          },
+          {
+            "$ref": "#/definitions/oauth2ImplicitSecurity"
+          },
+          {
+            "$ref": "#/definitions/oauth2PasswordSecurity"
+          },
+          {
+            "$ref": "#/definitions/oauth2ApplicationSecurity"
+          },
+          {
+            "$ref": "#/definitions/oauth2AccessCodeSecurity"
+          }
+        ]
+      }
+    },
+    "basicAuthenticationSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "basic"
+          ]
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "apiKeySecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "name",
+        "in"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "apiKey"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "in": {
+          "type": "string",
+          "enum": [
+            "header",
+            "query"
+          ]
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "oauth2ImplicitSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "flow",
+        "authorizationUrl"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "oauth2"
+          ]
+        },
+        "flow": {
+          "type": "string",
+          "enum": [
+            "implicit"
+          ]
+        },
+        "scopes": {
+          "$ref": "#/definitions/oauth2Scopes"
+        },
+        "authorizationUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "oauth2PasswordSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "flow",
+        "tokenUrl"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "oauth2"
+          ]
+        },
+        "flow": {
+          "type": "string",
+          "enum": [
+            "password"
+          ]
+        },
+        "scopes": {
+          "$ref": "#/definitions/oauth2Scopes"
+        },
+        "tokenUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "oauth2ApplicationSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "flow",
+        "tokenUrl"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "oauth2"
+          ]
+        },
+        "flow": {
+          "type": "string",
+          "enum": [
+            "application"
+          ]
+        },
+        "scopes": {
+          "$ref": "#/definitions/oauth2Scopes"
+        },
+        "tokenUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "oauth2AccessCodeSecurity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "flow",
+        "authorizationUrl",
+        "tokenUrl"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "oauth2"
+          ]
+        },
+        "flow": {
+          "type": "string",
+          "enum": [
+            "accessCode"
+          ]
+        },
+        "scopes": {
+          "$ref": "#/definitions/oauth2Scopes"
+        },
+        "authorizationUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "tokenUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "$ref": "#/definitions/vendorExtension"
+        }
+      }
+    },
+    "oauth2Scopes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "mediaTypeList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/mimeType"
+      },
+      "uniqueItems": true
+    },
+    "parametersList": {
+      "type": "array",
+      "description": "The parameters needed to send a valid API call.",
+      "additionalItems": false,
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/parameter"
+          },
+          {
+            "$ref": "#/definitions/jsonReference"
+          }
+        ]
+      },
+      "uniqueItems": true
+    },
+    "schemesList": {
+      "type": "array",
+      "description": "The transfer protocol of the API.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "http",
+          "https",
+          "ws",
+          "wss"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "collectionFormat": {
+      "type": "string",
+      "enum": [
+        "csv",
+        "ssv",
+        "tsv",
+        "pipes"
+      ],
+      "default": "csv"
+    },
+    "collectionFormatWithMulti": {
+      "type": "string",
+      "enum": [
+        "csv",
+        "ssv",
+        "tsv",
+        "pipes",
+        "multi"
+      ],
+      "default": "csv"
+    },
+    "title": {
+      "$ref": "http://json-schema.org/draft-04/schema#/properties/title"
+    },
+    "description": {
+      "$ref": "http://json-schema.org/draft-04/schema#/properties/description"
+    },
+    "default": {
+      "$ref": "http://json-schema.org/draft-04/schema#/properties/default"
+    },
+    "multipleOf": {
+      "$ref": "http://json-schema.org/draft-04/schema#/properties/multipleOf"
+    },
+    "maximum": {
+      "$ref": "http://json-schema.org/draft-04/schema#/properties/maximum"
+    },
+    "exclusiveMaximum": {
+      "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMaximum"
+    },
+    "minimum": {
+      "$ref": "http://json-schema.org/draft-04/schema#/properties/minimum"
+    },
+    "exclusiveMinimum": {
+      "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMinimum"
+    },
+    "maxLength": {
+      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+    },
+    "minLength": {
+      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+    },
+    "pattern": {
+      "$ref": "http://json-schema.org/draft-04/schema#/properties/pattern"
+    },
+    "maxItems": {
+      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
+    },
+    "minItems": {
+      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
+    },
+    "uniqueItems": {
+      "$ref": "http://json-schema.org/draft-04/schema#/properties/uniqueItems"
+    },
+    "enum": {
+      "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
+    },
+    "jsonReference": {
+      "type": "object",
+      "required": [
+        "$ref"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "$ref": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+},{}],28:[function(require,module,exports){
+module.exports={
+  "id": "https://spec.openapis.org/oas/3.0/schema/2019-04-02",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Validation schema for OpenAPI Specification 3.0.X.",
+  "type": "object",
+  "required": [
+    "openapi",
+    "info",
+    "paths"
+  ],
+  "properties": {
+    "openapi": {
+      "type": "string",
+      "pattern": "^3\\.0\\.\\d(-.+)?$"
+    },
+    "info": {
+      "$ref": "#/definitions/Info"
+    },
+    "externalDocs": {
+      "$ref": "#/definitions/ExternalDocumentation"
+    },
+    "servers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Server"
+      }
+    },
+    "security": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SecurityRequirement"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      },
+      "uniqueItems": true
+    },
+    "paths": {
+      "$ref": "#/definitions/Paths"
+    },
+    "components": {
+      "$ref": "#/definitions/Components"
+    }
+  },
+  "patternProperties": {
+    "^x-": {
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "Reference": {
+      "type": "object",
+      "required": [
+        "$ref"
+      ],
+      "patternProperties": {
+        "^\\$ref$": {
+          "type": "string",
+          "format": "uri-reference"
+        }
+      }
+    },
+    "Info": {
+      "type": "object",
+      "required": [
+        "title",
+        "version"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "termsOfService": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "contact": {
+          "$ref": "#/definitions/Contact"
+        },
+        "license": {
+          "$ref": "#/definitions/License"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "Contact": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "License": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri-reference"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "Server": {
+      "type": "object",
+      "required": [
+        "url"
+      ],
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ServerVariable"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "ServerVariable": {
+      "type": "object",
+      "required": [
+        "default"
+      ],
+      "properties": {
+        "enum": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "default": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "Components": {
+      "type": "object",
+      "properties": {
+        "schemas": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9\\.\\-_]+$": {
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/Schema"
+                },
+                {
+                  "$ref": "#/definitions/Reference"
+                }
+              ]
+            }
+          }
+        },
+        "responses": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9\\.\\-_]+$": {
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/Reference"
+                },
+                {
+                  "$ref": "#/definitions/Response"
+                }
+              ]
+            }
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9\\.\\-_]+$": {
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/Reference"
+                },
+                {
+                  "$ref": "#/definitions/Parameter"
+                }
+              ]
+            }
+          }
+        },
+        "examples": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9\\.\\-_]+$": {
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/Reference"
+                },
+                {
+                  "$ref": "#/definitions/Example"
+                }
+              ]
+            }
+          }
+        },
+        "requestBodies": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9\\.\\-_]+$": {
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/Reference"
+                },
+                {
+                  "$ref": "#/definitions/RequestBody"
+                }
+              ]
+            }
+          }
+        },
+        "headers": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9\\.\\-_]+$": {
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/Reference"
+                },
+                {
+                  "$ref": "#/definitions/Header"
+                }
+              ]
+            }
+          }
+        },
+        "securitySchemes": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9\\.\\-_]+$": {
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/Reference"
+                },
+                {
+                  "$ref": "#/definitions/SecurityScheme"
+                }
+              ]
+            }
+          }
+        },
+        "links": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9\\.\\-_]+$": {
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/Reference"
+                },
+                {
+                  "$ref": "#/definitions/Link"
+                }
+              ]
+            }
+          }
+        },
+        "callbacks": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9\\.\\-_]+$": {
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/Reference"
+                },
+                {
+                  "$ref": "#/definitions/Callback"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "Schema": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "multipleOf": {
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMinimum": true
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "exclusiveMaximum": {
+          "type": "boolean",
+          "default": false
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "exclusiveMinimum": {
+          "type": "boolean",
+          "default": false
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "pattern": {
+          "type": "string",
+          "format": "regex"
+        },
+        "maxItems": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minItems": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "uniqueItems": {
+          "type": "boolean",
+          "default": false
+        },
+        "maxProperties": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minProperties": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "enum": {
+          "type": "array",
+          "items": {
+          },
+          "minItems": 1,
+          "uniqueItems": false
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "array",
+            "boolean",
+            "integer",
+            "number",
+            "object",
+            "string"
+          ]
+        },
+        "not": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "$ref": "#/definitions/Reference"
+            }
+          ]
+        },
+        "allOf": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Schema"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          }
+        },
+        "oneOf": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Schema"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          }
+        },
+        "anyOf": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Schema"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          }
+        },
+        "items": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "$ref": "#/definitions/Reference"
+            }
+          ]
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Schema"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          }
+        },
+        "additionalProperties": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "$ref": "#/definitions/Reference"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "default": true
+        },
+        "description": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string"
+        },
+        "default": {
+        },
+        "nullable": {
+          "type": "boolean",
+          "default": false
+        },
+        "discriminator": {
+          "$ref": "#/definitions/Discriminator"
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false
+        },
+        "writeOnly": {
+          "type": "boolean",
+          "default": false
+        },
+        "example": {
+        },
+        "externalDocs": {
+          "$ref": "#/definitions/ExternalDocumentation"
+        },
+        "deprecated": {
+          "type": "boolean",
+          "default": false
+        },
+        "xml": {
+          "$ref": "#/definitions/XML"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "Discriminator": {
+      "type": "object",
+      "required": [
+        "propertyName"
+      ],
+      "properties": {
+        "propertyName": {
+          "type": "string"
+        },
+        "mapping": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "XML": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string",
+          "format": "uri"
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "attribute": {
+          "type": "boolean",
+          "default": false
+        },
+        "wrapped": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "Response": {
+      "type": "object",
+      "required": [
+        "description"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Header"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          }
+        },
+        "content": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/MediaType"
+          }
+        },
+        "links": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Link"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "MediaType": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "$ref": "#/definitions/Reference"
+            }
+          ]
+        },
+        "example": {
+        },
+        "examples": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Example"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          }
+        },
+        "encoding": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Encoding"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/ExampleXORExamples"
+        }
+      ]
+    },
+    "Example": {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "value": {
+        },
+        "externalValue": {
+          "type": "string",
+          "format": "uri-reference"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "Header": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "deprecated": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowEmptyValue": {
+          "type": "boolean",
+          "default": false
+        },
+        "style": {
+          "type": "string",
+          "enum": [
+            "simple"
+          ],
+          "default": "simple"
+        },
+        "explode": {
+          "type": "boolean"
+        },
+        "allowReserved": {
+          "type": "boolean",
+          "default": false
+        },
+        "schema": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "$ref": "#/definitions/Reference"
+            }
+          ]
+        },
+        "content": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/MediaType"
+          },
+          "minProperties": 1,
+          "maxProperties": 1
+        },
+        "example": {
+        },
+        "examples": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Example"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/definitions/ExampleXORExamples"
+        },
+        {
+          "$ref": "#/definitions/SchemaXORContent"
+        }
+      ]
+    },
+    "Paths": {
+      "type": "object",
+      "patternProperties": {
+        "^\\/": {
+          "$ref": "#/definitions/PathItem"
+        },
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "PathItem": {
+      "type": "object",
+      "properties": {
+        "$ref": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "servers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Server"
+          }
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Parameter"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          },
+          "uniqueItems": true
+        }
+      },
+      "patternProperties": {
+        "^(get|put|post|delete|options|head|patch|trace)$": {
+          "$ref": "#/definitions/Operation"
+        },
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "Operation": {
+      "type": "object",
+      "required": [
+        "responses"
+      ],
+      "properties": {
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "summary": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "externalDocs": {
+          "$ref": "#/definitions/ExternalDocumentation"
+        },
+        "operationId": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Parameter"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          },
+          "uniqueItems": true
+        },
+        "requestBody": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/RequestBody"
+            },
+            {
+              "$ref": "#/definitions/Reference"
+            }
+          ]
+        },
+        "responses": {
+          "$ref": "#/definitions/Responses"
+        },
+        "callbacks": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Callback"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          }
+        },
+        "deprecated": {
+          "type": "boolean",
+          "default": false
+        },
+        "security": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SecurityRequirement"
+          }
+        },
+        "servers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Server"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "Responses": {
+      "type": "object",
+      "properties": {
+        "default": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/Response"
+            },
+            {
+              "$ref": "#/definitions/Reference"
+            }
+          ]
+        }
+      },
+      "patternProperties": {
+        "^[1-5](?:\\d{2}|XX)$": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/Response"
+            },
+            {
+              "$ref": "#/definitions/Reference"
+            }
+          ]
+        },
+        "^x-": {
+        }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
+    },
+    "SecurityRequirement": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "Tag": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "externalDocs": {
+          "$ref": "#/definitions/ExternalDocumentation"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "ExternalDocumentation": {
+      "type": "object",
+      "required": [
+        "url"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri-reference"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "ExampleXORExamples": {
+      "description": "Example and examples are mutually exclusive",
+      "not": {
+        "required": [
+          "example",
+          "examples"
+        ]
+      }
+    },
+    "SchemaXORContent": {
+      "description": "Schema and content are mutually exclusive, at least one is required",
+      "not": {
+        "required": [
+          "schema",
+          "content"
+        ]
+      },
+      "oneOf": [
+        {
+          "required": [
+            "schema"
+          ]
+        },
+        {
+          "required": [
+            "content"
+          ],
+          "description": "Some properties are not allowed if content is present",
+          "allOf": [
+            {
+              "not": {
+                "required": [
+                  "style"
+                ]
+              }
+            },
+            {
+              "not": {
+                "required": [
+                  "explode"
+                ]
+              }
+            },
+            {
+              "not": {
+                "required": [
+                  "allowReserved"
+                ]
+              }
+            },
+            {
+              "not": {
+                "required": [
+                  "example"
+                ]
+              }
+            },
+            {
+              "not": {
+                "required": [
+                  "examples"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Parameter": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "in": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "deprecated": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowEmptyValue": {
+          "type": "boolean",
+          "default": false
+        },
+        "style": {
+          "type": "string"
+        },
+        "explode": {
+          "type": "boolean"
+        },
+        "allowReserved": {
+          "type": "boolean",
+          "default": false
+        },
+        "schema": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "$ref": "#/definitions/Reference"
+            }
+          ]
+        },
+        "content": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/MediaType"
+          },
+          "minProperties": 1,
+          "maxProperties": 1
+        },
+        "example": {
+        },
+        "examples": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/Example"
+              },
+              {
+                "$ref": "#/definitions/Reference"
+              }
+            ]
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "in"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/ExampleXORExamples"
+        },
+        {
+          "$ref": "#/definitions/SchemaXORContent"
+        },
+        {
+          "$ref": "#/definitions/ParameterLocation"
+        }
+      ]
+    },
+    "ParameterLocation": {
+      "description": "Parameter location",
+      "oneOf": [
+        {
+          "description": "Parameter in path",
+          "required": [
+            "required"
+          ],
+          "properties": {
+            "in": {
+              "enum": [
+                "path"
+              ]
+            },
+            "style": {
+              "enum": [
+                "matrix",
+                "label",
+                "simple"
+              ],
+              "default": "simple"
+            },
+            "required": {
+              "enum": [
+                true
+              ]
+            }
+          }
+        },
+        {
+          "description": "Parameter in query",
+          "properties": {
+            "in": {
+              "enum": [
+                "query"
+              ]
+            },
+            "style": {
+              "enum": [
+                "form",
+                "spaceDelimited",
+                "pipeDelimited",
+                "deepObject"
+              ],
+              "default": "form"
+            }
+          }
+        },
+        {
+          "description": "Parameter in header",
+          "properties": {
+            "in": {
+              "enum": [
+                "header"
+              ]
+            },
+            "style": {
+              "enum": [
+                "simple"
+              ],
+              "default": "simple"
+            }
+          }
+        },
+        {
+          "description": "Parameter in cookie",
+          "properties": {
+            "in": {
+              "enum": [
+                "cookie"
+              ]
+            },
+            "style": {
+              "enum": [
+                "form"
+              ],
+              "default": "form"
+            }
+          }
+        }
+      ]
+    },
+    "RequestBody": {
+      "type": "object",
+      "required": [
+        "content"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "content": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/MediaType"
+          }
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "SecurityScheme": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/APIKeySecurityScheme"
+        },
+        {
+          "$ref": "#/definitions/HTTPSecurityScheme"
+        },
+        {
+          "$ref": "#/definitions/OAuth2SecurityScheme"
+        },
+        {
+          "$ref": "#/definitions/OpenIdConnectSecurityScheme"
+        }
+      ]
+    },
+    "APIKeySecurityScheme": {
+      "type": "object",
+      "required": [
+        "type",
+        "name",
+        "in"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "apiKey"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "in": {
+          "type": "string",
+          "enum": [
+            "header",
+            "query",
+            "cookie"
+          ]
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "HTTPSecurityScheme": {
+      "type": "object",
+      "required": [
+        "scheme",
+        "type"
+      ],
+      "properties": {
+        "scheme": {
+          "type": "string"
+        },
+        "bearerFormat": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "http"
+          ]
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "description": "Bearer",
+          "properties": {
+            "scheme": {
+              "enum": [
+                "bearer"
+              ]
+            }
+          }
+        },
+        {
+          "description": "Non Bearer",
+          "not": {
+            "required": [
+              "bearerFormat"
+            ]
+          },
+          "properties": {
+            "scheme": {
+              "not": {
+                "enum": [
+                  "bearer"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "OAuth2SecurityScheme": {
+      "type": "object",
+      "required": [
+        "type",
+        "flows"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "oauth2"
+          ]
+        },
+        "flows": {
+          "$ref": "#/definitions/OAuthFlows"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "OpenIdConnectSecurityScheme": {
+      "type": "object",
+      "required": [
+        "type",
+        "openIdConnectUrl"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "openIdConnect"
+          ]
+        },
+        "openIdConnectUrl": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "OAuthFlows": {
+      "type": "object",
+      "properties": {
+        "implicit": {
+          "$ref": "#/definitions/ImplicitOAuthFlow"
+        },
+        "password": {
+          "$ref": "#/definitions/PasswordOAuthFlow"
+        },
+        "clientCredentials": {
+          "$ref": "#/definitions/ClientCredentialsFlow"
+        },
+        "authorizationCode": {
+          "$ref": "#/definitions/AuthorizationCodeOAuthFlow"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "ImplicitOAuthFlow": {
+      "type": "object",
+      "required": [
+        "authorizationUrl",
+        "scopes"
+      ],
+      "properties": {
+        "authorizationUrl": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "refreshUrl": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "scopes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "PasswordOAuthFlow": {
+      "type": "object",
+      "required": [
+        "tokenUrl"
+      ],
+      "properties": {
+        "tokenUrl": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "refreshUrl": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "scopes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "ClientCredentialsFlow": {
+      "type": "object",
+      "required": [
+        "tokenUrl"
+      ],
+      "properties": {
+        "tokenUrl": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "refreshUrl": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "scopes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "AuthorizationCodeOAuthFlow": {
+      "type": "object",
+      "required": [
+        "authorizationUrl",
+        "tokenUrl"
+      ],
+      "properties": {
+        "authorizationUrl": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "tokenUrl": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "refreshUrl": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "scopes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false
+    },
+    "Link": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "type": "string"
+        },
+        "operationRef": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {
+          }
+        },
+        "requestBody": {
+        },
+        "description": {
+          "type": "string"
+        },
+        "server": {
+          "$ref": "#/definitions/Server"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      },
+      "additionalProperties": false,
+      "not": {
+        "description": "Operation Id and Operation Ref are mutually exclusive",
+        "required": [
+          "operationId",
+          "operationRef"
+        ]
+      }
+    },
+    "Callback": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/PathItem"
+      },
+      "patternProperties": {
+        "^x-": {
+        }
+      }
+    },
+    "Encoding": {
+      "type": "object",
+      "properties": {
+        "contentType": {
+          "type": "string"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Header"
+          }
+        },
+        "style": {
+          "type": "string",
+          "enum": [
+            "form",
+            "spaceDelimited",
+            "pipeDelimited",
+            "deepObject"
+          ]
+        },
+        "explode": {
+          "type": "boolean"
+        },
+        "allowReserved": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
+},{}],29:[function(require,module,exports){
+"use strict";
+
+module.exports = [
+  "get", "put", "post", "delete", "options", "head", "patch"
+];
+
+},{}],30:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const extend_error_1 = require("./extend-error");
+const normalize_1 = require("./normalize");
+const to_json_1 = require("./to-json");
+const constructor = Ono;
+exports.Ono = constructor;
+/**
+ * Creates an `Ono` instance for a specifc error type.
+ */
+// tslint:disable-next-line: variable-name
+function Ono(ErrorConstructor, options) {
+    options = normalize_1.normalizeOptions(options);
+    function ono(...args) {
+        let { originalError, props, message } = normalize_1.normalizeArgs(args, options);
+        // Create a new error of the specified type
+        let newError = new ErrorConstructor(message);
+        // Extend the error with the properties of the original error and the `props` object
+        return extend_error_1.extendError(newError, originalError, props);
+    }
+    ono[Symbol.species] = ErrorConstructor;
+    return ono;
+}
+/**
+ * Returns an object containing all properties of the given Error object,
+ * which can be used with `JSON.stringify()`.
+ */
+Ono.toJSON = function toJSON(error) {
+    return to_json_1.toJSON.call(error);
+};
+/**
+ * Extends the given Error object with enhanced Ono functionality, such as nested stack traces,
+ * additional properties, and improved support for `JSON.stringify()`.
+ */
+Ono.extend = function extend(error, originalError, props) {
+    if (props || originalError instanceof Error) {
+        return extend_error_1.extendError(error, originalError, props);
+    }
+    else if (originalError) {
+        return extend_error_1.extendError(error, undefined, originalError);
+    }
+    else {
+        return extend_error_1.extendError(error);
+    }
+};
+
+},{"./extend-error":31,"./normalize":34,"./to-json":37}],31:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const isomorphic_node_1 = require("./isomorphic.node");
+const stack_1 = require("./stack");
+const to_json_1 = require("./to-json");
+const protectedProps = ["name", "message", "stack"];
+/**
+ * Extends the new error with the properties of the original error and the `props` object.
+ *
+ * @param newError - The error object to extend
+ * @param originalError - The original error object, if any
+ * @param props - Additional properties to add, if any
+ */
+function extendError(error, originalError, props) {
+    let onoError = error;
+    extendStack(onoError, originalError);
+    // Copy properties from the original error
+    if (originalError && typeof originalError === "object") {
+        mergeErrors(onoError, originalError);
+    }
+    // The default `toJSON` method doesn't output props like `name`, `message`, `stack`, etc.
+    // So replace it with one that outputs every property of the error.
+    onoError.toJSON = to_json_1.toJSON;
+    // On Node.js, add support for the `util.inspect()` method
+    if (isomorphic_node_1.addInspectMethod) {
+        isomorphic_node_1.addInspectMethod(onoError);
+    }
+    // Finally, copy custom properties that were specified by the user.
+    // These props OVERWRITE any previous props
+    if (props && typeof props === "object") {
+        Object.assign(onoError, props);
+    }
+    return onoError;
+}
+exports.extendError = extendError;
+/**
+ * Extend the error stack to include its cause
+ */
+function extendStack(newError, originalError) {
+    let stackProp = Object.getOwnPropertyDescriptor(newError, "stack");
+    if (stack_1.isLazyStack(stackProp)) {
+        stack_1.lazyJoinStacks(stackProp, newError, originalError);
+    }
+    else if (stack_1.isWritableStack(stackProp)) {
+        newError.stack = stack_1.joinStacks(newError, originalError);
+    }
+}
+/**
+ * Merges properties of the original error with the new error.
+ *
+ * @param newError - The error object to extend
+ * @param originalError - The original error object, if any
+ */
+function mergeErrors(newError, originalError) {
+    // Get the original error's keys
+    // NOTE: We specifically exclude properties that we have already set on the new error.
+    // This is _especially_ important for the `stack` property, because this property has
+    // a lazy getter in some environments
+    let keys = to_json_1.getDeepKeys(originalError, protectedProps);
+    // HACK: We have to cast the errors to `any` so we can use symbol indexers.
+    // see https://github.com/Microsoft/TypeScript/issues/1863
+    // tslint:disable: no-any no-unsafe-any
+    let _newError = newError;
+    let _originalError = originalError;
+    for (let key of keys) {
+        if (_newError[key] === undefined) {
+            try {
+                _newError[key] = _originalError[key];
+            }
+            catch (e) {
+                // This property is read-only, so it can't be copied
+            }
+        }
+    }
+}
+
+},{"./isomorphic.node":33,"./stack":36,"./to-json":37}],32:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const singleton_1 = require("./singleton");
+exports.ono = singleton_1.ono;
+var constructor_1 = require("./constructor");
+exports.Ono = constructor_1.Ono;
+// tslint:disable-next-line: no-default-export
+exports.default = singleton_1.ono;
+// CommonJS default export hack
+if (typeof module === "object" && typeof module.exports === "object") {
+    module.exports = Object.assign(module.exports.default, module.exports); // tslint:disable-line: no-unsafe-any
+}
+
+},{"./constructor":30,"./singleton":35}],33:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Ono supports custom formatters for error messages.  In Node.js, it defaults
+ * to the `util.format()` function.  In browsers, it defaults to `Array.join()`.
+ *
+ * The Node.js functionality can be used in a web browser via a polyfill,
+ * such as "format-util".
+ *
+ * @see https://github.com/tmpfs/format-util
+ */
+exports.format = false;
+/**
+ * The `util.inspect()` functionality only applies to Node.js.
+ * We return the constant `false` here so that the Node-specific code gets removed by tree-shaking.
+ */
+exports.addInspectMethod = false;
+
+},{}],34:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const isomorphic_node_1 = require("./isomorphic.node");
+/**
+ * Normalizes Ono options, accounting for defaults and optional options.
+ */
+function normalizeOptions(options) {
+    options = options || {};
+    return {
+        concatMessages: options.concatMessages === undefined ? true : Boolean(options.concatMessages),
+        format: options.format === undefined ? isomorphic_node_1.format
+            : (typeof options.format === "function" ? options.format : false),
+    };
+}
+exports.normalizeOptions = normalizeOptions;
+/**
+ * Normalizes the Ono arguments, accounting for defaults, options, and optional arguments.
+ */
+function normalizeArgs(args, options) {
+    let originalError;
+    let props;
+    let formatArgs;
+    let message = "";
+    // Determine which arguments were actually specified
+    if (typeof args[0] === "string") {
+        formatArgs = args;
+    }
+    else if (typeof args[1] === "string") {
+        if (args[0] instanceof Error) {
+            originalError = args[0];
+        }
+        else {
+            props = args[0];
+        }
+        formatArgs = args.slice(1);
+    }
+    else {
+        originalError = args[0];
+        props = args[1];
+        formatArgs = args.slice(2);
+    }
+    // If there are any format arguments, then format the error message
+    if (formatArgs.length > 0) {
+        if (options.format) {
+            message = options.format.apply(undefined, formatArgs);
+        }
+        else {
+            message = formatArgs.join(" ");
+        }
+    }
+    if (options.concatMessages && originalError && originalError.message) {
+        // The inner-error's message will be added to the new message
+        message += (message ? " \n" : "") + originalError.message;
+    }
+    return { originalError, props, message };
+}
+exports.normalizeArgs = normalizeArgs;
+
+},{"./isomorphic.node":33}],35:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const constructor_1 = require("./constructor");
+const singleton = ono;
+exports.ono = singleton;
+ono.error = new constructor_1.Ono(Error);
+ono.eval = new constructor_1.Ono(EvalError);
+ono.range = new constructor_1.Ono(RangeError);
+ono.reference = new constructor_1.Ono(ReferenceError);
+ono.syntax = new constructor_1.Ono(SyntaxError);
+ono.type = new constructor_1.Ono(TypeError);
+ono.uri = new constructor_1.Ono(URIError);
+const onoMap = ono;
+/**
+ * Creates a new error with the specified message, properties, and/or inner error.
+ * If an inner error is provided, then the new error will match its type, if possible.
+ */
+function ono(...args) {
+    let originalError = args[0];
+    // Is the first argument an Error-like object?
+    if (typeof originalError === "object" && typeof originalError.name === "string") {
+        // Try to find an Ono singleton method that matches this error type
+        for (let typedOno of Object.values(onoMap)) {
+            if (typeof typedOno === "function" && typedOno.name === "ono") {
+                let species = typedOno[Symbol.species];
+                if (species && species !== Error && (originalError instanceof species || originalError.name === species.name)) {
+                    // Create an error of the same type
+                    return typedOno.apply(undefined, args);
+                }
+            }
+        }
+    }
+    // By default, create a base Error object
+    return ono.error.apply(undefined, args);
+}
+
+},{"./constructor":30}],36:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const newline = /\r?\n/;
+const onoCall = /\bono[ @]/;
+/**
+ * Is the property lazily computed?
+ */
+function isLazyStack(stackProp) {
+    return Boolean(stackProp &&
+        stackProp.configurable &&
+        typeof stackProp.get === "function");
+}
+exports.isLazyStack = isLazyStack;
+/**
+ * Is the stack property writable?
+ */
+function isWritableStack(stackProp) {
+    return Boolean(
+    // If there is no stack property, then it's writable, since assigning it will create it
+    !stackProp ||
+        stackProp.writable ||
+        typeof stackProp.set === "function");
+}
+exports.isWritableStack = isWritableStack;
+/**
+ * Appends the original `Error.stack` property to the new Error's stack.
+ */
+function joinStacks(newError, originalError) {
+    let newStack = popStack(newError.stack);
+    let originalStack = originalError ? originalError.stack : undefined;
+    if (newStack && originalStack) {
+        return newStack + "\n\n" + originalStack;
+    }
+    else {
+        return newStack || originalStack;
+    }
+}
+exports.joinStacks = joinStacks;
+/**
+ * Calls `joinStacks` lazily, when the `Error.stack` property is accessed.
+ */
+function lazyJoinStacks(lazyStack, newError, originalError) {
+    if (originalError) {
+        Object.defineProperty(newError, "stack", {
+            get: () => {
+                let newStack = lazyStack.get.apply(newError);
+                return joinStacks({ stack: newStack }, originalError);
+            },
+            enumerable: false,
+            configurable: true
+        });
+    }
+    else {
+        lazyPopStack(newError, lazyStack);
+    }
+}
+exports.lazyJoinStacks = lazyJoinStacks;
+/**
+ * Removes Ono from the stack, so that the stack starts at the original error location
+ */
+function popStack(stack) {
+    if (stack) {
+        let lines = stack.split(newline);
+        // Find the Ono call(s) in the stack, and remove them
+        let onoStart;
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            if (onoCall.test(line)) {
+                if (onoStart === undefined) {
+                    // We found the first Ono call in the stack trace.
+                    // There may be other subsequent Ono calls as well.
+                    onoStart = i;
+                }
+            }
+            else if (onoStart !== undefined) {
+                // We found the first non-Ono call after one or more Ono calls.
+                // So remove the Ono call lines from the stack trace
+                lines.splice(onoStart, i - onoStart);
+                break;
+            }
+        }
+        if (lines.length > 0) {
+            return lines.join("\n");
+        }
+    }
+    // If we get here, then the stack doesn't contain a call to `ono`.
+    // This may be due to minification or some optimization of the JS engine.
+    // So just return the stack as-is.
+    return stack;
+}
+/**
+ * Calls `popStack` lazily, when the `Error.stack` property is accessed.
+ */
+function lazyPopStack(error, lazyStack) {
+    Object.defineProperty(error, "stack", {
+        get: () => popStack(lazyStack.get.apply(error)),
+        enumerable: false,
+        configurable: true
+    });
+}
+
+},{}],37:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const nonJsonTypes = ["function", "symbol", "undefined"];
+const protectedProps = ["constructor", "prototype", "__proto__"];
+const objectPrototype = Object.getPrototypeOf({});
+/**
+ * Custom JSON serializer for Error objects.
+ * Returns all built-in error properties, as well as extended properties.
+ */
+function toJSON() {
+    // HACK: We have to cast the objects to `any` so we can use symbol indexers.
+    // see https://github.com/Microsoft/TypeScript/issues/1863
+    // tslint:disable: no-any no-unsafe-any
+    let pojo = {};
+    let error = this;
+    for (let key of getDeepKeys(error)) {
+        if (typeof key === "string") {
+            let value = error[key];
+            let type = typeof value;
+            if (!nonJsonTypes.includes(type)) {
+                pojo[key] = value;
+            }
+        }
+    }
+    // tslint:enable: no-any no-unsafe-any
+    return pojo;
+}
+exports.toJSON = toJSON;
+/**
+ * Returns own, inherited, enumerable, non-enumerable, string, and symbol keys of `obj`.
+ * Does NOT return members of the base Object prototype, or the specified omitted keys.
+ */
+function getDeepKeys(obj, omit = []) {
+    let keys = [];
+    // Crawl the prototype chain, finding all the string and symbol keys
+    while (obj && obj !== objectPrototype) {
+        keys = keys.concat(Object.getOwnPropertyNames(obj), Object.getOwnPropertySymbols(obj));
+        obj = Object.getPrototypeOf(obj);
+    }
+    // De-duplicate the list of keys
+    let uniqueKeys = new Set(keys);
+    // Remove any omitted keys
+    for (let key of omit.concat(protectedProps)) {
+        uniqueKeys.delete(key);
+    }
+    return uniqueKeys;
+}
+exports.getDeepKeys = getDeepKeys;
+
+},{}],38:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -809,9 +7339,9 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],7:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 
-},{}],8:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 (function (Buffer){
 /*!
  * The buffer module from node.js, for the browser.
@@ -954,6 +7484,12 @@ function from (value, encodingOrOffset, length) {
 
   if (isInstance(value, ArrayBuffer) ||
       (value && isInstance(value.buffer, ArrayBuffer))) {
+    return fromArrayBuffer(value, encodingOrOffset, length)
+  }
+
+  if (typeof SharedArrayBuffer !== 'undefined' &&
+      (isInstance(value, SharedArrayBuffer) ||
+      (value && isInstance(value.buffer, SharedArrayBuffer)))) {
     return fromArrayBuffer(value, encodingOrOffset, length)
   }
 
@@ -2615,7 +9151,7 @@ var hexSliceLookupTable = (function () {
 
 }).call(this,require("buffer").Buffer)
 
-},{"base64-js":6,"buffer":8,"ieee754":36}],9:[function(require,module,exports){
+},{"base64-js":38,"buffer":40,"ieee754":68}],41:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3140,7 +9676,7 @@ function functionBindPolyfill(context) {
   };
 }
 
-},{}],10:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.4.1 by @mathias */
 ;(function(root) {
@@ -3678,7 +10214,7 @@ function functionBindPolyfill(context) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],11:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 (function (global){
 var ClientRequest = require('./lib/request')
 var response = require('./lib/response')
@@ -3767,7 +10303,7 @@ http.METHODS = [
 ]
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./lib/request":13,"./lib/response":14,"builtin-status-codes":33,"url":109,"xtend":191}],12:[function(require,module,exports){
+},{"./lib/request":45,"./lib/response":46,"builtin-status-codes":65,"url":109,"xtend":191}],44:[function(require,module,exports){
 (function (global){
 exports.fetch = isFunction(global.fetch) && isFunction(global.ReadableStream)
 
@@ -3831,7 +10367,7 @@ xhr = null // Help gc
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],13:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 (function (process,global,Buffer){
 var capability = require('./capability')
 var inherits = require('inherits')
@@ -4151,7 +10687,7 @@ var unsafeHeaders = [
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 
-},{"./capability":12,"./response":14,"_process":102,"buffer":8,"inherits":37,"readable-stream":29}],14:[function(require,module,exports){
+},{"./capability":44,"./response":46,"_process":103,"buffer":40,"inherits":69,"readable-stream":61}],46:[function(require,module,exports){
 (function (process,global,Buffer){
 var capability = require('./capability')
 var inherits = require('inherits')
@@ -4363,7 +10899,7 @@ IncomingMessage.prototype._onXHRProgress = function () {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 
-},{"./capability":12,"_process":102,"buffer":8,"inherits":37,"readable-stream":29}],15:[function(require,module,exports){
+},{"./capability":44,"_process":103,"buffer":40,"inherits":69,"readable-stream":61}],47:[function(require,module,exports){
 'use strict';
 
 function _inheritsLoose(subClass, superClass) { subClass.prototype = Object.create(superClass.prototype); subClass.prototype.constructor = subClass; subClass.__proto__ = superClass; }
@@ -4492,29 +11028,7 @@ createErrorType('ERR_UNKNOWN_ENCODING', function (arg) {
 createErrorType('ERR_STREAM_UNSHIFT_AFTER_END_EVENT', 'stream.unshift() after end event');
 module.exports.codes = codes;
 
-},{}],16:[function(require,module,exports){
-(function (process){
-'use strict'
-
-var experimentalWarnings = new Set();
-
-function emitExperimentalWarning(feature) {
-  if (experimentalWarnings.has(feature)) return;
-  var msg = feature + ' is an experimental feature. This feature could ' +
-       'change at any time';
-  experimentalWarnings.add(feature);
-  process.emitWarning(msg, 'ExperimentalWarning');
-}
-
-function noop() {}
-
-module.exports.emitExperimentalWarning = process.emitWarning
-  ? emitExperimentalWarning
-  : noop;
-
-}).call(this,require('_process'))
-
-},{"_process":102}],17:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4657,7 +11171,7 @@ Object.defineProperty(Duplex.prototype, 'destroyed', {
 });
 }).call(this,require('_process'))
 
-},{"./_stream_readable":19,"./_stream_writable":21,"_process":102,"inherits":37}],18:[function(require,module,exports){
+},{"./_stream_readable":50,"./_stream_writable":52,"_process":103,"inherits":69}],49:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4697,7 +11211,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":20,"inherits":37}],19:[function(require,module,exports){
+},{"./_stream_transform":51,"inherits":69}],50:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4781,17 +11295,16 @@ var _require$codes = require('../errors').codes,
     ERR_INVALID_ARG_TYPE = _require$codes.ERR_INVALID_ARG_TYPE,
     ERR_STREAM_PUSH_AFTER_EOF = _require$codes.ERR_STREAM_PUSH_AFTER_EOF,
     ERR_METHOD_NOT_IMPLEMENTED = _require$codes.ERR_METHOD_NOT_IMPLEMENTED,
-    ERR_STREAM_UNSHIFT_AFTER_END_EVENT = _require$codes.ERR_STREAM_UNSHIFT_AFTER_END_EVENT;
-
-var _require2 = require('../experimentalWarning'),
-    emitExperimentalWarning = _require2.emitExperimentalWarning; // Lazy loaded to improve the startup performance.
+    ERR_STREAM_UNSHIFT_AFTER_END_EVENT = _require$codes.ERR_STREAM_UNSHIFT_AFTER_END_EVENT; // Lazy loaded to improve the startup performance.
 
 
 var StringDecoder;
 var createReadableStreamAsyncIterator;
+var from;
 
 require('inherits')(Readable, Stream);
 
+var errorOrDestroy = destroyImpl.errorOrDestroy;
 var kProxyEvents = ['error', 'close', 'destroy', 'pause', 'resume'];
 
 function prependListener(emitter, event, fn) {
@@ -4845,7 +11358,9 @@ function ReadableState(options, stream, isDuplex) {
   this.resumeScheduled = false;
   this.paused = true; // Should close be emitted on destroy. Defaults to true.
 
-  this.emitClose = options.emitClose !== false; // has it been destroyed
+  this.emitClose = options.emitClose !== false; // Should .destroy() be called after 'end' (and potentially 'finish')
+
+  this.autoDestroy = !!options.autoDestroy; // has it been destroyed
 
   this.destroyed = false; // Crypto is kind of old and crusty.  Historically, its default string
   // encoding is 'binary' so we have to make this configurable.
@@ -4958,16 +11473,16 @@ function readableAddChunk(stream, chunk, encoding, addToFront, skipChunkCheck) {
     if (!skipChunkCheck) er = chunkInvalid(state, chunk);
 
     if (er) {
-      stream.emit('error', er);
+      errorOrDestroy(stream, er);
     } else if (state.objectMode || chunk && chunk.length > 0) {
       if (typeof chunk !== 'string' && !state.objectMode && Object.getPrototypeOf(chunk) !== Buffer.prototype) {
         chunk = _uint8ArrayToBuffer(chunk);
       }
 
       if (addToFront) {
-        if (state.endEmitted) stream.emit('error', new ERR_STREAM_UNSHIFT_AFTER_END_EVENT());else addChunk(stream, state, chunk, true);
+        if (state.endEmitted) errorOrDestroy(stream, new ERR_STREAM_UNSHIFT_AFTER_END_EVENT());else addChunk(stream, state, chunk, true);
       } else if (state.ended) {
-        stream.emit('error', new ERR_STREAM_PUSH_AFTER_EOF());
+        errorOrDestroy(stream, new ERR_STREAM_PUSH_AFTER_EOF());
       } else if (state.destroyed) {
         return false;
       } else {
@@ -5023,17 +11538,32 @@ Readable.prototype.isPaused = function () {
 
 Readable.prototype.setEncoding = function (enc) {
   if (!StringDecoder) StringDecoder = require('string_decoder/').StringDecoder;
-  this._readableState.decoder = new StringDecoder(enc); // if setEncoding(null), decoder.encoding equals utf8
+  var decoder = new StringDecoder(enc);
+  this._readableState.decoder = decoder; // If setEncoding(null), decoder.encoding equals utf8
 
-  this._readableState.encoding = this._readableState.decoder.encoding;
+  this._readableState.encoding = this._readableState.decoder.encoding; // Iterate over current buffer to convert already stored Buffers:
+
+  var p = this._readableState.buffer.head;
+  var content = '';
+
+  while (p !== null) {
+    content += decoder.write(p.data);
+    p = p.next;
+  }
+
+  this._readableState.buffer.clear();
+
+  if (content !== '') this._readableState.buffer.push(content);
+  this._readableState.length = content.length;
   return this;
-}; // Don't raise the hwm > 8MB
+}; // Don't raise the hwm > 1GB
 
 
-var MAX_HWM = 0x800000;
+var MAX_HWM = 0x40000000;
 
 function computeNewHighWaterMark(n) {
   if (n >= MAX_HWM) {
+    // TODO(ronag): Throw ERR_VALUE_OUT_OF_RANGE.
     n = MAX_HWM;
   } else {
     // Get the next highest power of 2 to prevent increasing hwm excessively in
@@ -5150,7 +11680,7 @@ Readable.prototype.read = function (n) {
   if (n > 0) ret = fromList(n, state);else ret = null;
 
   if (ret === null) {
-    state.needReadable = true;
+    state.needReadable = state.length <= state.highWaterMark;
     n = 0;
   } else {
     state.length -= n;
@@ -5170,6 +11700,7 @@ Readable.prototype.read = function (n) {
 };
 
 function onEofChunk(stream, state) {
+  debug('onEofChunk');
   if (state.ended) return;
 
   if (state.decoder) {
@@ -5204,6 +11735,7 @@ function onEofChunk(stream, state) {
 
 function emitReadable(stream) {
   var state = stream._readableState;
+  debug('emitReadable', state.needReadable, state.emittedReadable);
   state.needReadable = false;
 
   if (!state.emittedReadable) {
@@ -5219,6 +11751,7 @@ function emitReadable_(stream) {
 
   if (!state.destroyed && (state.length || state.ended)) {
     stream.emit('readable');
+    state.emittedReadable = false;
   } // The stream needs another readable event if
   // 1. It is not flowing, as the flow mechanism will take
   //    care of it.
@@ -5284,7 +11817,7 @@ function maybeReadMore_(stream, state) {
 
 
 Readable.prototype._read = function (n) {
-  this.emit('error', new ERR_METHOD_NOT_IMPLEMENTED('_read()'));
+  errorOrDestroy(this, new ERR_METHOD_NOT_IMPLEMENTED('_read()'));
 };
 
 Readable.prototype.pipe = function (dest, pipeOpts) {
@@ -5383,7 +11916,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
     debug('onerror', er);
     unpipe();
     dest.removeListener('error', onerror);
-    if (EElistenerCount(dest, 'error') === 0) dest.emit('error', er);
+    if (EElistenerCount(dest, 'error') === 0) errorOrDestroy(dest, er);
   } // Make sure our error handler is attached before userland ones.
 
 
@@ -5687,8 +12220,6 @@ Readable.prototype.wrap = function (stream) {
 
 if (typeof Symbol === 'function') {
   Readable.prototype[Symbol.asyncIterator] = function () {
-    emitExperimentalWarning('Readable[Symbol.asyncIterator]');
-
     if (createReadableStreamAsyncIterator === undefined) {
       createReadableStreamAsyncIterator = require('./internal/streams/async_iterator');
     }
@@ -5776,7 +12307,27 @@ function endReadableNT(state, stream) {
     state.endEmitted = true;
     stream.readable = false;
     stream.emit('end');
+
+    if (state.autoDestroy) {
+      // In case of duplex streams we need a way to detect
+      // if the writable side is ready for autoDestroy as well
+      var wState = stream._writableState;
+
+      if (!wState || wState.autoDestroy && wState.finished) {
+        stream.destroy();
+      }
+    }
   }
+}
+
+if (typeof Symbol === 'function') {
+  Readable.from = function (iterable, opts) {
+    if (from === undefined) {
+      from = require('./internal/streams/from');
+    }
+
+    return from(Readable, iterable, opts);
+  };
 }
 
 function indexOf(xs, x) {
@@ -5788,7 +12339,7 @@ function indexOf(xs, x) {
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../errors":15,"../experimentalWarning":16,"./_stream_duplex":17,"./internal/streams/async_iterator":22,"./internal/streams/buffer_list":23,"./internal/streams/destroy":24,"./internal/streams/state":27,"./internal/streams/stream":28,"_process":102,"buffer":8,"events":9,"inherits":37,"string_decoder/":106,"util":7}],20:[function(require,module,exports){
+},{"../errors":47,"./_stream_duplex":48,"./internal/streams/async_iterator":53,"./internal/streams/buffer_list":54,"./internal/streams/destroy":55,"./internal/streams/from":57,"./internal/streams/state":59,"./internal/streams/stream":60,"_process":103,"buffer":40,"events":41,"inherits":69,"string_decoder/":108,"util":39}],51:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5990,7 +12541,7 @@ function done(stream, er, data) {
   if (stream._transformState.transforming) throw new ERR_TRANSFORM_ALREADY_TRANSFORMING();
   return stream.push(null);
 }
-},{"../errors":15,"./_stream_duplex":17,"inherits":37}],21:[function(require,module,exports){
+},{"../errors":47,"./_stream_duplex":48,"inherits":69}],52:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6088,6 +12639,8 @@ var _require$codes = require('../errors').codes,
     ERR_STREAM_WRITE_AFTER_END = _require$codes.ERR_STREAM_WRITE_AFTER_END,
     ERR_UNKNOWN_ENCODING = _require$codes.ERR_UNKNOWN_ENCODING;
 
+var errorOrDestroy = destroyImpl.errorOrDestroy;
+
 require('inherits')(Writable, Stream);
 
 function nop() {}
@@ -6167,7 +12720,9 @@ function WritableState(options, stream, isDuplex) {
 
   this.errorEmitted = false; // Should close be emitted on destroy. Defaults to true.
 
-  this.emitClose = options.emitClose !== false; // count buffered requests
+  this.emitClose = options.emitClose !== false; // Should .destroy() be called after 'finish' (and potentially 'end')
+
+  this.autoDestroy = !!options.autoDestroy; // count buffered requests
 
   this.bufferedRequestCount = 0; // allocate the first CorkedRequest, there is always
   // one allocated and free to use, and we maintain at most two
@@ -6244,13 +12799,13 @@ function Writable(options) {
 
 
 Writable.prototype.pipe = function () {
-  this.emit('error', new ERR_STREAM_CANNOT_PIPE());
+  errorOrDestroy(this, new ERR_STREAM_CANNOT_PIPE());
 };
 
 function writeAfterEnd(stream, cb) {
   var er = new ERR_STREAM_WRITE_AFTER_END(); // TODO: defer error events consistently everywhere, not just the cb
 
-  stream.emit('error', er);
+  errorOrDestroy(stream, er);
   process.nextTick(cb, er);
 } // Checks that a user-supplied chunk is valid, especially for the particular
 // mode the stream is in. Currently this means that `null` is never accepted
@@ -6267,7 +12822,7 @@ function validChunk(stream, state, chunk, cb) {
   }
 
   if (er) {
-    stream.emit('error', er);
+    errorOrDestroy(stream, er);
     process.nextTick(cb, er);
     return false;
   }
@@ -6411,13 +12966,13 @@ function onwriteError(stream, state, sync, er, cb) {
 
     process.nextTick(finishMaybe, stream, state);
     stream._writableState.errorEmitted = true;
-    stream.emit('error', er);
+    errorOrDestroy(stream, er);
   } else {
     // the caller expect this to happen before if
     // it is async
     cb(er);
     stream._writableState.errorEmitted = true;
-    stream.emit('error', er); // this can emit finish, but finish must
+    errorOrDestroy(stream, er); // this can emit finish, but finish must
     // always follow error
 
     finishMaybe(stream, state);
@@ -6581,7 +13136,7 @@ function callFinal(stream, state) {
     state.pendingcb--;
 
     if (err) {
-      stream.emit('error', err);
+      errorOrDestroy(stream, err);
     }
 
     state.prefinished = true;
@@ -6612,6 +13167,16 @@ function finishMaybe(stream, state) {
     if (state.pendingcb === 0) {
       state.finished = true;
       stream.emit('finish');
+
+      if (state.autoDestroy) {
+        // In case of duplex streams we need a way to detect
+        // if the readable side is ready for autoDestroy as well
+        var rState = stream._readableState;
+
+        if (!rState || rState.autoDestroy && rState.endEmitted) {
+          stream.destroy();
+        }
+      }
     }
   }
 
@@ -6677,7 +13242,7 @@ Writable.prototype._destroy = function (err, cb) {
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"../errors":15,"./_stream_duplex":17,"./internal/streams/destroy":24,"./internal/streams/state":27,"./internal/streams/stream":28,"_process":102,"buffer":8,"inherits":37,"util-deprecate":111}],22:[function(require,module,exports){
+},{"../errors":47,"./_stream_duplex":48,"./internal/streams/destroy":55,"./internal/streams/state":59,"./internal/streams/stream":60,"_process":103,"buffer":40,"inherits":69,"util-deprecate":111}],53:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -6888,12 +13453,20 @@ var createReadableStreamAsyncIterator = function createReadableStreamAsyncIterat
 module.exports = createReadableStreamAsyncIterator;
 }).call(this,require('_process'))
 
-},{"./end-of-stream":25,"_process":102}],23:[function(require,module,exports){
+},{"./end-of-stream":56,"_process":103}],54:[function(require,module,exports){
 'use strict';
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 var _require = require('buffer'),
     Buffer = _require.Buffer;
@@ -6911,174 +13484,187 @@ module.exports =
 /*#__PURE__*/
 function () {
   function BufferList() {
+    _classCallCheck(this, BufferList);
+
     this.head = null;
     this.tail = null;
     this.length = 0;
   }
 
-  var _proto = BufferList.prototype;
-
-  _proto.push = function push(v) {
-    var entry = {
-      data: v,
-      next: null
-    };
-    if (this.length > 0) this.tail.next = entry;else this.head = entry;
-    this.tail = entry;
-    ++this.length;
-  };
-
-  _proto.unshift = function unshift(v) {
-    var entry = {
-      data: v,
-      next: this.head
-    };
-    if (this.length === 0) this.tail = entry;
-    this.head = entry;
-    ++this.length;
-  };
-
-  _proto.shift = function shift() {
-    if (this.length === 0) return;
-    var ret = this.head.data;
-    if (this.length === 1) this.head = this.tail = null;else this.head = this.head.next;
-    --this.length;
-    return ret;
-  };
-
-  _proto.clear = function clear() {
-    this.head = this.tail = null;
-    this.length = 0;
-  };
-
-  _proto.join = function join(s) {
-    if (this.length === 0) return '';
-    var p = this.head;
-    var ret = '' + p.data;
-
-    while (p = p.next) {
-      ret += s + p.data;
+  _createClass(BufferList, [{
+    key: "push",
+    value: function push(v) {
+      var entry = {
+        data: v,
+        next: null
+      };
+      if (this.length > 0) this.tail.next = entry;else this.head = entry;
+      this.tail = entry;
+      ++this.length;
     }
-
-    return ret;
-  };
-
-  _proto.concat = function concat(n) {
-    if (this.length === 0) return Buffer.alloc(0);
-    var ret = Buffer.allocUnsafe(n >>> 0);
-    var p = this.head;
-    var i = 0;
-
-    while (p) {
-      copyBuffer(p.data, ret, i);
-      i += p.data.length;
-      p = p.next;
+  }, {
+    key: "unshift",
+    value: function unshift(v) {
+      var entry = {
+        data: v,
+        next: this.head
+      };
+      if (this.length === 0) this.tail = entry;
+      this.head = entry;
+      ++this.length;
     }
-
-    return ret;
-  } // Consumes a specified amount of bytes or characters from the buffered data.
-  ;
-
-  _proto.consume = function consume(n, hasStrings) {
-    var ret;
-
-    if (n < this.head.data.length) {
-      // `slice` is the same for buffers and strings.
-      ret = this.head.data.slice(0, n);
-      this.head.data = this.head.data.slice(n);
-    } else if (n === this.head.data.length) {
-      // First chunk is a perfect match.
-      ret = this.shift();
-    } else {
-      // Result spans more than one buffer.
-      ret = hasStrings ? this._getString(n) : this._getBuffer(n);
+  }, {
+    key: "shift",
+    value: function shift() {
+      if (this.length === 0) return;
+      var ret = this.head.data;
+      if (this.length === 1) this.head = this.tail = null;else this.head = this.head.next;
+      --this.length;
+      return ret;
     }
+  }, {
+    key: "clear",
+    value: function clear() {
+      this.head = this.tail = null;
+      this.length = 0;
+    }
+  }, {
+    key: "join",
+    value: function join(s) {
+      if (this.length === 0) return '';
+      var p = this.head;
+      var ret = '' + p.data;
 
-    return ret;
-  };
-
-  _proto.first = function first() {
-    return this.head.data;
-  } // Consumes a specified amount of characters from the buffered data.
-  ;
-
-  _proto._getString = function _getString(n) {
-    var p = this.head;
-    var c = 1;
-    var ret = p.data;
-    n -= ret.length;
-
-    while (p = p.next) {
-      var str = p.data;
-      var nb = n > str.length ? str.length : n;
-      if (nb === str.length) ret += str;else ret += str.slice(0, n);
-      n -= nb;
-
-      if (n === 0) {
-        if (nb === str.length) {
-          ++c;
-          if (p.next) this.head = p.next;else this.head = this.tail = null;
-        } else {
-          this.head = p;
-          p.data = str.slice(nb);
-        }
-
-        break;
+      while (p = p.next) {
+        ret += s + p.data;
       }
 
-      ++c;
+      return ret;
     }
+  }, {
+    key: "concat",
+    value: function concat(n) {
+      if (this.length === 0) return Buffer.alloc(0);
+      var ret = Buffer.allocUnsafe(n >>> 0);
+      var p = this.head;
+      var i = 0;
 
-    this.length -= c;
-    return ret;
-  } // Consumes a specified amount of bytes from the buffered data.
-  ;
-
-  _proto._getBuffer = function _getBuffer(n) {
-    var ret = Buffer.allocUnsafe(n);
-    var p = this.head;
-    var c = 1;
-    p.data.copy(ret);
-    n -= p.data.length;
-
-    while (p = p.next) {
-      var buf = p.data;
-      var nb = n > buf.length ? buf.length : n;
-      buf.copy(ret, ret.length - n, 0, nb);
-      n -= nb;
-
-      if (n === 0) {
-        if (nb === buf.length) {
-          ++c;
-          if (p.next) this.head = p.next;else this.head = this.tail = null;
-        } else {
-          this.head = p;
-          p.data = buf.slice(nb);
-        }
-
-        break;
+      while (p) {
+        copyBuffer(p.data, ret, i);
+        i += p.data.length;
+        p = p.next;
       }
 
-      ++c;
+      return ret;
+    } // Consumes a specified amount of bytes or characters from the buffered data.
+
+  }, {
+    key: "consume",
+    value: function consume(n, hasStrings) {
+      var ret;
+
+      if (n < this.head.data.length) {
+        // `slice` is the same for buffers and strings.
+        ret = this.head.data.slice(0, n);
+        this.head.data = this.head.data.slice(n);
+      } else if (n === this.head.data.length) {
+        // First chunk is a perfect match.
+        ret = this.shift();
+      } else {
+        // Result spans more than one buffer.
+        ret = hasStrings ? this._getString(n) : this._getBuffer(n);
+      }
+
+      return ret;
     }
+  }, {
+    key: "first",
+    value: function first() {
+      return this.head.data;
+    } // Consumes a specified amount of characters from the buffered data.
 
-    this.length -= c;
-    return ret;
-  } // Make sure the linked list only shows the minimal necessary information.
-  ;
+  }, {
+    key: "_getString",
+    value: function _getString(n) {
+      var p = this.head;
+      var c = 1;
+      var ret = p.data;
+      n -= ret.length;
 
-  _proto[custom] = function (_, options) {
-    return inspect(this, _objectSpread({}, options, {
-      // Only inspect one level.
-      depth: 0,
-      // It should not recurse.
-      customInspect: false
-    }));
-  };
+      while (p = p.next) {
+        var str = p.data;
+        var nb = n > str.length ? str.length : n;
+        if (nb === str.length) ret += str;else ret += str.slice(0, n);
+        n -= nb;
+
+        if (n === 0) {
+          if (nb === str.length) {
+            ++c;
+            if (p.next) this.head = p.next;else this.head = this.tail = null;
+          } else {
+            this.head = p;
+            p.data = str.slice(nb);
+          }
+
+          break;
+        }
+
+        ++c;
+      }
+
+      this.length -= c;
+      return ret;
+    } // Consumes a specified amount of bytes from the buffered data.
+
+  }, {
+    key: "_getBuffer",
+    value: function _getBuffer(n) {
+      var ret = Buffer.allocUnsafe(n);
+      var p = this.head;
+      var c = 1;
+      p.data.copy(ret);
+      n -= p.data.length;
+
+      while (p = p.next) {
+        var buf = p.data;
+        var nb = n > buf.length ? buf.length : n;
+        buf.copy(ret, ret.length - n, 0, nb);
+        n -= nb;
+
+        if (n === 0) {
+          if (nb === buf.length) {
+            ++c;
+            if (p.next) this.head = p.next;else this.head = this.tail = null;
+          } else {
+            this.head = p;
+            p.data = buf.slice(nb);
+          }
+
+          break;
+        }
+
+        ++c;
+      }
+
+      this.length -= c;
+      return ret;
+    } // Make sure the linked list only shows the minimal necessary information.
+
+  }, {
+    key: custom,
+    value: function value(_, options) {
+      return inspect(this, _objectSpread({}, options, {
+        // Only inspect one level.
+        depth: 0,
+        // It should not recurse.
+        customInspect: false
+      }));
+    }
+  }]);
 
   return BufferList;
 }();
-},{"buffer":8,"util":7}],24:[function(require,module,exports){
+},{"buffer":40,"util":39}],55:[function(require,module,exports){
 (function (process){
 'use strict'; // undocumented cb() API, needed for core, not for public API
 
@@ -7091,8 +13677,13 @@ function destroy(err, cb) {
   if (readableDestroyed || writableDestroyed) {
     if (cb) {
       cb(err);
-    } else if (err && (!this._writableState || !this._writableState.errorEmitted)) {
-      process.nextTick(emitErrorNT, this, err);
+    } else if (err) {
+      if (!this._writableState) {
+        process.nextTick(emitErrorNT, this, err);
+      } else if (!this._writableState.errorEmitted) {
+        this._writableState.errorEmitted = true;
+        process.nextTick(emitErrorNT, this, err);
+      }
     }
 
     return this;
@@ -7111,10 +13702,13 @@ function destroy(err, cb) {
 
   this._destroy(err || null, function (err) {
     if (!cb && err) {
-      process.nextTick(emitErrorAndCloseNT, _this, err);
-
-      if (_this._writableState) {
+      if (!_this._writableState) {
+        process.nextTick(emitErrorAndCloseNT, _this, err);
+      } else if (!_this._writableState.errorEmitted) {
         _this._writableState.errorEmitted = true;
+        process.nextTick(emitErrorAndCloseNT, _this, err);
+      } else {
+        process.nextTick(emitCloseNT, _this);
       }
     } else if (cb) {
       process.nextTick(emitCloseNT, _this);
@@ -7161,13 +13755,25 @@ function emitErrorNT(self, err) {
   self.emit('error', err);
 }
 
+function errorOrDestroy(stream, err) {
+  // We have tests that rely on errors being emitted
+  // in the same tick, so changing this is semver major.
+  // For now when you opt-in to autoDestroy we allow
+  // the error to be emitted nextTick. In a future
+  // semver major update we should change the default to this.
+  var rState = stream._readableState;
+  var wState = stream._writableState;
+  if (rState && rState.autoDestroy || wState && wState.autoDestroy) stream.destroy(err);else stream.emit('error', err);
+}
+
 module.exports = {
   destroy: destroy,
-  undestroy: undestroy
+  undestroy: undestroy,
+  errorOrDestroy: errorOrDestroy
 };
 }).call(this,require('_process'))
 
-},{"_process":102}],25:[function(require,module,exports){
+},{"_process":103}],56:[function(require,module,exports){
 // Ported from https://github.com/mafintosh/end-of-stream with
 // permission from the author, Mathias Buus (@mafintosh).
 'use strict';
@@ -7272,7 +13878,12 @@ function eos(stream, opts, callback) {
 }
 
 module.exports = eos;
-},{"../../../errors":15}],26:[function(require,module,exports){
+},{"../../../errors":47}],57:[function(require,module,exports){
+module.exports = function () {
+  throw new Error('Readable.from is not available in the browser')
+};
+
+},{}],58:[function(require,module,exports){
 // Ported from https://github.com/mafintosh/pump with
 // permission from the author, Mathias Buus (@mafintosh).
 'use strict';
@@ -7370,7 +13981,7 @@ function pipeline() {
 }
 
 module.exports = pipeline;
-},{"../../../errors":15,"./end-of-stream":25}],27:[function(require,module,exports){
+},{"../../../errors":47,"./end-of-stream":56}],59:[function(require,module,exports){
 'use strict';
 
 var ERR_INVALID_OPT_VALUE = require('../../../errors').codes.ERR_INVALID_OPT_VALUE;
@@ -7398,10 +14009,10 @@ function getHighWaterMark(state, options, duplexKey, isDuplex) {
 module.exports = {
   getHighWaterMark: getHighWaterMark
 };
-},{"../../../errors":15}],28:[function(require,module,exports){
+},{"../../../errors":47}],60:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":9}],29:[function(require,module,exports){
+},{"events":41}],61:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = exports;
 exports.Readable = exports;
@@ -7412,7 +14023,7 @@ exports.PassThrough = require('./lib/_stream_passthrough.js');
 exports.finished = require('./lib/internal/streams/end-of-stream.js');
 exports.pipeline = require('./lib/internal/streams/pipeline.js');
 
-},{"./lib/_stream_duplex.js":17,"./lib/_stream_passthrough.js":18,"./lib/_stream_readable.js":19,"./lib/_stream_transform.js":20,"./lib/_stream_writable.js":21,"./lib/internal/streams/end-of-stream.js":25,"./lib/internal/streams/pipeline.js":26}],30:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":48,"./lib/_stream_passthrough.js":49,"./lib/_stream_readable.js":50,"./lib/_stream_transform.js":51,"./lib/_stream_writable.js":52,"./lib/internal/streams/end-of-stream.js":56,"./lib/internal/streams/pipeline.js":58}],62:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7437,14 +14048,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],31:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],32:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -8035,7 +14646,7 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":31,"_process":102,"inherits":30}],33:[function(require,module,exports){
+},{"./support/isBuffer":63,"_process":103,"inherits":62}],65:[function(require,module,exports){
 module.exports = {
   "100": "Continue",
   "101": "Switching Protocols",
@@ -8101,7 +14712,7 @@ module.exports = {
   "511": "Network Authentication Required"
 }
 
-},{}],34:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 (function (process,global){
 "use strict"
 
@@ -8126,7 +14737,7 @@ module.exports = function maybe (cb, promise) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":102}],35:[function(require,module,exports){
+},{"_process":103}],67:[function(require,module,exports){
 var http = require('http')
 var url = require('url')
 
@@ -8159,7 +14770,7 @@ function validateParams (params) {
   return params
 }
 
-},{"http":11,"url":109}],36:[function(require,module,exports){
+},{"http":43,"url":109}],68:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -8245,7 +14856,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],37:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -8274,7 +14885,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],38:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -8297,7 +14908,7 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],39:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 'use strict';
 
 
@@ -8306,7 +14917,7 @@ var yaml = require('./lib/js-yaml.js');
 
 module.exports = yaml;
 
-},{"./lib/js-yaml.js":40}],40:[function(require,module,exports){
+},{"./lib/js-yaml.js":72}],72:[function(require,module,exports){
 'use strict';
 
 
@@ -8347,7 +14958,7 @@ module.exports.parse          = deprecated('parse');
 module.exports.compose        = deprecated('compose');
 module.exports.addConstructor = deprecated('addConstructor');
 
-},{"./js-yaml/dumper":42,"./js-yaml/exception":43,"./js-yaml/loader":44,"./js-yaml/schema":46,"./js-yaml/schema/core":47,"./js-yaml/schema/default_full":48,"./js-yaml/schema/default_safe":49,"./js-yaml/schema/failsafe":50,"./js-yaml/schema/json":51,"./js-yaml/type":52}],41:[function(require,module,exports){
+},{"./js-yaml/dumper":74,"./js-yaml/exception":75,"./js-yaml/loader":76,"./js-yaml/schema":78,"./js-yaml/schema/core":79,"./js-yaml/schema/default_full":80,"./js-yaml/schema/default_safe":81,"./js-yaml/schema/failsafe":82,"./js-yaml/schema/json":83,"./js-yaml/type":84}],73:[function(require,module,exports){
 'use strict';
 
 
@@ -8408,7 +15019,7 @@ module.exports.repeat         = repeat;
 module.exports.isNegativeZero = isNegativeZero;
 module.exports.extend         = extend;
 
-},{}],42:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable no-use-before-define*/
@@ -9237,7 +15848,7 @@ function safeDump(input, options) {
 module.exports.dump     = dump;
 module.exports.safeDump = safeDump;
 
-},{"./common":41,"./exception":43,"./schema/default_full":48,"./schema/default_safe":49}],43:[function(require,module,exports){
+},{"./common":73,"./exception":75,"./schema/default_full":80,"./schema/default_safe":81}],75:[function(require,module,exports){
 // YAML error class. http://stackoverflow.com/questions/8458984
 //
 'use strict';
@@ -9282,7 +15893,7 @@ YAMLException.prototype.toString = function toString(compact) {
 
 module.exports = YAMLException;
 
-},{}],44:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable max-len,no-use-before-define*/
@@ -10909,7 +17520,7 @@ module.exports.load        = load;
 module.exports.safeLoadAll = safeLoadAll;
 module.exports.safeLoad    = safeLoad;
 
-},{"./common":41,"./exception":43,"./mark":45,"./schema/default_full":48,"./schema/default_safe":49}],45:[function(require,module,exports){
+},{"./common":73,"./exception":75,"./mark":77,"./schema/default_full":80,"./schema/default_safe":81}],77:[function(require,module,exports){
 'use strict';
 
 
@@ -10987,7 +17598,7 @@ Mark.prototype.toString = function toString(compact) {
 
 module.exports = Mark;
 
-},{"./common":41}],46:[function(require,module,exports){
+},{"./common":73}],78:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable max-len*/
@@ -11097,7 +17708,7 @@ Schema.create = function createSchema() {
 
 module.exports = Schema;
 
-},{"./common":41,"./exception":43,"./type":52}],47:[function(require,module,exports){
+},{"./common":73,"./exception":75,"./type":84}],79:[function(require,module,exports){
 // Standard YAML's Core schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2804923
 //
@@ -11117,7 +17728,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":46,"./json":51}],48:[function(require,module,exports){
+},{"../schema":78,"./json":83}],80:[function(require,module,exports){
 // JS-YAML's default schema for `load` function.
 // It is not described in the YAML specification.
 //
@@ -11144,7 +17755,7 @@ module.exports = Schema.DEFAULT = new Schema({
   ]
 });
 
-},{"../schema":46,"../type/js/function":57,"../type/js/regexp":58,"../type/js/undefined":59,"./default_safe":49}],49:[function(require,module,exports){
+},{"../schema":78,"../type/js/function":89,"../type/js/regexp":90,"../type/js/undefined":91,"./default_safe":81}],81:[function(require,module,exports){
 // JS-YAML's default schema for `safeLoad` function.
 // It is not described in the YAML specification.
 //
@@ -11174,7 +17785,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":46,"../type/binary":53,"../type/merge":61,"../type/omap":63,"../type/pairs":64,"../type/set":66,"../type/timestamp":68,"./core":47}],50:[function(require,module,exports){
+},{"../schema":78,"../type/binary":85,"../type/merge":93,"../type/omap":95,"../type/pairs":96,"../type/set":98,"../type/timestamp":100,"./core":79}],82:[function(require,module,exports){
 // Standard YAML's Failsafe schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2802346
 
@@ -11193,7 +17804,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":46,"../type/map":60,"../type/seq":65,"../type/str":67}],51:[function(require,module,exports){
+},{"../schema":78,"../type/map":92,"../type/seq":97,"../type/str":99}],83:[function(require,module,exports){
 // Standard YAML's JSON schema.
 // http://www.yaml.org/spec/1.2/spec.html#id2803231
 //
@@ -11220,7 +17831,7 @@ module.exports = new Schema({
   ]
 });
 
-},{"../schema":46,"../type/bool":54,"../type/float":55,"../type/int":56,"../type/null":62,"./failsafe":50}],52:[function(require,module,exports){
+},{"../schema":78,"../type/bool":86,"../type/float":87,"../type/int":88,"../type/null":94,"./failsafe":82}],84:[function(require,module,exports){
 'use strict';
 
 var YAMLException = require('./exception');
@@ -11283,7 +17894,7 @@ function Type(tag, options) {
 
 module.exports = Type;
 
-},{"./exception":43}],53:[function(require,module,exports){
+},{"./exception":75}],85:[function(require,module,exports){
 'use strict';
 
 /*eslint-disable no-bitwise*/
@@ -11423,7 +18034,7 @@ module.exports = new Type('tag:yaml.org,2002:binary', {
   represent: representYamlBinary
 });
 
-},{"../type":52}],54:[function(require,module,exports){
+},{"../type":84}],86:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11460,7 +18071,7 @@ module.exports = new Type('tag:yaml.org,2002:bool', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":52}],55:[function(require,module,exports){
+},{"../type":84}],87:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -11578,7 +18189,7 @@ module.exports = new Type('tag:yaml.org,2002:float', {
   defaultStyle: 'lowercase'
 });
 
-},{"../common":41,"../type":52}],56:[function(require,module,exports){
+},{"../common":73,"../type":84}],88:[function(require,module,exports){
 'use strict';
 
 var common = require('../common');
@@ -11753,7 +18364,7 @@ module.exports = new Type('tag:yaml.org,2002:int', {
   }
 });
 
-},{"../common":41,"../type":52}],57:[function(require,module,exports){
+},{"../common":73,"../type":84}],89:[function(require,module,exports){
 'use strict';
 
 var esprima;
@@ -11847,7 +18458,7 @@ module.exports = new Type('tag:yaml.org,2002:js/function', {
   represent: representJavascriptFunction
 });
 
-},{"../../type":52}],58:[function(require,module,exports){
+},{"../../type":84}],90:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -11909,7 +18520,7 @@ module.exports = new Type('tag:yaml.org,2002:js/regexp', {
   represent: representJavascriptRegExp
 });
 
-},{"../../type":52}],59:[function(require,module,exports){
+},{"../../type":84}],91:[function(require,module,exports){
 'use strict';
 
 var Type = require('../../type');
@@ -11939,7 +18550,7 @@ module.exports = new Type('tag:yaml.org,2002:js/undefined', {
   represent: representJavascriptUndefined
 });
 
-},{"../../type":52}],60:[function(require,module,exports){
+},{"../../type":84}],92:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11949,7 +18560,7 @@ module.exports = new Type('tag:yaml.org,2002:map', {
   construct: function (data) { return data !== null ? data : {}; }
 });
 
-},{"../type":52}],61:[function(require,module,exports){
+},{"../type":84}],93:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11963,7 +18574,7 @@ module.exports = new Type('tag:yaml.org,2002:merge', {
   resolve: resolveYamlMerge
 });
 
-},{"../type":52}],62:[function(require,module,exports){
+},{"../type":84}],94:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -11999,7 +18610,7 @@ module.exports = new Type('tag:yaml.org,2002:null', {
   defaultStyle: 'lowercase'
 });
 
-},{"../type":52}],63:[function(require,module,exports){
+},{"../type":84}],95:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12045,7 +18656,7 @@ module.exports = new Type('tag:yaml.org,2002:omap', {
   construct: constructYamlOmap
 });
 
-},{"../type":52}],64:[function(require,module,exports){
+},{"../type":84}],96:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12100,7 +18711,7 @@ module.exports = new Type('tag:yaml.org,2002:pairs', {
   construct: constructYamlPairs
 });
 
-},{"../type":52}],65:[function(require,module,exports){
+},{"../type":84}],97:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12110,7 +18721,7 @@ module.exports = new Type('tag:yaml.org,2002:seq', {
   construct: function (data) { return data !== null ? data : []; }
 });
 
-},{"../type":52}],66:[function(require,module,exports){
+},{"../type":84}],98:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12141,7 +18752,7 @@ module.exports = new Type('tag:yaml.org,2002:set', {
   construct: constructYamlSet
 });
 
-},{"../type":52}],67:[function(require,module,exports){
+},{"../type":84}],99:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12151,7 +18762,7 @@ module.exports = new Type('tag:yaml.org,2002:str', {
   construct: function (data) { return data !== null ? data : ''; }
 });
 
-},{"../type":52}],68:[function(require,module,exports){
+},{"../type":84}],100:[function(require,module,exports){
 'use strict';
 
 var Type = require('../type');
@@ -12241,2756 +18852,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
   represent: representYamlTimestamp
 });
 
-},{"../type":52}],69:[function(require,module,exports){
-"use strict";
-
-const $Ref = require("./ref");
-const Pointer = require("./pointer");
-const url = require("./util/url");
-
-module.exports = bundle;
-
-/**
- * Bundles all external JSON references into the main JSON schema, thus resulting in a schema that
- * only has *internal* references, not any *external* references.
- * This method mutates the JSON schema object, adding new references and re-mapping existing ones.
- *
- * @param {$RefParser} parser
- * @param {$RefParserOptions} options
- */
-function bundle (parser, options) {
-  // console.log('Bundling $ref pointers in %s', parser.$refs._root$Ref.path);
-
-  // Build an inventory of all $ref pointers in the JSON Schema
-  let inventory = [];
-  crawl(parser, "schema", parser.$refs._root$Ref.path + "#", "#", 0, inventory, parser.$refs, options);
-
-  // Remap all $ref pointers
-  remap(inventory);
-}
-
-/**
- * Recursively crawls the given value, and inventories all JSON references.
- *
- * @param {object} parent - The object containing the value to crawl. If the value is not an object or array, it will be ignored.
- * @param {string} key - The property key of `parent` to be crawled
- * @param {string} path - The full path of the property being crawled, possibly with a JSON Pointer in the hash
- * @param {string} pathFromRoot - The path of the property being crawled, from the schema root
- * @param {object[]} inventory - An array of already-inventoried $ref pointers
- * @param {$Refs} $refs
- * @param {$RefParserOptions} options
- */
-function crawl (parent, key, path, pathFromRoot, indirections, inventory, $refs, options) {
-  let obj = key === null ? parent : parent[key];
-
-  if (obj && typeof obj === "object") {
-    if ($Ref.isAllowed$Ref(obj)) {
-      inventory$Ref(parent, key, path, pathFromRoot, indirections, inventory, $refs, options);
-    }
-    else {
-      // Crawl the object in a specific order that's optimized for bundling.
-      // This is important because it determines how `pathFromRoot` gets built,
-      // which later determines which keys get dereferenced and which ones get remapped
-      let keys = Object.keys(obj)
-        .sort((a, b) => {
-          // Most people will expect references to be bundled into the the "definitions" property,
-          // so we always crawl that property first, if it exists.
-          if (a === "definitions") {
-            return -1;
-          }
-          else if (b === "definitions") {
-            return 1;
-          }
-          else {
-            // Otherwise, crawl the keys based on their length.
-            // This produces the shortest possible bundled references
-            return a.length - b.length;
-          }
-        });
-
-      // eslint-disable-next-line no-shadow
-      for (let key of keys) {
-        let keyPath = Pointer.join(path, key);
-        let keyPathFromRoot = Pointer.join(pathFromRoot, key);
-        let value = obj[key];
-
-        if ($Ref.isAllowed$Ref(value)) {
-          inventory$Ref(obj, key, path, keyPathFromRoot, indirections, inventory, $refs, options);
-        }
-        else {
-          crawl(obj, key, keyPath, keyPathFromRoot, indirections, inventory, $refs, options);
-        }
-      }
-    }
-  }
-}
-
-/**
- * Inventories the given JSON Reference (i.e. records detailed information about it so we can
- * optimize all $refs in the schema), and then crawls the resolved value.
- *
- * @param {object} $refParent - The object that contains a JSON Reference as one of its keys
- * @param {string} $refKey - The key in `$refParent` that is a JSON Reference
- * @param {string} path - The full path of the JSON Reference at `$refKey`, possibly with a JSON Pointer in the hash
- * @param {string} pathFromRoot - The path of the JSON Reference at `$refKey`, from the schema root
- * @param {object[]} inventory - An array of already-inventoried $ref pointers
- * @param {$Refs} $refs
- * @param {$RefParserOptions} options
- */
-function inventory$Ref ($refParent, $refKey, path, pathFromRoot, indirections, inventory, $refs, options) {
-  let $ref = $refKey === null ? $refParent : $refParent[$refKey];
-  let $refPath = url.resolve(path, $ref.$ref);
-  let pointer = $refs._resolve($refPath, options);
-  let depth = Pointer.parse(pathFromRoot).length;
-  let file = url.stripHash(pointer.path);
-  let hash = url.getHash(pointer.path);
-  let external = file !== $refs._root$Ref.path;
-  let extended = $Ref.isExtended$Ref($ref);
-  indirections += pointer.indirections;
-
-  let existingEntry = findInInventory(inventory, $refParent, $refKey);
-  if (existingEntry) {
-    // This $Ref has already been inventoried, so we don't need to process it again
-    if (depth < existingEntry.depth || indirections < existingEntry.indirections) {
-      removeFromInventory(inventory, existingEntry);
-    }
-    else {
-      return;
-    }
-  }
-
-  inventory.push({
-    $ref,                   // The JSON Reference (e.g. {$ref: string})
-    parent: $refParent,           // The object that contains this $ref pointer
-    key: $refKey,                 // The key in `parent` that is the $ref pointer
-    pathFromRoot,   // The path to the $ref pointer, from the JSON Schema root
-    depth,                 // How far from the JSON Schema root is this $ref pointer?
-    file,                   // The file that the $ref pointer resolves to
-    hash,                   // The hash within `file` that the $ref pointer resolves to
-    value: pointer.value,         // The resolved value of the $ref pointer
-    circular: pointer.circular,   // Is this $ref pointer DIRECTLY circular? (i.e. it references itself)
-    extended,           // Does this $ref extend its resolved value? (i.e. it has extra properties, in addition to "$ref")
-    external,           // Does this $ref pointer point to a file other than the main JSON Schema file?
-    indirections,   // The number of indirect references that were traversed to resolve the value
-  });
-
-  // Recursively crawl the resolved value
-  crawl(pointer.value, null, pointer.path, pathFromRoot, indirections + 1, inventory, $refs, options);
-}
-
-/**
- * Re-maps every $ref pointer, so that they're all relative to the root of the JSON Schema.
- * Each referenced value is dereferenced EXACTLY ONCE.  All subsequent references to the same
- * value are re-mapped to point to the first reference.
- *
- * @example:
- *  {
- *    first: { $ref: somefile.json#/some/part },
- *    second: { $ref: somefile.json#/another/part },
- *    third: { $ref: somefile.json },
- *    fourth: { $ref: somefile.json#/some/part/sub/part }
- *  }
- *
- * In this example, there are four references to the same file, but since the third reference points
- * to the ENTIRE file, that's the only one we need to dereference.  The other three can just be
- * remapped to point inside the third one.
- *
- * On the other hand, if the third reference DIDN'T exist, then the first and second would both need
- * to be dereferenced, since they point to different parts of the file. The fourth reference does NOT
- * need to be dereferenced, because it can be remapped to point inside the first one.
- *
- * @param {object[]} inventory
- */
-function remap (inventory) {
-  // Group & sort all the $ref pointers, so they're in the order that we need to dereference/remap them
-  inventory.sort((a, b) => {
-    if (a.file !== b.file) {
-      // Group all the $refs that point to the same file
-      return a.file < b.file ? -1 : +1;
-    }
-    else if (a.hash !== b.hash) {
-      // Group all the $refs that point to the same part of the file
-      return a.hash < b.hash ? -1 : +1;
-    }
-    else if (a.circular !== b.circular) {
-      // If the $ref points to itself, then sort it higher than other $refs that point to this $ref
-      return a.circular ? -1 : +1;
-    }
-    else if (a.extended !== b.extended) {
-      // If the $ref extends the resolved value, then sort it lower than other $refs that don't extend the value
-      return a.extended ? +1 : -1;
-    }
-    else if (a.indirections !== b.indirections) {
-      // Sort direct references higher than indirect references
-      return a.indirections - b.indirections;
-    }
-    else if (a.depth !== b.depth) {
-      // Sort $refs by how close they are to the JSON Schema root
-      return a.depth - b.depth;
-    }
-    else {
-      // Determine how far each $ref is from the "definitions" property.
-      // Most people will expect references to be bundled into the the "definitions" property if possible.
-      let aDefinitionsIndex = a.pathFromRoot.lastIndexOf("/definitions");
-      let bDefinitionsIndex = b.pathFromRoot.lastIndexOf("/definitions");
-
-      if (aDefinitionsIndex !== bDefinitionsIndex) {
-        // Give higher priority to the $ref that's closer to the "definitions" property
-        return bDefinitionsIndex - aDefinitionsIndex;
-      }
-      else {
-        // All else is equal, so use the shorter path, which will produce the shortest possible reference
-        return a.pathFromRoot.length - b.pathFromRoot.length;
-      }
-    }
-  });
-
-  let file, hash, pathFromRoot;
-  for (let entry of inventory) {
-    // console.log('Re-mapping $ref pointer "%s" at %s', entry.$ref.$ref, entry.pathFromRoot);
-
-    if (!entry.external) {
-      // This $ref already resolves to the main JSON Schema file
-      entry.$ref.$ref = entry.hash;
-    }
-    else if (entry.file === file && entry.hash === hash) {
-      // This $ref points to the same value as the prevous $ref, so remap it to the same path
-      entry.$ref.$ref = pathFromRoot;
-    }
-    else if (entry.file === file && entry.hash.indexOf(hash + "/") === 0) {
-      // This $ref points to a sub-value of the prevous $ref, so remap it beneath that path
-      entry.$ref.$ref = Pointer.join(pathFromRoot, Pointer.parse(entry.hash.replace(hash, "#")));
-    }
-    else {
-      // We've moved to a new file or new hash
-      file = entry.file;
-      hash = entry.hash;
-      pathFromRoot = entry.pathFromRoot;
-
-      // This is the first $ref to point to this value, so dereference the value.
-      // Any other $refs that point to the same value will point to this $ref instead
-      entry.$ref = entry.parent[entry.key] = $Ref.dereference(entry.$ref, entry.value);
-
-      if (entry.circular) {
-        // This $ref points to itself
-        entry.$ref.$ref = entry.pathFromRoot;
-      }
-    }
-
-    // console.log('    new value: %s', (entry.$ref && entry.$ref.$ref) ? entry.$ref.$ref : '[object Object]');
-  }
-}
-
-/**
- * TODO
- */
-function findInInventory (inventory, $refParent, $refKey) {
-  for (let i = 0; i < inventory.length; i++) {
-    let existingEntry = inventory[i];
-    if (existingEntry.parent === $refParent && existingEntry.key === $refKey) {
-      return existingEntry;
-    }
-  }
-}
-
-function removeFromInventory (inventory, entry) {
-  let index = inventory.indexOf(entry);
-  inventory.splice(index, 1);
-}
-
-},{"./pointer":79,"./ref":80,"./util/url":86}],70:[function(require,module,exports){
-"use strict";
-
-const $Ref = require("./ref");
-const Pointer = require("./pointer");
-const { ono } = require("ono");
-const url = require("./util/url");
-
-module.exports = dereference;
-
-/**
- * Crawls the JSON schema, finds all JSON references, and dereferences them.
- * This method mutates the JSON schema object, replacing JSON references with their resolved value.
- *
- * @param {$RefParser} parser
- * @param {$RefParserOptions} options
- */
-function dereference (parser, options) {
-  // console.log('Dereferencing $ref pointers in %s', parser.$refs._root$Ref.path);
-  let dereferenced = crawl(parser.schema, parser.$refs._root$Ref.path, "#", [], parser.$refs, options);
-  parser.$refs.circular = dereferenced.circular;
-  parser.schema = dereferenced.value;
-}
-
-/**
- * Recursively crawls the given value, and dereferences any JSON references.
- *
- * @param {*} obj - The value to crawl. If it's not an object or array, it will be ignored.
- * @param {string} path - The full path of `obj`, possibly with a JSON Pointer in the hash
- * @param {string} pathFromRoot - The path of `obj` from the schema root
- * @param {object[]} parents - An array of the parent objects that have already been dereferenced
- * @param {$Refs} $refs
- * @param {$RefParserOptions} options
- * @returns {{value: object, circular: boolean}}
- */
-function crawl (obj, path, pathFromRoot, parents, $refs, options) {
-  let dereferenced;
-  let result = {
-    value: obj,
-    circular: false
-  };
-
-  if (obj && typeof obj === "object") {
-    parents.push(obj);
-
-    if ($Ref.isAllowed$Ref(obj, options)) {
-      dereferenced = dereference$Ref(obj, path, pathFromRoot, parents, $refs, options);
-      result.circular = dereferenced.circular;
-      result.value = dereferenced.value;
-    }
-    else {
-      for (let key of Object.keys(obj)) {
-        let keyPath = Pointer.join(path, key);
-        let keyPathFromRoot = Pointer.join(pathFromRoot, key);
-        let value = obj[key];
-        let circular = false;
-
-        if ($Ref.isAllowed$Ref(value, options)) {
-          dereferenced = dereference$Ref(value, keyPath, keyPathFromRoot, parents, $refs, options);
-          circular = dereferenced.circular;
-          obj[key] = dereferenced.value;
-        }
-        else {
-          if (parents.indexOf(value) === -1) {
-            dereferenced = crawl(value, keyPath, keyPathFromRoot, parents, $refs, options);
-            circular = dereferenced.circular;
-            obj[key] = dereferenced.value;
-          }
-          else {
-            circular = foundCircularReference(keyPath, $refs, options);
-          }
-        }
-
-        // Set the "isCircular" flag if this or any other property is circular
-        result.circular = result.circular || circular;
-      }
-    }
-
-    parents.pop();
-  }
-
-  return result;
-}
-
-/**
- * Dereferences the given JSON Reference, and then crawls the resulting value.
- *
- * @param {{$ref: string}} $ref - The JSON Reference to resolve
- * @param {string} path - The full path of `$ref`, possibly with a JSON Pointer in the hash
- * @param {string} pathFromRoot - The path of `$ref` from the schema root
- * @param {object[]} parents - An array of the parent objects that have already been dereferenced
- * @param {$Refs} $refs
- * @param {$RefParserOptions} options
- * @returns {{value: object, circular: boolean}}
- */
-function dereference$Ref ($ref, path, pathFromRoot, parents, $refs, options) {
-  // console.log('Dereferencing $ref pointer "%s" at %s', $ref.$ref, path);
-
-  let $refPath = url.resolve(path, $ref.$ref);
-  let pointer = $refs._resolve($refPath, options);
-
-  // Check for circular references
-  let directCircular = pointer.circular;
-  let circular = directCircular || parents.indexOf(pointer.value) !== -1;
-  circular && foundCircularReference(path, $refs, options);
-
-  // Dereference the JSON reference
-  let dereferencedValue = $Ref.dereference($ref, pointer.value);
-
-  // Crawl the dereferenced value (unless it's circular)
-  if (!circular) {
-    // Determine if the dereferenced value is circular
-    let dereferenced = crawl(dereferencedValue, pointer.path, pathFromRoot, parents, $refs, options);
-    circular = dereferenced.circular;
-    dereferencedValue = dereferenced.value;
-  }
-
-  if (circular && !directCircular && options.dereference.circular === "ignore") {
-    // The user has chosen to "ignore" circular references, so don't change the value
-    dereferencedValue = $ref;
-  }
-
-  if (directCircular) {
-    // The pointer is a DIRECT circular reference (i.e. it references itself).
-    // So replace the $ref path with the absolute path from the JSON Schema root
-    dereferencedValue.$ref = pathFromRoot;
-  }
-
-  return {
-    circular,
-    value: dereferencedValue
-  };
-}
-
-/**
- * Called when a circular reference is found.
- * It sets the {@link $Refs#circular} flag, and throws an error if options.dereference.circular is false.
- *
- * @param {string} keyPath - The JSON Reference path of the circular reference
- * @param {$Refs} $refs
- * @param {$RefParserOptions} options
- * @returns {boolean} - always returns true, to indicate that a circular reference was found
- */
-function foundCircularReference (keyPath, $refs, options) {
-  $refs.circular = true;
-  if (!options.dereference.circular) {
-    throw ono.reference(`Circular $ref pointer found at ${keyPath}`);
-  }
-  return true;
-}
-
-},{"./pointer":79,"./ref":80,"./util/url":86,"ono":92}],71:[function(require,module,exports){
-(function (Buffer){
-"use strict";
-
-const Options = require("./options");
-const $Refs = require("./refs");
-const parse = require("./parse");
-const normalizeArgs = require("./normalize-args");
-const resolveExternal = require("./resolve-external");
-const bundle = require("./bundle");
-const dereference = require("./dereference");
-const url = require("./util/url");
-const maybe = require("call-me-maybe");
-const { ono } = require("ono");
-
-module.exports = $RefParser;
-module.exports.YAML = require("./util/yaml");
-
-/**
- * This class parses a JSON schema, builds a map of its JSON references and their resolved values,
- * and provides methods for traversing, manipulating, and dereferencing those references.
- *
- * @constructor
- */
-function $RefParser () {
-  /**
-   * The parsed (and possibly dereferenced) JSON schema object
-   *
-   * @type {object}
-   * @readonly
-   */
-  this.schema = null;
-
-  /**
-   * The resolved JSON references
-   *
-   * @type {$Refs}
-   * @readonly
-   */
-  this.$refs = new $Refs();
-}
-
-/**
- * Parses the given JSON schema.
- * This method does not resolve any JSON references.
- * It just reads a single file in JSON or YAML format, and parse it as a JavaScript object.
- *
- * @param {string} [path] - The file path or URL of the JSON schema
- * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
- * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed
- * @param {function} [callback] - An error-first callback. The second parameter is the parsed JSON schema object.
- * @returns {Promise} - The returned promise resolves with the parsed JSON schema object.
- */
-$RefParser.parse = function (path, schema, options, callback) {
-  let Class = this; // eslint-disable-line consistent-this
-  let instance = new Class();
-  return instance.parse.apply(instance, arguments);
-};
-
-/**
- * Parses the given JSON schema.
- * This method does not resolve any JSON references.
- * It just reads a single file in JSON or YAML format, and parse it as a JavaScript object.
- *
- * @param {string} [path] - The file path or URL of the JSON schema
- * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
- * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed
- * @param {function} [callback] - An error-first callback. The second parameter is the parsed JSON schema object.
- * @returns {Promise} - The returned promise resolves with the parsed JSON schema object.
- */
-$RefParser.prototype.parse = async function (path, schema, options, callback) {
-  let args = normalizeArgs(arguments);
-  let promise;
-
-  if (!args.path && !args.schema) {
-    let err = ono(`Expected a file path, URL, or object. Got ${args.path || args.schema}`);
-    return maybe(args.callback, Promise.reject(err));
-  }
-
-  // Reset everything
-  this.schema = null;
-  this.$refs = new $Refs();
-
-  // If the path is a filesystem path, then convert it to a URL.
-  // NOTE: According to the JSON Reference spec, these should already be URLs,
-  // but, in practice, many people use local filesystem paths instead.
-  // So we're being generous here and doing the conversion automatically.
-  // This is not intended to be a 100% bulletproof solution.
-  // If it doesn't work for your use-case, then use a URL instead.
-  let pathType = "http";
-  if (url.isFileSystemPath(args.path)) {
-    args.path = url.fromFileSystemPath(args.path);
-    pathType = "file";
-  }
-
-  // Resolve the absolute path of the schema
-  args.path = url.resolve(url.cwd(), args.path);
-
-  if (args.schema && typeof args.schema === "object") {
-    // A schema object was passed-in.
-    // So immediately add a new $Ref with the schema object as its value
-    let $ref = this.$refs._add(args.path);
-    $ref.value = args.schema;
-    $ref.pathType = pathType;
-    promise = Promise.resolve(args.schema);
-  }
-  else {
-    // Parse the schema file/url
-    promise = parse(args.path, this.$refs, args.options);
-  }
-
-  let me = this;
-  try {
-    let result = await promise;
-
-    if (!result || typeof result !== "object" || Buffer.isBuffer(result)) {
-      throw ono.syntax(`"${me.$refs._root$Ref.path || result}" is not a valid JSON Schema`);
-    }
-    else {
-      me.schema = result;
-      return maybe(args.callback, Promise.resolve(me.schema));
-    }
-  }
-  catch (e) {
-    return maybe(args.callback, Promise.reject(e));
-  }
-};
-
-/**
- * Parses the given JSON schema and resolves any JSON references, including references in
- * externally-referenced files.
- *
- * @param {string} [path] - The file path or URL of the JSON schema
- * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
- * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed and resolved
- * @param {function} [callback]
- * - An error-first callback. The second parameter is a {@link $Refs} object containing the resolved JSON references
- *
- * @returns {Promise}
- * The returned promise resolves with a {@link $Refs} object containing the resolved JSON references
- */
-$RefParser.resolve = function (path, schema, options, callback) {
-  let Class = this; // eslint-disable-line consistent-this
-  let instance = new Class();
-  return instance.resolve.apply(instance, arguments);
-};
-
-/**
- * Parses the given JSON schema and resolves any JSON references, including references in
- * externally-referenced files.
- *
- * @param {string} [path] - The file path or URL of the JSON schema
- * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
- * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed and resolved
- * @param {function} [callback]
- * - An error-first callback. The second parameter is a {@link $Refs} object containing the resolved JSON references
- *
- * @returns {Promise}
- * The returned promise resolves with a {@link $Refs} object containing the resolved JSON references
- */
-$RefParser.prototype.resolve = async function (path, schema, options, callback) {
-  let me = this;
-  let args = normalizeArgs(arguments);
-
-  try {
-    await this.parse(args.path, args.schema, args.options);
-    await resolveExternal(me, args.options);
-    return maybe(args.callback, Promise.resolve(me.$refs));
-  }
-  catch (err) {
-    return maybe(args.callback, Promise.reject(err));
-  }
-};
-
-/**
- * Parses the given JSON schema, resolves any JSON references, and bundles all external references
- * into the main JSON schema. This produces a JSON schema that only has *internal* references,
- * not any *external* references.
- *
- * @param {string} [path] - The file path or URL of the JSON schema
- * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
- * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed, resolved, and dereferenced
- * @param {function} [callback] - An error-first callback. The second parameter is the bundled JSON schema object
- * @returns {Promise} - The returned promise resolves with the bundled JSON schema object.
- */
-$RefParser.bundle = function (path, schema, options, callback) {
-  let Class = this; // eslint-disable-line consistent-this
-  let instance = new Class();
-  return instance.bundle.apply(instance, arguments);
-};
-
-/**
- * Parses the given JSON schema, resolves any JSON references, and bundles all external references
- * into the main JSON schema. This produces a JSON schema that only has *internal* references,
- * not any *external* references.
- *
- * @param {string} [path] - The file path or URL of the JSON schema
- * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
- * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed, resolved, and dereferenced
- * @param {function} [callback] - An error-first callback. The second parameter is the bundled JSON schema object
- * @returns {Promise} - The returned promise resolves with the bundled JSON schema object.
- */
-$RefParser.prototype.bundle = async function (path, schema, options, callback) {
-  let me = this;
-  let args = normalizeArgs(arguments);
-
-  try {
-    await this.resolve(args.path, args.schema, args.options);
-    bundle(me, args.options);
-    return maybe(args.callback, Promise.resolve(me.schema));
-  }
-  catch (err) {
-    return maybe(args.callback, Promise.reject(err));
-  }
-};
-
-/**
- * Parses the given JSON schema, resolves any JSON references, and dereferences the JSON schema.
- * That is, all JSON references are replaced with their resolved values.
- *
- * @param {string} [path] - The file path or URL of the JSON schema
- * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
- * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed, resolved, and dereferenced
- * @param {function} [callback] - An error-first callback. The second parameter is the dereferenced JSON schema object
- * @returns {Promise} - The returned promise resolves with the dereferenced JSON schema object.
- */
-$RefParser.dereference = function (path, schema, options, callback) {
-  let Class = this; // eslint-disable-line consistent-this
-  let instance = new Class();
-  return instance.dereference.apply(instance, arguments);
-};
-
-/**
- * Parses the given JSON schema, resolves any JSON references, and dereferences the JSON schema.
- * That is, all JSON references are replaced with their resolved values.
- *
- * @param {string} [path] - The file path or URL of the JSON schema
- * @param {object} [schema] - A JSON schema object. This object will be used instead of reading from `path`.
- * @param {$RefParserOptions} [options] - Options that determine how the schema is parsed, resolved, and dereferenced
- * @param {function} [callback] - An error-first callback. The second parameter is the dereferenced JSON schema object
- * @returns {Promise} - The returned promise resolves with the dereferenced JSON schema object.
- */
-$RefParser.prototype.dereference = async function (path, schema, options, callback) {
-  let me = this;
-  let args = normalizeArgs(arguments);
-
-  try {
-    await this.resolve(args.path, args.schema, args.options);
-    dereference(me, args.options);
-    return maybe(args.callback, Promise.resolve(me.schema));
-  }
-  catch (err) {
-    return maybe(args.callback, Promise.reject(err));
-  }
-};
-
-}).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-
-},{"../../is-buffer/index.js":38,"./bundle":69,"./dereference":70,"./normalize-args":72,"./options":73,"./parse":74,"./refs":81,"./resolve-external":82,"./util/url":86,"./util/yaml":87,"call-me-maybe":34,"ono":92}],72:[function(require,module,exports){
-"use strict";
-
-const Options = require("./options");
-
-module.exports = normalizeArgs;
-
-/**
- * Normalizes the given arguments, accounting for optional args.
- *
- * @param {Arguments} args
- * @returns {object}
- */
-function normalizeArgs (args) {
-  let path, schema, options, callback;
-  args = Array.prototype.slice.call(args);
-
-  if (typeof args[args.length - 1] === "function") {
-    // The last parameter is a callback function
-    callback = args.pop();
-  }
-
-  if (typeof args[0] === "string") {
-    // The first parameter is the path
-    path = args[0];
-    if (typeof args[2] === "object") {
-      // The second parameter is the schema, and the third parameter is the options
-      schema = args[1];
-      options = args[2];
-    }
-    else {
-      // The second parameter is the options
-      schema = undefined;
-      options = args[1];
-    }
-  }
-  else {
-    // The first parameter is the schema
-    path = "";
-    schema = args[0];
-    options = args[1];
-  }
-
-  if (!(options instanceof Options)) {
-    options = new Options(options);
-  }
-
-  return {
-    path,
-    schema,
-    options,
-    callback
-  };
-}
-
-},{"./options":73}],73:[function(require,module,exports){
-/* eslint lines-around-comment: [2, {beforeBlockComment: false}] */
-"use strict";
-
-const jsonParser = require("./parsers/json");
-const yamlParser = require("./parsers/yaml");
-const textParser = require("./parsers/text");
-const binaryParser = require("./parsers/binary");
-const fileResolver = require("./resolvers/file");
-const httpResolver = require("./resolvers/http");
-
-module.exports = $RefParserOptions;
-
-/**
- * Options that determine how JSON schemas are parsed, resolved, and dereferenced.
- *
- * @param {object|$RefParserOptions} [options] - Overridden options
- * @constructor
- */
-function $RefParserOptions (options) {
-  merge(this, $RefParserOptions.defaults);
-  merge(this, options);
-}
-
-$RefParserOptions.defaults = {
-  /**
-   * Determines how different types of files will be parsed.
-   *
-   * You can add additional parsers of your own, replace an existing one with
-   * your own implemenation, or disable any parser by setting it to false.
-   */
-  parse: {
-    json: jsonParser,
-    yaml: yamlParser,
-    text: textParser,
-    binary: binaryParser,
-  },
-
-  /**
-   * Determines how JSON References will be resolved.
-   *
-   * You can add additional resolvers of your own, replace an existing one with
-   * your own implemenation, or disable any resolver by setting it to false.
-   */
-  resolve: {
-    file: fileResolver,
-    http: httpResolver,
-
-    /**
-     * Determines whether external $ref pointers will be resolved.
-     * If this option is disabled, then none of above resolvers will be called.
-     * Instead, external $ref pointers will simply be ignored.
-     *
-     * @type {boolean}
-     */
-    external: true,
-  },
-
-  /**
-   * Determines the types of JSON references that are allowed.
-   */
-  dereference: {
-    /**
-     * Dereference circular (recursive) JSON references?
-     * If false, then a {@link ReferenceError} will be thrown if a circular reference is found.
-     * If "ignore", then circular references will not be dereferenced.
-     *
-     * @type {boolean|string}
-     */
-    circular: true
-  },
-};
-
-/**
- * Merges the properties of the source object into the target object.
- *
- * @param {object} target - The object that we're populating
- * @param {?object} source - The options that are being merged
- * @returns {object}
- */
-function merge (target, source) {
-  if (isMergeable(source)) {
-    let keys = Object.keys(source);
-    for (let i = 0; i < keys.length; i++) {
-      let key = keys[i];
-      let sourceSetting = source[key];
-      let targetSetting = target[key];
-
-      if (isMergeable(sourceSetting)) {
-        // It's a nested object, so merge it recursively
-        target[key] = merge(targetSetting || {}, sourceSetting);
-      }
-      else if (sourceSetting !== undefined) {
-        // It's a scalar value, function, or array. No merging necessary. Just overwrite the target value.
-        target[key] = sourceSetting;
-      }
-    }
-  }
-  return target;
-}
-
-/**
- * Determines whether the given value can be merged,
- * or if it is a scalar value that should just override the target value.
- *
- * @param   {*}  val
- * @returns {Boolean}
- */
-function isMergeable (val) {
-  return val &&
-    (typeof val === "object") &&
-    !Array.isArray(val) &&
-    !(val instanceof RegExp) &&
-    !(val instanceof Date);
-}
-
-},{"./parsers/binary":75,"./parsers/json":76,"./parsers/text":77,"./parsers/yaml":78,"./resolvers/file":83,"./resolvers/http":84}],74:[function(require,module,exports){
-(function (Buffer){
-"use strict";
-
-const { ono } = require("ono");
-const url = require("./util/url");
-const plugins = require("./util/plugins");
-
-module.exports = parse;
-
-/**
- * Reads and parses the specified file path or URL.
- *
- * @param {string} path - This path MUST already be resolved, since `read` doesn't know the resolution context
- * @param {$Refs} $refs
- * @param {$RefParserOptions} options
- *
- * @returns {Promise}
- * The promise resolves with the parsed file contents, NOT the raw (Buffer) contents.
- */
-async function parse (path, $refs, options) {
-  try {
-    // Remove the URL fragment, if any
-    path = url.stripHash(path);
-
-    // Add a new $Ref for this file, even though we don't have the value yet.
-    // This ensures that we don't simultaneously read & parse the same file multiple times
-    let $ref = $refs._add(path);
-
-    // This "file object" will be passed to all resolvers and parsers.
-    let file = {
-      url: path,
-      extension: url.getExtension(path),
-    };
-
-    // Read the file and then parse the data
-    const resolver = await readFile(file, options, $refs);
-    $ref.pathType = resolver.plugin.name;
-    file.data = resolver.result;
-
-    const parser = await parseFile(file, options, $refs);
-    $ref.value = parser.result;
-
-    return parser.result;
-  }
-  catch (e) {
-    return Promise.reject(e);
-  }
-}
-
-/**
- * Reads the given file, using the configured resolver plugins
- *
- * @param {object} file           - An object containing information about the referenced file
- * @param {string} file.url       - The full URL of the referenced file
- * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
- * @param {$RefParserOptions} options
- *
- * @returns {Promise}
- * The promise resolves with the raw file contents and the resolver that was used.
- */
-function readFile (file, options, $refs) {
-  return new Promise(((resolve, reject) => {
-    // console.log('Reading %s', file.url);
-
-    // Find the resolvers that can read this file
-    let resolvers = plugins.all(options.resolve);
-    resolvers = plugins.filter(resolvers, "canRead", file);
-
-    // Run the resolvers, in order, until one of them succeeds
-    plugins.sort(resolvers);
-    plugins.run(resolvers, "read", file, $refs)
-      .then(resolve, onError);
-
-    function onError (err) {
-      // Throw the original error, if it's one of our own (user-friendly) errors.
-      // Otherwise, throw a generic, friendly error.
-      if (err && !(err instanceof SyntaxError)) {
-        reject(err);
-      }
-      else {
-        reject(ono.syntax(`Unable to resolve $ref pointer "${file.url}"`));
-      }
-    }
-  }));
-}
-
-/**
- * Parses the given file's contents, using the configured parser plugins.
- *
- * @param {object} file           - An object containing information about the referenced file
- * @param {string} file.url       - The full URL of the referenced file
- * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
- * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
- * @param {$RefParserOptions} options
- *
- * @returns {Promise}
- * The promise resolves with the parsed file contents and the parser that was used.
- */
-function parseFile (file, options, $refs) {
-  return new Promise(((resolve, reject) => {
-    // console.log('Parsing %s', file.url);
-
-    // Find the parsers that can read this file type.
-    // If none of the parsers are an exact match for this file, then we'll try ALL of them.
-    // This handles situations where the file IS a supported type, just with an unknown extension.
-    let allParsers = plugins.all(options.parse);
-    let filteredParsers = plugins.filter(allParsers, "canParse", file);
-    let parsers = filteredParsers.length > 0 ? filteredParsers : allParsers;
-
-    // Run the parsers, in order, until one of them succeeds
-    plugins.sort(parsers);
-    plugins.run(parsers, "parse", file, $refs)
-      .then(onParsed, onError);
-
-    function onParsed (parser) {
-      if (!parser.plugin.allowEmpty && isEmpty(parser.result)) {
-        reject(ono.syntax(`Error parsing "${file.url}" as ${parser.plugin.name}. \nParsed value is empty`));
-      }
-      else {
-        resolve(parser);
-      }
-    }
-
-    function onError (err) {
-      if (err) {
-        err = err instanceof Error ? err : new Error(err);
-        reject(ono.syntax(err, `Error parsing ${file.url}`));
-      }
-      else {
-        reject(ono.syntax(`Unable to parse ${file.url}`));
-      }
-    }
-  }));
-}
-
-/**
- * Determines whether the parsed value is "empty".
- *
- * @param {*} value
- * @returns {boolean}
- */
-function isEmpty (value) {
-  return value === undefined ||
-    (typeof value === "object" && Object.keys(value).length === 0) ||
-    (typeof value === "string" && value.trim().length === 0) ||
-    (Buffer.isBuffer(value) && value.length === 0);
-}
-
-}).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-
-},{"../../is-buffer/index.js":38,"./util/plugins":85,"./util/url":86,"ono":92}],75:[function(require,module,exports){
-(function (Buffer){
-"use strict";
-
-let BINARY_REGEXP = /\.(jpeg|jpg|gif|png|bmp|ico)$/i;
-
-module.exports = {
-  /**
-   * The order that this parser will run, in relation to other parsers.
-   *
-   * @type {number}
-   */
-  order: 400,
-
-  /**
-   * Whether to allow "empty" files (zero bytes).
-   *
-   * @type {boolean}
-   */
-  allowEmpty: true,
-
-  /**
-   * Determines whether this parser can parse a given file reference.
-   * Parsers that return true will be tried, in order, until one successfully parses the file.
-   * Parsers that return false will be skipped, UNLESS all parsers returned false, in which case
-   * every parser will be tried.
-   *
-   * @param {object} file           - An object containing information about the referenced file
-   * @param {string} file.url       - The full URL of the referenced file
-   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
-   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
-   * @returns {boolean}
-   */
-  canParse (file) {
-    // Use this parser if the file is a Buffer, and has a known binary extension
-    return Buffer.isBuffer(file.data) && BINARY_REGEXP.test(file.url);
-  },
-
-  /**
-   * Parses the given data as a Buffer (byte array).
-   *
-   * @param {object} file           - An object containing information about the referenced file
-   * @param {string} file.url       - The full URL of the referenced file
-   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
-   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
-   * @returns {Promise<Buffer>}
-   */
-  parse (file) {
-    if (Buffer.isBuffer(file.data)) {
-      return file.data;
-    }
-    else {
-      // This will reject if data is anything other than a string or typed array
-      return Buffer.from(file.data);
-    }
-  }
-};
-
-}).call(this,require("buffer").Buffer)
-
-},{"buffer":8}],76:[function(require,module,exports){
-(function (Buffer){
-"use strict";
-
-module.exports = {
-  /**
-   * The order that this parser will run, in relation to other parsers.
-   *
-   * @type {number}
-   */
-  order: 100,
-
-  /**
-   * Whether to allow "empty" files. This includes zero-byte files, as well as empty JSON objects.
-   *
-   * @type {boolean}
-   */
-  allowEmpty: true,
-
-  /**
-   * Determines whether this parser can parse a given file reference.
-   * Parsers that match will be tried, in order, until one successfully parses the file.
-   * Parsers that don't match will be skipped, UNLESS none of the parsers match, in which case
-   * every parser will be tried.
-   *
-   * @type {RegExp|string[]|function}
-   */
-  canParse: ".json",
-
-  /**
-   * Parses the given file as JSON
-   *
-   * @param {object} file           - An object containing information about the referenced file
-   * @param {string} file.url       - The full URL of the referenced file
-   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
-   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
-   * @returns {Promise}
-   */
-  parse (file) {
-    return new Promise(((resolve, reject) => {
-      let data = file.data;
-      if (Buffer.isBuffer(data)) {
-        data = data.toString();
-      }
-
-      if (typeof data === "string") {
-        if (data.trim().length === 0) {
-          resolve(undefined);  // This mirrors the YAML behavior
-        }
-        else {
-          resolve(JSON.parse(data));
-        }
-      }
-      else {
-        // data is already a JavaScript value (object, array, number, null, NaN, etc.)
-        resolve(data);
-      }
-    }));
-  }
-};
-
-}).call(this,{"isBuffer":require("../../../is-buffer/index.js")})
-
-},{"../../../is-buffer/index.js":38}],77:[function(require,module,exports){
-(function (Buffer){
-"use strict";
-
-let TEXT_REGEXP = /\.(txt|htm|html|md|xml|js|min|map|css|scss|less|svg)$/i;
-
-module.exports = {
-  /**
-   * The order that this parser will run, in relation to other parsers.
-   *
-   * @type {number}
-   */
-  order: 300,
-
-  /**
-   * Whether to allow "empty" files (zero bytes).
-   *
-   * @type {boolean}
-   */
-  allowEmpty: true,
-
-  /**
-   * The encoding that the text is expected to be in.
-   *
-   * @type {string}
-   */
-  encoding: "utf8",
-
-  /**
-   * Determines whether this parser can parse a given file reference.
-   * Parsers that return true will be tried, in order, until one successfully parses the file.
-   * Parsers that return false will be skipped, UNLESS all parsers returned false, in which case
-   * every parser will be tried.
-   *
-   * @param {object} file           - An object containing information about the referenced file
-   * @param {string} file.url       - The full URL of the referenced file
-   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
-   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
-   * @returns {boolean}
-   */
-  canParse (file) {
-    // Use this parser if the file is a string or Buffer, and has a known text-based extension
-    return (typeof file.data === "string" || Buffer.isBuffer(file.data)) && TEXT_REGEXP.test(file.url);
-  },
-
-  /**
-   * Parses the given file as text
-   *
-   * @param {object} file           - An object containing information about the referenced file
-   * @param {string} file.url       - The full URL of the referenced file
-   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
-   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
-   * @returns {Promise<string>}
-   */
-  parse (file) {
-    if (typeof file.data === "string") {
-      return file.data;
-    }
-    else if (Buffer.isBuffer(file.data)) {
-      return file.data.toString(this.encoding);
-    }
-    else {
-      throw new Error("data is not text");
-    }
-  }
-};
-
-}).call(this,{"isBuffer":require("../../../is-buffer/index.js")})
-
-},{"../../../is-buffer/index.js":38}],78:[function(require,module,exports){
-(function (Buffer){
-"use strict";
-
-const YAML = require("../util/yaml");
-
-module.exports = {
-  /**
-   * The order that this parser will run, in relation to other parsers.
-   *
-   * @type {number}
-   */
-  order: 200,
-
-  /**
-   * Whether to allow "empty" files. This includes zero-byte files, as well as empty JSON objects.
-   *
-   * @type {boolean}
-   */
-  allowEmpty: true,
-
-  /**
-   * Determines whether this parser can parse a given file reference.
-   * Parsers that match will be tried, in order, until one successfully parses the file.
-   * Parsers that don't match will be skipped, UNLESS none of the parsers match, in which case
-   * every parser will be tried.
-   *
-   * @type {RegExp|string[]|function}
-   */
-  canParse: [".yaml", ".yml", ".json"],  // JSON is valid YAML
-
-  /**
-   * Parses the given file as YAML
-   *
-   * @param {object} file           - An object containing information about the referenced file
-   * @param {string} file.url       - The full URL of the referenced file
-   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
-   * @param {*}      file.data      - The file contents. This will be whatever data type was returned by the resolver
-   * @returns {Promise}
-   */
-  parse (file) {
-    return new Promise(((resolve, reject) => {
-      let data = file.data;
-      if (Buffer.isBuffer(data)) {
-        data = data.toString();
-      }
-
-      if (typeof data === "string") {
-        resolve(YAML.parse(data));
-      }
-      else {
-        // data is already a JavaScript value (object, array, number, null, NaN, etc.)
-        resolve(data);
-      }
-    }));
-  }
-};
-
-}).call(this,{"isBuffer":require("../../../is-buffer/index.js")})
-
-},{"../../../is-buffer/index.js":38,"../util/yaml":87}],79:[function(require,module,exports){
-"use strict";
-
-module.exports = Pointer;
-
-const $Ref = require("./ref");
-const url = require("./util/url");
-const { ono } = require("ono");
-const slashes = /\//g;
-const tildes = /~/g;
-const escapedSlash = /~1/g;
-const escapedTilde = /~0/g;
-
-/**
- * This class represents a single JSON pointer and its resolved value.
- *
- * @param {$Ref} $ref
- * @param {string} path
- * @param {string} [friendlyPath] - The original user-specified path (used for error messages)
- * @constructor
- */
-function Pointer ($ref, path, friendlyPath) {
-  /**
-   * The {@link $Ref} object that contains this {@link Pointer} object.
-   * @type {$Ref}
-   */
-  this.$ref = $ref;
-
-  /**
-   * The file path or URL, containing the JSON pointer in the hash.
-   * This path is relative to the path of the main JSON schema file.
-   * @type {string}
-   */
-  this.path = path;
-
-  /**
-   * The original path or URL, used for error messages.
-   * @type {string}
-   */
-  this.originalPath = friendlyPath || path;
-
-  /**
-   * The value of the JSON pointer.
-   * Can be any JSON type, not just objects. Unknown file types are represented as Buffers (byte arrays).
-   * @type {?*}
-   */
-  this.value = undefined;
-
-  /**
-   * Indicates whether the pointer references itself.
-   * @type {boolean}
-   */
-  this.circular = false;
-
-  /**
-   * The number of indirect references that were traversed to resolve the value.
-   * Resolving a single pointer may require resolving multiple $Refs.
-   * @type {number}
-   */
-  this.indirections = 0;
-}
-
-/**
- * Resolves the value of a nested property within the given object.
- *
- * @param {*} obj - The object that will be crawled
- * @param {$RefParserOptions} options
- *
- * @returns {Pointer}
- * Returns a JSON pointer whose {@link Pointer#value} is the resolved value.
- * If resolving this value required resolving other JSON references, then
- * the {@link Pointer#$ref} and {@link Pointer#path} will reflect the resolution path
- * of the resolved value.
- */
-Pointer.prototype.resolve = function (obj, options) {
-  let tokens = Pointer.parse(this.path);
-
-  // Crawl the object, one token at a time
-  this.value = obj;
-  for (let i = 0; i < tokens.length; i++) {
-    if (resolveIf$Ref(this, options)) {
-      // The $ref path has changed, so append the remaining tokens to the path
-      this.path = Pointer.join(this.path, tokens.slice(i));
-    }
-
-    let token = tokens[i];
-    if (this.value[token] === undefined) {
-      throw ono.syntax(`Error resolving $ref pointer "${this.originalPath}". \nToken "${token}" does not exist.`);
-    }
-    else {
-      this.value = this.value[token];
-    }
-  }
-
-  // Resolve the final value
-  resolveIf$Ref(this, options);
-  return this;
-};
-
-/**
- * Sets the value of a nested property within the given object.
- *
- * @param {*} obj - The object that will be crawled
- * @param {*} value - the value to assign
- * @param {$RefParserOptions} options
- *
- * @returns {*}
- * Returns the modified object, or an entirely new object if the entire object is overwritten.
- */
-Pointer.prototype.set = function (obj, value, options) {
-  let tokens = Pointer.parse(this.path);
-  let token;
-
-  if (tokens.length === 0) {
-    // There are no tokens, replace the entire object with the new value
-    this.value = value;
-    return value;
-  }
-
-  // Crawl the object, one token at a time
-  this.value = obj;
-  for (let i = 0; i < tokens.length - 1; i++) {
-    resolveIf$Ref(this, options);
-
-    token = tokens[i];
-    if (this.value && this.value[token] !== undefined) {
-      // The token exists
-      this.value = this.value[token];
-    }
-    else {
-      // The token doesn't exist, so create it
-      this.value = setValue(this, token, {});
-    }
-  }
-
-  // Set the value of the final token
-  resolveIf$Ref(this, options);
-  token = tokens[tokens.length - 1];
-  setValue(this, token, value);
-
-  // Return the updated object
-  return obj;
-};
-
-/**
- * Parses a JSON pointer (or a path containing a JSON pointer in the hash)
- * and returns an array of the pointer's tokens.
- * (e.g. "schema.json#/definitions/person/name" => ["definitions", "person", "name"])
- *
- * The pointer is parsed according to RFC 6901
- * {@link https://tools.ietf.org/html/rfc6901#section-3}
- *
- * @param {string} path
- * @returns {string[]}
- */
-Pointer.parse = function (path) {
-  // Get the JSON pointer from the path's hash
-  let pointer = url.getHash(path).substr(1);
-
-  // If there's no pointer, then there are no tokens,
-  // so return an empty array
-  if (!pointer) {
-    return [];
-  }
-
-  // Split into an array
-  pointer = pointer.split("/");
-
-  // Decode each part, according to RFC 6901
-  for (let i = 0; i < pointer.length; i++) {
-    pointer[i] = decodeURIComponent(pointer[i].replace(escapedSlash, "/").replace(escapedTilde, "~"));
-  }
-
-  if (pointer[0] !== "") {
-    throw ono.syntax(`Invalid $ref pointer "${pointer}". Pointers must begin with "#/"`);
-  }
-
-  return pointer.slice(1);
-};
-
-/**
- * Creates a JSON pointer path, by joining one or more tokens to a base path.
- *
- * @param {string} base - The base path (e.g. "schema.json#/definitions/person")
- * @param {string|string[]} tokens - The token(s) to append (e.g. ["name", "first"])
- * @returns {string}
- */
-Pointer.join = function (base, tokens) {
-  // Ensure that the base path contains a hash
-  if (base.indexOf("#") === -1) {
-    base += "#";
-  }
-
-  // Append each token to the base path
-  tokens = Array.isArray(tokens) ? tokens : [tokens];
-  for (let i = 0; i < tokens.length; i++) {
-    let token = tokens[i];
-    // Encode the token, according to RFC 6901
-    base += "/" + encodeURIComponent(token.replace(tildes, "~0").replace(slashes, "~1"));
-  }
-
-  return base;
-};
-
-/**
- * If the given pointer's {@link Pointer#value} is a JSON reference,
- * then the reference is resolved and {@link Pointer#value} is replaced with the resolved value.
- * In addition, {@link Pointer#path} and {@link Pointer#$ref} are updated to reflect the
- * resolution path of the new value.
- *
- * @param {Pointer} pointer
- * @param {$RefParserOptions} options
- * @returns {boolean} - Returns `true` if the resolution path changed
- */
-function resolveIf$Ref (pointer, options) {
-  // Is the value a JSON reference? (and allowed?)
-
-  if ($Ref.isAllowed$Ref(pointer.value, options)) {
-    let $refPath = url.resolve(pointer.path, pointer.value.$ref);
-
-    if ($refPath === pointer.path) {
-      // The value is a reference to itself, so there's nothing to do.
-      pointer.circular = true;
-    }
-    else {
-      let resolved = pointer.$ref.$refs._resolve($refPath, options);
-      pointer.indirections += resolved.indirections + 1;
-
-      if ($Ref.isExtended$Ref(pointer.value)) {
-        // This JSON reference "extends" the resolved value, rather than simply pointing to it.
-        // So the resolved path does NOT change.  Just the value does.
-        pointer.value = $Ref.dereference(pointer.value, resolved.value);
-        return false;
-      }
-      else {
-        // Resolve the reference
-        pointer.$ref = resolved.$ref;
-        pointer.path = resolved.path;
-        pointer.value = resolved.value;
-      }
-
-      return true;
-    }
-  }
-}
-
-/**
- * Sets the specified token value of the {@link Pointer#value}.
- *
- * The token is evaluated according to RFC 6901.
- * {@link https://tools.ietf.org/html/rfc6901#section-4}
- *
- * @param {Pointer} pointer - The JSON Pointer whose value will be modified
- * @param {string} token - A JSON Pointer token that indicates how to modify `obj`
- * @param {*} value - The value to assign
- * @returns {*} - Returns the assigned value
- */
-function setValue (pointer, token, value) {
-  if (pointer.value && typeof pointer.value === "object") {
-    if (token === "-" && Array.isArray(pointer.value)) {
-      pointer.value.push(value);
-    }
-    else {
-      pointer.value[token] = value;
-    }
-  }
-  else {
-    throw ono.syntax(`Error assigning $ref pointer "${pointer.path}". \nCannot set "${token}" of a non-object.`);
-  }
-  return value;
-}
-
-},{"./ref":80,"./util/url":86,"ono":92}],80:[function(require,module,exports){
-"use strict";
-
-module.exports = $Ref;
-
-const Pointer = require("./pointer");
-
-/**
- * This class represents a single JSON reference and its resolved value.
- *
- * @constructor
- */
-function $Ref () {
-  /**
-   * The file path or URL of the referenced file.
-   * This path is relative to the path of the main JSON schema file.
-   *
-   * This path does NOT contain document fragments (JSON pointers). It always references an ENTIRE file.
-   * Use methods such as {@link $Ref#get}, {@link $Ref#resolve}, and {@link $Ref#exists} to get
-   * specific JSON pointers within the file.
-   *
-   * @type {string}
-   */
-  this.path = undefined;
-
-  /**
-   * The resolved value of the JSON reference.
-   * Can be any JSON type, not just objects. Unknown file types are represented as Buffers (byte arrays).
-   * @type {?*}
-   */
-  this.value = undefined;
-
-  /**
-   * The {@link $Refs} object that contains this {@link $Ref} object.
-   * @type {$Refs}
-   */
-  this.$refs = undefined;
-
-  /**
-   * Indicates the type of {@link $Ref#path} (e.g. "file", "http", etc.)
-   * @type {?string}
-   */
-  this.pathType = undefined;
-}
-
-/**
- * Determines whether the given JSON reference exists within this {@link $Ref#value}.
- *
- * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
- * @param {$RefParserOptions} options
- * @returns {boolean}
- */
-$Ref.prototype.exists = function (path, options) {
-  try {
-    this.resolve(path, options);
-    return true;
-  }
-  catch (e) {
-    return false;
-  }
-};
-
-/**
- * Resolves the given JSON reference within this {@link $Ref#value} and returns the resolved value.
- *
- * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
- * @param {$RefParserOptions} options
- * @returns {*} - Returns the resolved value
- */
-$Ref.prototype.get = function (path, options) {
-  return this.resolve(path, options).value;
-};
-
-/**
- * Resolves the given JSON reference within this {@link $Ref#value}.
- *
- * @param {string} path - The full path being resolved, optionally with a JSON pointer in the hash
- * @param {$RefParserOptions} options
- * @param {string} [friendlyPath] - The original user-specified path (used for error messages)
- * @returns {Pointer}
- */
-$Ref.prototype.resolve = function (path, options, friendlyPath) {
-  let pointer = new Pointer(this, path, friendlyPath);
-  return pointer.resolve(this.value, options);
-};
-
-/**
- * Sets the value of a nested property within this {@link $Ref#value}.
- * If the property, or any of its parents don't exist, they will be created.
- *
- * @param {string} path - The full path of the property to set, optionally with a JSON pointer in the hash
- * @param {*} value - The value to assign
- */
-$Ref.prototype.set = function (path, value) {
-  let pointer = new Pointer(this, path);
-  this.value = pointer.set(this.value, value);
-};
-
-/**
- * Determines whether the given value is a JSON reference.
- *
- * @param {*} value - The value to inspect
- * @returns {boolean}
- */
-$Ref.is$Ref = function (value) {
-  return value && typeof value === "object" && typeof value.$ref === "string" && value.$ref.length > 0;
-};
-
-/**
- * Determines whether the given value is an external JSON reference.
- *
- * @param {*} value - The value to inspect
- * @returns {boolean}
- */
-$Ref.isExternal$Ref = function (value) {
-  return $Ref.is$Ref(value) && value.$ref[0] !== "#";
-};
-
-/**
- * Determines whether the given value is a JSON reference, and whether it is allowed by the options.
- * For example, if it references an external file, then options.resolve.external must be true.
- *
- * @param {*} value - The value to inspect
- * @param {$RefParserOptions} options
- * @returns {boolean}
- */
-$Ref.isAllowed$Ref = function (value, options) {
-  if ($Ref.is$Ref(value)) {
-    if (value.$ref.substr(0, 2) === "#/" || value.$ref === "#") {
-      // It's a JSON Pointer reference, which is always allowed
-      return true;
-    }
-    else if (value.$ref[0] !== "#" && (!options || options.resolve.external)) {
-      // It's an external reference, which is allowed by the options
-      return true;
-    }
-  }
-};
-
-/**
- * Determines whether the given value is a JSON reference that "extends" its resolved value.
- * That is, it has extra properties (in addition to "$ref"), so rather than simply pointing to
- * an existing value, this $ref actually creates a NEW value that is a shallow copy of the resolved
- * value, plus the extra properties.
- *
- * @example:
- *  {
- *    person: {
- *      properties: {
- *        firstName: { type: string }
- *        lastName: { type: string }
- *      }
- *    }
- *    employee: {
- *      properties: {
- *        $ref: #/person/properties
- *        salary: { type: number }
- *      }
- *    }
- *  }
- *
- *  In this example, "employee" is an extended $ref, since it extends "person" with an additional
- *  property (salary).  The result is a NEW value that looks like this:
- *
- *  {
- *    properties: {
- *      firstName: { type: string }
- *      lastName: { type: string }
- *      salary: { type: number }
- *    }
- *  }
- *
- * @param {*} value - The value to inspect
- * @returns {boolean}
- */
-$Ref.isExtended$Ref = function (value) {
-  return $Ref.is$Ref(value) && Object.keys(value).length > 1;
-};
-
-/**
- * Returns the resolved value of a JSON Reference.
- * If necessary, the resolved value is merged with the JSON Reference to create a new object
- *
- * @example:
- *  {
- *    person: {
- *      properties: {
- *        firstName: { type: string }
- *        lastName: { type: string }
- *      }
- *    }
- *    employee: {
- *      properties: {
- *        $ref: #/person/properties
- *        salary: { type: number }
- *      }
- *    }
- *  }
- *
- *  When "person" and "employee" are merged, you end up with the following object:
- *
- *  {
- *    properties: {
- *      firstName: { type: string }
- *      lastName: { type: string }
- *      salary: { type: number }
- *    }
- *  }
- *
- * @param {object} $ref - The JSON reference object (the one with the "$ref" property)
- * @param {*} resolvedValue - The resolved value, which can be any type
- * @returns {*} - Returns the dereferenced value
- */
-$Ref.dereference = function ($ref, resolvedValue) {
-  if (resolvedValue && typeof resolvedValue === "object" && $Ref.isExtended$Ref($ref)) {
-    let merged = {};
-    for (let key of Object.keys($ref)) {
-      if (key !== "$ref") {
-        merged[key] = $ref[key];
-      }
-    }
-
-    for (let key of Object.keys(resolvedValue)) {
-      if (!(key in merged)) {
-        merged[key] = resolvedValue[key];
-      }
-    }
-
-    return merged;
-  }
-  else {
-    // Completely replace the original reference with the resolved value
-    return resolvedValue;
-  }
-};
-
-},{"./pointer":79}],81:[function(require,module,exports){
-"use strict";
-
-const { ono } = require("ono");
-const $Ref = require("./ref");
-const url = require("./util/url");
-
-module.exports = $Refs;
-
-/**
- * This class is a map of JSON references and their resolved values.
- */
-function $Refs () {
-  /**
-   * Indicates whether the schema contains any circular references.
-   *
-   * @type {boolean}
-   */
-  this.circular = false;
-
-  /**
-   * A map of paths/urls to {@link $Ref} objects
-   *
-   * @type {object}
-   * @protected
-   */
-  this._$refs = {};
-
-  /**
-   * The {@link $Ref} object that is the root of the JSON schema.
-   *
-   * @type {$Ref}
-   * @protected
-   */
-  this._root$Ref = null;
-}
-
-/**
- * Returns the paths of all the files/URLs that are referenced by the JSON schema,
- * including the schema itself.
- *
- * @param {...string|string[]} [types] - Only return paths of the given types ("file", "http", etc.)
- * @returns {string[]}
- */
-$Refs.prototype.paths = function (types) {
-  let paths = getPaths(this._$refs, arguments);
-  return paths.map((path) => {
-    return path.decoded;
-  });
-};
-
-/**
- * Returns the map of JSON references and their resolved values.
- *
- * @param {...string|string[]} [types] - Only return references of the given types ("file", "http", etc.)
- * @returns {object}
- */
-$Refs.prototype.values = function (types) {
-  let $refs = this._$refs;
-  let paths = getPaths($refs, arguments);
-  return paths.reduce((obj, path) => {
-    obj[path.decoded] = $refs[path.encoded].value;
-    return obj;
-  }, {});
-};
-
-/**
- * Returns a POJO (plain old JavaScript object) for serialization as JSON.
- *
- * @returns {object}
- */
-$Refs.prototype.toJSON = $Refs.prototype.values;
-
-/**
- * Determines whether the given JSON reference exists.
- *
- * @param {string} path - The path being resolved, optionally with a JSON pointer in the hash
- * @param {$RefParserOptions} [options]
- * @returns {boolean}
- */
-$Refs.prototype.exists = function (path, options) {
-  try {
-    this._resolve(path, options);
-    return true;
-  }
-  catch (e) {
-    return false;
-  }
-};
-
-/**
- * Resolves the given JSON reference and returns the resolved value.
- *
- * @param {string} path - The path being resolved, with a JSON pointer in the hash
- * @param {$RefParserOptions} [options]
- * @returns {*} - Returns the resolved value
- */
-$Refs.prototype.get = function (path, options) {
-  return this._resolve(path, options).value;
-};
-
-/**
- * Sets the value of a nested property within this {@link $Ref#value}.
- * If the property, or any of its parents don't exist, they will be created.
- *
- * @param {string} path - The path of the property to set, optionally with a JSON pointer in the hash
- * @param {*} value - The value to assign
- */
-$Refs.prototype.set = function (path, value) {
-  let absPath = url.resolve(this._root$Ref.path, path);
-  let withoutHash = url.stripHash(absPath);
-  let $ref = this._$refs[withoutHash];
-
-  if (!$ref) {
-    throw ono(`Error resolving $ref pointer "${path}". \n"${withoutHash}" not found.`);
-  }
-
-  $ref.set(absPath, value);
-};
-
-/**
- * Creates a new {@link $Ref} object and adds it to this {@link $Refs} object.
- *
- * @param {string} path  - The file path or URL of the referenced file
- */
-$Refs.prototype._add = function (path) {
-  let withoutHash = url.stripHash(path);
-
-  let $ref = new $Ref();
-  $ref.path = withoutHash;
-  $ref.$refs = this;
-
-  this._$refs[withoutHash] = $ref;
-  this._root$Ref = this._root$Ref || $ref;
-
-  return $ref;
-};
-
-/**
- * Resolves the given JSON reference.
- *
- * @param {string} path - The path being resolved, optionally with a JSON pointer in the hash
- * @param {$RefParserOptions} [options]
- * @returns {Pointer}
- * @protected
- */
-$Refs.prototype._resolve = function (path, options) {
-  let absPath = url.resolve(this._root$Ref.path, path);
-  let withoutHash = url.stripHash(absPath);
-  let $ref = this._$refs[withoutHash];
-
-  if (!$ref) {
-    throw ono(`Error resolving $ref pointer "${path}". \n"${withoutHash}" not found.`);
-  }
-
-  return $ref.resolve(absPath, options, path);
-};
-
-/**
- * Returns the specified {@link $Ref} object, or undefined.
- *
- * @param {string} path - The path being resolved, optionally with a JSON pointer in the hash
- * @returns {$Ref|undefined}
- * @protected
- */
-$Refs.prototype._get$Ref = function (path) {
-  path = url.resolve(this._root$Ref.path, path);
-  let withoutHash = url.stripHash(path);
-  return this._$refs[withoutHash];
-};
-
-/**
- * Returns the encoded and decoded paths keys of the given object.
- *
- * @param {object} $refs - The object whose keys are URL-encoded paths
- * @param {...string|string[]} [types] - Only return paths of the given types ("file", "http", etc.)
- * @returns {object[]}
- */
-function getPaths ($refs, types) {
-  let paths = Object.keys($refs);
-
-  // Filter the paths by type
-  types = Array.isArray(types[0]) ? types[0] : Array.prototype.slice.call(types);
-  if (types.length > 0 && types[0]) {
-    paths = paths.filter((key) => {
-      return types.indexOf($refs[key].pathType) !== -1;
-    });
-  }
-
-  // Decode local filesystem paths
-  return paths.map((path) => {
-    return {
-      encoded: path,
-      decoded: $refs[path].pathType === "file" ? url.toFileSystemPath(path, true) : path
-    };
-  });
-}
-
-},{"./ref":80,"./util/url":86,"ono":92}],82:[function(require,module,exports){
-"use strict";
-
-const $Ref = require("./ref");
-const Pointer = require("./pointer");
-const parse = require("./parse");
-const url = require("./util/url");
-
-module.exports = resolveExternal;
-
-/**
- * Crawls the JSON schema, finds all external JSON references, and resolves their values.
- * This method does not mutate the JSON schema. The resolved values are added to {@link $RefParser#$refs}.
- *
- * NOTE: We only care about EXTERNAL references here. INTERNAL references are only relevant when dereferencing.
- *
- * @param {$RefParser} parser
- * @param {$RefParserOptions} options
- *
- * @returns {Promise}
- * The promise resolves once all JSON references in the schema have been resolved,
- * including nested references that are contained in externally-referenced files.
- */
-function resolveExternal (parser, options) {
-  if (!options.resolve.external) {
-    // Nothing to resolve, so exit early
-    return Promise.resolve();
-  }
-
-  try {
-    // console.log('Resolving $ref pointers in %s', parser.$refs._root$Ref.path);
-    let promises = crawl(parser.schema, parser.$refs._root$Ref.path + "#", parser.$refs, options);
-    return Promise.all(promises);
-  }
-  catch (e) {
-    return Promise.reject(e);
-  }
-}
-
-/**
- * Recursively crawls the given value, and resolves any external JSON references.
- *
- * @param {*} obj - The value to crawl. If it's not an object or array, it will be ignored.
- * @param {string} path - The full path of `obj`, possibly with a JSON Pointer in the hash
- * @param {$Refs} $refs
- * @param {$RefParserOptions} options
- *
- * @returns {Promise[]}
- * Returns an array of promises. There will be one promise for each JSON reference in `obj`.
- * If `obj` does not contain any JSON references, then the array will be empty.
- * If any of the JSON references point to files that contain additional JSON references,
- * then the corresponding promise will internally reference an array of promises.
- */
-function crawl (obj, path, $refs, options) {
-  let promises = [];
-
-  if (obj && typeof obj === "object") {
-    if ($Ref.isExternal$Ref(obj)) {
-      promises.push(resolve$Ref(obj, path, $refs, options));
-    }
-    else {
-      for (let key of Object.keys(obj)) {
-        let keyPath = Pointer.join(path, key);
-        let value = obj[key];
-
-        if ($Ref.isExternal$Ref(value)) {
-          promises.push(resolve$Ref(value, keyPath, $refs, options));
-        }
-        else {
-          promises = promises.concat(crawl(value, keyPath, $refs, options));
-        }
-      }
-    }
-  }
-
-  return promises;
-}
-
-/**
- * Resolves the given JSON Reference, and then crawls the resulting value.
- *
- * @param {{$ref: string}} $ref - The JSON Reference to resolve
- * @param {string} path - The full path of `$ref`, possibly with a JSON Pointer in the hash
- * @param {$Refs} $refs
- * @param {$RefParserOptions} options
- *
- * @returns {Promise}
- * The promise resolves once all JSON references in the object have been resolved,
- * including nested references that are contained in externally-referenced files.
- */
-async function resolve$Ref ($ref, path, $refs, options) {
-  // console.log('Resolving $ref pointer "%s" at %s', $ref.$ref, path);
-
-  let resolvedPath = url.resolve(path, $ref.$ref);
-  let withoutHash = url.stripHash(resolvedPath);
-
-  // Do we already have this $ref?
-  $ref = $refs._$refs[withoutHash];
-  if ($ref) {
-    // We've already parsed this $ref, so use the existing value
-    return Promise.resolve($ref.value);
-  }
-
-  // Parse the $referenced file/url
-  const result = await parse(resolvedPath, $refs, options);
-
-  // Crawl the parsed value
-  // console.log('Resolving $ref pointers in %s', withoutHash);
-  let promises = crawl(result, withoutHash + "#", $refs, options);
-
-  return Promise.all(promises);
-}
-
-},{"./parse":74,"./pointer":79,"./ref":80,"./util/url":86}],83:[function(require,module,exports){
-"use strict";
-const fs = require("fs");
-const { ono } = require("ono");
-const url = require("../util/url");
-
-module.exports = {
-  /**
-   * The order that this resolver will run, in relation to other resolvers.
-   *
-   * @type {number}
-   */
-  order: 100,
-
-  /**
-   * Determines whether this resolver can read a given file reference.
-   * Resolvers that return true will be tried, in order, until one successfully resolves the file.
-   * Resolvers that return false will not be given a chance to resolve the file.
-   *
-   * @param {object} file           - An object containing information about the referenced file
-   * @param {string} file.url       - The full URL of the referenced file
-   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
-   * @returns {boolean}
-   */
-  canRead (file) {
-    return url.isFileSystemPath(file.url);
-  },
-
-  /**
-   * Reads the given file and returns its raw contents as a Buffer.
-   *
-   * @param {object} file           - An object containing information about the referenced file
-   * @param {string} file.url       - The full URL of the referenced file
-   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
-   * @returns {Promise<Buffer>}
-   */
-  read (file) {
-    return new Promise(((resolve, reject) => {
-      let path;
-      try {
-        path = url.toFileSystemPath(file.url);
-      }
-      catch (err) {
-        reject(ono.uri(err, `Malformed URI: ${file.url}`));
-      }
-
-      // console.log('Opening file: %s', path);
-
-      try {
-        fs.readFile(path, (err, data) => {
-          if (err) {
-            reject(ono(err, `Error opening file "${path}"`));
-          }
-          else {
-            resolve(data);
-          }
-        });
-      }
-      catch (err) {
-        reject(ono(err, `Error opening file "${path}"`));
-      }
-    }));
-  }
-};
-
-},{"../util/url":86,"fs":7,"ono":92}],84:[function(require,module,exports){
-(function (process,Buffer){
-"use strict";
-
-const http = require("http");
-const https = require("https");
-const { ono } = require("ono");
-const url = require("../util/url");
-
-module.exports = {
-  /**
-   * The order that this resolver will run, in relation to other resolvers.
-   *
-   * @type {number}
-   */
-  order: 200,
-
-  /**
-   * HTTP headers to send when downloading files.
-   *
-   * @example:
-   * {
-   *   "User-Agent": "JSON Schema $Ref Parser",
-   *   Accept: "application/json"
-   * }
-   *
-   * @type {object}
-   */
-  headers: null,
-
-  /**
-   * HTTP request timeout (in milliseconds).
-   *
-   * @type {number}
-   */
-  timeout: 5000, // 5 seconds
-
-  /**
-   * The maximum number of HTTP redirects to follow.
-   * To disable automatic following of redirects, set this to zero.
-   *
-   * @type {number}
-   */
-  redirects: 5,
-
-  /**
-   * The `withCredentials` option of XMLHttpRequest.
-   * Set this to `true` if you're downloading files from a CORS-enabled server that requires authentication
-   *
-   * @type {boolean}
-   */
-  withCredentials: false,
-
-  /**
-   * Determines whether this resolver can read a given file reference.
-   * Resolvers that return true will be tried in order, until one successfully resolves the file.
-   * Resolvers that return false will not be given a chance to resolve the file.
-   *
-   * @param {object} file           - An object containing information about the referenced file
-   * @param {string} file.url       - The full URL of the referenced file
-   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
-   * @returns {boolean}
-   */
-  canRead (file) {
-    return url.isHttp(file.url);
-  },
-
-  /**
-   * Reads the given URL and returns its raw contents as a Buffer.
-   *
-   * @param {object} file           - An object containing information about the referenced file
-   * @param {string} file.url       - The full URL of the referenced file
-   * @param {string} file.extension - The lowercased file extension (e.g. ".txt", ".html", etc.)
-   * @returns {Promise<Buffer>}
-   */
-  read (file) {
-    let u = url.parse(file.url);
-
-    if (process.browser && !u.protocol) {
-      // Use the protocol of the current page
-      u.protocol = url.parse(location.href).protocol;
-    }
-
-    return download(u, this);
-  }
-};
-
-/**
- * Downloads the given file.
- *
- * @param {Url|string} u        - The url to download (can be a parsed {@link Url} object)
- * @param {object} httpOptions  - The `options.resolve.http` object
- * @param {number} [redirects]  - The redirect URLs that have already been followed
- *
- * @returns {Promise<Buffer>}
- * The promise resolves with the raw downloaded data, or rejects if there is an HTTP error.
- */
-function download (u, httpOptions, redirects) {
-  return new Promise(((resolve, reject) => {
-    u = url.parse(u);
-    redirects = redirects || [];
-    redirects.push(u.href);
-
-    get(u, httpOptions)
-      .then((res) => {
-        if (res.statusCode >= 400) {
-          throw ono({ status: res.statusCode }, `HTTP ERROR ${res.statusCode}`);
-        }
-        else if (res.statusCode >= 300) {
-          if (redirects.length > httpOptions.redirects) {
-            reject(ono({ status: res.statusCode },
-              `Error downloading ${redirects[0]}. \nToo many redirects: \n  ${redirects.join(" \n  ")}`));
-          }
-          else if (!res.headers.location) {
-            throw ono({ status: res.statusCode }, `HTTP ${res.statusCode} redirect with no location header`);
-          }
-          else {
-            // console.log('HTTP %d redirect %s -> %s', res.statusCode, u.href, res.headers.location);
-            let redirectTo = url.resolve(u, res.headers.location);
-            download(redirectTo, httpOptions, redirects).then(resolve, reject);
-          }
-        }
-        else {
-          resolve(res.body || Buffer.alloc(0));
-        }
-      })
-      .catch((err) => {
-        reject(ono(err, `Error downloading ${u.href}`));
-      });
-  }));
-}
-
-/**
- * Sends an HTTP GET request.
- *
- * @param {Url} u - A parsed {@link Url} object
- * @param {object} httpOptions - The `options.resolve.http` object
- *
- * @returns {Promise<Response>}
- * The promise resolves with the HTTP Response object.
- */
-function get (u, httpOptions) {
-  return new Promise(((resolve, reject) => {
-    // console.log('GET', u.href);
-
-    let protocol = u.protocol === "https:" ? https : http;
-    let req = protocol.get({
-      hostname: u.hostname,
-      port: u.port,
-      path: u.path,
-      auth: u.auth,
-      protocol: u.protocol,
-      headers: httpOptions.headers || {},
-      withCredentials: httpOptions.withCredentials
-    });
-
-    if (typeof req.setTimeout === "function") {
-      req.setTimeout(httpOptions.timeout);
-    }
-
-    req.on("timeout", () => {
-      req.abort();
-    });
-
-    req.on("error", reject);
-
-    req.once("response", (res) => {
-      res.body = Buffer.alloc(0);
-
-      res.on("data", (data) => {
-        res.body = Buffer.concat([res.body, Buffer.from(data)]);
-      });
-
-      res.on("error", reject);
-
-      res.on("end", () => {
-        resolve(res);
-      });
-    });
-  }));
-}
-
-}).call(this,require('_process'),require("buffer").Buffer)
-
-},{"../util/url":86,"_process":102,"buffer":8,"http":11,"https":35,"ono":92}],85:[function(require,module,exports){
-"use strict";
-
-/**
- * Returns the given plugins as an array, rather than an object map.
- * All other methods in this module expect an array of plugins rather than an object map.
- *
- * @param  {object} plugins - A map of plugin objects
- * @return {object[]}
- */
-exports.all = function (plugins) {
-  return Object.keys(plugins)
-    .filter((key) => {
-      return typeof plugins[key] === "object";
-    })
-    .map((key) => {
-      plugins[key].name = key;
-      return plugins[key];
-    });
-};
-
-/**
- * Filters the given plugins, returning only the ones return `true` for the given method.
- *
- * @param  {object[]} plugins - An array of plugin objects
- * @param  {string}   method  - The name of the filter method to invoke for each plugin
- * @param  {object}   file    - A file info object, which will be passed to each method
- * @return {object[]}
- */
-exports.filter = function (plugins, method, file) {
-  return plugins
-    .filter((plugin) => {
-      return !!getResult(plugin, method, file);
-    });
-};
-
-/**
- * Sorts the given plugins, in place, by their `order` property.
- *
- * @param {object[]} plugins - An array of plugin objects
- * @returns {object[]}
- */
-exports.sort = function (plugins) {
-  for (let plugin of plugins) {
-    plugin.order = plugin.order || Number.MAX_SAFE_INTEGER;
-  }
-
-  return plugins.sort((a, b) => { return a.order - b.order; });
-};
-
-/**
- * Runs the specified method of the given plugins, in order, until one of them returns a successful result.
- * Each method can return a synchronous value, a Promise, or call an error-first callback.
- * If the promise resolves successfully, or the callback is called without an error, then the result
- * is immediately returned and no further plugins are called.
- * If the promise rejects, or the callback is called with an error, then the next plugin is called.
- * If ALL plugins fail, then the last error is thrown.
- *
- * @param {object[]}  plugins - An array of plugin objects
- * @param {string}    method  - The name of the method to invoke for each plugin
- * @param {object}    file    - A file info object, which will be passed to each method
- * @returns {Promise}
- */
-exports.run = function (plugins, method, file, $refs) {
-  let plugin, lastError, index = 0;
-
-  return new Promise(((resolve, reject) => {
-    runNextPlugin();
-
-    function runNextPlugin () {
-      plugin = plugins[index++];
-      if (!plugin) {
-        // There are no more functions, so re-throw the last error
-        return reject(lastError);
-      }
-
-      try {
-        // console.log('  %s', plugin.name);
-        let result = getResult(plugin, method, file, callback, $refs);
-        if (result && typeof result.then === "function") {
-          // A promise was returned
-          result.then(onSuccess, onError);
-        }
-        else if (result !== undefined) {
-          // A synchronous result was returned
-          onSuccess(result);
-        }
-        // else { the callback will be called }
-      }
-      catch (e) {
-        onError(e);
-      }
-    }
-
-    function callback (err, result) {
-      if (err) {
-        onError(err);
-      }
-      else {
-        onSuccess(result);
-      }
-    }
-
-    function onSuccess (result) {
-      // console.log('    success');
-      resolve({
-        plugin,
-        result
-      });
-    }
-
-    function onError (err) {
-      // console.log('    %s', err.message || err);
-      lastError = err;
-      runNextPlugin();
-    }
-  }));
-};
-
-/**
- * Returns the value of the given property.
- * If the property is a function, then the result of the function is returned.
- * If the value is a RegExp, then it will be tested against the file URL.
- * If the value is an aray, then it will be compared against the file extension.
- *
- * @param   {object}   obj        - The object whose property/method is called
- * @param   {string}   prop       - The name of the property/method to invoke
- * @param   {object}   file       - A file info object, which will be passed to the method
- * @param   {function} [callback] - A callback function, which will be passed to the method
- * @returns {*}
- */
-function getResult (obj, prop, file, callback, $refs) {
-  let value = obj[prop];
-
-  if (typeof value === "function") {
-    return value.apply(obj, [file, callback, $refs]);
-  }
-
-  if (!callback) {
-    // The synchronous plugin functions (canParse and canRead)
-    // allow a "shorthand" syntax, where the user can match
-    // files by RegExp or by file extension.
-    if (value instanceof RegExp) {
-      return value.test(file.url);
-    }
-    else if (typeof value === "string") {
-      return value === file.extension;
-    }
-    else if (Array.isArray(value)) {
-      return value.indexOf(file.extension) !== -1;
-    }
-  }
-
-  return value;
-}
-
-},{}],86:[function(require,module,exports){
-(function (process){
-"use strict";
-
-let isWindows = /^win/.test(process.platform),
-    forwardSlashPattern = /\//g,
-    protocolPattern = /^(\w{2,}):\/\//i,
-    url = module.exports;
-
-// RegExp patterns to URL-encode special characters in local filesystem paths
-let urlEncodePatterns = [
-  /\?/g, "%3F",
-  /\#/g, "%23",
-];
-
-// RegExp patterns to URL-decode special characters for local filesystem paths
-let urlDecodePatterns = [
-  /\%23/g, "#",
-  /\%24/g, "$",
-  /\%26/g, "&",
-  /\%2C/g, ",",
-  /\%40/g, "@"
-];
-
-exports.parse = require("url").parse;
-exports.resolve = require("url").resolve;
-
-/**
- * Returns the current working directory (in Node) or the current page URL (in browsers).
- *
- * @returns {string}
- */
-exports.cwd = function cwd () {
-  return process.browser ? location.href : process.cwd() + "/";
-};
-
-/**
- * Returns the protocol of the given URL, or `undefined` if it has no protocol.
- *
- * @param   {string} path
- * @returns {?string}
- */
-exports.getProtocol = function getProtocol (path) {
-  let match = protocolPattern.exec(path);
-  if (match) {
-    return match[1].toLowerCase();
-  }
-};
-
-/**
- * Returns the lowercased file extension of the given URL,
- * or an empty string if it has no extension.
- *
- * @param   {string} path
- * @returns {string}
- */
-exports.getExtension = function getExtension (path) {
-  let lastDot = path.lastIndexOf(".");
-  if (lastDot >= 0) {
-    return path.substr(lastDot).toLowerCase();
-  }
-  return "";
-};
-
-/**
- * Returns the hash (URL fragment), of the given path.
- * If there is no hash, then the root hash ("#") is returned.
- *
- * @param   {string} path
- * @returns {string}
- */
-exports.getHash = function getHash (path) {
-  let hashIndex = path.indexOf("#");
-  if (hashIndex >= 0) {
-    return path.substr(hashIndex);
-  }
-  return "#";
-};
-
-/**
- * Removes the hash (URL fragment), if any, from the given path.
- *
- * @param   {string} path
- * @returns {string}
- */
-exports.stripHash = function stripHash (path) {
-  let hashIndex = path.indexOf("#");
-  if (hashIndex >= 0) {
-    path = path.substr(0, hashIndex);
-  }
-  return path;
-};
-
-/**
- * Determines whether the given path is an HTTP(S) URL.
- *
- * @param   {string} path
- * @returns {boolean}
- */
-exports.isHttp = function isHttp (path) {
-  let protocol = url.getProtocol(path);
-  if (protocol === "http" || protocol === "https") {
-    return true;
-  }
-  else if (protocol === undefined) {
-    // There is no protocol.  If we're running in a browser, then assume it's HTTP.
-    return process.browser;
-  }
-  else {
-    // It's some other protocol, such as "ftp://", "mongodb://", etc.
-    return false;
-  }
-};
-
-/**
- * Determines whether the given path is a filesystem path.
- * This includes "file://" URLs.
- *
- * @param   {string} path
- * @returns {boolean}
- */
-exports.isFileSystemPath = function isFileSystemPath (path) {
-  if (process.browser) {
-    // We're running in a browser, so assume that all paths are URLs.
-    // This way, even relative paths will be treated as URLs rather than as filesystem paths
-    return false;
-  }
-
-  let protocol = url.getProtocol(path);
-  return protocol === undefined || protocol === "file";
-};
-
-/**
- * Converts a filesystem path to a properly-encoded URL.
- *
- * This is intended to handle situations where JSON Schema $Ref Parser is called
- * with a filesystem path that contains characters which are not allowed in URLs.
- *
- * @example
- * The following filesystem paths would be converted to the following URLs:
- *
- *    <"!@#$%^&*+=?'>.json              ==>   %3C%22!@%23$%25%5E&*+=%3F\'%3E.json
- *    C:\\My Documents\\File (1).json   ==>   C:/My%20Documents/File%20(1).json
- *    file://Project #42/file.json      ==>   file://Project%20%2342/file.json
- *
- * @param {string} path
- * @returns {string}
- */
-exports.fromFileSystemPath = function fromFileSystemPath (path) {
-  // Step 1: On Windows, replace backslashes with forward slashes,
-  // rather than encoding them as "%5C"
-  if (isWindows) {
-    path = path.replace(/\\/g, "/");
-  }
-
-  // Step 2: `encodeURI` will take care of MOST characters
-  path = encodeURI(path);
-
-  // Step 3: Manually encode characters that are not encoded by `encodeURI`.
-  // This includes characters such as "#" and "?", which have special meaning in URLs,
-  // but are just normal characters in a filesystem path.
-  for (let i = 0; i < urlEncodePatterns.length; i += 2) {
-    path = path.replace(urlEncodePatterns[i], urlEncodePatterns[i + 1]);
-  }
-
-  return path;
-};
-
-/**
- * Converts a URL to a local filesystem path.
- *
- * @param {string}  path
- * @param {boolean} [keepFileProtocol] - If true, then "file://" will NOT be stripped
- * @returns {string}
- */
-exports.toFileSystemPath = function toFileSystemPath (path, keepFileProtocol) {
-  // Step 1: `decodeURI` will decode characters such as Cyrillic characters, spaces, etc.
-  path = decodeURI(path);
-
-  // Step 2: Manually decode characters that are not decoded by `decodeURI`.
-  // This includes characters such as "#" and "?", which have special meaning in URLs,
-  // but are just normal characters in a filesystem path.
-  for (let i = 0; i < urlDecodePatterns.length; i += 2) {
-    path = path.replace(urlDecodePatterns[i], urlDecodePatterns[i + 1]);
-  }
-
-  // Step 3: If it's a "file://" URL, then format it consistently
-  // or convert it to a local filesystem path
-  let isFileUrl = path.substr(0, 7).toLowerCase() === "file://";
-  if (isFileUrl) {
-    // Strip-off the protocol, and the initial "/", if there is one
-    path = path[7] === "/" ? path.substr(8) : path.substr(7);
-
-    // insert a colon (":") after the drive letter on Windows
-    if (isWindows && path[1] === "/") {
-      path = path[0] + ":" + path.substr(1);
-    }
-
-    if (keepFileProtocol) {
-      // Return the consistently-formatted "file://" URL
-      path = "file:///" + path;
-    }
-    else {
-      // Convert the "file://" URL to a local filesystem path.
-      // On Windows, it will start with something like "C:/".
-      // On Posix, it will start with "/"
-      isFileUrl = false;
-      path = isWindows ? path : "/" + path;
-    }
-  }
-
-  // Step 4: Normalize Windows paths (unless it's a "file://" URL)
-  if (isWindows && !isFileUrl) {
-    // Replace forward slashes with backslashes
-    path = path.replace(forwardSlashPattern, "\\");
-
-    // Capitalize the drive letter
-    if (path.substr(1, 2) === ":\\") {
-      path = path[0].toUpperCase() + path.substr(1);
-    }
-  }
-
-  return path;
-};
-
-}).call(this,require('_process'))
-
-},{"_process":102,"url":109}],87:[function(require,module,exports){
-/* eslint lines-around-comment: [2, {beforeBlockComment: false}] */
-"use strict";
-
-const yaml = require("js-yaml");
-const { ono } = require("ono");
-
-/**
- * Simple YAML parsing functions, similar to {@link JSON.parse} and {@link JSON.stringify}
- */
-module.exports = {
-  /**
-   * Parses a YAML string and returns the value.
-   *
-   * @param {string} text - The YAML string to be parsed
-   * @param {function} [reviver] - Not currently supported. Provided for consistency with {@link JSON.parse}
-   * @returns {*}
-   */
-  parse (text, reviver) {
-    try {
-      return yaml.safeLoad(text);
-    }
-    catch (e) {
-      if (e instanceof Error) {
-        throw e;
-      }
-      else {
-        // https://github.com/nodeca/js-yaml/issues/153
-        throw ono(e, e.message);
-      }
-    }
-  },
-
-  /**
-   * Converts a JavaScript value to a YAML string.
-   *
-   * @param   {*} value - The value to convert to YAML
-   * @param   {function|array} replacer - Not currently supported. Provided for consistency with {@link JSON.stringify}
-   * @param   {string|number} space - The number of spaces to use for indentation, or a string containing the number of spaces.
-   * @returns {string}
-   */
-  stringify (value, replacer, space) {
-    try {
-      let indent = (typeof space === "string" ? space.length : space) || 2;
-      return yaml.safeDump(value, { indent });
-    }
-    catch (e) {
-      if (e instanceof Error) {
-        throw e;
-      }
-      else {
-        // https://github.com/nodeca/js-yaml/issues/153
-        throw ono(e, e.message);
-      }
-    }
-  }
-};
-
-},{"js-yaml":39,"ono":92}],88:[function(require,module,exports){
+},{"../type":84}],101:[function(require,module,exports){
 (function (global){
 /**
  * lodash (Custom Build) <https://lodash.com/>
@@ -15926,7 +19788,7 @@ module.exports = get;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],89:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 (function (global){
 /**
  * Lodash (Custom Build) <https://lodash.com/>
@@ -17779,3753 +21641,7 @@ module.exports = isEqual;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],90:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const extend_error_1 = require("./extend-error");
-const normalize_1 = require("./normalize");
-const to_json_1 = require("./to-json");
-const constructor = Ono;
-exports.Ono = constructor;
-/**
- * Returns an object containing all properties of the given Error object,
- * which can be used with `JSON.stringify()`.
- */
-Ono.toJSON = function toJSON(error) {
-    return to_json_1.toJSON.call(error);
-};
-/**
- * Creates an `Ono` instance for a specifc error type.
- */
-// tslint:disable-next-line: variable-name
-function Ono(ErrorConstructor, options) {
-    options = normalize_1.normalizeOptions(options);
-    function ono(...args) {
-        let { originalError, props, message } = normalize_1.normalizeArgs(args, options);
-        // Create a new error of the specified type
-        let newError = new ErrorConstructor(message);
-        // Extend the error with the properties of the original error and the `props` object
-        extend_error_1.extendError(newError, originalError, props);
-        return newError;
-    }
-    ono[Symbol.species] = ErrorConstructor;
-    return ono;
-}
-
-},{"./extend-error":91,"./normalize":94,"./to-json":97}],91:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const isomorphic_node_1 = require("./isomorphic.node");
-const stack_1 = require("./stack");
-const to_json_1 = require("./to-json");
-const protectedProps = ["name", "message", "stack"];
-/**
- * Extends the new error with the properties of the original error and the `props` object.
- *
- * @param newError - The error object to extend
- * @param originalError - The original error object, if any
- * @param props - Additional properties to add, if any
- */
-function extendError(newError, originalError, props) {
-    extendStack(newError, originalError);
-    // Copy properties from the original error
-    if (originalError && typeof originalError === "object") {
-        mergeErrors(newError, originalError);
-    }
-    // The default `toJSON` method doesn't output props like `name`, `message`, `stack`, etc.
-    // So replace it with one that outputs every property of the error.
-    newError.toJSON = to_json_1.toJSON;
-    // On Node.js, add support for the `util.inspect()` method
-    if (isomorphic_node_1.addInspectMethod) {
-        isomorphic_node_1.addInspectMethod(newError);
-    }
-    // Finally, copy custom properties that were specified by the user.
-    // These props OVERWRITE any previous props
-    if (props && typeof props === "object") {
-        Object.assign(newError, props);
-    }
-}
-exports.extendError = extendError;
-/**
- * Extend the error stack to include its cause
- */
-function extendStack(newError, originalError) {
-    let stackProp = Object.getOwnPropertyDescriptor(newError, "stack");
-    if (stack_1.isLazyStack(stackProp)) {
-        stack_1.lazyJoinStacks(stackProp, newError, originalError);
-    }
-    else if (stack_1.isWritableStack(stackProp)) {
-        newError.stack = stack_1.joinStacks(newError, originalError);
-    }
-}
-/**
- * Merges properties of the original error with the new error.
- *
- * @param newError - The error object to extend
- * @param originalError - The original error object, if any
- */
-function mergeErrors(newError, originalError) {
-    // Get the original error's keys
-    // NOTE: We specifically exclude properties that we have already set on the new error.
-    // This is _especially_ important for the `stack` property, because this property has
-    // a lazy getter in some environments
-    let keys = to_json_1.getDeepKeys(originalError, protectedProps);
-    // HACK: We have to cast the errors to `any` so we can use symbol indexers.
-    // see https://github.com/Microsoft/TypeScript/issues/1863
-    // tslint:disable: no-any no-unsafe-any
-    let _newError = newError;
-    let _originalError = originalError;
-    for (let key of keys) {
-        if (_newError[key] === undefined) {
-            try {
-                _newError[key] = _originalError[key];
-            }
-            catch (e) {
-                // This property is read-only, so it can't be copied
-            }
-        }
-    }
-}
-
-},{"./isomorphic.node":93,"./stack":96,"./to-json":97}],92:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const singleton_1 = require("./singleton");
-exports.ono = singleton_1.ono;
-var constructor_1 = require("./constructor");
-exports.Ono = constructor_1.Ono;
-// tslint:disable-next-line: no-default-export
-exports.default = singleton_1.ono;
-// CommonJS default export hack
-if (typeof module === "object" && typeof module.exports === "object") {
-    module.exports = Object.assign(module.exports.default, module.exports); // tslint:disable-line: no-unsafe-any
-}
-
-},{"./constructor":90,"./singleton":95}],93:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Ono supports custom formatters for error messages.  In Node.js, it defaults
- * to the `util.format()` function.  In browsers, it defaults to `Array.join()`.
- *
- * The Node.js functionality can be used in a web browser via a polyfill,
- * such as "format-util".
- *
- * @see https://github.com/tmpfs/format-util
- */
-exports.format = false;
-/**
- * The `util.inspect()` functionality only applies to Node.js.
- * We return the constant `false` here so that the Node-specific code gets removed by tree-shaking.
- */
-exports.addInspectMethod = false;
-
-},{}],94:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const isomorphic_node_1 = require("./isomorphic.node");
-/**
- * Normalizes Ono options, accounting for defaults and optional options.
- */
-function normalizeOptions(options) {
-    options = options || {};
-    return {
-        concatMessages: options.concatMessages === undefined ? true : Boolean(options.concatMessages),
-        format: options.format === undefined ? isomorphic_node_1.format
-            : (typeof options.format === "function" ? options.format : false),
-    };
-}
-exports.normalizeOptions = normalizeOptions;
-/**
- * Normalizes the Ono arguments, accounting for defaults, options, and optional arguments.
- */
-function normalizeArgs(args, options) {
-    let originalError;
-    let props;
-    let formatArgs;
-    let message = "";
-    // Determine which arguments were actually specified
-    if (typeof args[0] === "string") {
-        formatArgs = args;
-    }
-    else if (typeof args[1] === "string") {
-        if (args[0] instanceof Error) {
-            originalError = args[0];
-        }
-        else {
-            props = args[0];
-        }
-        formatArgs = args.slice(1);
-    }
-    else {
-        originalError = args[0];
-        props = args[1];
-        formatArgs = args.slice(2);
-    }
-    // If there are any format arguments, then format the error message
-    if (formatArgs.length > 0) {
-        if (options.format) {
-            message = options.format.apply(undefined, formatArgs);
-        }
-        else {
-            message = formatArgs.join(" ");
-        }
-    }
-    if (options.concatMessages && originalError && originalError.message) {
-        // The inner-error's message will be added to the new message
-        message += (message ? " \n" : "") + originalError.message;
-    }
-    return { originalError, props, message };
-}
-exports.normalizeArgs = normalizeArgs;
-
-},{"./isomorphic.node":93}],95:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const constructor_1 = require("./constructor");
-const singleton = ono;
-exports.ono = singleton;
-ono.error = new constructor_1.Ono(Error);
-ono.eval = new constructor_1.Ono(EvalError);
-ono.range = new constructor_1.Ono(RangeError);
-ono.reference = new constructor_1.Ono(ReferenceError);
-ono.syntax = new constructor_1.Ono(SyntaxError);
-ono.type = new constructor_1.Ono(TypeError);
-ono.uri = new constructor_1.Ono(URIError);
-const onoMap = ono;
-/**
- * Creates a new error with the specified message, properties, and/or inner error.
- * If an inner error is provided, then the new error will match its type, if possible.
- */
-function ono(...args) {
-    let originalError = args[0];
-    // Is the first argument an Error-like object?
-    if (typeof originalError === "object" && typeof originalError.name === "string") {
-        // Try to find an Ono singleton method that matches this error type
-        for (let typedOno of Object.values(onoMap)) {
-            if (typeof typedOno === "function" && typedOno.name === "ono") {
-                let species = typedOno[Symbol.species];
-                if (species && species !== Error && (originalError instanceof species || originalError.name === species.name)) {
-                    // Create an error of the same type
-                    return typedOno.apply(undefined, args);
-                }
-            }
-        }
-    }
-    // By default, create a base Error object
-    return ono.error.apply(undefined, args);
-}
-
-},{"./constructor":90}],96:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const newline = /\r?\n/;
-const onoCall = /(^| )ono[ @]/;
-/**
- * Is the property lazily computed?
- */
-function isLazyStack(stackProp) {
-    return Boolean(stackProp &&
-        stackProp.configurable &&
-        typeof stackProp.get === "function");
-}
-exports.isLazyStack = isLazyStack;
-/**
- * Is the stack property writable?
- */
-function isWritableStack(stackProp) {
-    return Boolean(
-    // If there is no stack property, then it's writable, since assigning it will create it
-    !stackProp ||
-        stackProp.writable ||
-        typeof stackProp.set === "function");
-}
-exports.isWritableStack = isWritableStack;
-/**
- * Appends the original `Error.stack` property to the new Error's stack.
- */
-function joinStacks(newError, originalError) {
-    let newStack = popStack(newError.stack);
-    let originalStack = originalError ? originalError.stack : undefined;
-    if (newStack && originalStack) {
-        return newStack + "\n\n" + originalStack;
-    }
-    else {
-        return newStack || originalStack;
-    }
-}
-exports.joinStacks = joinStacks;
-/**
- * Calls `joinStacks` lazily, when the `Error.stack` property is accessed.
- */
-function lazyJoinStacks(lazyStack, newError, originalError) {
-    if (originalError) {
-        Object.defineProperty(newError, "stack", {
-            get: () => {
-                let newStack = lazyStack.get.apply(newError);
-                return joinStacks({ stack: newStack }, originalError);
-            },
-            enumerable: false,
-            configurable: true
-        });
-    }
-    else {
-        lazyPopStack(newError, lazyStack);
-    }
-}
-exports.lazyJoinStacks = lazyJoinStacks;
-/**
- * Removes Ono from the stack, so that the stack starts at the original error location
- */
-function popStack(stack) {
-    if (stack) {
-        let lines = stack.split(newline);
-        // Find the Ono call(s) in the stack, and remove them
-        let onoStart;
-        for (let i = 0; i < lines.length; i++) {
-            let line = lines[i];
-            if (onoCall.test(line)) {
-                if (onoStart === undefined) {
-                    // We found the first Ono call in the stack trace.
-                    // There may be other subsequent Ono calls as well.
-                    onoStart = i;
-                }
-            }
-            else if (onoStart !== undefined) {
-                // We found the first non-Ono call after one or more Ono calls.
-                // So remove the Ono call lines from the stack trace
-                lines.splice(onoStart, i - onoStart);
-                break;
-            }
-        }
-        if (lines.length > 0) {
-            return lines.join("\n");
-        }
-    }
-    // If we get here, then the stack doesn't contain a call to `ono`.
-    // This may be due to minification or some optimization of the JS engine.
-    // So just return the stack as-is.
-    return stack;
-}
-/**
- * Calls `popStack` lazily, when the `Error.stack` property is accessed.
- */
-function lazyPopStack(error, lazyStack) {
-    Object.defineProperty(error, "stack", {
-        get: () => popStack(lazyStack.get.apply(error)),
-        enumerable: false,
-        configurable: true
-    });
-}
-
-},{}],97:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const nonJsonTypes = ["function", "symbol", "undefined"];
-const protectedProps = ["constructor", "prototype", "__proto__"];
-const objectPrototype = Object.getPrototypeOf({});
-/**
- * Custom JSON serializer for Error objects.
- * Returns all built-in error properties, as well as extended properties.
- */
-function toJSON() {
-    // HACK: We have to cast the objects to `any` so we can use symbol indexers.
-    // see https://github.com/Microsoft/TypeScript/issues/1863
-    // tslint:disable: no-any no-unsafe-any
-    let pojo = {};
-    let error = this;
-    for (let key of getDeepKeys(error)) {
-        if (typeof key === "string") {
-            let value = error[key];
-            let type = typeof value;
-            if (!nonJsonTypes.includes(type)) {
-                pojo[key] = value;
-            }
-        }
-    }
-    // tslint:enable: no-any no-unsafe-any
-    return pojo;
-}
-exports.toJSON = toJSON;
-/**
- * Returns own, inherited, enumerable, non-enumerable, string, and symbol keys of `obj`.
- * Does NOT return members of the base Object prototype, or the specified omitted keys.
- */
-function getDeepKeys(obj, omit = []) {
-    let keys = [];
-    // Crawl the prototype chain, finding all the string and symbol keys
-    while (obj && obj !== objectPrototype) {
-        keys = keys.concat(Object.getOwnPropertyNames(obj), Object.getOwnPropertySymbols(obj));
-        obj = Object.getPrototypeOf(obj);
-    }
-    // De-duplicate the list of keys
-    let uniqueKeys = new Set(keys);
-    // Remove any omitted keys
-    for (let key of omit.concat(protectedProps)) {
-        uniqueKeys.delete(key);
-    }
-    return uniqueKeys;
-}
-exports.getDeepKeys = getDeepKeys;
-
-},{}],98:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * JSON Schema for OpenAPI Specification v1.2
- */
-exports.openapiV1 = require("../schemas/v1.2/apiDeclaration.json");
-/**
- * JSON Schema for OpenAPI Specification v2.0
- */
-exports.openapiV2 = require("../schemas/v2.0/schema.json");
-/**
- * JSON Schema for OpenAPI Specification v3.0
- */
-exports.openapiV3 = require("../schemas/v3.0/schema.json");
-/**
- * JSON Schemas for every version of the OpenAPI Specification
- */
-exports.openapi = {
-    v1: exports.openapiV1,
-    v2: exports.openapiV2,
-    v3: exports.openapiV3,
-};
-// Export `openapi` as the default export
-// tslint:disable: no-default-export
-exports.default = exports.openapi;
-// CommonJS default export hack
-if (typeof module === "object" && typeof module.exports === "object") {
-    module.exports = Object.assign(module.exports.default, module.exports); // tslint:disable-line: no-unsafe-any
-}
-
-},{"../schemas/v1.2/apiDeclaration.json":99,"../schemas/v2.0/schema.json":100,"../schemas/v3.0/schema.json":101}],99:[function(require,module,exports){
-module.exports={
-    "id": "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/schemas/v1.2/apiDeclaration.json#",
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "type": "object",
-    "required": [ "swaggerVersion", "basePath", "apis" ],
-    "properties": {
-        "swaggerVersion": { "enum": [ "1.2" ] },
-        "apiVersion": { "type": "string" },
-        "basePath": {
-            "type": "string",
-            "format": "uri",
-            "pattern": "^https?://"
-        },
-        "resourcePath": {
-            "type": "string",
-            "format": "uri",
-            "pattern": "^/"
-        },
-        "apis": {
-            "type": "array",
-            "items": { "$ref": "#/definitions/apiObject" }
-        },
-        "models": {
-            "type": "object",
-            "additionalProperties": {
-                "$ref": "modelsObject.json#"
-            }
-        },
-        "produces": { "$ref": "#/definitions/mimeTypeArray" },
-        "consumes": { "$ref": "#/definitions/mimeTypeArray" },
-        "authorizations": { "$ref": "authorizationObject.json#" }
-    },
-    "additionalProperties": false,
-    "definitions": {
-        "apiObject": {
-            "type": "object",
-            "required": [ "path", "operations" ],
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "format": "uri-template",
-                    "pattern": "^/"
-                },
-                "description": { "type": "string" },
-                "operations": {
-                    "type": "array",
-                    "items": { "$ref": "operationObject.json#" }
-                }
-            },
-            "additionalProperties": false
-        },
-        "mimeTypeArray": {
-            "type": "array",
-            "items": {
-                "type": "string",
-                "format": "mime-type"
-            },
-            "uniqueItems": true
-        }
-    }
-}
-
-},{}],100:[function(require,module,exports){
-module.exports={
-  "title": "A JSON Schema for Swagger 2.0 API.",
-  "id": "http://swagger.io/v2/schema.json#",
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "type": "object",
-  "required": [
-    "swagger",
-    "info",
-    "paths"
-  ],
-  "additionalProperties": false,
-  "patternProperties": {
-    "^x-": {
-      "$ref": "#/definitions/vendorExtension"
-    }
-  },
-  "properties": {
-    "swagger": {
-      "type": "string",
-      "enum": [
-        "2.0"
-      ],
-      "description": "The Swagger version of this document."
-    },
-    "info": {
-      "$ref": "#/definitions/info"
-    },
-    "host": {
-      "type": "string",
-      "pattern": "^[^{}/ :\\\\]+(?::\\d+)?$",
-      "description": "The host (name or ip) of the API. Example: 'swagger.io'"
-    },
-    "basePath": {
-      "type": "string",
-      "pattern": "^/",
-      "description": "The base path to the API. Example: '/api'."
-    },
-    "schemes": {
-      "$ref": "#/definitions/schemesList"
-    },
-    "consumes": {
-      "description": "A list of MIME types accepted by the API.",
-      "allOf": [
-        {
-          "$ref": "#/definitions/mediaTypeList"
-        }
-      ]
-    },
-    "produces": {
-      "description": "A list of MIME types the API can produce.",
-      "allOf": [
-        {
-          "$ref": "#/definitions/mediaTypeList"
-        }
-      ]
-    },
-    "paths": {
-      "$ref": "#/definitions/paths"
-    },
-    "definitions": {
-      "$ref": "#/definitions/definitions"
-    },
-    "parameters": {
-      "$ref": "#/definitions/parameterDefinitions"
-    },
-    "responses": {
-      "$ref": "#/definitions/responseDefinitions"
-    },
-    "security": {
-      "$ref": "#/definitions/security"
-    },
-    "securityDefinitions": {
-      "$ref": "#/definitions/securityDefinitions"
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/tag"
-      },
-      "uniqueItems": true
-    },
-    "externalDocs": {
-      "$ref": "#/definitions/externalDocs"
-    }
-  },
-  "definitions": {
-    "info": {
-      "type": "object",
-      "description": "General information about the API.",
-      "required": [
-        "version",
-        "title"
-      ],
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "title": {
-          "type": "string",
-          "description": "A unique and precise title of the API."
-        },
-        "version": {
-          "type": "string",
-          "description": "A semantic version number of the API."
-        },
-        "description": {
-          "type": "string",
-          "description": "A longer description of the API. Should be different from the title.  GitHub Flavored Markdown is allowed."
-        },
-        "termsOfService": {
-          "type": "string",
-          "description": "The terms of service for the API."
-        },
-        "contact": {
-          "$ref": "#/definitions/contact"
-        },
-        "license": {
-          "$ref": "#/definitions/license"
-        }
-      }
-    },
-    "contact": {
-      "type": "object",
-      "description": "Contact information for the owners of the API.",
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "The identifying name of the contact person/organization."
-        },
-        "url": {
-          "type": "string",
-          "description": "The URL pointing to the contact information.",
-          "format": "uri"
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the contact person/organization.",
-          "format": "email"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "license": {
-      "type": "object",
-      "required": [
-        "name"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "The name of the license type. It's encouraged to use an OSI compatible license."
-        },
-        "url": {
-          "type": "string",
-          "description": "The URL pointing to the license.",
-          "format": "uri"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "paths": {
-      "type": "object",
-      "description": "Relative paths to the individual endpoints. They must be relative to the 'basePath'.",
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        },
-        "^/": {
-          "$ref": "#/definitions/pathItem"
-        }
-      },
-      "additionalProperties": false
-    },
-    "definitions": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/schema"
-      },
-      "description": "One or more JSON objects describing the schemas being consumed and produced by the API."
-    },
-    "parameterDefinitions": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/parameter"
-      },
-      "description": "One or more JSON representations for parameters"
-    },
-    "responseDefinitions": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/response"
-      },
-      "description": "One or more JSON representations for responses"
-    },
-    "externalDocs": {
-      "type": "object",
-      "additionalProperties": false,
-      "description": "information about external documentation",
-      "required": [
-        "url"
-      ],
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string",
-          "format": "uri"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "examples": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "mimeType": {
-      "type": "string",
-      "description": "The MIME type of the HTTP message."
-    },
-    "operation": {
-      "type": "object",
-      "required": [
-        "responses"
-      ],
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uniqueItems": true
-        },
-        "summary": {
-          "type": "string",
-          "description": "A brief summary of the operation."
-        },
-        "description": {
-          "type": "string",
-          "description": "A longer description of the operation, GitHub Flavored Markdown is allowed."
-        },
-        "externalDocs": {
-          "$ref": "#/definitions/externalDocs"
-        },
-        "operationId": {
-          "type": "string",
-          "description": "A unique identifier of the operation."
-        },
-        "produces": {
-          "description": "A list of MIME types the API can produce.",
-          "allOf": [
-            {
-              "$ref": "#/definitions/mediaTypeList"
-            }
-          ]
-        },
-        "consumes": {
-          "description": "A list of MIME types the API can consume.",
-          "allOf": [
-            {
-              "$ref": "#/definitions/mediaTypeList"
-            }
-          ]
-        },
-        "parameters": {
-          "$ref": "#/definitions/parametersList"
-        },
-        "responses": {
-          "$ref": "#/definitions/responses"
-        },
-        "schemes": {
-          "$ref": "#/definitions/schemesList"
-        },
-        "deprecated": {
-          "type": "boolean",
-          "default": false
-        },
-        "security": {
-          "$ref": "#/definitions/security"
-        }
-      }
-    },
-    "pathItem": {
-      "type": "object",
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "$ref": {
-          "type": "string"
-        },
-        "get": {
-          "$ref": "#/definitions/operation"
-        },
-        "put": {
-          "$ref": "#/definitions/operation"
-        },
-        "post": {
-          "$ref": "#/definitions/operation"
-        },
-        "delete": {
-          "$ref": "#/definitions/operation"
-        },
-        "options": {
-          "$ref": "#/definitions/operation"
-        },
-        "head": {
-          "$ref": "#/definitions/operation"
-        },
-        "patch": {
-          "$ref": "#/definitions/operation"
-        },
-        "parameters": {
-          "$ref": "#/definitions/parametersList"
-        }
-      }
-    },
-    "responses": {
-      "type": "object",
-      "description": "Response objects names can either be any valid HTTP status code or 'default'.",
-      "minProperties": 1,
-      "additionalProperties": false,
-      "patternProperties": {
-        "^([0-9]{3})$|^(default)$": {
-          "$ref": "#/definitions/responseValue"
-        },
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "not": {
-        "type": "object",
-        "additionalProperties": false,
-        "patternProperties": {
-          "^x-": {
-            "$ref": "#/definitions/vendorExtension"
-          }
-        }
-      }
-    },
-    "responseValue": {
-      "oneOf": [
-        {
-          "$ref": "#/definitions/response"
-        },
-        {
-          "$ref": "#/definitions/jsonReference"
-        }
-      ]
-    },
-    "response": {
-      "type": "object",
-      "required": [
-        "description"
-      ],
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "schema": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/schema"
-            },
-            {
-              "$ref": "#/definitions/fileSchema"
-            }
-          ]
-        },
-        "headers": {
-          "$ref": "#/definitions/headers"
-        },
-        "examples": {
-          "$ref": "#/definitions/examples"
-        }
-      },
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "headers": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/header"
-      }
-    },
-    "header": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "integer",
-            "boolean",
-            "array"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormat"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "vendorExtension": {
-      "description": "Any property starting with x- is valid.",
-      "additionalProperties": true,
-      "additionalItems": true
-    },
-    "bodyParameter": {
-      "type": "object",
-      "required": [
-        "name",
-        "in",
-        "schema"
-      ],
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "description": {
-          "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the parameter."
-        },
-        "in": {
-          "type": "string",
-          "description": "Determines the location of the parameter.",
-          "enum": [
-            "body"
-          ]
-        },
-        "required": {
-          "type": "boolean",
-          "description": "Determines whether or not this parameter is required or optional.",
-          "default": false
-        },
-        "schema": {
-          "$ref": "#/definitions/schema"
-        }
-      },
-      "additionalProperties": false
-    },
-    "headerParameterSubSchema": {
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "required": {
-          "type": "boolean",
-          "description": "Determines whether or not this parameter is required or optional.",
-          "default": false
-        },
-        "in": {
-          "type": "string",
-          "description": "Determines the location of the parameter.",
-          "enum": [
-            "header"
-          ]
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the parameter."
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean",
-            "integer",
-            "array"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormat"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        }
-      }
-    },
-    "queryParameterSubSchema": {
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "required": {
-          "type": "boolean",
-          "description": "Determines whether or not this parameter is required or optional.",
-          "default": false
-        },
-        "in": {
-          "type": "string",
-          "description": "Determines the location of the parameter.",
-          "enum": [
-            "query"
-          ]
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the parameter."
-        },
-        "allowEmptyValue": {
-          "type": "boolean",
-          "default": false,
-          "description": "allows sending a parameter by name only or with an empty value."
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean",
-            "integer",
-            "array"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormatWithMulti"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        }
-      }
-    },
-    "formDataParameterSubSchema": {
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "required": {
-          "type": "boolean",
-          "description": "Determines whether or not this parameter is required or optional.",
-          "default": false
-        },
-        "in": {
-          "type": "string",
-          "description": "Determines the location of the parameter.",
-          "enum": [
-            "formData"
-          ]
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the parameter."
-        },
-        "allowEmptyValue": {
-          "type": "boolean",
-          "default": false,
-          "description": "allows sending a parameter by name only or with an empty value."
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean",
-            "integer",
-            "array",
-            "file"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormatWithMulti"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        }
-      }
-    },
-    "pathParameterSubSchema": {
-      "additionalProperties": false,
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "required": [
-        "required"
-      ],
-      "properties": {
-        "required": {
-          "type": "boolean",
-          "enum": [
-            true
-          ],
-          "description": "Determines whether or not this parameter is required or optional."
-        },
-        "in": {
-          "type": "string",
-          "description": "Determines the location of the parameter.",
-          "enum": [
-            "path"
-          ]
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the parameter. This could contain examples of use.  GitHub Flavored Markdown is allowed."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the parameter."
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean",
-            "integer",
-            "array"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormat"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        }
-      }
-    },
-    "nonBodyParameter": {
-      "type": "object",
-      "required": [
-        "name",
-        "in",
-        "type"
-      ],
-      "oneOf": [
-        {
-          "$ref": "#/definitions/headerParameterSubSchema"
-        },
-        {
-          "$ref": "#/definitions/formDataParameterSubSchema"
-        },
-        {
-          "$ref": "#/definitions/queryParameterSubSchema"
-        },
-        {
-          "$ref": "#/definitions/pathParameterSubSchema"
-        }
-      ]
-    },
-    "parameter": {
-      "oneOf": [
-        {
-          "$ref": "#/definitions/bodyParameter"
-        },
-        {
-          "$ref": "#/definitions/nonBodyParameter"
-        }
-      ]
-    },
-    "schema": {
-      "type": "object",
-      "description": "A deterministic version of a JSON Schema object.",
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "properties": {
-        "$ref": {
-          "type": "string"
-        },
-        "format": {
-          "type": "string"
-        },
-        "title": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/title"
-        },
-        "description": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/description"
-        },
-        "default": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/default"
-        },
-        "multipleOf": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/multipleOf"
-        },
-        "maximum": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
-        },
-        "minLength": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
-        },
-        "pattern": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/pattern"
-        },
-        "maxItems": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
-        },
-        "minItems": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
-        },
-        "uniqueItems": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/uniqueItems"
-        },
-        "maxProperties": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
-        },
-        "minProperties": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
-        },
-        "required": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/stringArray"
-        },
-        "enum": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
-        },
-        "additionalProperties": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/schema"
-            },
-            {
-              "type": "boolean"
-            }
-          ],
-          "default": {}
-        },
-        "type": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/type"
-        },
-        "items": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/schema"
-            },
-            {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "$ref": "#/definitions/schema"
-              }
-            }
-          ],
-          "default": {}
-        },
-        "allOf": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/definitions/schema"
-          }
-        },
-        "properties": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/schema"
-          },
-          "default": {}
-        },
-        "discriminator": {
-          "type": "string"
-        },
-        "readOnly": {
-          "type": "boolean",
-          "default": false
-        },
-        "xml": {
-          "$ref": "#/definitions/xml"
-        },
-        "externalDocs": {
-          "$ref": "#/definitions/externalDocs"
-        },
-        "example": {}
-      },
-      "additionalProperties": false
-    },
-    "fileSchema": {
-      "type": "object",
-      "description": "A deterministic version of a JSON Schema object.",
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      },
-      "required": [
-        "type"
-      ],
-      "properties": {
-        "format": {
-          "type": "string"
-        },
-        "title": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/title"
-        },
-        "description": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/description"
-        },
-        "default": {
-          "$ref": "http://json-schema.org/draft-04/schema#/properties/default"
-        },
-        "required": {
-          "$ref": "http://json-schema.org/draft-04/schema#/definitions/stringArray"
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "file"
-          ]
-        },
-        "readOnly": {
-          "type": "boolean",
-          "default": false
-        },
-        "externalDocs": {
-          "$ref": "#/definitions/externalDocs"
-        },
-        "example": {}
-      },
-      "additionalProperties": false
-    },
-    "primitivesItems": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "integer",
-            "boolean",
-            "array"
-          ]
-        },
-        "format": {
-          "type": "string"
-        },
-        "items": {
-          "$ref": "#/definitions/primitivesItems"
-        },
-        "collectionFormat": {
-          "$ref": "#/definitions/collectionFormat"
-        },
-        "default": {
-          "$ref": "#/definitions/default"
-        },
-        "maximum": {
-          "$ref": "#/definitions/maximum"
-        },
-        "exclusiveMaximum": {
-          "$ref": "#/definitions/exclusiveMaximum"
-        },
-        "minimum": {
-          "$ref": "#/definitions/minimum"
-        },
-        "exclusiveMinimum": {
-          "$ref": "#/definitions/exclusiveMinimum"
-        },
-        "maxLength": {
-          "$ref": "#/definitions/maxLength"
-        },
-        "minLength": {
-          "$ref": "#/definitions/minLength"
-        },
-        "pattern": {
-          "$ref": "#/definitions/pattern"
-        },
-        "maxItems": {
-          "$ref": "#/definitions/maxItems"
-        },
-        "minItems": {
-          "$ref": "#/definitions/minItems"
-        },
-        "uniqueItems": {
-          "$ref": "#/definitions/uniqueItems"
-        },
-        "enum": {
-          "$ref": "#/definitions/enum"
-        },
-        "multipleOf": {
-          "$ref": "#/definitions/multipleOf"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "security": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/securityRequirement"
-      },
-      "uniqueItems": true
-    },
-    "securityRequirement": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        },
-        "uniqueItems": true
-      }
-    },
-    "xml": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "prefix": {
-          "type": "string"
-        },
-        "attribute": {
-          "type": "boolean",
-          "default": false
-        },
-        "wrapped": {
-          "type": "boolean",
-          "default": false
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "tag": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "name"
-      ],
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "externalDocs": {
-          "$ref": "#/definitions/externalDocs"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "securityDefinitions": {
-      "type": "object",
-      "additionalProperties": {
-        "oneOf": [
-          {
-            "$ref": "#/definitions/basicAuthenticationSecurity"
-          },
-          {
-            "$ref": "#/definitions/apiKeySecurity"
-          },
-          {
-            "$ref": "#/definitions/oauth2ImplicitSecurity"
-          },
-          {
-            "$ref": "#/definitions/oauth2PasswordSecurity"
-          },
-          {
-            "$ref": "#/definitions/oauth2ApplicationSecurity"
-          },
-          {
-            "$ref": "#/definitions/oauth2AccessCodeSecurity"
-          }
-        ]
-      }
-    },
-    "basicAuthenticationSecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "basic"
-          ]
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "apiKeySecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "name",
-        "in"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "apiKey"
-          ]
-        },
-        "name": {
-          "type": "string"
-        },
-        "in": {
-          "type": "string",
-          "enum": [
-            "header",
-            "query"
-          ]
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "oauth2ImplicitSecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "flow",
-        "authorizationUrl"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "oauth2"
-          ]
-        },
-        "flow": {
-          "type": "string",
-          "enum": [
-            "implicit"
-          ]
-        },
-        "scopes": {
-          "$ref": "#/definitions/oauth2Scopes"
-        },
-        "authorizationUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "oauth2PasswordSecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "flow",
-        "tokenUrl"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "oauth2"
-          ]
-        },
-        "flow": {
-          "type": "string",
-          "enum": [
-            "password"
-          ]
-        },
-        "scopes": {
-          "$ref": "#/definitions/oauth2Scopes"
-        },
-        "tokenUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "oauth2ApplicationSecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "flow",
-        "tokenUrl"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "oauth2"
-          ]
-        },
-        "flow": {
-          "type": "string",
-          "enum": [
-            "application"
-          ]
-        },
-        "scopes": {
-          "$ref": "#/definitions/oauth2Scopes"
-        },
-        "tokenUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "oauth2AccessCodeSecurity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "flow",
-        "authorizationUrl",
-        "tokenUrl"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "oauth2"
-          ]
-        },
-        "flow": {
-          "type": "string",
-          "enum": [
-            "accessCode"
-          ]
-        },
-        "scopes": {
-          "$ref": "#/definitions/oauth2Scopes"
-        },
-        "authorizationUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "tokenUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-          "$ref": "#/definitions/vendorExtension"
-        }
-      }
-    },
-    "oauth2Scopes": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "string"
-      }
-    },
-    "mediaTypeList": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/mimeType"
-      },
-      "uniqueItems": true
-    },
-    "parametersList": {
-      "type": "array",
-      "description": "The parameters needed to send a valid API call.",
-      "additionalItems": false,
-      "items": {
-        "oneOf": [
-          {
-            "$ref": "#/definitions/parameter"
-          },
-          {
-            "$ref": "#/definitions/jsonReference"
-          }
-        ]
-      },
-      "uniqueItems": true
-    },
-    "schemesList": {
-      "type": "array",
-      "description": "The transfer protocol of the API.",
-      "items": {
-        "type": "string",
-        "enum": [
-          "http",
-          "https",
-          "ws",
-          "wss"
-        ]
-      },
-      "uniqueItems": true
-    },
-    "collectionFormat": {
-      "type": "string",
-      "enum": [
-        "csv",
-        "ssv",
-        "tsv",
-        "pipes"
-      ],
-      "default": "csv"
-    },
-    "collectionFormatWithMulti": {
-      "type": "string",
-      "enum": [
-        "csv",
-        "ssv",
-        "tsv",
-        "pipes",
-        "multi"
-      ],
-      "default": "csv"
-    },
-    "title": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/title"
-    },
-    "description": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/description"
-    },
-    "default": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/default"
-    },
-    "multipleOf": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/multipleOf"
-    },
-    "maximum": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/maximum"
-    },
-    "exclusiveMaximum": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMaximum"
-    },
-    "minimum": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/minimum"
-    },
-    "exclusiveMinimum": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/exclusiveMinimum"
-    },
-    "maxLength": {
-      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
-    },
-    "minLength": {
-      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
-    },
-    "pattern": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/pattern"
-    },
-    "maxItems": {
-      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveInteger"
-    },
-    "minItems": {
-      "$ref": "http://json-schema.org/draft-04/schema#/definitions/positiveIntegerDefault0"
-    },
-    "uniqueItems": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/uniqueItems"
-    },
-    "enum": {
-      "$ref": "http://json-schema.org/draft-04/schema#/properties/enum"
-    },
-    "jsonReference": {
-      "type": "object",
-      "required": [
-        "$ref"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "$ref": {
-          "type": "string"
-        }
-      }
-    }
-  }
-}
-},{}],101:[function(require,module,exports){
-module.exports={
-  "id": "https://spec.openapis.org/oas/3.0/schema/2019-04-02",
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "description": "Validation schema for OpenAPI Specification 3.0.X.",
-  "type": "object",
-  "required": [
-    "openapi",
-    "info",
-    "paths"
-  ],
-  "properties": {
-    "openapi": {
-      "type": "string",
-      "pattern": "^3\\.0\\.\\d(-.+)?$"
-    },
-    "info": {
-      "$ref": "#/definitions/Info"
-    },
-    "externalDocs": {
-      "$ref": "#/definitions/ExternalDocumentation"
-    },
-    "servers": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Server"
-      }
-    },
-    "security": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/SecurityRequirement"
-      }
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Tag"
-      },
-      "uniqueItems": true
-    },
-    "paths": {
-      "$ref": "#/definitions/Paths"
-    },
-    "components": {
-      "$ref": "#/definitions/Components"
-    }
-  },
-  "patternProperties": {
-    "^x-": {
-    }
-  },
-  "additionalProperties": false,
-  "definitions": {
-    "Reference": {
-      "type": "object",
-      "required": [
-        "$ref"
-      ],
-      "patternProperties": {
-        "^\\$ref$": {
-          "type": "string",
-          "format": "uri-reference"
-        }
-      }
-    },
-    "Info": {
-      "type": "object",
-      "required": [
-        "title",
-        "version"
-      ],
-      "properties": {
-        "title": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "termsOfService": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "contact": {
-          "$ref": "#/definitions/Contact"
-        },
-        "license": {
-          "$ref": "#/definitions/License"
-        },
-        "version": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "Contact": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "email": {
-          "type": "string",
-          "format": "email"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "License": {
-      "type": "object",
-      "required": [
-        "name"
-      ],
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string",
-          "format": "uri-reference"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "Server": {
-      "type": "object",
-      "required": [
-        "url"
-      ],
-      "properties": {
-        "url": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "variables": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/ServerVariable"
-          }
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "ServerVariable": {
-      "type": "object",
-      "required": [
-        "default"
-      ],
-      "properties": {
-        "enum": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "default": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "Components": {
-      "type": "object",
-      "properties": {
-        "schemas": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z0-9\\.\\-_]+$": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/Schema"
-                },
-                {
-                  "$ref": "#/definitions/Reference"
-                }
-              ]
-            }
-          }
-        },
-        "responses": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z0-9\\.\\-_]+$": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/Reference"
-                },
-                {
-                  "$ref": "#/definitions/Response"
-                }
-              ]
-            }
-          }
-        },
-        "parameters": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z0-9\\.\\-_]+$": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/Reference"
-                },
-                {
-                  "$ref": "#/definitions/Parameter"
-                }
-              ]
-            }
-          }
-        },
-        "examples": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z0-9\\.\\-_]+$": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/Reference"
-                },
-                {
-                  "$ref": "#/definitions/Example"
-                }
-              ]
-            }
-          }
-        },
-        "requestBodies": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z0-9\\.\\-_]+$": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/Reference"
-                },
-                {
-                  "$ref": "#/definitions/RequestBody"
-                }
-              ]
-            }
-          }
-        },
-        "headers": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z0-9\\.\\-_]+$": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/Reference"
-                },
-                {
-                  "$ref": "#/definitions/Header"
-                }
-              ]
-            }
-          }
-        },
-        "securitySchemes": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z0-9\\.\\-_]+$": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/Reference"
-                },
-                {
-                  "$ref": "#/definitions/SecurityScheme"
-                }
-              ]
-            }
-          }
-        },
-        "links": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z0-9\\.\\-_]+$": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/Reference"
-                },
-                {
-                  "$ref": "#/definitions/Link"
-                }
-              ]
-            }
-          }
-        },
-        "callbacks": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z0-9\\.\\-_]+$": {
-              "oneOf": [
-                {
-                  "$ref": "#/definitions/Reference"
-                },
-                {
-                  "$ref": "#/definitions/Callback"
-                }
-              ]
-            }
-          }
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "Schema": {
-      "type": "object",
-      "properties": {
-        "title": {
-          "type": "string"
-        },
-        "multipleOf": {
-          "type": "number",
-          "minimum": 0,
-          "exclusiveMinimum": true
-        },
-        "maximum": {
-          "type": "number"
-        },
-        "exclusiveMaximum": {
-          "type": "boolean",
-          "default": false
-        },
-        "minimum": {
-          "type": "number"
-        },
-        "exclusiveMinimum": {
-          "type": "boolean",
-          "default": false
-        },
-        "maxLength": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "minLength": {
-          "type": "integer",
-          "minimum": 0,
-          "default": 0
-        },
-        "pattern": {
-          "type": "string",
-          "format": "regex"
-        },
-        "maxItems": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "minItems": {
-          "type": "integer",
-          "minimum": 0,
-          "default": 0
-        },
-        "uniqueItems": {
-          "type": "boolean",
-          "default": false
-        },
-        "maxProperties": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "minProperties": {
-          "type": "integer",
-          "minimum": 0,
-          "default": 0
-        },
-        "required": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "enum": {
-          "type": "array",
-          "items": {
-          },
-          "minItems": 1,
-          "uniqueItems": false
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "array",
-            "boolean",
-            "integer",
-            "number",
-            "object",
-            "string"
-          ]
-        },
-        "not": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/Schema"
-            },
-            {
-              "$ref": "#/definitions/Reference"
-            }
-          ]
-        },
-        "allOf": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Schema"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          }
-        },
-        "oneOf": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Schema"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          }
-        },
-        "anyOf": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Schema"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          }
-        },
-        "items": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/Schema"
-            },
-            {
-              "$ref": "#/definitions/Reference"
-            }
-          ]
-        },
-        "properties": {
-          "type": "object",
-          "additionalProperties": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Schema"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          }
-        },
-        "additionalProperties": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/Schema"
-            },
-            {
-              "$ref": "#/definitions/Reference"
-            },
-            {
-              "type": "boolean"
-            }
-          ],
-          "default": true
-        },
-        "description": {
-          "type": "string"
-        },
-        "format": {
-          "type": "string"
-        },
-        "default": {
-        },
-        "nullable": {
-          "type": "boolean",
-          "default": false
-        },
-        "discriminator": {
-          "$ref": "#/definitions/Discriminator"
-        },
-        "readOnly": {
-          "type": "boolean",
-          "default": false
-        },
-        "writeOnly": {
-          "type": "boolean",
-          "default": false
-        },
-        "example": {
-        },
-        "externalDocs": {
-          "$ref": "#/definitions/ExternalDocumentation"
-        },
-        "deprecated": {
-          "type": "boolean",
-          "default": false
-        },
-        "xml": {
-          "$ref": "#/definitions/XML"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "Discriminator": {
-      "type": "object",
-      "required": [
-        "propertyName"
-      ],
-      "properties": {
-        "propertyName": {
-          "type": "string"
-        },
-        "mapping": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "XML": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string",
-          "format": "uri"
-        },
-        "prefix": {
-          "type": "string"
-        },
-        "attribute": {
-          "type": "boolean",
-          "default": false
-        },
-        "wrapped": {
-          "type": "boolean",
-          "default": false
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "Response": {
-      "type": "object",
-      "required": [
-        "description"
-      ],
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "headers": {
-          "type": "object",
-          "additionalProperties": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Header"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          }
-        },
-        "content": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/MediaType"
-          }
-        },
-        "links": {
-          "type": "object",
-          "additionalProperties": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Link"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          }
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "MediaType": {
-      "type": "object",
-      "properties": {
-        "schema": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/Schema"
-            },
-            {
-              "$ref": "#/definitions/Reference"
-            }
-          ]
-        },
-        "example": {
-        },
-        "examples": {
-          "type": "object",
-          "additionalProperties": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Example"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          }
-        },
-        "encoding": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/Encoding"
-          }
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "$ref": "#/definitions/ExampleXORExamples"
-        }
-      ]
-    },
-    "Example": {
-      "type": "object",
-      "properties": {
-        "summary": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "value": {
-        },
-        "externalValue": {
-          "type": "string",
-          "format": "uri-reference"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "Header": {
-      "type": "object",
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "required": {
-          "type": "boolean",
-          "default": false
-        },
-        "deprecated": {
-          "type": "boolean",
-          "default": false
-        },
-        "allowEmptyValue": {
-          "type": "boolean",
-          "default": false
-        },
-        "style": {
-          "type": "string",
-          "enum": [
-            "simple"
-          ],
-          "default": "simple"
-        },
-        "explode": {
-          "type": "boolean"
-        },
-        "allowReserved": {
-          "type": "boolean",
-          "default": false
-        },
-        "schema": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/Schema"
-            },
-            {
-              "$ref": "#/definitions/Reference"
-            }
-          ]
-        },
-        "content": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/MediaType"
-          },
-          "minProperties": 1,
-          "maxProperties": 1
-        },
-        "example": {
-        },
-        "examples": {
-          "type": "object",
-          "additionalProperties": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Example"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          }
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "$ref": "#/definitions/ExampleXORExamples"
-        },
-        {
-          "$ref": "#/definitions/SchemaXORContent"
-        }
-      ]
-    },
-    "Paths": {
-      "type": "object",
-      "patternProperties": {
-        "^\\/": {
-          "$ref": "#/definitions/PathItem"
-        },
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "PathItem": {
-      "type": "object",
-      "properties": {
-        "$ref": {
-          "type": "string"
-        },
-        "summary": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "servers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Server"
-          }
-        },
-        "parameters": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Parameter"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          },
-          "uniqueItems": true
-        }
-      },
-      "patternProperties": {
-        "^(get|put|post|delete|options|head|patch|trace)$": {
-          "$ref": "#/definitions/Operation"
-        },
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "Operation": {
-      "type": "object",
-      "required": [
-        "responses"
-      ],
-      "properties": {
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "summary": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "externalDocs": {
-          "$ref": "#/definitions/ExternalDocumentation"
-        },
-        "operationId": {
-          "type": "string"
-        },
-        "parameters": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Parameter"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          },
-          "uniqueItems": true
-        },
-        "requestBody": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/RequestBody"
-            },
-            {
-              "$ref": "#/definitions/Reference"
-            }
-          ]
-        },
-        "responses": {
-          "$ref": "#/definitions/Responses"
-        },
-        "callbacks": {
-          "type": "object",
-          "additionalProperties": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Callback"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          }
-        },
-        "deprecated": {
-          "type": "boolean",
-          "default": false
-        },
-        "security": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/SecurityRequirement"
-          }
-        },
-        "servers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Server"
-          }
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "Responses": {
-      "type": "object",
-      "properties": {
-        "default": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/Response"
-            },
-            {
-              "$ref": "#/definitions/Reference"
-            }
-          ]
-        }
-      },
-      "patternProperties": {
-        "^[1-5](?:\\d{2}|XX)$": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/Response"
-            },
-            {
-              "$ref": "#/definitions/Reference"
-            }
-          ]
-        },
-        "^x-": {
-        }
-      },
-      "minProperties": 1,
-      "additionalProperties": false
-    },
-    "SecurityRequirement": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
-      }
-    },
-    "Tag": {
-      "type": "object",
-      "required": [
-        "name"
-      ],
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "externalDocs": {
-          "$ref": "#/definitions/ExternalDocumentation"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "ExternalDocumentation": {
-      "type": "object",
-      "required": [
-        "url"
-      ],
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string",
-          "format": "uri-reference"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "ExampleXORExamples": {
-      "description": "Example and examples are mutually exclusive",
-      "not": {
-        "required": [
-          "example",
-          "examples"
-        ]
-      }
-    },
-    "SchemaXORContent": {
-      "description": "Schema and content are mutually exclusive, at least one is required",
-      "not": {
-        "required": [
-          "schema",
-          "content"
-        ]
-      },
-      "oneOf": [
-        {
-          "required": [
-            "schema"
-          ]
-        },
-        {
-          "required": [
-            "content"
-          ],
-          "description": "Some properties are not allowed if content is present",
-          "allOf": [
-            {
-              "not": {
-                "required": [
-                  "style"
-                ]
-              }
-            },
-            {
-              "not": {
-                "required": [
-                  "explode"
-                ]
-              }
-            },
-            {
-              "not": {
-                "required": [
-                  "allowReserved"
-                ]
-              }
-            },
-            {
-              "not": {
-                "required": [
-                  "example"
-                ]
-              }
-            },
-            {
-              "not": {
-                "required": [
-                  "examples"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    "Parameter": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "in": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "required": {
-          "type": "boolean",
-          "default": false
-        },
-        "deprecated": {
-          "type": "boolean",
-          "default": false
-        },
-        "allowEmptyValue": {
-          "type": "boolean",
-          "default": false
-        },
-        "style": {
-          "type": "string"
-        },
-        "explode": {
-          "type": "boolean"
-        },
-        "allowReserved": {
-          "type": "boolean",
-          "default": false
-        },
-        "schema": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/Schema"
-            },
-            {
-              "$ref": "#/definitions/Reference"
-            }
-          ]
-        },
-        "content": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/MediaType"
-          },
-          "minProperties": 1,
-          "maxProperties": 1
-        },
-        "example": {
-        },
-        "examples": {
-          "type": "object",
-          "additionalProperties": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/Example"
-              },
-              {
-                "$ref": "#/definitions/Reference"
-              }
-            ]
-          }
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "name",
-        "in"
-      ],
-      "allOf": [
-        {
-          "$ref": "#/definitions/ExampleXORExamples"
-        },
-        {
-          "$ref": "#/definitions/SchemaXORContent"
-        },
-        {
-          "$ref": "#/definitions/ParameterLocation"
-        }
-      ]
-    },
-    "ParameterLocation": {
-      "description": "Parameter location",
-      "oneOf": [
-        {
-          "description": "Parameter in path",
-          "required": [
-            "required"
-          ],
-          "properties": {
-            "in": {
-              "enum": [
-                "path"
-              ]
-            },
-            "style": {
-              "enum": [
-                "matrix",
-                "label",
-                "simple"
-              ],
-              "default": "simple"
-            },
-            "required": {
-              "enum": [
-                true
-              ]
-            }
-          }
-        },
-        {
-          "description": "Parameter in query",
-          "properties": {
-            "in": {
-              "enum": [
-                "query"
-              ]
-            },
-            "style": {
-              "enum": [
-                "form",
-                "spaceDelimited",
-                "pipeDelimited",
-                "deepObject"
-              ],
-              "default": "form"
-            }
-          }
-        },
-        {
-          "description": "Parameter in header",
-          "properties": {
-            "in": {
-              "enum": [
-                "header"
-              ]
-            },
-            "style": {
-              "enum": [
-                "simple"
-              ],
-              "default": "simple"
-            }
-          }
-        },
-        {
-          "description": "Parameter in cookie",
-          "properties": {
-            "in": {
-              "enum": [
-                "cookie"
-              ]
-            },
-            "style": {
-              "enum": [
-                "form"
-              ],
-              "default": "form"
-            }
-          }
-        }
-      ]
-    },
-    "RequestBody": {
-      "type": "object",
-      "required": [
-        "content"
-      ],
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "content": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/MediaType"
-          }
-        },
-        "required": {
-          "type": "boolean",
-          "default": false
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "SecurityScheme": {
-      "oneOf": [
-        {
-          "$ref": "#/definitions/APIKeySecurityScheme"
-        },
-        {
-          "$ref": "#/definitions/HTTPSecurityScheme"
-        },
-        {
-          "$ref": "#/definitions/OAuth2SecurityScheme"
-        },
-        {
-          "$ref": "#/definitions/OpenIdConnectSecurityScheme"
-        }
-      ]
-    },
-    "APIKeySecurityScheme": {
-      "type": "object",
-      "required": [
-        "type",
-        "name",
-        "in"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "apiKey"
-          ]
-        },
-        "name": {
-          "type": "string"
-        },
-        "in": {
-          "type": "string",
-          "enum": [
-            "header",
-            "query",
-            "cookie"
-          ]
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "HTTPSecurityScheme": {
-      "type": "object",
-      "required": [
-        "scheme",
-        "type"
-      ],
-      "properties": {
-        "scheme": {
-          "type": "string"
-        },
-        "bearerFormat": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "http"
-          ]
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "description": "Bearer",
-          "properties": {
-            "scheme": {
-              "enum": [
-                "bearer"
-              ]
-            }
-          }
-        },
-        {
-          "description": "Non Bearer",
-          "not": {
-            "required": [
-              "bearerFormat"
-            ]
-          },
-          "properties": {
-            "scheme": {
-              "not": {
-                "enum": [
-                  "bearer"
-                ]
-              }
-            }
-          }
-        }
-      ]
-    },
-    "OAuth2SecurityScheme": {
-      "type": "object",
-      "required": [
-        "type",
-        "flows"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "oauth2"
-          ]
-        },
-        "flows": {
-          "$ref": "#/definitions/OAuthFlows"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "OpenIdConnectSecurityScheme": {
-      "type": "object",
-      "required": [
-        "type",
-        "openIdConnectUrl"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "openIdConnect"
-          ]
-        },
-        "openIdConnectUrl": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "description": {
-          "type": "string"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "OAuthFlows": {
-      "type": "object",
-      "properties": {
-        "implicit": {
-          "$ref": "#/definitions/ImplicitOAuthFlow"
-        },
-        "password": {
-          "$ref": "#/definitions/PasswordOAuthFlow"
-        },
-        "clientCredentials": {
-          "$ref": "#/definitions/ClientCredentialsFlow"
-        },
-        "authorizationCode": {
-          "$ref": "#/definitions/AuthorizationCodeOAuthFlow"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "ImplicitOAuthFlow": {
-      "type": "object",
-      "required": [
-        "authorizationUrl",
-        "scopes"
-      ],
-      "properties": {
-        "authorizationUrl": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "refreshUrl": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "scopes": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "PasswordOAuthFlow": {
-      "type": "object",
-      "required": [
-        "tokenUrl"
-      ],
-      "properties": {
-        "tokenUrl": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "refreshUrl": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "scopes": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "ClientCredentialsFlow": {
-      "type": "object",
-      "required": [
-        "tokenUrl"
-      ],
-      "properties": {
-        "tokenUrl": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "refreshUrl": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "scopes": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "AuthorizationCodeOAuthFlow": {
-      "type": "object",
-      "required": [
-        "authorizationUrl",
-        "tokenUrl"
-      ],
-      "properties": {
-        "authorizationUrl": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "tokenUrl": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "refreshUrl": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "scopes": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false
-    },
-    "Link": {
-      "type": "object",
-      "properties": {
-        "operationId": {
-          "type": "string"
-        },
-        "operationRef": {
-          "type": "string",
-          "format": "uri-reference"
-        },
-        "parameters": {
-          "type": "object",
-          "additionalProperties": {
-          }
-        },
-        "requestBody": {
-        },
-        "description": {
-          "type": "string"
-        },
-        "server": {
-          "$ref": "#/definitions/Server"
-        }
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      },
-      "additionalProperties": false,
-      "not": {
-        "description": "Operation Id and Operation Ref are mutually exclusive",
-        "required": [
-          "operationId",
-          "operationRef"
-        ]
-      }
-    },
-    "Callback": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/PathItem"
-      },
-      "patternProperties": {
-        "^x-": {
-        }
-      }
-    },
-    "Encoding": {
-      "type": "object",
-      "properties": {
-        "contentType": {
-          "type": "string"
-        },
-        "headers": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/Header"
-          }
-        },
-        "style": {
-          "type": "string",
-          "enum": [
-            "form",
-            "spaceDelimited",
-            "pipeDelimited",
-            "deepObject"
-          ]
-        },
-        "explode": {
-          "type": "boolean"
-        },
-        "allowReserved": {
-          "type": "boolean",
-          "default": false
-        }
-      },
-      "additionalProperties": false
-    }
-  }
-}
-},{}],102:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -21711,7 +21827,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],103:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21797,7 +21913,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],104:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21884,13 +22000,77 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],105:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":103,"./encode":104}],106:[function(require,module,exports){
+},{"./decode":104,"./encode":105}],107:[function(require,module,exports){
+/* eslint-disable node/no-deprecated-api */
+var buffer = require('buffer')
+var Buffer = buffer.Buffer
+
+// alternative to using Object.keys for old browsers
+function copyProps (src, dst) {
+  for (var key in src) {
+    dst[key] = src[key]
+  }
+}
+if (Buffer.from && Buffer.alloc && Buffer.allocUnsafe && Buffer.allocUnsafeSlow) {
+  module.exports = buffer
+} else {
+  // Copy properties from require('buffer')
+  copyProps(buffer, exports)
+  exports.Buffer = SafeBuffer
+}
+
+function SafeBuffer (arg, encodingOrOffset, length) {
+  return Buffer(arg, encodingOrOffset, length)
+}
+
+// Copy static methods from Buffer
+copyProps(Buffer, SafeBuffer)
+
+SafeBuffer.from = function (arg, encodingOrOffset, length) {
+  if (typeof arg === 'number') {
+    throw new TypeError('Argument must not be a number')
+  }
+  return Buffer(arg, encodingOrOffset, length)
+}
+
+SafeBuffer.alloc = function (size, fill, encoding) {
+  if (typeof size !== 'number') {
+    throw new TypeError('Argument must be a number')
+  }
+  var buf = Buffer(size)
+  if (fill !== undefined) {
+    if (typeof encoding === 'string') {
+      buf.fill(fill, encoding)
+    } else {
+      buf.fill(fill)
+    }
+  } else {
+    buf.fill(0)
+  }
+  return buf
+}
+
+SafeBuffer.allocUnsafe = function (size) {
+  if (typeof size !== 'number') {
+    throw new TypeError('Argument must be a number')
+  }
+  return Buffer(size)
+}
+
+SafeBuffer.allocUnsafeSlow = function (size) {
+  if (typeof size !== 'number') {
+    throw new TypeError('Argument must be a number')
+  }
+  return buffer.SlowBuffer(size)
+}
+
+},{"buffer":40}],108:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22187,78 +22367,7 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"safe-buffer":107}],107:[function(require,module,exports){
-/* eslint-disable node/no-deprecated-api */
-var buffer = require('buffer')
-var Buffer = buffer.Buffer
-
-// alternative to using Object.keys for old browsers
-function copyProps (src, dst) {
-  for (var key in src) {
-    dst[key] = src[key]
-  }
-}
-if (Buffer.from && Buffer.alloc && Buffer.allocUnsafe && Buffer.allocUnsafeSlow) {
-  module.exports = buffer
-} else {
-  // Copy properties from require('buffer')
-  copyProps(buffer, exports)
-  exports.Buffer = SafeBuffer
-}
-
-function SafeBuffer (arg, encodingOrOffset, length) {
-  return Buffer(arg, encodingOrOffset, length)
-}
-
-// Copy static methods from Buffer
-copyProps(Buffer, SafeBuffer)
-
-SafeBuffer.from = function (arg, encodingOrOffset, length) {
-  if (typeof arg === 'number') {
-    throw new TypeError('Argument must not be a number')
-  }
-  return Buffer(arg, encodingOrOffset, length)
-}
-
-SafeBuffer.alloc = function (size, fill, encoding) {
-  if (typeof size !== 'number') {
-    throw new TypeError('Argument must be a number')
-  }
-  var buf = Buffer(size)
-  if (fill !== undefined) {
-    if (typeof encoding === 'string') {
-      buf.fill(fill, encoding)
-    } else {
-      buf.fill(fill)
-    }
-  } else {
-    buf.fill(0)
-  }
-  return buf
-}
-
-SafeBuffer.allocUnsafe = function (size) {
-  if (typeof size !== 'number') {
-    throw new TypeError('Argument must be a number')
-  }
-  return Buffer(size)
-}
-
-SafeBuffer.allocUnsafeSlow = function (size) {
-  if (typeof size !== 'number') {
-    throw new TypeError('Argument must be a number')
-  }
-  return buffer.SlowBuffer(size)
-}
-
-},{"buffer":8}],108:[function(require,module,exports){
-"use strict";
-
-module.exports = [
-  "get", "put", "post", "delete", "options", "head", "patch"
-];
-
-},{}],109:[function(require,module,exports){
+},{"safe-buffer":107}],109:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22992,7 +23101,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":110,"punycode":10,"querystring":105}],110:[function(require,module,exports){
+},{"./util":110,"punycode":42,"querystring":106}],110:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -27598,7 +27707,7 @@ module.exports = Report;
 
 }).call(this,require('_process'))
 
-},{"./Errors":192,"./Utils":200,"_process":102,"lodash.get":88}],197:[function(require,module,exports){
+},{"./Errors":192,"./Utils":200,"_process":103,"lodash.get":101}],197:[function(require,module,exports){
 "use strict";
 
 var isequal             = require("lodash.isequal");
@@ -27788,7 +27897,7 @@ exports.getSchemaByUri = function (report, uri, root) {
 
 exports.getRemotePath = getRemotePath;
 
-},{"./Report":196,"./SchemaCompilation":198,"./SchemaValidation":199,"./Utils":200,"lodash.isequal":89}],198:[function(require,module,exports){
+},{"./Report":196,"./SchemaCompilation":198,"./SchemaValidation":199,"./Utils":200,"lodash.isequal":102}],198:[function(require,module,exports){
 "use strict";
 
 var Report      = require("./Report");
@@ -29400,7 +29509,7 @@ module.exports = ZSchema;
 
 }).call(this,require('_process'))
 
-},{"./FormatValidators":193,"./JsonValidation":194,"./Polyfills":195,"./Report":196,"./SchemaCache":197,"./SchemaCompilation":198,"./SchemaValidation":199,"./Utils":200,"./schemas/hyper-schema.json":202,"./schemas/schema.json":203,"_process":102,"lodash.get":88}],202:[function(require,module,exports){
+},{"./FormatValidators":193,"./JsonValidation":194,"./Polyfills":195,"./Report":196,"./SchemaCache":197,"./SchemaCompilation":198,"./SchemaValidation":199,"./Utils":200,"./schemas/hyper-schema.json":202,"./schemas/schema.json":203,"_process":103,"lodash.get":101}],202:[function(require,module,exports){
 module.exports={
     "$schema": "http://json-schema.org/draft-04/hyper-schema#",
     "id": "http://json-schema.org/draft-04/hyper-schema#",
@@ -30278,7 +30387,7 @@ $(() => {
 const form = require("./form");
 const editors = require("./editors");
 const analytics = require("./analytics");
-const { ono } = require("ono");
+const { ono } = require("@jsdevtools/ono");
 const SwaggerParser = require("../../../");
 
 let swaggerParser = null;
@@ -30343,7 +30452,7 @@ function parseSwagger () {
   }
 }
 
-},{"../../../":1,"./analytics":204,"./editors":206,"./form":207,"ono":92}],210:[function(require,module,exports){
+},{"../../../":1,"./analytics":204,"./editors":206,"./form":207,"@jsdevtools/ono":32}],210:[function(require,module,exports){
 "use strict";
 
 const qs = require("querystring");
@@ -30429,7 +30538,7 @@ function setBookmarkURL () {
   form.bookmark.attr("href", bookmark);
 }
 
-},{"./form":207,"querystring":105}],211:[function(require,module,exports){
+},{"./form":207,"querystring":106}],211:[function(require,module,exports){
 "use strict";
 
 const form = require("./form");
