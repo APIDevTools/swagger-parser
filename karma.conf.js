@@ -3,34 +3,25 @@
 // https://jstools.dev/karma-config/
 
 "use strict";
+
 const { karmaConfig } = require("@jsdevtools/karma-config");
-let exclude = [];
-
-exclude.push(
-  // Exclude these tests because some of the APIs are HUGE and cause timeouts.
-  // We still test them in Node though.
-  "test/specs/real-world/*"
-);
-
-if (process.env.WINDOWS && process.env.CI) {
-  // We're running in a Windows CI/CD environment, so Karma-Config will use SauceLabs.
-  // The following tests tend to fail on SauceLabs, probably due to zero-byte files
-  // and special characters in the paths. So, exclude them.
-  exclude.push(
-    "test/specs/invalid/*",
-    "test/specs/unknown/*",
-    "test/specs/validate-schema/*",
-    "test/specs/real-world/*",
-  );
-}
+const { host } = require("@jsdevtools/host-environment");
 
 module.exports = karmaConfig({
   sourceDir: "lib",
   fixtures: "test/fixtures/**/*.js",
   browsers: {
-    ie: true,
+    chrome: !host.os.windows,
+    firefox: host.os.linux,
+    safari: host.os.linux,    // SauceLabs
+    edge: host.os.linux,      // SauceLabs
+    ie: host.os.windows,
   },
   config: {
-    exclude,
+    exclude: [
+      // Exclude these tests because some of the APIs are HUGE and cause timeouts.
+      // We still test them in Node though.
+      "test/specs/real-world/*",
+    ]
   }
 });
