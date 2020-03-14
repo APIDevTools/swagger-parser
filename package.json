@@ -35,16 +35,17 @@
     "lib"
   ],
   "scripts": {
+    "clean": "shx rm -rf .nyc_output coverage",
     "lint": "eslint lib test online/src/js",
     "build": "npm run build:website && npm run build:sass",
     "build:website": "simplifyify online/src/js/index.js --outfile online/js/bundle.js --bundle --debug --minify",
     "build:sass": "node-sass --source-map true --output-style compressed online/src/scss/style.scss online/css/style.min.css",
-    "test": "npm run test:node && npm run test:browser && npm run test:typescript && npm run lint",
+    "test": "npm run test:node && npm run test:typescript && npm run test:browser && npm run lint",
     "test:node": "mocha",
     "test:browser": "karma start --single-run",
     "test:typescript": "tsc --noEmit --strict --lib esnext test/specs/typescript-definition.spec.ts",
     "coverage": "npm run coverage:node && npm run coverage:browser",
-    "coverage:node": "nyc --reporter=text --reporter=lcov --report-dir coverage/node node_modules/mocha/bin/mocha",
+    "coverage:node": "nyc node_modules/mocha/bin/mocha",
     "coverage:browser": "npm run test:browser -- --coverage",
     "upgrade": "npm-check -u && npm audit fix",
     "bump": "bump --tag --push --all",
@@ -66,6 +67,7 @@
     "node-sass": "^4.12.0",
     "npm-check": "^5.9.0",
     "nyc": "^15.0.0",
+    "shx": "^0.3.2",
     "simplifyify": "^8.0.0",
     "typescript": "^3.7.4"
   },
