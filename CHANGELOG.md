@@ -1,9 +1,12 @@
-# Change Log
+Change Log
+====================================================================================================
 All notable changes will be documented in this file.
 Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 
 
-## [v8.0.0](https://github.com/APIDevTools/swagger-parser/tree/v8.0.0) (2019-06-22)
+
+[v8.0.0](https://github.com/APIDevTools/swagger-parser/tree/v8.0.0) (2019-06-22)
+----------------------------------------------------------------------------------------------------
 
 #### Potentially Breaking Changes
 
@@ -12,7 +15,9 @@ Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v7.0.1...v8.0.0)
 
 
-## [v7.0.0](https://github.com/APIDevTools/swagger-parser/tree/v7.0.0) (2019-06-12)
+
+[v7.0.0](https://github.com/APIDevTools/swagger-parser/tree/v7.0.0) (2019-06-12)
+----------------------------------------------------------------------------------------------------
 
 #### Breaking Changes
 
@@ -29,7 +34,9 @@ Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v6.0.5...v7.0.0)
 
 
-## [v6.0.0](https://github.com/APIDevTools/swagger-parser/tree/v6.0.0) (2018-10-05)
+
+[v6.0.0](https://github.com/APIDevTools/swagger-parser/tree/v6.0.0) (2018-10-05)
+----------------------------------------------------------------------------------------------------
 
 - Dropped support for [Bower](https://www.npmjs.com/package/bower), since it has been deprecated
 
@@ -38,21 +45,27 @@ Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v5.0.0...v6.0.0)
 
 
-## [v5.0.0](https://github.com/APIDevTools/swagger-parser/tree/v5.0.0) (2018-05-25)
+
+[v5.0.0](https://github.com/APIDevTools/swagger-parser/tree/v5.0.0) (2018-05-25)
+----------------------------------------------------------------------------------------------------
 
 - After [months](https://github.com/APIDevTools/swagger-parser/issues/62) and [months](https://github.com/APIDevTools/swagger-parser/issues/72) of delays, initial support for OpenAPI 3.0 is finally here!  A big "Thank You!" to [Leo Long](https://github.com/yujunlong2000) for doing the work and submitting [PR #88](https://github.com/APIDevTools/swagger-parser/pull/88).
 
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v4.1.0...v5.0.0)
 
 
-## [v4.1.0](https://github.com/APIDevTools/swagger-parser/tree/v4.1.0) (2018-04-11)
+
+[v4.1.0](https://github.com/APIDevTools/swagger-parser/tree/v4.1.0) (2018-04-11)
+----------------------------------------------------------------------------------------------------
 
 - [@marcelstoer](https://github.com/marcelstoer) submitted [PR #83](https://github.com/APIDevTools/swagger-parser/pull/83) and [PR #84](https://github.com/APIDevTools/swagger-parser/pull/84), both of which improve the [`validate()` method](https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#validateapi-options-callback).  It will now detect when a JSON Schema in your API definition has `required` properties that don't exist.
 
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v4.0.0...v4.1.0)
 
 
-## [v4.0.0](https://github.com/APIDevTools/swagger-parser/tree/v4.0.0) (2017-10-19)
+
+[v4.0.0](https://github.com/APIDevTools/swagger-parser/tree/v4.0.0) (2017-10-19)
+----------------------------------------------------------------------------------------------------
 
 #### Breaking Changes
 
@@ -67,7 +80,9 @@ Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v4.0.0-beta.2...v4.0.0)
 
 
-## [v4.0.0-beta.2](https://github.com/APIDevTools/swagger-parser/tree/v4.0.0-beta.2) (2016-04-25)
+
+[v4.0.0-beta.2](https://github.com/APIDevTools/swagger-parser/tree/v4.0.0-beta.2) (2016-04-25)
+----------------------------------------------------------------------------------------------------
 
 #### Just one small fix
 Fixed [issue #13](https://github.com/APIDevTools/json-schema-ref-parser/issues/13).  You can now pass a URL _and_ an object to any method.
@@ -80,7 +95,9 @@ SwaggerParser.validate("http://example.com/my-schema.json", mySchemaObject, {})
 
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v4.4.0-beta.1...v4.0.0-beta.2)
 
-## [v4.0.0-beta.1](https://github.com/APIDevTools/swagger-parser/tree/v4.0.0-beta.1) (2016-04-10)
+
+[v4.0.0-beta.1](https://github.com/APIDevTools/swagger-parser/tree/v4.0.0-beta.1) (2016-04-10)
+----------------------------------------------------------------------------------------------------
 
 #### Plug-ins !!!
 That's the major new feature in this version. Originally requested in [PR #8](https://github.com/APIDevTools/json-schema-ref-parser/pull/8), and refined a few times over the past few months, the plug-in API is now finalized and ready to use. You can now define your own [resolvers](https://github.com/APIDevTools/json-schema-ref-parser/blob/v3.0.0/docs/plugins/resolvers.md) and [parsers](https://github.com/APIDevTools/json-schema-ref-parser/blob/v3.0.0/docs/plugins/parsers.md).
@@ -98,21 +115,27 @@ Lots of little bug fixes, and a couple major bug fixes:
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v3.3.0...v4.0.0-beta.1)
 
 
-## [v3.3.0](https://github.com/APIDevTools/swagger-parser/tree/v3.3.0) (2015-10-02)
+
+[v3.3.0](https://github.com/APIDevTools/swagger-parser/tree/v3.3.0) (2015-10-02)
+----------------------------------------------------------------------------------------------------
 
 Updated to the latest version of [the Official Swagger 2.0 Schema](https://www.npmjs.com/package/swagger-schema-official).  The schema [hadn't been updated for six months](https://github.com/OAI/OpenAPI-Specification/issues/335), so Swagger Parser was missing [several recent changes](https://github.com/OAI/OpenAPI-Specification/commits/master/schemas/v2.0/schema.json).
 
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v3.2.0...v3.3.0)
 
 
-## [v3.2.0](https://github.com/APIDevTools/swagger-parser/tree/v3.2.0) (2015-10-01)
+
+[v3.2.0](https://github.com/APIDevTools/swagger-parser/tree/v3.2.0) (2015-10-01)
+----------------------------------------------------------------------------------------------------
 
 Swagger Parser now uses [call-me-maybe](https://www.npmjs.com/package/call-me-maybe) to support [promises or callbacks](https://github.com/APIDevTools/swagger-parser/tree/master/docs#callbacks-vs-promises).
 
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v3.1.0...v3.2.0)
 
 
-## [v3.1.0](https://github.com/APIDevTools/swagger-parser/tree/v3.1.0) (2015-09-28)
+
+[v3.1.0](https://github.com/APIDevTools/swagger-parser/tree/v3.1.0) (2015-09-28)
+----------------------------------------------------------------------------------------------------
 
 Fixed several bugs with circular references, particularly with the [`validate()`](https://github.com/APIDevTools/swagger-parser/blob/master/docs/swagger-parser.md#validateapi-options-callback) method.
 
@@ -121,7 +144,9 @@ Added a new [`$refs.circular` option](https://github.com/APIDevTools/swagger-par
 [Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v3.0.0...v3.1.0)
 
 
-## [v3.0.0](https://github.com/APIDevTools/swagger-parser/tree/v3.0.0) (2015-09-25)
+
+[v3.0.0](https://github.com/APIDevTools/swagger-parser/tree/v3.0.0) (2015-09-25)
+----------------------------------------------------------------------------------------------------
 
 This is a **complete rewrite** of Swagger Parser.  Major changes include:
 
