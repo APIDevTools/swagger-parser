@@ -45,6 +45,13 @@ function getKnownApiErrors () {
       whatToDo: "retry",
     },
 
+    // The Amazon App Mesh API definition has a misplaced "tags" property
+    {
+      api: "amazonaws.com:appmesh",
+      error: "Additional properties not allowed: tags",
+      whatToDo: "ignore",
+    },
+
     // Apigee's API definitions contain arrays without "items" schemas
     {
       api: "apigee.net",
