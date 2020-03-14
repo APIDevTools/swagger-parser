@@ -1,0 +1,44 @@
+{
+  "name": "swagger-parser",
+  "version": "X.X.X",
+  "description": "Swagger 2.0 and OpenAPI 3.0 parser and validator for Node and browsers",
+  "keywords": [
+    "swagger",
+    "openapi",
+    "open-api",
+    "json",
+    "yaml",
+    "parse",
+    "parser",
+    "validate",
+    "validator",
+    "validation",
+    "spec",
+    "specification",
+    "schema",
+    "reference",
+    "dereference"
+  ],
+  "author": {
+    "name": "James Messinger",
+    "url": "https://jamesmessinger.com"
+  },
+  "homepage": "https://apitools.dev/swagger-parser/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/APIDevTools/swagger-parser.git"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "typings": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "X.X.X"
+  }
+}
