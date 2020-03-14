@@ -1,7 +1,7 @@
 Swagger 2.0 and OpenAPI 3.0 parser/validator
 ============================
 
-[![Build Status](https://api.travis-ci.org/APIDevTools/swagger-parser.svg?branch=master)](https://travis-ci.org/APIDevTools/swagger-parser)
+[![Build Status](https://github.com/APIDevTools/swagger-parser/workflows/CI-CD/badge.svg?branch=master)](https://github.com/APIDevTools/swagger-parser/blob/master/.github/workflows/CI-CD.yaml)
 [![Coverage Status](https://coveralls.io/repos/github/APIDevTools/swagger-parser/badge.svg?branch=master)](https://coveralls.io/github/APIDevTools/swagger-parser)
 [![Tested on APIs.guru](https://api.apis.guru/badges/tested_on.svg)](https://apis.guru/browse-apis/)
 
