@@ -3,7 +3,7 @@
 const form = require("./form");
 const editors = require("./editors");
 const analytics = require("./analytics");
-const { ono } = require("ono");
+const { ono } = require("@jsdevtools/ono");
 const SwaggerParser = require("../../../");
 
 let swaggerParser = null;

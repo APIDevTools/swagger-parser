@@ -1,2 +1,2 @@
-import * as SwaggerParser from "@apidevtools/json-schema-ref-parser";
+import * as SwaggerParser from "@apidevtools/swagger-parser";
 export = SwaggerParser;

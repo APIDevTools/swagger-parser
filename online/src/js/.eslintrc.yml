@@ -3,7 +3,7 @@
 # https://jstools.dev/eslint-config-modular/
 
 extends:
-  - modular/node
+  - "@jsdevtools/modular/node"
 
 env:
   jquery: true

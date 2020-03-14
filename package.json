@@ -72,12 +72,12 @@
     "typescript": "^3.7.4"
   },
   "dependencies": {
-    "call-me-maybe": "^1.0.1",
     "@apidevtools/json-schema-ref-parser": "^8.0.0",
-    "@jsdevtools/ono": "^7.1.0",
-    "@apidevtools/openapi-schemas": "^2.0.0",
-    "openapi-types": "^1.3.5",
+    "@apidevtools/openapi-schemas": "^2.0.2",
     "@apidevtools/swagger-methods": "^3.0.0",
+    "@jsdevtools/ono": "^7.1.0",
+    "call-me-maybe": "^1.0.1",
+    "openapi-types": "^1.3.5",
     "z-schema": "^4.2.2"
   }
 }
