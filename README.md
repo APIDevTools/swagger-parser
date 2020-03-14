@@ -5,11 +5,11 @@ Swagger 2.0 and OpenAPI 3.0 parser/validator
 [![Coverage Status](https://coveralls.io/repos/github/APIDevTools/swagger-parser/badge.svg?branch=master)](https://coveralls.io/github/APIDevTools/swagger-parser)
 [![Tested on APIs.guru](https://api.apis.guru/badges/tested_on.svg)](https://apis.guru/browse-apis/)
 
-[![npm](https://img.shields.io/npm/v/swagger-parser.svg)](https://www.npmjs.com/package/swagger-parser)
+[![npm](https://img.shields.io/npm/v/@apidevtools/swagger-parser.svg)](https://www.npmjs.com/package/@apidevtools/swagger-parser)
 [![Dependencies](https://david-dm.org/APIDevTools/swagger-parser.svg)](https://david-dm.org/APIDevTools/swagger-parser)
-[![License](https://img.shields.io/npm/l/swagger-parser.svg)](LICENSE)
+[![License](https://img.shields.io/npm/l/@apidevtools/swagger-parser.svg)](LICENSE)
 
-[![OS and Browser Compatibility](https://apitools.dev/img/badges/ci-badges-with-ie.svg)](https://travis-ci.com/APIDevTools/swagger-parser)
+[![OS and Browser Compatibility](https://apitools.dev/img/badges/ci-badges-with-ie.svg)](https://github.com/APIDevTools/swagger-parser/blob/master/.github/workflows/CI-CD.yaml)
 
 [![Online Demo](https://apitools.dev/swagger-parser/online/img/demo.svg)](https://apitools.dev/swagger-parser/online/)
 
@@ -20,7 +20,7 @@ Features
 - [Resolves](https://apitools.dev/swagger-parser/docs/swagger-parser.html#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
 - Can [bundle](https://apitools.dev/swagger-parser/docs/swagger-parser.html#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
 - Can [dereference](https://apitools.dev/swagger-parser/docs/swagger-parser.html#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
-- **[Tested](https://travis-ci.com/APIDevTools/swagger-parser)** in Node.js and all modern web browsers on Mac, Windows, and Linux
+- **[Tested](https://github.com/APIDevTools/swagger-parser/blob/master/.github/workflows/CI-CD.yaml)** in Node.js and all modern web browsers on Mac, Windows, and Linux
 - Tested on **[over 1,500 real-world APIs](https://apis.guru/browse-apis/)** from Google, Instagram, Spotify, etc.
 - Supports [circular references](https://apitools.dev/swagger-parser/docs/#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
@@ -67,7 +67,7 @@ Installation
 Install using [npm](https://docs.npmjs.com/about-npm/):
 
 ```bash
-npm install swagger-parser
+npm install @apidevtools/swagger-parser
 ```
 
 
@@ -77,13 +77,13 @@ Usage
 When using Swagger Parser in Node.js apps, you'll probably want to use **CommonJS** syntax:
 
 ```javascript
-const SwaggerParser = require("swagger-parser");
+const SwaggerParser = require("@apidevtools/swagger-parser");
 ```
 
 When using a transpiler such as [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/), or a bundler such as [Webpack](https://webpack.js.org/) or [Rollup](https://rollupjs.org/), you can use **ECMAScript modules** syntax instead:
 
 ```javascript
-import SwaggerParser from "swagger-parser";
+import SwaggerParser from "@apidevtools/swagger-parser";
 ```
 
 
@@ -99,6 +99,7 @@ To use Swagger Parser in a browser, you'll need to use a bundling tool such as [
 API Documentation
 --------------------------
 Full API documentation is available [right here](https://apitools.dev/swagger-parser/docs/)
+
 
 
 Contributing
@@ -121,9 +122,12 @@ To build/test the project locally on your computer:
 `npm test`
 
 
+
 License
 --------------------------
 Swagger Parser is 100% free and open-source, under the [MIT license](LICENSE). Use it however you want.
+
+
 
 Big Thanks To
 --------------------------
