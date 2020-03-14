@@ -5,6 +5,17 @@ Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+[v9.0.0](https://github.com/APIDevTools/swagger-parser/tree/v9.0.0) (2020-03-14)
+----------------------------------------------------------------------------------------------------
+
+- Moved Swagger Parser to the [@APIDevTools scope](https://www.npmjs.com/org/apidevtools) on NPM
+
+- The "swagger-parser" NPM package is now just a wrapper around the scoped "@apidevtools/swagger-parser" package
+
+[Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v8.0.4...v9.0.0)
+
+
+
 [v8.0.0](https://github.com/APIDevTools/swagger-parser/tree/v8.0.0) (2019-06-22)
 ----------------------------------------------------------------------------------------------------
 
