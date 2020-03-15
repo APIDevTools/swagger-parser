@@ -8,10 +8,13 @@ Swagger 2.0 and OpenAPI 3.0 parser/validator
 [![npm](https://img.shields.io/npm/v/@apidevtools/swagger-parser.svg)](https://www.npmjs.com/package/@apidevtools/swagger-parser)
 [![Dependencies](https://david-dm.org/APIDevTools/swagger-parser.svg)](https://david-dm.org/APIDevTools/swagger-parser)
 [![License](https://img.shields.io/npm/l/@apidevtools/swagger-parser.svg)](LICENSE)
+[![Buy us a tree](https://img.shields.io/badge/Treeware-%F0%9F%8C%B3-lightgreen)](https://plant.treeware.earth/APIDevTools/swagger-parser)
 
 [![OS and Browser Compatibility](https://apitools.dev/img/badges/ci-badges-with-ie.svg)](https://github.com/APIDevTools/swagger-parser/blob/master/.github/workflows/CI-CD.yaml)
 
 [![Online Demo](https://apitools.dev/swagger-parser/online/img/demo.svg)](https://apitools.dev/swagger-parser/online/)
+
+
 
 Features
 --------------------------
@@ -26,10 +29,12 @@ Features
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
 
 
+
 Related Projects
 --------------------------
 - [Swagger CLI](https://github.com/APIDevTools/swagger-cli)
 - [Swagger Express Middleware](https://github.com/APIDevTools/swagger-express-middleware)
+
 
 
 Example
@@ -126,6 +131,8 @@ To build/test the project locally on your computer:
 License
 --------------------------
 Swagger Parser is 100% free and open-source, under the [MIT license](LICENSE). Use it however you want.
+
+This package is [Treeware](http://treeware.earth). If you use it in production, then we ask that you [**buy the world a tree**](https://plant.treeware.earth/APIDevTools/swagger-parser) to thank us for our work. By contributing to the Treeware forest you’ll be creating employment for local families and restoring wildlife habitats.
 
 
 
