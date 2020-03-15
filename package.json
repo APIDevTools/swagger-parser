@@ -1,6 +1,6 @@
 {
   "name": "@apidevtools/swagger-parser",
-  "version": "9.0.0",
+  "version": "9.0.1",
   "description": "Swagger 2.0 and OpenAPI 3.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
