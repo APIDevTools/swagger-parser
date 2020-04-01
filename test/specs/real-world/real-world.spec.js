@@ -27,7 +27,7 @@ describe("Real-world APIs", () => {
     //   2) Some API definitions are HUGE and take a while to download
     //   3) If the download fails, we retry 2 times, which takes even more time
     //   4) Really large API definitions take longer to pase, dereference, and validate
-    this.currentTest.timeout(host.env.CI ? 300000 : 60000);     // 5 minutes in CI, 1 minute locally
+    this.currentTest.timeout(host.ci ? 300000 : 60000);     // 5 minutes in CI, 1 minute locally
     this.currentTest.slow(5000);
   });
 
