@@ -8,12 +8,6 @@ describe("Exports", () => {
     expect(SwaggerParser).to.be.a("function");
   });
 
-  it("should export the YAML object", async () => {
-    expect(SwaggerParser.YAML).to.be.an("object");
-    expect(SwaggerParser.YAML.parse).to.be.a("function");
-    expect(SwaggerParser.YAML.stringify).to.be.a("function");
-  });
-
   it("should export all the static methods of SwaggerParser", async () => {
     expect(SwaggerParser.parse).to.be.a("function");
     expect(SwaggerParser.resolve).to.be.a("function");
