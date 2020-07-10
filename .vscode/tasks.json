@@ -1,3 +1,6 @@
+// VSCode Tasks
+// https://code.visualstudio.com/docs/editor/tasks
+
 // Available variables which can be used inside of strings.
 // ${workspaceRoot}: the root folder of the team
 // ${file}: the current opened file
@@ -7,30 +10,26 @@
 // ${cwd}: the current working directory of the spawned process
 
 {
-  "version": "0.1.0",
+  "version": "2.0.0",
   "command": "npm",
-  "isShellCommand": true,
-  "suppressTaskName": true,
   "tasks": [
     {
-      "taskName": "build",
-      "args": ["run", "build"],
-      "showOutput": "always",
-      "problemMatcher": "$eslint-stylish",
-      "isBuildCommand": true
+      "type": "npm",
+      "script": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$tsc"
     },
+
     {
-      "taskName": "build",
-      "args": ["run", "build:website"],
-      "showOutput": "always",
-      "problemMatcher": "$eslint-stylish",
-      "isBuildCommand": true
-    },
-    {
-      "taskName": "test",
-      "args": ["run", "mocha"],
-      "showOutput": "always",
-      "isTestCommand": true
+      "type": "npm",
+      "script": "test:node",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
     }
   ]
 }

@@ -24,7 +24,7 @@
       "sourceMaps": false,
       "skipFiles": [
         "<node_internals>/**/*.js"
-      ],
+      ]
     }
   ]
 }
