@@ -52,32 +52,32 @@
     "release": "npm run upgrade && npm run clean && npm run build && npm test && npm run bump"
   },
   "devDependencies": {
-    "@babel/polyfill": "^7.7.0",
-    "@jsdevtools/eslint-config-modular": "^8.0.0",
-    "@jsdevtools/host-environment": "^2.0.2",
-    "@jsdevtools/karma-config": "^3.1.2",
-    "@jsdevtools/version-bump-prompt": "^6.0.2",
-    "@types/node": "^13.1.2",
+    "@babel/polyfill": "^7.10.4",
+    "@jsdevtools/eslint-config-modular": "^8.0.3",
+    "@jsdevtools/host-environment": "^2.0.3",
+    "@jsdevtools/karma-config": "^3.1.4",
+    "@jsdevtools/version-bump-prompt": "^6.0.3",
+    "@types/node": "^14.0.20",
     "chai": "^4.2.0",
-    "eslint": "^6.8.0",
-    "karma": "^4.3.0",
+    "eslint": "^7.4.0",
+    "karma": "^5.1.0",
     "karma-cli": "^2.0.0",
-    "mocha": "^7.1.0",
+    "mocha": "^8.0.1",
     "node-fetch": "^2.6.0",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.14.1",
     "npm-check": "^5.9.0",
-    "nyc": "^15.0.0",
+    "nyc": "^15.1.0",
     "shx": "^0.3.2",
-    "simplifyify": "^8.0.0",
-    "typescript": "^3.7.4"
+    "simplifyify": "^8.0.1",
+    "typescript": "^3.9.6"
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "^8.0.0",
-    "@apidevtools/openapi-schemas": "^2.0.2",
-    "@apidevtools/swagger-methods": "^3.0.0",
-    "@jsdevtools/ono": "^7.1.0",
+    "@apidevtools/json-schema-ref-parser": "^9.0.2",
+    "@apidevtools/openapi-schemas": "^2.0.3",
+    "@apidevtools/swagger-methods": "^3.0.1",
+    "@jsdevtools/ono": "^7.1.2",
     "call-me-maybe": "^1.0.1",
     "openapi-types": "^1.3.5",
-    "z-schema": "^4.2.2"
+    "z-schema": "^4.2.3"
   }
 }

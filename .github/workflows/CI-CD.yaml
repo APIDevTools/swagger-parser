@@ -53,7 +53,7 @@ jobs:
         run: npm run coverage:node
 
       - name: Send code coverage results to Coveralls
-        uses: coverallsapp/github-action@v1.0.1
+        uses: coverallsapp/github-action@v1.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
@@ -94,7 +94,7 @@ jobs:
           cat coverage/*/lcov.info > ./coverage/lcov.info
 
       - name: Send code coverage results to Coveralls
-        uses: coverallsapp/github-action@v1.0.1
+        uses: coverallsapp/github-action@v1.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
@@ -108,7 +108,7 @@ jobs:
       - browser_tests
     steps:
       - name: Let Coveralls know that all tests have finished
-        uses: coverallsapp/github-action@v1.0.1
+        uses: coverallsapp/github-action@v1.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
