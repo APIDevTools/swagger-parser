@@ -10,6 +10,7 @@ Example
 
 ```javascript
 SwaggerParser.validate("my-api.yaml", {
+  continueOnError: true,            // Don't throw on the first error
   parse: {
     json: false,                    // Disable the JSON parser
     yaml: {
