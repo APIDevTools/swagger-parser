@@ -5,6 +5,22 @@ Swagger Parser adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+[v10.0.0](https://github.com/APIDevTools/swagger-parser/tree/v10.0.0) (2020-07-10)
+----------------------------------------------------------------------------------------------------
+
+#### Breaking Changes
+
+- Removed the `YAML` export. We recommend using [`@stoplight/yaml`](https://www.npmjs.com/package/@stoplight/yaml) instead
+
+
+#### Other Changes
+
+- Added a new [`continueOnError` option](https://apitools.dev/swagger-parser/docs/options) that allows you to get all errors rather than just the first one
+
+[Full Changelog](https://github.com/APIDevTools/swagger-parser/compare/v9.0.1...v10.0.0)
+
+
+
 [v9.0.0](https://github.com/APIDevTools/swagger-parser/tree/v9.0.0) (2020-03-14)
 ----------------------------------------------------------------------------------------------------
 
