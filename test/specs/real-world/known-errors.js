@@ -35,6 +35,14 @@ const knownErrors = module.exports = {
  */
 function getKnownApiErrors () {
   let errors = [
+    // Many of the Azure API definitions have references to external files that don't exist
+    // NOTE: This entry must come FIRST, otherwise every broken Azure API is retried multiple times
+    {
+      api: "azure.com",
+      error: /Error downloading https?:/,
+      whatToDo: "ignore",
+    },
+
     // If the API definition failed to download, then retry
     {
       error: /Error downloading https?:/,
