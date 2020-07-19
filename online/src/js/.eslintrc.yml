@@ -1,9 +1,6 @@
 # ESLint config
 # http://eslint.org/docs/user-guide/configuring
-# https://jstools.dev/eslint-config-modular/
-
-extends:
-  - "@jsdevtools/modular/node"
+# https://jstools.dev/eslint-config/
 
 env:
   jquery: true

@@ -1,19 +1,9 @@
 # ESLint config
 # http://eslint.org/docs/user-guide/configuring
-# https://jstools.dev/eslint-config-modular/
+# https://jstools.dev/eslint-config/
 
 root: true
-
-extends:
-  - "@jsdevtools/modular/best-practices"
-  - "@jsdevtools/modular/style"
-  - "@jsdevtools/modular/browser"
-  - "@jsdevtools/modular/node"
-  - "@jsdevtools/modular/es6"
-
-globals:
-  Promise: false
-
-rules:
-  # This rule erroneously flags functions that use the `arguments` object
-  no-unused-vars: off
+extends: "@jsdevtools"
+env:
+  node: true
+  browser: true
