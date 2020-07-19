@@ -1,4 +1,5 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+/* eslint-disable no-unused-vars */
 "use strict";
 
 const validateSchema = require("./validators/schema");
@@ -199,11 +200,11 @@ module.exports = ParserOptions;
 /**
  * Options that determine how Swagger APIs are parsed, resolved, dereferenced, and validated.
  *
- * @param {object|ParserOptions} [options] - Overridden options
+ * @param {object|ParserOptions} [_options] - Overridden options
  * @constructor
  * @extends $RefParserOptions
  */
-function ParserOptions (options) {
+function ParserOptions (_options) {
   $RefParserOptions.call(this, ParserOptions.defaults);
   $RefParserOptions.apply(this, arguments);
 }
@@ -30514,10 +30515,10 @@ function trackButtonLabel (methodName) {
 /**
  * Examines the given checkboxes, and returns arrays of checked and unchecked values.
  *
- * @param {...jQuery} checkboxes
+ * @param {...jQuery} _checkboxes
  * @returns {{checked: string[], unchecked: string[]}}
  */
-function getCheckedAndUnchecked (checkboxes) {
+function getCheckedAndUnchecked (_checkboxes) {
   let checked = [], unchecked = [];
   for (let i = 0; i < arguments.length; i++) {
     let checkbox = arguments[i];

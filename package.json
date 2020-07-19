@@ -1,6 +1,6 @@
 {
   "name": "@apidevtools/swagger-parser",
-  "version": "10.0.0",
+  "version": "10.0.1",
   "description": "Swagger 2.0 and OpenAPI 3.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
@@ -43,7 +43,7 @@
     "test": "npm run test:node && npm run test:typescript && npm run test:browser && npm run lint",
     "test:node": "mocha",
     "test:browser": "karma start --single-run",
-    "test:typescript": "tsc --noEmit --strict --lib esnext test/specs/typescript-definition.spec.ts",
+    "test:typescript": "tsc --noEmit --strict --lib esnext,dom test/specs/typescript-definition.spec.ts",
     "coverage": "npm run coverage:node && npm run coverage:browser",
     "coverage:node": "nyc node_modules/mocha/bin/mocha",
     "coverage:browser": "npm run test:browser -- --coverage",
