@@ -37,7 +37,7 @@ function getKnownApiErrors () {
   let errors = [
     // If the API definition failed to download, then retry
     {
-      error: /Error downloading https?:.*swagger\.yaml/,
+      error: /Error downloading https?:/,
       whatToDo: "retry",
     },
     {
@@ -70,6 +70,13 @@ function getKnownApiErrors () {
     {
       api: "azure.com",
       error: "has multiple path placeholders named {location}",
+      whatToDo: "ignore",
+    },
+
+    // Cloudmersive.com's API definition contains invalid JSON Schema types
+    {
+      api: "cloudmersive.com:ocr",
+      error: "No enum match for: application/json at #/schema/type",
       whatToDo: "ignore",
     },
 
