@@ -20,7 +20,6 @@ async function fetchApiList () {
   deleteProblematicAPIs(apiMap);
   let apiArray = flatten(apiMap);
 
-  apiArray.sort(byLatestVersion);
   return apiArray;
 }
 
@@ -47,30 +46,14 @@ function flatten (apimap) {
   let apiArray = [];
 
   for (let [name, api] of Object.entries(apimap)) {
-    for (let [versionNumber, apiVersion] of Object.entries(api.versions)) {
-      apiArray.push({
-        name,
-        version: versionNumber,
-        isLatestVersion: versionNumber === api.preferred,
-        swaggerYamlUrl: apiVersion.swaggerYamlUrl,
-      });
-    }
+    let latestVersion = api.versions[api.preferred];
+
+    apiArray.push({
+      name,
+      version: api.preferred,
+      swaggerYamlUrl: latestVersion.swaggerYamlUrl,
+    });
   }
 
   return apiArray;
-}
-
-/**
- * Sorts the array of APIs so that all the primary versions come first.
- */
-function byLatestVersion (a, b) {
-  if (a.isLatestVersion !== b.isLatestVersion) {
-    return a.isLatestVersion ? -1 : 1;
-  }
-  else if (a.name !== b.name) {
-    return a.name < b.name ? -1 : 1;
-  }
-  else {
-    return a.version < b.version ? -1 : 1;
-  }
 }

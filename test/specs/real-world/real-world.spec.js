@@ -43,7 +43,7 @@ describe("Real-world APIs", () => {
   function testAPI (index) {
     return async function () {
       let api = realWorldAPIs[index];
-      this.test.title += api.isLatestVersion ? api.name : `${api.name} ${api.version}`;
+      this.test.title += api.name;
       await validateApi(api);
     };
   }
