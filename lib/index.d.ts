@@ -1,6 +1,6 @@
 import { OpenAPI } from "openapi-types";
 
-export = SwaggerParser
+export = SwaggerParser;
 
 /**
  * This is the default export of Swagger Parser. You can creates instances of this class using new SwaggerParser(), or you can just call its static methods.
@@ -14,7 +14,7 @@ declare class SwaggerParser {
    *
    * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#api
    */
-  api: OpenAPI.Document;
+  public api: OpenAPI.Document;
 
   /**
    * The $refs property is a `$Refs` object, which lets you access all of the externally-referenced files in the OpenAPI definition, as well as easily get and set specific values in the OpenAPI definition using JSON pointers.
@@ -23,7 +23,7 @@ declare class SwaggerParser {
    *
    * See https://apitools.dev/swagger-parser/docs/swagger-parser.html#refs
    */
-  $refs: SwaggerParser.$Refs;
+  public $refs: SwaggerParser.$Refs;
 
   /**
    * Parses, dereferences, and validates the given Swagger API.
@@ -35,12 +35,12 @@ declare class SwaggerParser {
    * @param options (optional)
    * @param callback (optional) A callback that will receive the dereferenced OpenAPI definition
    */
-  validate(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
-  validate(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  validate(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  validate(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
-  validate(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
-  validate(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public validate(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
+  public validate(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public validate(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public validate(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
+  public validate(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public validate(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
 
   /**
    * Parses, dereferences, and validates the given Swagger API.
@@ -52,12 +52,12 @@ declare class SwaggerParser {
    * @param options (optional)
    * @param callback (optional) A callback that will receive the dereferenced OpenAPI definition
    */
-  static validate(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
-  static validate(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  static validate(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  static validate(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
-  static validate(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
-  static validate(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public static validate(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
+  public static validate(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public static validate(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public static validate(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
+  public static validate(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public static validate(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
 
   /**
    * Dereferences all `$ref` pointers in the OpenAPI definition, replacing each reference with its resolved value. This results in an API definition that does not contain any `$ref` pointers. Instead, it's a normal JavaScript object tree that can easily be crawled and used just like any other JavaScript object. This is great for programmatic usage, especially when using tools that don't understand JSON references.
@@ -70,12 +70,12 @@ declare class SwaggerParser {
    * @param options (optional)
    * @param callback (optional) A callback that will receive the dereferenced OpenAPI definition
    */
-  dereference(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
-  dereference(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  dereference(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  dereference(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
-  dereference(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
-  dereference(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public dereference(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
+  public dereference(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public dereference(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public dereference(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
+  public dereference(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public dereference(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
 
   /**
    * Dereferences all `$ref` pointers in the OpenAPI definition, replacing each reference with its resolved value. This results in an API definition that does not contain any `$ref` pointers. Instead, it's a normal JavaScript object tree that can easily be crawled and used just like any other JavaScript object. This is great for programmatic usage, especially when using tools that don't understand JSON references.
@@ -88,12 +88,12 @@ declare class SwaggerParser {
    * @param options (optional)
    * @param callback (optional) A callback that will receive the dereferenced OpenAPI definition
    */
-  static dereference(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
-  static dereference(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  static dereference(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  static dereference(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
-  static dereference(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
-  static dereference(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public static dereference(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
+  public static dereference(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public static dereference(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public static dereference(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
+  public static dereference(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public static dereference(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
 
   /**
    * Bundles all referenced files/URLs into a single API definition that only has internal `$ref` pointers. This lets you split-up your API definition however you want while you're building it, but easily combine all those files together when it's time to package or distribute the API definition to other people. The resulting API definition size will be small, since it will still contain internal JSON references rather than being fully-dereferenced.
@@ -106,12 +106,12 @@ declare class SwaggerParser {
    * @param options (optional)
    * @param callback (optional) A callback that will receive the bundled API definition object
    */
-  bundle(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
-  bundle(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  bundle(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  bundle(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
-  bundle(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
-  bundle(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public bundle(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
+  public bundle(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public bundle(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public bundle(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
+  public bundle(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public bundle(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
 
   /**
    * Bundles all referenced files/URLs into a single API definition that only has internal `$ref` pointers. This lets you split-up your API definition however you want while you're building it, but easily combine all those files together when it's time to package or distribute the API definition to other people. The resulting API definition size will be small, since it will still contain internal JSON references rather than being fully-dereferenced.
@@ -124,12 +124,12 @@ declare class SwaggerParser {
    * @param options (optional)
    * @param callback (optional) A callback that will receive the bundled API definition object
    */
-  static bundle(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
-  static bundle(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  static bundle(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  static bundle(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
-  static bundle(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
-  static bundle(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public static bundle(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
+  public static bundle(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public static bundle(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public static bundle(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
+  public static bundle(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public static bundle(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
 
   /**
    * *This method is used internally by other methods, such as `bundle` and `dereference`. You probably won't need to call this method yourself.*
@@ -142,12 +142,12 @@ declare class SwaggerParser {
    * @param options (optional)
    * @param callback (optional) A callback that will receive the parsed OpenAPI definition object, or an error
    */
-  parse(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
-  parse(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  parse(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  parse(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
-  parse(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
-  parse(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public parse(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
+  public parse(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public parse(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public parse(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
+  public parse(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public parse(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
 
   /**
    * *This method is used internally by other methods, such as `bundle` and `dereference`. You probably won't need to call this method yourself.*
@@ -160,12 +160,12 @@ declare class SwaggerParser {
    * @param options (optional)
    * @param callback (optional) A callback that will receive the parsed OpenAPI definition object, or an error
    */
-  static parse(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
-  static parse(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  static parse(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
-  static parse(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
-  static parse(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
-  static parse(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public static parse(api: string | OpenAPI.Document, callback: SwaggerParser.ApiCallback): void;
+  public static parse(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public static parse(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.ApiCallback): void;
+  public static parse(api: string | OpenAPI.Document): Promise<OpenAPI.Document>;
+  public static parse(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
+  public static parse(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<OpenAPI.Document>;
 
   /**
    * *This method is used internally by other methods, such as `bundle` and `dereference`. You probably won't need to call this method yourself.*
@@ -178,12 +178,12 @@ declare class SwaggerParser {
    * @param options (optional)
    * @param callback (optional) A callback that will receive a `$Refs` object
    */
-  resolve(api: string | OpenAPI.Document, callback: SwaggerParser.$RefsCallback): void;
-  resolve(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.$RefsCallback): void;
-  resolve(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.$RefsCallback): void;
-  resolve(api: string | OpenAPI.Document): Promise<SwaggerParser.$Refs>;
-  resolve(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<SwaggerParser.$Refs>;
-  resolve(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<SwaggerParser.$Refs>;
+  public resolve(api: string | OpenAPI.Document, callback: SwaggerParser.$RefsCallback): void;
+  public resolve(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.$RefsCallback): void;
+  public resolve(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.$RefsCallback): void;
+  public resolve(api: string | OpenAPI.Document): Promise<SwaggerParser.$Refs>;
+  public resolve(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<SwaggerParser.$Refs>;
+  public resolve(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<SwaggerParser.$Refs>;
 
   /**
    * *This method is used internally by other methods, such as `bundle` and `dereference`. You probably won't need to call this method yourself.*
@@ -196,14 +196,15 @@ declare class SwaggerParser {
    * @param options (optional)
    * @param callback (optional) A callback that will receive a `$Refs` object
    */
-  static resolve(api: string | OpenAPI.Document, callback: SwaggerParser.$RefsCallback): void;
-  static resolve(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.$RefsCallback): void;
-  static resolve(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.$RefsCallback): void;
-  static resolve(api: string | OpenAPI.Document): Promise<SwaggerParser.$Refs>;
-  static resolve(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<SwaggerParser.$Refs>;
-  static resolve(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<SwaggerParser.$Refs>;
+  public static resolve(api: string | OpenAPI.Document, callback: SwaggerParser.$RefsCallback): void;
+  public static resolve(api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.$RefsCallback): void;
+  public static resolve(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options, callback: SwaggerParser.$RefsCallback): void;
+  public static resolve(api: string | OpenAPI.Document): Promise<SwaggerParser.$Refs>;
+  public static resolve(api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<SwaggerParser.$Refs>;
+  public static resolve(baseUrl: string, api: string | OpenAPI.Document, options: SwaggerParser.Options): Promise<SwaggerParser.$Refs>;
 }
 
+// eslint-disable-next-line no-redeclare
 declare namespace SwaggerParser {
 
   export type ApiCallback = (err: Error | null, api?: OpenAPI.Document) => any;
@@ -212,7 +213,7 @@ declare namespace SwaggerParser {
   /**
    * See https://apitools.dev/swagger-parser/docs/options.html
    */
-  export type Options = {
+  export interface Options {
 
     /**
      * The `parse` options determine how different types of files will be parsed.
@@ -220,11 +221,11 @@ declare namespace SwaggerParser {
      * JSON Schema `$Ref` Parser comes with built-in JSON, YAML, plain-text, and binary parsers, any of which you can configure or disable. You can also add your own custom parsers if you want.
      */
     parse?: {
-      json?: ParserOptions | boolean
-      yaml?: ParserOptions | boolean
-      text?: (ParserOptions & { encoding?: string }) | boolean
-      [key: string]: ParserOptions | boolean | undefined
-    }
+      json?: ParserOptions | boolean;
+      yaml?: ParserOptions | boolean;
+      text?: (ParserOptions & { encoding?: string }) | boolean;
+      [key: string]: ParserOptions | boolean | undefined;
+    };
 
     /**
      * The `resolve` options control how Swagger Parser will resolve file paths and URLs, and how those files will be read/downloaded.
@@ -236,10 +237,10 @@ declare namespace SwaggerParser {
       /**
        * Determines whether external $ref pointers will be resolved. If this option is disabled, then external `$ref` pointers will simply be ignored.
        */
-      external?: boolean
-      file?: Partial<ResolverOptions> | boolean
-      http?: HTTPResolverOptions | boolean
-    }
+      external?: boolean;
+      file?: Partial<ResolverOptions> | boolean;
+      http?: HTTPResolverOptions | boolean;
+    };
 
     /**
      * The `dereference` options control how JSON Schema `$Ref` Parser will dereference `$ref` pointers within the JSON schema.
@@ -253,8 +254,8 @@ declare namespace SwaggerParser {
        *
        * If set to `"ignore"`, then circular references will simply be ignored. No error will be thrown, but the `$Refs.circular` property will still be set to `true`.
        */
-      circular?: boolean | 'ignore'
-    }
+      circular?: boolean | "ignore";
+    };
 
     /**
      * The `validate` options control how Swagger Parser will validate the API.
@@ -264,13 +265,13 @@ declare namespace SwaggerParser {
       /**
        * If set to `false`, then validating against the Swagger 2.0 Schema or OpenAPI 3.0 Schema is disabled.
        */
-      schema?: boolean,
+      schema?: boolean;
 
       /**
        * If set to `false`, then validating against the Swagger 2.0 Specification is disabled.
        */
-      spec?: boolean,
-    }
+      spec?: boolean;
+    };
   }
 
   export interface HTTPResolverOptions extends Partial<ResolverOptions> {
@@ -278,22 +279,22 @@ declare namespace SwaggerParser {
     /**
      * You can specify any HTTP headers that should be sent when downloading files. For example, some servers may require you to set the `Accept` or `Referrer` header.
      */
-    headers?: object
+    headers?: object;
 
     /**
      * The amount of time (in milliseconds) to wait for a response from the server when downloading files. The default is 5 seconds.
      */
-    timeout?: number
+    timeout?: number;
 
     /**
      * The maximum number of HTTP redirects to follow per file. The default is 5. To disable automatic following of redirects, set this to zero.
      */
-    redirects?: number
+    redirects?: number;
 
     /**
      * Set this to `true` if you're downloading files from a CORS-enabled server that requires authentication
      */
-    withCredentials?: boolean
+    withCredentials?: boolean;
   }
 
   /**
@@ -308,12 +309,12 @@ declare namespace SwaggerParser {
      *
      * The order property and canRead property are related to each other. For each file that Swagger Parser needs to resolve, it first determines which resolvers can read that file by checking their canRead property. If only one resolver matches a file, then only that one resolver is called, regardless of its order. If multiple resolvers match a file, then those resolvers are tried in order until one of them successfully reads the file. Once a resolver successfully reads the file, the rest of the resolvers are skipped.
      */
-    order?: number
+    order?: number;
 
     /**
      * The `canRead` property tells JSON Schema `$Ref` Parser what kind of files your resolver can read. In this example, we've simply specified a regular expression that matches "mogodb://" URLs, but we could have used a simple boolean, or even a function with custom logic to determine which files to resolve. Here are examples of each approach:
      */
-    canRead: boolean | RegExp | string | string[] | ((file: FileInfo) => boolean)
+    canRead: boolean | RegExp | string | string[] | ((file: FileInfo) => boolean);
 
     /**
      * This is where the real work of a resolver happens. The `read` method accepts the same file info object as the `canRead` function, but rather than returning a boolean value, the `read` method should return the contents of the file. The file contents should be returned in as raw a form as possible, such as a string or a byte array. Any further parsing or processing should be done by parsers.
@@ -323,7 +324,7 @@ declare namespace SwaggerParser {
     read(
       file: FileInfo,
       callback?: (error: Error | null, data: string | null) => any
-    ): string | Buffer | Promise<string | Buffer>
+    ): string | Buffer | Promise<string | Buffer>;
   }
 
   export interface ParserOptions {
@@ -333,21 +334,21 @@ declare namespace SwaggerParser {
      *
      * You can change the order in which parsers run, which is useful if you know that most of your referenced files will be a certain type, or if you add your own custom parser that you want to run first.
      */
-    order?: number
+    order?: number;
 
     /**
      * All of the built-in parsers allow empty files by default. The JSON and YAML parsers will parse empty files as `undefined`. The text parser will parse empty files as an empty string. The binary parser will parse empty files as an empty byte array.
      *
      * You can set `allowEmpty: false` on any parser, which will cause an error to be thrown if a file empty.
      */
-    allowEmpty?: boolean
+    allowEmpty?: boolean;
 
     /**
      * Determines which parsers will be used for which files.
      *
      * A regular expression can be used to match files by their full path. A string (or array of strings) can be used to match files by their file extension. Or a function can be used to perform more complex matching logic. See the custom parser docs for details.
      */
-    canParse?: boolean | RegExp | string | string[] | ((file: FileInfo) => boolean)
+    canParse?: boolean | RegExp | string | string[] | ((file: FileInfo) => boolean);
   }
 
   /**
@@ -362,17 +363,17 @@ declare namespace SwaggerParser {
     /**
      * The full URL of the file. This could be any type of URL, including "http://", "https://", "file://", "ftp://", "mongodb://", or even a local filesystem path (when running in Node.js).
      */
-    url: string
+    url: string;
 
     /**
      * The lowercase file extension, such as ".json", ".yaml", ".txt", etc.
      */
-    extension: string
+    extension: string;
 
     /**
      * The raw file contents, in whatever form they were returned by the resolver that read the file.
      */
-    data: string | Buffer
+    data: string | Buffer;
   }
 
   /**
@@ -388,7 +389,7 @@ declare namespace SwaggerParser {
      *
      * See https://apitools.dev/swagger-parser/docs/refs.html#circular
      */
-    circular: boolean
+    public circular: boolean;
 
     /**
      * Returns the paths/URLs of all the files in your API definition (including the main API definition file).
@@ -397,7 +398,7 @@ declare namespace SwaggerParser {
      *
      * @param types (optional) Optionally only return certain types of paths ("file", "http", etc.)
      */
-    paths(...types: string[]): string[]
+    public paths(...types: string[]): string[]
 
     /**
      * Returns a map of paths/URLs and their correspond values.
@@ -406,7 +407,7 @@ declare namespace SwaggerParser {
      *
      * @param types (optional) Optionally only return values from certain locations ("file", "http", etc.)
      */
-    values(...types: string[]): { [url: string]: any }
+    public values(...types: string[]): { [url: string]: any }
 
     /**
      * Returns `true` if the given path exists in the OpenAPI definition; otherwise, returns `false`
@@ -415,7 +416,7 @@ declare namespace SwaggerParser {
      *
      * @param $ref The JSON Reference path, optionally with a JSON Pointer in the hash
      */
-    exists($ref: string): boolean
+    public exists($ref: string): boolean
 
     /**
      * Gets the value at the given path in the OpenAPI definition. Throws an error if the path does not exist.
@@ -424,7 +425,7 @@ declare namespace SwaggerParser {
      *
      * @param $ref The JSON Reference path, optionally with a JSON Pointer in the hash
      */
-    get($ref: string): any
+    public get($ref: string): any
 
     /**
      * Sets the value at the given path in the OpenAPI definition. If the property, or any of its parents, don't exist, they will be created.
@@ -432,7 +433,7 @@ declare namespace SwaggerParser {
      * @param $ref The JSON Reference path, optionally with a JSON Pointer in the hash
      * @param value The value to assign. Can be anything (object, string, number, etc.)
      */
-    set($ref: string, value: any): void
+    public set($ref: string, value: any): void
   }
 
 }

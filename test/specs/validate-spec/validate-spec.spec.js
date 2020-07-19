@@ -145,11 +145,11 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
 
   it('should pass validation if "options.validate.spec" is false', async () => {
     let invalid = tests[0];
-    expect(invalid.valid).to.be.false;
+    expect(invalid.valid).to.equal(false);
 
     const api = await SwaggerParser
       .validate(path.rel("specs/validate-spec/invalid/" + invalid.file), { validate: { spec: false }});
-    expect(api).to.be.an("object").and.ok;
+    expect(api).to.be.an("object");
   });
 
   for (let test of tests) {
@@ -158,7 +158,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
         try {
           const api = await SwaggerParser
             .validate(path.rel("specs/validate-spec/valid/" + test.file));
-          expect(api).to.be.an("object").and.ok;
+          expect(api).to.be.an("object");
         }
         catch (err) {
           throw new Error("Validation should have succeeded, but it failed!\n" + err.stack);
@@ -168,8 +168,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
     else {
       it(test.name, async () => {
         try {
-          const api = await SwaggerParser
-            .validate(path.rel("specs/validate-spec/invalid/" + test.file));
+          await SwaggerParser.validate(path.rel("specs/validate-spec/invalid/" + test.file));
           throw new Error("Validation should have failed, but it succeeded!");
         }
         catch (err) {

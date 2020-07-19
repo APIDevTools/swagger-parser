@@ -23,8 +23,8 @@ describe("Callback & Promise syntax", () => {
       let parser = new SwaggerParser();
       parser[method](path.rel("specs/callbacks-promises/callbacks-promises.yaml"), (err, result) => {
         try {
-          expect(err).to.be.null;
-          expect(result).to.be.an("object").and.ok;
+          expect(err).to.equal(null);
+          expect(result).to.be.an("object");
           expect(parser.$refs.paths()).to.deep.equal([path.abs("specs/callbacks-promises/callbacks-promises.yaml")]);
 
           if (method === "resolve") {
@@ -51,7 +51,7 @@ describe("Callback & Promise syntax", () => {
       SwaggerParser[method](path.rel("specs/callbacks-promises/callbacks-promises-error.yaml"), (err, result) => {
         try {
           expect(err).to.be.an.instanceOf(SyntaxError);
-          expect(result).to.be.undefined;
+          expect(result).to.equal(undefined);
           done();
         }
         catch (e) {
@@ -66,7 +66,7 @@ describe("Callback & Promise syntax", () => {
       let parser = new SwaggerParser();
       return parser[method](path.rel("specs/callbacks-promises/callbacks-promises.yaml"))
         .then((result) => {
-          expect(result).to.be.an("object").and.ok;
+          expect(result).to.be.an("object");
           expect(parser.$refs.paths()).to.deep.equal([path.abs("specs/callbacks-promises/callbacks-promises.yaml")]);
 
           if (method === "resolve") {

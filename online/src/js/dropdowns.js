@@ -166,10 +166,10 @@ function trackButtonLabel (methodName) {
 /**
  * Examines the given checkboxes, and returns arrays of checked and unchecked values.
  *
- * @param {...jQuery} checkboxes
+ * @param {...jQuery} _checkboxes
  * @returns {{checked: string[], unchecked: string[]}}
  */
-function getCheckedAndUnchecked (checkboxes) {
+function getCheckedAndUnchecked (_checkboxes) {
   let checked = [], unchecked = [];
   for (let i = 0; i < arguments.length; i++) {
     let checkbox = arguments[i];

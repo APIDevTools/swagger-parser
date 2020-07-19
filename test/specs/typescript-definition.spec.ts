@@ -1,13 +1,13 @@
-import SwaggerParser = require('../../lib');
-import assert = require("assert");
+import * as assert from "assert";
 import { OpenAPI } from "openapi-types";
+import * as SwaggerParser from "../../lib";
 
 const baseUrl = "http://example.com/api";
 const openapiPath = "my-api.json";
 const options = {};
-const promiseResolve = (api: object) => undefined;
-const promiseReject = (err: Error) => undefined;
-const callback = (err: Error | null, api?: object) => undefined;
+const promiseResolve = (_: object) => undefined;
+const promiseReject = (_: Error) => undefined;
+const callback = (_err: Error | null, _api?: object) => undefined;
 const openapiObject: OpenAPI.Document = {
   openapi: "3.0.0",
   info: {

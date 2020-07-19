@@ -22,7 +22,7 @@ const helper = module.exports = {
    * @param {...*} [params] - Additional file paths and resolved values
    * @returns {Function}
    */
-  testResolve (filePath, resolvedValue, params) {
+  testResolve (filePath, resolvedValue, params) {   // eslint-disable-line no-unused-vars
     let schemaFile = path.rel(arguments[0]);
     let parsedAPI = arguments[1];
     let expectedFiles = [], expectedValues = [];

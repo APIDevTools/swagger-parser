@@ -106,11 +106,11 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
 
   it('should pass validation if "options.validate.schema" is false', async () => {
     let invalid = tests[0];
-    expect(invalid.valid).to.be.false;
+    expect(invalid.valid).to.equal(false);
 
     const api = await SwaggerParser
       .validate(path.rel("specs/validate-schema/invalid/" + invalid.file), { validate: { schema: false }});
-    expect(api).to.be.an("object").and.ok;
+    expect(api).to.be.an("object");
   });
 
   for (let test of tests) {
@@ -119,7 +119,7 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
         try {
           const api = await SwaggerParser
             .validate(path.rel("specs/validate-schema/valid/" + test.file));
-          expect(api).to.be.an("object").and.ok;
+          expect(api).to.be.an("object");
         }
         catch (err) {
           throw new Error("Validation should have succeeded, but it failed!\n" + err.stack);
@@ -129,8 +129,7 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
     else {
       it(test.name, async () => {
         try {
-          const api = await SwaggerParser
-            .validate(path.rel("specs/validate-schema/invalid/" + test.file));
+          await SwaggerParser.validate(path.rel("specs/validate-schema/invalid/" + test.file));
           throw new Error("Validation should have failed, but it succeeded!");
         }
         catch (err) {
@@ -140,7 +139,7 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
           // Make sure the ZSchema error details object is valid
           let details = err.details[0];
           expect(details.code).to.be.a("string").and.match(/[A-Z_]+/);
-          expect(details.message).to.be.a("string").and.not.empty;
+          expect(details.message).to.be.a("string").with.length.of.at.least(1);
           expect(details.path).to.be.an("array").with.length.above(0);
           expect(details.params).to.be.an("array");
         }

@@ -36,8 +36,6 @@ let name = {
   title: "name"
 };
 
-"use strict";
-
 const dereferencedAPI = module.exports =
 {
   swagger: "2.0",
