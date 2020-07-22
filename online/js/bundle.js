@@ -30699,6 +30699,7 @@ function toText (obj) {
 "use strict";
 
 const SwaggerParser = require("../../../");
+const jsYAML = require("js-yaml");
 
 module.exports = form;
 
@@ -30808,7 +30809,7 @@ form.getAPI = function () {
   else {
     let text = form.textBox.getValue();
     if (form.allow.yaml.is(":checked")) {
-      return SwaggerParser.YAML.parse(text);
+      return jsYAML.safeLoad(text);
     }
     else if (form.allow.json.is(":checked")) {
       return JSON.parse(text);
@@ -30819,7 +30820,7 @@ form.getAPI = function () {
   }
 };
 
-},{"../../../":1}],212:[function(require,module,exports){
+},{"../../../":1,"js-yaml":72}],212:[function(require,module,exports){
 "use strict";
 
 const form = require("./form");

@@ -1,6 +1,7 @@
 "use strict";
 
 const SwaggerParser = require("../../../");
+const jsYAML = require("js-yaml");
 
 module.exports = form;
 
@@ -110,7 +111,7 @@ form.getAPI = function () {
   else {
     let text = form.textBox.getValue();
     if (form.allow.yaml.is(":checked")) {
-      return SwaggerParser.YAML.parse(text);
+      return jsYAML.safeLoad(text);
     }
     else if (form.allow.json.is(":checked")) {
       return JSON.parse(text);
