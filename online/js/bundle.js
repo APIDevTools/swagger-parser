@@ -30378,7 +30378,7 @@ function dropdowns () {
   trackCheckbox(form.validate.spec);
 
   // Change the button text whenever a new method is selected
-  form.method.menu.find("a").on("click", (event) => {
+  form.method.menu.find("a").on("click", function (event) {
     form.method.menu.dropdown("toggle");
     event.stopPropagation();
     let methodName = $(this).data("value");
@@ -30698,7 +30698,6 @@ function toText (obj) {
 },{"./form":211}],211:[function(require,module,exports){
 "use strict";
 
-const SwaggerParser = require("../../../");
 const jsYAML = require("js-yaml");
 
 module.exports = form;
@@ -30820,7 +30819,7 @@ form.getAPI = function () {
   }
 };
 
-},{"../../../":1,"js-yaml":72}],212:[function(require,module,exports){
+},{"js-yaml":72}],212:[function(require,module,exports){
 "use strict";
 
 const form = require("./form");
