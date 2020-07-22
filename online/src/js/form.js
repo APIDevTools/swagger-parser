@@ -1,6 +1,5 @@
 "use strict";
 
-const SwaggerParser = require("../../../");
 const jsYAML = require("js-yaml");
 
 module.exports = form;
