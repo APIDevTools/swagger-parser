@@ -978,13 +978,19 @@ function crawl (obj, path, pathFromRoot, parents, $refs, options) {
         if ($Ref.isAllowed$Ref(value, options)) {
           dereferenced = dereference$Ref(value, keyPath, keyPathFromRoot, parents, $refs, options);
           circular = dereferenced.circular;
-          obj[key] = dereferenced.value;
+          // Avoid pointless mutations; breaks frozen objects to no profit
+          if (obj[key] !== dereferenced.value) {
+            obj[key] = dereferenced.value;
+          }
         }
         else {
           if (parents.indexOf(value) === -1) {
             dereferenced = crawl(value, keyPath, keyPathFromRoot, parents, $refs, options);
             circular = dereferenced.circular;
-            obj[key] = dereferenced.value;
+            // Avoid pointless mutations; breaks frozen objects to no profit
+            if (obj[key] !== dereferenced.value) {
+              obj[key] = dereferenced.value;
+            }
           }
           else {
             circular = foundCircularReference(keyPath, $refs, options);
@@ -2041,6 +2047,7 @@ function Pointer ($ref, path, friendlyPath) {
  *
  * @param {*} obj - The object that will be crawled
  * @param {$RefParserOptions} options
+ * @param {string} pathFromRoot - the path of place that initiated resolving
  *
  * @returns {Pointer}
  * Returns a JSON pointer whose {@link Pointer#value} is the resolved value.
@@ -2048,7 +2055,7 @@ function Pointer ($ref, path, friendlyPath) {
  * the {@link Pointer#$ref} and {@link Pointer#path} will reflect the resolution path
  * of the resolved value.
  */
-Pointer.prototype.resolve = function (obj, options) {
+Pointer.prototype.resolve = function (obj, options, pathFromRoot) {
   let tokens = Pointer.parse(this.path, this.originalPath);
 
   // Crawl the object, one token at a time
@@ -2058,6 +2065,10 @@ Pointer.prototype.resolve = function (obj, options) {
     if (resolveIf$Ref(this, options)) {
       // The $ref path has changed, so append the remaining tokens to the path
       this.path = Pointer.join(this.path, tokens.slice(i));
+    }
+
+    if (typeof this.value === "object" && this.value !== null && "$ref" in this.value) {
+      return this;
     }
 
     let token = tokens[i];
@@ -2071,7 +2082,10 @@ Pointer.prototype.resolve = function (obj, options) {
   }
 
   // Resolve the final value
-  resolveIf$Ref(this, options);
+  if (!this.value || this.value.$ref && url.resolve(this.path, this.value.$ref) !== pathFromRoot) {
+    resolveIf$Ref(this, options);
+  }
+
   return this;
 };
 
@@ -2203,7 +2217,7 @@ function resolveIf$Ref (pointer, options) {
       pointer.circular = true;
     }
     else {
-      let resolved = pointer.$ref.$refs._resolve($refPath, url.getHash(pointer.path), options);
+      let resolved = pointer.$ref.$refs._resolve($refPath, pointer.path, options);
       pointer.indirections += resolved.indirections + 1;
 
       if ($Ref.isExtended$Ref(pointer.value)) {
@@ -2374,7 +2388,7 @@ $Ref.prototype.get = function (path, options) {
 $Ref.prototype.resolve = function (path, options, friendlyPath, pathFromRoot) {
   let pointer = new Pointer(this, path, friendlyPath);
   try {
-    return pointer.resolve(this.value, options);
+    return pointer.resolve(this.value, options, pathFromRoot);
   }
   catch (err) {
     if (!options || !options.continueOnError || !isHandledError(err)) {
