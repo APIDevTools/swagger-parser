@@ -88,6 +88,13 @@ function getKnownApiErrors () {
       whatToDo: "ignore",
     },
 
+    // Contribly's API has a misspelled field name
+    {
+      api: "contribly.com",
+      error: "Property 'includeThumbnail' listed as required but does not exist",
+      whatToDo: "ignore",
+    },
+
     // Figshare.com's API definition contains arrays without "items" schemas
     {
       api: "figshare.com",
@@ -102,10 +109,38 @@ function getKnownApiErrors () {
       whatToDo: "ignore",
     },
 
+    // Motaword has validation errors
+    {
+      api: "motaword.com",
+      error: "Data does not match any schemas from 'oneOf'",
+      whatToDo: "ignore",
+    },
+
+    // OpenBankingProject's API has validation errors
+    {
+      api: "openbankingproject.ch",
+      error: "Data does not match any schemas from 'oneOf'",
+      whatToDo: "ignore",
+    },
+
+    // Missing a required field
+    {
+      api: "opto22.com:groov",
+      error: "Property 'isCoreInUse' listed as required but does not exist",
+      whatToDo: "ignore",
+    },
+
     // APIs.guru is missing one of Nexmo's API definitions, which causes a 404 error
     {
       api: "nexmo.com",
       error: /Error downloading .*\.yml\s+HTTP ERROR 404/,
+      whatToDo: "ignore",
+    },
+
+    // Missing a required field
+    {
+      api: "postmarkapp.com:server",
+      error: "Property 'TemplateId' listed as required but does not exist",
       whatToDo: "ignore",
     },
 
