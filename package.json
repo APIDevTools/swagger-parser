@@ -80,5 +80,8 @@
     "call-me-maybe": "^1.0.1",
     "openapi-types": "^1.3.5",
     "z-schema": "^4.2.3"
+  },
+  "peerDependencies": {
+    "openapi-types": ">=7"
   }
 }
