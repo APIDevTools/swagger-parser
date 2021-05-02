@@ -164,6 +164,126 @@ function getKnownApiErrors () {
       error: "has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded",
       whatToDo: "ignore",
     },
+    // more errors
+    {
+      api: 'akeneo.com',
+      error: 'Token "parent" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'api.video',
+      error: 'Token "expiresAt" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'avaza.com',
+      error: 'Validation failed. /paths/api/Expense/Attachment/post has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'bluemix.net:containers',
+      error: 'Swagger schema validation failed. \n' +
+        "  Data does not match any schemas from 'oneOf' at #/paths//build/post/parameters/6\n" +
+        "    Data does not match any schemas from 'oneOf' at #/paths//build/post/parameters/6\n" +
+        '      Missing required property: schema at #/\n' +
+        "      Data does not match any schemas from 'oneOf' at #/\n" +
+        '        No enum match for: file at #/type\n' +
+        '        No enum match for: body at #/in\n' +
+        '        No enum match for: file at #/type\n' +
+        '        No enum match for: file at #/type\n' +
+        '    Missing required property: $ref at #/paths//build/post/parameters/6\n' +
+        ' \n' +
+        'JSON_OBJECT_VALIDATION_FAILED',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'box.com',
+      error: 'Token "x-box-tag" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'circuitsandbox.net',
+      error: 'Swagger schema validation failed. \n' +
+        '  Additional properties not allowed: securityDefinitions at #/\n' +
+        ' \n' +
+        'JSON_OBJECT_VALIDATION_FAILED',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'clicksend.com',
+      error: 'Token "value" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'clubhouseapi.com',
+      error: 'Token "email" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'credas.co.uk:pi',
+      error: 'Token "middleName" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'dev.to',
+      error: 'Token "website_url" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'digitalocean.com',
+      error: 'Token "slug" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'docker.com:engine',
+      error: 'Token "2377/tcp" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'dracoon.team',
+      error: 'Token "errorCode" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'enode.io',
+      error: 'Swagger schema validation failed. \n' +
+        "  Data does not match any schemas from 'oneOf' at #/paths//vehicles/get/parameters/0\n" +
+        "    Data does not match any schemas from 'oneOf' at #/paths//vehicles/get/parameters/0/schema\n" +
+        "      Data does not match any schemas from 'oneOf' at #/schema/items\n" +
+        '        Additional properties not allowed: explode at #/items\n' +
+        '        Missing required property: $ref at #/items\n' +
+        '      Missing required property: $ref at #/schema\n' +
+        '    Missing required property: $ref at #/paths//vehicles/get/parameters/0\n' +
+        ' \n' +
+        'JSON_OBJECT_VALIDATION_FAILED',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'figshare.com',
+      error: 'Token "example" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'files.com',
+      error: 'Token "x-docs" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'formapi.io',
+      error: 'Token "value" does not exist.',
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'frankiefinancial.io',
+      error: "Validation failed. Property 'rowid' listed as required but does not exist in '/definitions/UBOResponse'",
+      whatToDo: 'ignore'
+    },
+    {
+      api: 'goog.io',
+      error: 'Token "total" does not exist.',
+      whatToDo: 'ignore'
+    }
+
   ];
 
   if ((host.node && host.node.version < 8) || (host.browser && !host.browser.chrome)) {
