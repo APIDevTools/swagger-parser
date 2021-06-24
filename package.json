@@ -79,7 +79,7 @@
     "@apidevtools/swagger-methods": "^3.0.2",
     "@jsdevtools/ono": "^7.1.3",
     "call-me-maybe": "^1.0.1",
-    "z-schema": "^4.2.3"
+    "z-schema": "^5.0.1"
   },
   "peerDependencies": {
     "openapi-types": ">=7"
