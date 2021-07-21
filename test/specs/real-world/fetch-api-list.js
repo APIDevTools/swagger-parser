@@ -37,6 +37,10 @@ function deleteProblematicAPIs (apis) {
   delete apis["docusign.net"];
   delete apis["kubernetes.io"];
   delete apis["microsoft.com:graph"];
+
+  // hangs
+  delete apis["presalytics.io:ooxml"]
+
 }
 
 /**
