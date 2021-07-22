@@ -1,0 +1,58 @@
+openapi: '3.0.2'
+info:
+  contact:
+    x-twitter: hello_iqualify
+  description: >+
+    The iQualify API for testing
+  title: iQualify
+  version: v1
+paths:
+  /offerings:
+    post:
+      description: Creates new offering.
+      requestBody:
+          description: create offering request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferingRequired'
+      responses:
+        '201':
+          $ref: '#/components/responses/OfferingMetadataResponse'
+      summary: Create offering
+components:
+  schemas:
+    Offering:
+      properties:
+        contentId:
+          minLength: 1
+          type: string
+        end:
+          format: date-time
+          type: string
+        isReadonly:
+          type: boolean
+        name:
+          minLength: 1
+          type: string
+        start:
+          format: date-time
+          type: string
+    OfferingRequired:
+        allOf:
+          - $ref: '#/components/schemas/Offering'
+        required:
+          - contentId                        # <-- all required properties are inherited
+          - start
+          - end
+  responses:
+    OfferingMetadataResponse:
+      description: Offering response
+      content:
+        text/plain:
+          schema:
+            type: object
+            properties:
+              contentId:
+                minLength: 1
+                type: string

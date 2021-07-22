@@ -1,0 +1,22 @@
+openapi: "3.0.2"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users/{username}/profile/{username}/image/{img_id}:   # <---- duplicate {username} placeholders
+    parameters:
+      - name: username
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: img_id
+        in: path
+        required: true
+        schema:
+          type: number
+    get:
+      responses:
+        default:
+          description:  hello world

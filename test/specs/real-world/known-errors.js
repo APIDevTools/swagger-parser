@@ -43,6 +43,13 @@ function getKnownApiErrors () {
       whatToDo: "ignore",
     },
 
+    //  Azure specs have date at /info/version
+    {
+      api: "azure.com",
+      error: "Expected type string but found type object at #/info/version",
+      whatToDo: "ignore"
+    },
+
     // If the API definition failed to download, then retry
     {
       error: /Error downloading https?:/,
@@ -58,6 +65,13 @@ function getKnownApiErrors () {
       api: "amazonaws.com:appmesh",
       error: "Additional properties not allowed: tags",
       whatToDo: "ignore",
+    },
+
+    // Loads of Amazon specs have datetime at /info/version
+    {
+      api: "amazonaws.com",
+      error: "Expected type string but found type object at #/info/version",
+      whatToDo: "ignore"
     },
 
     // Apigee's API definitions contain arrays without "items" schemas
@@ -176,6 +190,11 @@ function getKnownApiErrors () {
       whatToDo: "ignore"
     },
     {
+      api: "api.video",
+      error: "Expected type string but found type integer at #/properties/timecode/pattern",
+      whatToDo: "ignore"
+    },
+    {
       api: "avaza.com",
       error: "Validation failed. /paths/api/Expense/Attachment/post has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded",
       whatToDo: "ignore"
@@ -281,6 +300,29 @@ function getKnownApiErrors () {
     {
       api: "goog.io",
       error: 'Token "total" does not exist.',
+      whatToDo: "ignore"
+    },
+    {
+      api: "adyen.com",
+      error: "Unsupported OpenAPI version: 3.1.0.",
+      whatToDo: "ignore"
+    },
+    {
+      api: "adyen.com",
+      error: "openapi.yaml is not a valid Openapi API definition",
+      whatToDo: "ignore"
+    },
+
+    //  Timestamp isn't a string....
+    {
+      api: "apidapp.com",
+      error: "Expected type string but found type object at #/info/version",
+      whatToDo: "ignore"
+    },
+
+    {
+      api: "beanstream.com",
+      error: "Expected type array but found type object at #/definitions/SearchResult/properties/records/items",
       whatToDo: "ignore"
     }
 
