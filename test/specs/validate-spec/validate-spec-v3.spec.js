@@ -10,13 +10,13 @@ describe("Invalid APIs (OpenAPI v3.0 specification validation)", () => {
       name: "duplicate path parameters",
       valid: false,
       file: "duplicate-path-params.yaml",
-      error: 'Validation failed. /paths/users/{username} has duplicate parameters \nValidation failed. Found multiple header parameters named \"foo\"'
+      error: 'Validation failed. /paths/users/{username} has duplicate parameters\nValidation failed. Found multiple header parameters named \"foo\"'
     },
     {
       name: "duplicate operation parameters",
       valid: false,
       file: "duplicate-operation-params.yaml",
-      error: 'Validation failed. /paths/users/{username}/get has duplicate parameters \nValidation failed. Found multiple path parameters named \"username\"'
+      error: 'Validation failed. /paths/users/{username}/get has duplicate parameters\nValidation failed. Found multiple path parameters named \"username\"'
     },
     {
       name: "multiple body parameters in path",
@@ -128,6 +128,7 @@ describe("Invalid APIs (OpenAPI v3.0 specification validation)", () => {
     const api = await SwaggerParser
       .validate(path.rel("specs/validate-spec/invalid-v3/" + invalid.file), { validate: { spec: false }});
     expect(api).to.be.an("object");
+    expect(api.openapi).to.match(/^3\.0/);
   });
 
   for (let test of tests) {
@@ -137,6 +138,7 @@ describe("Invalid APIs (OpenAPI v3.0 specification validation)", () => {
           const api = await SwaggerParser
             .validate(path.rel("specs/validate-spec/valid-v3/" + test.file));
           expect(api).to.be.an("object");
+          expect(api.openapi).to.match(/^3\.0/);
         }
         catch (err) {
           throw new Error("Validation should have succeeded, but it failed!\n File:" + test.file + "\n" + err.stack);
@@ -151,8 +153,8 @@ describe("Invalid APIs (OpenAPI v3.0 specification validation)", () => {
         }
         catch (err) {
           expect(err).to.be.an.instanceOf(SyntaxError);
-          expect(err.message).to.equal(test.error);
-          expect(err.message).to.match(/^Validation failed. \S+/);
+          expect(err.message).to.include(test.error);
+          expect(err.message).to.match(/^Specification check failed.\sValidation failed./);
         }
       });
     }
