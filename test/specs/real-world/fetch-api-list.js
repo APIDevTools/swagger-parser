@@ -39,7 +39,7 @@ function deleteProblematicAPIs (apis) {
   delete apis["microsoft.com:graph"];
 
   // hangs
-  delete apis["presalytics.io:ooxml"]
+  delete apis["presalytics.io:ooxml"];
 
   // openapi 3.1.0 not yet supported
   delete apis["adyen.com:AccountService"];
