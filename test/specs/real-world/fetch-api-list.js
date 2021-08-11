@@ -44,6 +44,7 @@ function deleteProblematicAPIs (apis) {
   // openapi 3.1.0 not yet supported
   delete apis["adyen.com:AccountService"];
   delete apis["adyen.com:BalancePlatformService"];
+  delete apis["adyen.com:BinLookupService"];
   delete apis["adyen.com:CheckoutService"];
   delete apis["adyen.com:FundService"];
   delete apis["adyen.com:HopService"];
