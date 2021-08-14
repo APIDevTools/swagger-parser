@@ -43,6 +43,12 @@ function getKnownApiErrors () {
       whatToDo: "ignore",
     },
 
+    // Skip openapi 3.1.0
+    {
+      error: "Unsupported OpenAPI version: 3.1.0",
+      whatToDo: "ignore",
+    },
+
     // Many api has info version using date / datetime stamp e.g. amazonaws.com
     {
       error: "Expected type string but found type object at #/info/version",
