@@ -51,6 +51,9 @@ function deleteProblematicAPIs (apis) {
   delete apis["adyen.com:MarketPayNotificationService"];
   delete apis["adyen.com:NotificationConfigurationService"];
 
+  // base security declaration in path/get operation (error message below)
+  // "type array but found type null at #/paths//vault/callback/get/security"
+  delete apis["apideck.com:vault"];
 }
 
 /**
