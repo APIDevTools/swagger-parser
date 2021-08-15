@@ -37,6 +37,23 @@ function deleteProblematicAPIs (apis) {
   delete apis["docusign.net"];
   delete apis["kubernetes.io"];
   delete apis["microsoft.com:graph"];
+
+  // hangs
+  delete apis["presalytics.io:ooxml"];
+
+  // openapi 3.1.0 not yet supported
+  delete apis["adyen.com:AccountService"];
+  delete apis["adyen.com:BalancePlatformService"];
+  delete apis["adyen.com:BinLookupService"];
+  delete apis["adyen.com:CheckoutService"];
+  delete apis["adyen.com:FundService"];
+  delete apis["adyen.com:HopService"];
+  delete apis["adyen.com:MarketPayNotificationService"];
+  delete apis["adyen.com:NotificationConfigurationService"];
+
+  // base security declaration in path/get operation (error message below)
+  // "type array but found type null at #/paths//vault/callback/get/security"
+  delete apis["apideck.com:vault"];
 }
 
 /**

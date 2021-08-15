@@ -43,6 +43,78 @@ function getKnownApiErrors () {
       whatToDo: "ignore",
     },
 
+    // Skip openapi 3.1.0
+    {
+      error: "Unsupported OpenAPI version: 3.1.0",
+      whatToDo: "ignore",
+    },
+
+    // Many api has info version using date / datetime stamp e.g. amazonaws.com
+    {
+      error: "Expected type string but found type object at #/info/version",
+      whatToDo: "ignore",
+    },
+
+    {
+      api: "api.video",
+      error: "Data does not match any schemas from 'oneOf'",
+      whatToDo: "ignore",
+    },
+
+    {
+      api: "beanstream.com",
+      error: "Data does not match any schemas from 'anyOf'",
+      whatToDo: "ignore",
+    },
+
+    {
+      api: "github.com",
+      error: 'Token "expires_at" does not exist',
+      whatToDo: "ignore",
+    },
+
+    {
+      api: "github.com",
+      error: 'Token "0" does not exist',
+      whatToDo: "ignore",
+    },
+
+    {
+      api: "googleapis.com",
+      error: "Additional properties not allowed: source at #/",
+      whatToDo: "ignore",
+    },
+
+    {
+      api: "openapi-generator.tech",
+      error: "Additional properties not allowed: originalRef at #/definitions/GeneratorInput/properties/authorizationValue",
+      whatToDo: "ignore",
+    },
+
+    {
+      api: "opensuse.org",
+      error: "Data does not match any schemas from 'oneOf'",
+      whatToDo: "ignore",
+    },
+
+    {
+      api: "parliament.uk",
+      error: "Object didn't pass validation for format uri-reference:  at #/info/contact/url",
+      whatToDo: "ignore",
+    },
+
+    {
+      api: "personio.de",
+      error: 'Token "comment" does not exist',
+      whatToDo: "ignore",
+    },
+
+    {
+      api: "rebilly.com",
+      error: 'Token "feature" does not exist',
+      whatToDo: "ignore",
+    },
+
     // If the API definition failed to download, then retry
     {
       error: /Error downloading https?:/,
