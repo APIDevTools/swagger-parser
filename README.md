@@ -143,5 +143,4 @@ Thanks to these awesome companies for their support of Open Source developers ‚ù
 [![GitHub](https://apitools.dev/img/badges/github.svg)](https://github.com/open-source)
 [![NPM](https://apitools.dev/img/badges/npm.svg)](https://www.npmjs.com/)
 [![Coveralls](https://apitools.dev/img/badges/coveralls.svg)](https://coveralls.io)
-[![Travis CI](https://apitools.dev/img/badges/travis-ci.svg)](https://travis-ci.com)
 [![SauceLabs](https://apitools.dev/img/badges/sauce-labs.svg)](https://saucelabs.com)
