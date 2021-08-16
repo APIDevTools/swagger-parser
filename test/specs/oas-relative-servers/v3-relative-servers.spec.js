@@ -1,34 +1,91 @@
 "use strict";
 
 const SwaggerParser = require("../../../lib");
-const fetch = require("node-fetch");
 const {expect} = require("chai");
+const path = require("../../utils/path");
+const $RefParser = require("@apidevtools/json-schema-ref-parser");
+const sinon = require("sinon");
 
-const RELATIVE_SERVERS_OAS3_URL = "https://petstore3.swagger.io/api/v3/openapi.json"; //Petstore v3 json has relative path in "servers"
+//Import of our fixed OpenAPI JSON files
+const v3RelativeServerJson = require("./v3-relative-server.json");
+const v3RelativeServerPathsOpsJson = require("./v3-relative-server-paths-ops.json");
+const v3NonRelativeServerJson = require("./v3-non-relative-server.json");
+
+ //Petstore v3 json has relative path in "servers"
+const RELATIVE_SERVERS_OAS3_URL_1 = "https://petstore3.swagger.io/api/v3/openapi.json";
+
+//This will have "servers" at paths & operations level
+const RELATIVE_SERVERS_OAS3_URL_2 = "https://foo.my.cloud/v1/petstore/relativeservers"; 
+
 describe("Servers with relative paths in OpenAPI v3 files",() => {
+  let mockParse;
+  before(function () {
+    //Mock the parse function
+    mockParse = sinon.stub($RefParser.prototype,'parse');
+  });
 
-  it("should fix relative servers path in the file fetched from url",testRelativeServersPath(RELATIVE_SERVERS_OAS3_URL));
+  after(function () {
+    //Restore the parse function
+    $RefParser.prototype.parse.restore();
+  });
 
-  function testRelativeServersPath(oasFileUrl) {
-    return async function () {
-      try {
-        const response = await fetch(oasFileUrl);
-        if (!response.ok) {
-          throw new Error("Unable to downlaod relative servers v3 json file");
-        }
-        let originalJson = await response.json();
+  it("should fix relative servers path in the file fetched from url",async()=>{
+    try {
+      mockParse.callsFake(() => {
+        //to prevent edit of the original JSON
+        return JSON.parse(JSON.stringify(v3RelativeServerJson));
+      });
+      let apiJson = await SwaggerParser.parse(RELATIVE_SERVERS_OAS3_URL_1);
+      expect(apiJson.servers[0].url).to.equal("https://petstore3.swagger.io/api/v3");
+    }catch (error) {
+      console.error("\n\nError in relative servers at root test case:",error);
+      throw error;
+    }
+  });
 
-        //If the servers url still has relative path, it helps our test
-        if ((originalJson.servers?.length > 0) && (originalJson.servers[0].url).startsWith("/")) {
-          let apiJson = await SwaggerParser.validate(oasFileUrl);
-          expect(apiJson.servers[0].url).to.equal("https://petstore3.swagger.io/api/v3");
-        } else {
-          console.warn("Petstore v3 file's servers object doesn't have relative path!!!");
-        }
-      } catch (error) {
-        console.error("\n\nError in relative servers test case:",error);
-        throw error;
-      }
-    };
-  }
+  it("should fix relative servers at root, path and operations level in the file fetched from url",async()=>{
+    try {
+      mockParse.callsFake(() => {
+        //to prevent edit of the original JSON
+        return JSON.parse(JSON.stringify(v3RelativeServerPathsOpsJson));
+      });
+      let apiJson = await SwaggerParser.parse(RELATIVE_SERVERS_OAS3_URL_2);
+      expect(apiJson.servers[0].url).to.equal("https://foo.my.cloud/api/v3");
+      expect(apiJson.paths["/pet"].servers[0].url).to.equal("https://foo.my.cloud/api/v4");
+      expect(apiJson.paths["/pet"]["post"].servers[0].url).to.equal("https://foo.my.cloud/api/v5");
+    }catch (error) {
+      console.error("\n\nError in relative servers at root test case:",error);
+      throw error;
+    }
+  });
+
+  it("should parse but no change to relative servers path in local file import",async()=>{
+    try {
+      mockParse.callsFake(() => {
+        return JSON.parse(JSON.stringify(v3RelativeServerPathsOpsJson));
+      });
+      let apiJson = await SwaggerParser.parse(path.rel("./v3-relative-server.json"));
+      expect(apiJson.servers[0].url).to.equal("/api/v3");
+      expect(apiJson.paths["/pet"].servers[0].url).to.equal("/api/v4");
+      expect(apiJson.paths["/pet"]["post"].servers[0].url).to.equal("/api/v5");
+    }catch (error) {
+      console.error("\n\nError in relative servers at root test case:",error);
+      throw error;
+    }
+  });
+
+  it("should parse but no change to non-relative servers path in local file import",async()=>{
+    try {
+      mockParse.callsFake(() => {
+        return JSON.parse(JSON.stringify(v3NonRelativeServerJson));
+      });
+      let apiJson = await SwaggerParser.parse(path.rel("./v3-non-relative-server.json"));
+      expect(apiJson.servers[0].url).to.equal("https://petstore3.swagger.com/api/v3");
+      expect(apiJson.paths["/pet"].servers[0].url).to.equal("https://petstore3.swagger.com/api/v4");
+      expect(apiJson.paths["/pet"]["post"].servers[0].url).to.equal("https://petstore3.swagger.com/api/v5");
+    }catch (error) {
+      console.error("\n\nError in relative servers at root test case:",error);
+      throw error;
+    }
+  });
 });
