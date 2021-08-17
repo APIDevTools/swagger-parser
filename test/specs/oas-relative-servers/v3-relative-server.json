@@ -1,212 +1,37 @@
 {
-    "openapi": "3.0.2",
+    "openapi": "3.0.0",
     "info": {
-        "title": "Swagger Petstore - OpenAPI 3.0",
-        "description": "This is a sample Pet Store Server based on the OpenAPI 3.0 specification.  You can find out more about Swagger at [http://swagger.io](http://swagger.io). In the third iteration of the pet store, we have switched to the design first approach! You can now help us improve the API whether it is by making changes to the definition itself or to the code. That way, with time, we can improve the API in general, and expose some of the new features in OAS3. Some useful links:- [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)- [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "email": "apiteam@swagger.io"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
-        "version": "1.0.6"
-    },
-    "externalDocs": {
-        "description": "Find out more about Swagger",
-        "url": "http://swagger.io"
+        "version": "1.0.0",
+        "title": "Swagger Petstore"
     },
     "servers": [
         {
             "url": "/api/v3"
         }
     ],
-    "tags": [
-        {
-            "name": "pet",
-            "description": "Everything about your Pets",
-            "externalDocs": {
-                "description": "Find out more",
-                "url": "http://swagger.io"
-            }
-        },
-        {
-            "name": "store",
-            "description": "Operations about user"
-        },
-        {
-            "name": "user",
-            "description": "Access to Petstore orders",
-            "externalDocs": {
-                "description": "Find out more about our store",
-                "url": "http://swagger.io"
-            }
-        }
-    ],
     "paths": {
         "/pet": {
-            "put": {
-                "tags": [
-                    "pet"
-                ],
-                "summary": "Update an existing pet",
-                "description": "Update an existing pet by Id",
-                "operationId": "updatePet",
-                "requestBody": {
-                    "description": "Update an existent pet in the store",
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Pet"
-                            }
-                        },
-                        "application/xml": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Pet"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Pet"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful operation",
-                        "content": {
-                            "application/xml": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Pet"
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Pet"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid ID supplied"
-                    },
-                    "404": {
-                        "description": "Pet not found"
-                    },
-                    "405": {
-                        "description": "Validation exception"
-                    }
-                },
-                "security": [
-                    {
-                        "petstore_auth": [
-                            "write:pets",
-                            "read:pets"
-                        ]
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "pet"
-                ],
-                "summary": "Add a new pet to the store",
-                "description": "Add a new pet to the store",
-                "operationId": "addPet",
-                "requestBody": {
-                    "description": "Create a new pet in the store",
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Pet"
-                            }
-                        },
-                        "application/xml": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Pet"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Pet"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful operation",
-                        "content": {
-                            "application/xml": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Pet"
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Pet"
-                                }
-                            }
-                        }
-                    },
-                    "405": {
-                        "description": "Invalid input"
-                    }
-                },
-                "security": [
-                    {
-                        "petstore_auth": [
-                            "write:pets",
-                            "read:pets"
-                        ]
-                    }
-                ]
-            }
-        },
-        "/pet/findByStatus": {
             "get": {
-                "tags": [
-                    "pet"
-                ],
-                "summary": "Finds Pets by status",
-                "description": "Multiple status values can be provided with comma separated strings",
-                "operationId": "findPetsByStatus",
+                "summary": "List all pets",
+                "operationId": "listPets",
                 "parameters": [
                     {
-                        "name": "status",
+                        "name": "limit",
                         "in": "query",
-                        "description": "Status values that need to be considered for filter",
+                        "description": "How many items to return at one time (max 100)",
                         "required": false,
-                        "explode": true,
                         "schema": {
-                            "type": "string",
-                            "default": "available",
-                            "enum": [
-                                "available",
-                                "pending",
-                                "sold"
-                            ]
+                            "type": "integer",
+                            "format": "int32"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "A paged array of pets",
                         "content": {
-                            "application/xml": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Pet"
-                                    }
-                                }
-                            },
                             "application/json": {
-                                "schema": {
+                                "schema":{
                                     "type": "array",
                                     "items": {
                                         "$ref": "#/components/schemas/Pet"
@@ -214,43 +39,19 @@
                                 }
                             }
                         }
-                    },
-                    "400": {
-                        "description": "Invalid status value"
                     }
-                },
-                "security": [
-                    {
-                        "petstore_auth": [
-                            "write:pets",
-                            "read:pets"
-                        ]
-                    }
-                ]
+                }
             }
         }
     },
     "components": {
         "schemas": {
-            "Category": {
+            "Pet": {
                 "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "format": "int64",
-                        "example": 1
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "Dogs"
-                    }
-                },
-                "xml": {
-                    "name": "category"
-                }
-            },
-            "Tag": {
-                "type": "object",
+                "required": [
+                    "id",
+                    "name"
+                ],
                 "properties": {
                     "id": {
                         "type": "integer",
@@ -259,100 +60,7 @@
                     "name": {
                         "type": "string"
                     }
-                },
-                "xml": {
-                    "name": "tag"
                 }
-            },
-            "Pet": {
-                "required": [
-                    "name",
-                    "photoUrls"
-                ],
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "format": "int64",
-                        "example": 10
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "doggie"
-                    },
-                    "category": {
-                        "$ref": "#/components/schemas/Category"
-                    },
-                    "photoUrls": {
-                        "type": "array",
-                        "xml": {
-                            "wrapped": true
-                        },
-                        "items": {
-                            "type": "string",
-                            "xml": {
-                                "name": "photoUrl"
-                            }
-                        }
-                    },
-                    "tags": {
-                        "type": "array",
-                        "xml": {
-                            "wrapped": true
-                        },
-                        "items": {
-                            "$ref": "#/components/schemas/Tag"
-                        }
-                    },
-                    "status": {
-                        "type": "string",
-                        "description": "pet status in the store",
-                        "enum": [
-                            "available",
-                            "pending",
-                            "sold"
-                        ]
-                    }
-                },
-                "xml": {
-                    "name": "pet"
-                }
-            }
-        },
-        "requestBodies": {
-            "Pet": {
-                "description": "Pet object that needs to be added to the store",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "$ref": "#/components/schemas/Pet"
-                        }
-                    },
-                    "application/xml": {
-                        "schema": {
-                            "$ref": "#/components/schemas/Pet"
-                        }
-                    }
-                }
-            }
-        },
-        "securitySchemes": {
-            "petstore_auth": {
-                "type": "oauth2",
-                "flows": {
-                    "implicit": {
-                        "authorizationUrl": "https://petstore3.swagger.io/oauth/authorize",
-                        "scopes": {
-                            "write:pets": "modify pets in your account",
-                            "read:pets": "read your pets"
-                        }
-                    }
-                }
-            },
-            "api_key": {
-                "type": "apiKey",
-                "name": "api_key",
-                "in": "header"
             }
         }
     }
