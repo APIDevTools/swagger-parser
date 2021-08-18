@@ -54,7 +54,7 @@ describe("Servers with relative paths in OpenAPI v3 files", () => {
       let apiJson = await SwaggerParser.parse(RELATIVE_SERVERS_OAS3_URL_2);
       expect(apiJson.servers[0].url).to.equal("https://foo.my.cloud/api/v3");
       expect(apiJson.paths["/pet"].servers[0].url).to.equal("https://foo.my.cloud/api/v4");
-      expect(apiJson.paths["/pet"]?.get.servers[0].url).to.equal("https://foo.my.cloud/api/v5");
+      expect(apiJson.paths["/pet"].get.servers[0].url).to.equal("https://foo.my.cloud/api/v5");
     }
     catch (error) {
       console.error("\n\nError in relative servers at root, path and operations test case:", error);
@@ -70,7 +70,7 @@ describe("Servers with relative paths in OpenAPI v3 files", () => {
       let apiJson = await SwaggerParser.parse(path.rel("./v3-relative-server.json"));
       expect(apiJson.servers[0].url).to.equal("/api/v3");
       expect(apiJson.paths["/pet"].servers[0].url).to.equal("/api/v4");
-      expect(apiJson.paths["/pet"]?.get.servers[0].url).to.equal("/api/v5");
+      expect(apiJson.paths["/pet"].get.servers[0].url).to.equal("/api/v5");
     }
     catch (error) {
       console.error("\n\nError in relative servers at root but local file import test case:", error);
@@ -86,7 +86,7 @@ describe("Servers with relative paths in OpenAPI v3 files", () => {
       let apiJson = await SwaggerParser.parse(path.rel("./v3-non-relative-server.json"));
       expect(apiJson.servers[0].url).to.equal("https://petstore3.swagger.com/api/v3");
       expect(apiJson.paths["/pet"].servers[0].url).to.equal("https://petstore3.swagger.com/api/v4");
-      expect(apiJson.paths["/pet"]?.get.servers[0].url).to.equal("https://petstore3.swagger.com/api/v5");
+      expect(apiJson.paths["/pet"].get.servers[0].url).to.equal("https://petstore3.swagger.com/api/v5");
     }
     catch (error) {
       console.error("\n\nError in non-relative servers at root but local file import test case:", error);
