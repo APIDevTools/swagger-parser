@@ -126,7 +126,11 @@ To build/test the project locally on your computer:
 4. __Run the tests__<br>
 `npm test`
 
+5. __Run the linter__<br>
+`npm run lint`
 
+6. __Run the browser coverage__<br>
+`npm run coverage:browser`
 
 License
 --------------------------
