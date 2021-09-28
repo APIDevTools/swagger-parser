@@ -126,7 +126,8 @@ To build/test the project locally on your computer:
 4. __Run the tests__<br>
 `npm test`
 
-
+5. __Check the code coverage__<br>
+`npm run coverage`
 
 License
 --------------------------
