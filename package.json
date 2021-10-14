@@ -68,7 +68,7 @@
     "node-sass": "^4.14.1",
     "npm-check": "^5.9.0",
     "nyc": "^15.1.0",
-    "openapi-types": "^7.0.1",
+    "openapi-types": "^9.3.0",
     "shx": "^0.3.2",
     "simplifyify": "^8.0.3",
     "sinon": "^11.1.2",
