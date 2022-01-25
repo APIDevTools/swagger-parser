@@ -1,0 +1,37 @@
+openapi: "3.0.2"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users/{username}/{foo}:        # <---- {username} and {foo} placeholders
+    parameters:                   # <---- no path params
+      - $ref: '#/components/parameters/username'
+      - name: foo
+        in: query
+        schema:
+          type: string
+    get:
+      parameters:
+        - $ref: '#/components/parameters/username'
+        - name: foo              #  <----  no path params
+          in: header
+          schema:
+            type: number
+      responses:
+        default:
+          description:  hello world
+    post:
+      parameters:                 # <---- no path params
+        - $ref: '#/components/parameters/username'
+      responses:
+        default:
+          description:  hello world
+components:
+  parameters:
+    username:
+      name: username
+      in: header
+      required: true
+      schema:
+        type: string

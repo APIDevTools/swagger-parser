@@ -1,0 +1,21 @@
+openapi: "3.0.2"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users/{username}/profile/image:
+    parameters:
+      - name: username
+        in: path
+        schema:
+            type: string
+        required: true
+      - name: image
+        in: formData
+        schema:
+            type: file      # <--- "file" type requires "consumes" to be specified
+    post:
+      responses:
+        default:
+          description:  hello world

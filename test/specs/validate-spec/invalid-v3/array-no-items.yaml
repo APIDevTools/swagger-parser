@@ -1,0 +1,16 @@
+openapi: "3.0.2"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users:
+    parameters:
+      - name: tags
+        in: query
+        schema:
+          type: array
+    get:
+      responses:
+        default:
+          description:  hello world

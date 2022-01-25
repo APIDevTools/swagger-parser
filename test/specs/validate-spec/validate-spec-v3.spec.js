@@ -4,19 +4,13 @@ const { expect } = require("chai");
 const SwaggerParser = require("../../..");
 const path = require("../../utils/path");
 
-describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
+describe("Invalid APIs (OpenAPI v3.0 specification validation)", () => {
   let tests = [
-    {
-      name: "invalid response code",
-      valid: false,
-      file: "invalid-response-code.yaml",
-      error: "Validation failed. /paths/users/get/responses/888 has an invalid response code (888)"
-    },
     {
       name: "duplicate path parameters",
       valid: false,
       file: "duplicate-path-params.yaml",
-      error: 'Validation failed. /paths/users/{username} has duplicate parameters\nValidation failed. Found multiple header parameters named \"foo\"'
+      error: 'Validation failed. /paths/users/{username} has duplicate parameters\nValidation failed. Found multiple header parameters named \"foo\"'      
     },
     {
       name: "duplicate operation parameters",
@@ -41,12 +35,6 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       valid: false,
       file: "multiple-body-params.yaml",
       error: "Validation failed. /paths/users/{username}/post has 2 body parameters. Only one is allowed."
-    },
-    {
-      name: "body and formData parameters",
-      valid: false,
-      file: "body-and-form-params.yaml",
-      error: "Validation failed. /paths/users/{username}/post has body parameters and formData parameters. Only one or the other is allowed."
     },
     {
       name: "path param with no placeholder",
@@ -103,16 +91,6 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       error: "Validation failed. /paths/users/{username}/profile/image/post has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded"
     },
     {
-      name: '"file" param with vendor specific form-data "consumes"',
-      valid: true,
-      file: "file-vendor-specific-consumes-formdata.yaml"
-    },
-    {
-      name: '"file" param with vendor specific urlencoded "consumes"',
-      valid: true,
-      file: "file-vendor-specific-consumes-urlencoded.yaml"
-    },
-    {
       name: "required property in input does not exist",
       valid: false,
       file: "required-property-not-defined-input.yaml",
@@ -148,8 +126,9 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
     expect(invalid.valid).to.equal(false);
 
     const api = await SwaggerParser
-      .validate(path.rel("specs/validate-spec/invalid/" + invalid.file), { validate: { spec: false }});
+      .validate(path.rel("specs/validate-spec/invalid-v3/" + invalid.file), { validate: { spec: false }});
     expect(api).to.be.an("object");
+    expect(api.openapi).to.match(/^3\.0/);
   });
 
   for (let test of tests) {
@@ -157,12 +136,12 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       it(test.name, async () => {
         try {
           const api = await SwaggerParser
-            .validate(path.rel("specs/validate-spec/valid/" + test.file));
+            .validate(path.rel("specs/validate-spec/valid-v3/" + test.file));
           expect(api).to.be.an("object");
-          expect(api.swagger).to.equal("2.0");
+          expect(api.openapi).to.match(/^3\.0/);
         }
         catch (err) {
-          throw new Error("Validation should have succeeded, but it failed!\n" + err.stack);
+          throw new Error("Validation should have succeeded, but it failed!\n File:" + test.file + "\n" + err.stack);
         }
       });
     }
@@ -170,7 +149,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       it(test.name, async () => {
         try {
           await SwaggerParser.validate(path.rel("specs/validate-spec/invalid/" + test.file));
-          throw new Error("Validation should have failed, but it succeeded!");
+          throw new Error("Validation should have failed, but it succeeded!\n File:" + test.file + "\n");
         }
         catch (err) {
           expect(err).to.be.an.instanceOf(SyntaxError);
