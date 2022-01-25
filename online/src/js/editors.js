@@ -44,7 +44,7 @@ editors.showResult = function (title, content) {
 /**
  * Displays an error result
  *
- * @param {Error} err
+ * @param {Error} err - The error to be displayed
  */
 editors.showError = function (err) {
   editors.results.removeClass("hidden").addClass("error");
@@ -95,8 +95,8 @@ editors.addResult = function (title, content) {
 /**
  * Returns a short version of the given title text, to better fit in a tab
  *
- * @param {string} title
- * @returns {string}
+ * @param {string} title - The Title we're shortening
+ * @returns {string}     - The short version of the title
  */
 function getShortTitle (title) {
   // Get just the file name
@@ -134,8 +134,8 @@ function showResults () {
  * Converts the given object to text.
  * If possible, it is converted to JSON; otherwise, plain text.
  *
- * @param {object} obj
- * @returns {object}
+ * @param {object} obj - Object to be converted into text
+ * @returns {object}   - JSON or plain-text version of the object
  */
 function toText (obj) {
   if (obj instanceof Error) {

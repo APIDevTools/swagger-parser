@@ -47,8 +47,8 @@ function setFormFields () {
 /**
  * Checks or unchecks the given checkbox, based on the given value.
  *
- * @param {jQuery} input
- * @param {*} value
+ * @param {jQuery} input - The checkbox we're manipulating
+ * @param {*} value      - Checked or Unchecked?
  */
 function setCheckbox (input, value) {
   if (!value || value === "true" || value === "on") {

@@ -43,7 +43,7 @@ analytics.trackEvent = function (category, action, label, value) {
 /**
  * Tracks an error in Google Analytics
  *
- * @param {Error} err
+ * @param {Error} err - The error we're tracking
  */
 analytics.trackError = function (err) {
   try {
