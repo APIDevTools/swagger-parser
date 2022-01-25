@@ -9,7 +9,8 @@
       "stopOnEntry": false,
       "args": [
         "--quick-test",
-        "--timeout=600000"
+        "--timeout=600000",
+        "Real"
       ],
       "cwd": "${workspaceRoot}",
       "preLaunchTask": null,
@@ -18,7 +19,8 @@
         "--nolazy"
       ],
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
       },
       "console": "internalConsole",
       "sourceMaps": false,
