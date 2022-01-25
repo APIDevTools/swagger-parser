@@ -206,9 +206,10 @@ declare class SwaggerParser {
 
 // eslint-disable-next-line no-redeclare
 declare namespace SwaggerParser {
-
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   export type ApiCallback = (err: Error | null, api?: OpenAPI.Document) => any;
   export type $RefsCallback = (err: Error | null, $refs?: $Refs) => any;
+  /* eslint-enable */
 
   /**
    * See https://apitools.dev/swagger-parser/docs/options.html
@@ -323,6 +324,7 @@ declare namespace SwaggerParser {
      */
     read(
       file: FileInfo,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       callback?: (error: Error | null, data: string | null) => any
     ): string | Buffer | Promise<string | Buffer>;
   }
@@ -407,6 +409,7 @@ declare namespace SwaggerParser {
      *
      * @param types (optional) Optionally only return values from certain locations ("file", "http", etc.)
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public values(...types: string[]): { [url: string]: any }
 
     /**
@@ -425,6 +428,7 @@ declare namespace SwaggerParser {
      *
      * @param $ref The JSON Reference path, optionally with a JSON Pointer in the hash
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public get($ref: string): any
 
     /**
@@ -433,6 +437,7 @@ declare namespace SwaggerParser {
      * @param $ref The JSON Reference path, optionally with a JSON Pointer in the hash
      * @param value The value to assign. Can be anything (object, string, number, etc.)
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public set($ref: string, value: any): void
   }
 
