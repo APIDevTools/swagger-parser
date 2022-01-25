@@ -10,7 +10,7 @@ describe("Invalid APIs (OpenAPI v3.0 specification validation)", () => {
       name: "duplicate path parameters",
       valid: false,
       file: "duplicate-path-params.yaml",
-      error: 'Validation failed. /paths/users/{username} has duplicate parameters\nValidation failed. Found multiple header parameters named \"foo\"'      
+      error: 'Validation failed. /paths/users/{username} has duplicate parameters\nValidation failed. Found multiple header parameters named \"foo\"'
     },
     {
       name: "duplicate operation parameters",

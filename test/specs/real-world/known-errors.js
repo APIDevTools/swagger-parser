@@ -108,7 +108,7 @@ function getKnownApiErrors () {
       api: "apideck.com:webhook",
       error: "Property 'data' listed as required but does not exist",
       whatToDo: "ignore"
-    }, 
+    },
 
     // old field that used to exist included in 'required' ??
     {
@@ -165,7 +165,7 @@ function getKnownApiErrors () {
       error: "Property 'email' listed as required but does not exist ",
       whatToDo: "ignore"
     },
-  
+
     // old field that used to exist included in 'required' ??
     {
       api: "byautomata.io",

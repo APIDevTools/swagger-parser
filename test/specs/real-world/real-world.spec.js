@@ -52,7 +52,6 @@ describe("Real-world APIs", () => {
    * Downloads an API definition and validates it.  Automatically retries if the download fails.
    */
   async function validateApi (api, attemptNumber = 1) {
-//  if(api.name.includes('atlassian.com'))
     try {
       await SwaggerParser.validate(api.swaggerYamlUrl);
     }
