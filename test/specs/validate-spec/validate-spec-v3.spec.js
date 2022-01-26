@@ -19,22 +19,28 @@ describe("Invalid APIs (OpenAPI v3.0 specification validation)", () => {
       error: 'Validation failed. /paths/users/{username}/get has duplicate parameters\nValidation failed. Found multiple path parameters named \"username\"'
     },
     {
-      name: "multiple body parameters in path",
+      name: "multiple parameters in path",
       valid: false,
-      file: "multiple-path-body-params.yaml",
-      error: "Validation failed. /paths/users/{username}/get has 2 body parameters. Only one is allowed."
+      file: "multiple-path-params.yaml",
+      error: 'Validation failed. Found multiple path parameters named \"username\"'
     },
     {
-      name: "multiple body parameters in operation",
+      name: "multiple parameters in query",
       valid: false,
-      file: "multiple-operation-body-params.yaml",
-      error: "Validation failed. /paths/users/{username}/patch has 2 body parameters. Only one is allowed."
+      file: "multiple-query-params.yaml",
+      error: 'Validation failed. Found multiple query parameters named \"username\"'
     },
     {
-      name: "multiple body parameters in path & operation",
+      name: "multiple parameters in header",
       valid: false,
-      file: "multiple-body-params.yaml",
-      error: "Validation failed. /paths/users/{username}/post has 2 body parameters. Only one is allowed."
+      file: "multiple-header-params.yaml",
+      error: 'Validation failed. Found multiple header parameters named \"username\"'
+    },
+    {
+      name: "multiple parameters in cookie",
+      valid: false,
+      file: "multiple-cookie-params.yaml",
+      error: 'Validation failed. Found multiple cookie parameters named \"username\"'
     },
     {
       name: "path param with no placeholder",
@@ -63,44 +69,68 @@ describe("Invalid APIs (OpenAPI v3.0 specification validation)", () => {
     {
       name: "array param without items",
       valid: false,
-      file: "array-no-items.yaml",
+      file: "param-array-no-items.yaml",
       error: 'Validation failed. /paths/users/get/parameters/tags is an array, so it must include an \"items\" schema'
     },
     {
-      name: "array body param without items",
+      name: "response array without items",
       valid: false,
-      file: "array-body-no-items.yaml",
-      error: 'Validation failed. /paths/users/post/parameters/people is an array, so it must include an \"items\" schema'
+      file: "response-array-no-items.yaml",
+      error: 'Validation failed. /paths/users/get/responses/default/content/application/json/schema is an array, so it must include an "items" schema'
     },
     {
-      name: "array response header without items",
+      name: "response header array without items",
       valid: false,
-      file: "array-response-header-no-items.yaml",
+      file: "response-header-array-no-items.yaml",
       error: 'Validation failed. /paths/users/get/responses/default/headers/Last-Modified is an array, so it must include an \"items\" schema'
     },
     {
-      name: '"file" param without "consumes"',
+      name: "required property in param does not exist",
       valid: false,
-      file: "file-no-consumes.yaml",
-      error: "Validation failed. /paths/users/{username}/profile/image/post has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded"
-    },
-    {
-      name: '"file" param with invalid "consumes"',
-      valid: false,
-      file: "file-invalid-consumes.yaml",
-      error: "Validation failed. /paths/users/{username}/profile/image/post has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded"
-    },
-    {
-      name: "required property in input does not exist",
-      valid: false,
-      file: "required-property-not-defined-input.yaml",
+      file: "required-property-not-defined-param.yaml",
       error: "Validation failed. Property 'notExists' listed as required but does not exist in '/paths/pets/post/parameters/pet'"
     },
     {
-      name: "required property in definition does not exist",
+      name: "required property in components/parameters does not exist",
       valid: false,
-      file: "required-property-not-defined-definitions.yaml",
-      error: "Validation failed. Property 'photoUrls' listed as required but does not exist in '/definitions/Pet'"
+      file: "required-property-not-defined-components-parameters.yaml",
+      error: "Validation failed. Property \'paramNotExists\' listed as required but does not exist"
+    },
+    {
+      name: "required property in unused components/parameters does not exist",
+      valid: false,
+      file: "required-property-not-defined-components-parameters-unused.yaml",
+      error: "Validation failed. Property \'paramUnusedNotExists\' listed as required but does not exist"
+    },
+    {
+      name: "required property in components/requestBodies does not exist",
+      valid: false,
+      file: "required-property-not-defined-components-requestBodies.yaml",
+      error: "Validation failed. Property \'reqBodyNotExists\' listed as required but does not exist"
+    },
+    {
+      name: "required property in components/schemas does not exist",
+      valid: false,
+      file: "required-property-not-defined-components-schemas.yaml",
+      error: "Validation failed. Property \'notExists\' listed as required but does not exist"
+    },
+    {
+      name: "required property in components/schemas second-level does not exist",
+      valid: false,
+      file: "required-property-not-defined-components-schemas-recursive.yaml",
+      error: "Validation failed. Property \'secondLevelNotExists\' listed as required but does not exist"
+    },
+    {
+      name: "required property in components/responses does not exist",
+      valid: false,
+      file: "required-property-not-defined-components-responses.yaml",
+      error: "Validation failed. Property \'photoUrls\' listed as required but does not exist"
+    },
+    {
+      name: "required property in components/parameters does not exist",
+      valid: false,
+      file: "required-property-not-defined-components-parameters.yaml",
+      error: "Validation failed. Property \'paramNotExists\' listed as required but does not exist"
     },
     {
       name: "schema declares required properties which are inherited (allOf)",
@@ -112,12 +142,6 @@ describe("Invalid APIs (OpenAPI v3.0 specification validation)", () => {
       valid: false,
       file: "duplicate-operation-ids.yaml",
       error: "Validation failed. Duplicate operation id 'users'"
-    },
-    {
-      name: "array response body without items",
-      valid: false,
-      file: "array-response-body-no-items.yaml",
-      error: 'Validation failed. /paths/users/get/responses/200/schema is an array, so it must include an \"items\" schema'
     }
   ];
 
@@ -148,7 +172,7 @@ describe("Invalid APIs (OpenAPI v3.0 specification validation)", () => {
     else {
       it(test.name, async () => {
         try {
-          await SwaggerParser.validate(path.rel("specs/validate-spec/invalid/" + test.file));
+          await SwaggerParser.validate(path.rel("specs/validate-spec/invalid-v3/" + test.file));
           throw new Error("Validation should have failed, but it succeeded!\n File:" + test.file + "\n");
         }
         catch (err) {

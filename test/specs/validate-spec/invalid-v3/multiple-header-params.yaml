@@ -4,25 +4,17 @@ info:
   title: Invalid API
 
 paths:
-  /users/{username}:
+  /users:
     patch:
       parameters:
         - name: username
-          in: path
+          in: header          # <---- Header param #1
           required: true
           schema:
             type: string
         - name: username
-          in: body          # <---- Body param #1
-          schema:
-            type: string
-        - name: bar
-          in: header
-          schema:
-            type: number
+          in: header          # <---- Header param #2
           required: true
-        - name: bar
-          in: body          # <---- Body param #2
           schema:
             type: number
       responses:

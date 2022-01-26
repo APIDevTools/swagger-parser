@@ -1,4 +1,4 @@
-openapi: 3.0.2
+openapi: 3.0.3
 info:
   version: 1.0.0
   title: Swagger Petstore
@@ -8,7 +8,7 @@ paths:
       description: Creates a new pet in the store
       parameters:
         - name: pet
-          in: body
+          in: query
           description: Pet to add to the store
           required: true
           schema:
@@ -23,8 +23,10 @@ paths:
       responses:
         '200':
           description: pet response
-          schema:
-            type: object
-            properties:
-              name:
-                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string

@@ -9,8 +9,7 @@
       "stopOnEntry": false,
       "args": [
         "--quick-test",
-        "--timeout=600000",
-        "Real"
+        "--timeout=600000"
       ],
       "cwd": "${workspaceRoot}",
       "preLaunchTask": null,

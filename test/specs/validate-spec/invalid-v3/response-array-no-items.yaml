@@ -9,5 +9,7 @@ paths:
       responses:
         default:
           description:  hello world
-          schema:
-            type: array
+          content:
+            application/json:
+              schema:
+                type: array

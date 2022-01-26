@@ -21,13 +21,16 @@ paths:
           in: header
           schema:
             type: string
+          required: false
         - name: username          # <---- Another username but in query is ok
           in: query
           schema:
             type: string
+          required: false
         - name: username           # <---- Duplicate param
           in: path
-          type: number
+          schema:
+            type: number
           required: true
       responses:
         default:
