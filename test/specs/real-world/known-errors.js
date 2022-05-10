@@ -88,6 +88,12 @@ function getKnownApiErrors () {
       whatToDo: "ignore"
     },
 
+    {
+      api: "adyen.com",
+      error: "must NOT have unevaluated properties",
+      whatToDo: "ignore"
+    },
+
     // They have a description of `2015-04-22T10:03:19.323-07:00` and YAML parsing is converting that to a `Date`.
     // https://github.com/APIDevTools/json-schema-ref-parser/pull/247
     {
