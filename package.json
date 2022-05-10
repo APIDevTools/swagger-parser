@@ -49,10 +49,11 @@
     "coverage:browser": "npm run test:browser -- --coverage",
     "upgrade": "npm-check -u && npm audit fix",
     "bump": "bump --tag --push --all",
-    "release": "npm run upgrade && npm run clean && npm run build && npm test && npm run bump"
+    "--release--cannot upgrade or everything breaks": "npm run upgrade && npm run clean && npm run build && npm test && npm run bump",
+    "release": "npm run clean && npm run build && npm test && npm run bump"
   },
   "devDependencies": {
-    "@babel/polyfill": "^7.11.5",
+    "@babel/polyfill": "^7.12",
     "@jsdevtools/eslint-config": "^1.1.4",
     "@jsdevtools/host-environment": "^2.1.2",
     "@jsdevtools/karma-config": "^3.1.7",
