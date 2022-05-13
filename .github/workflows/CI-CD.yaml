@@ -14,7 +14,7 @@ jobs:
   node_tests:
     name: Node ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 12
     strategy:
       fail-fast: true
       matrix:
@@ -73,7 +73,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 12
           cache: 'npm'
 
       - name: Install dependencies
@@ -124,7 +124,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 12
           cache: 'npm'
 
       - name: Install dependencies
