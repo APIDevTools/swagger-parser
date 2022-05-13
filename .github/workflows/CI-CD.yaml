@@ -62,14 +62,11 @@ jobs:
       fail-fast: true
       matrix:
         os:
-          - ubuntu-latest     # Chrome, Firefox
-          - windows-latest    # Internet Explorer, Edge
+          - ubuntu-latest     # Chrome, Firefox, Safari (TODO)
+          # - windows-latest    # Internet Explorer, Edge
 
     steps:
 
-      - name: Setup Microsoft Edge
-        if: runner.os == 'Windows'
-        uses: browser-actions/setup-edge@latest
 
       - name: Checkout source
         uses: actions/checkout@v3
