@@ -23,5 +23,6 @@ module.exports = karmaConfig({
       // We still test them in Node though.
       "test/specs/real-world/*",
     ]
-  }
+  },
+  retries: 2
 });
