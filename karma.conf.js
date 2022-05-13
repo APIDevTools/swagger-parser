@@ -15,7 +15,7 @@ module.exports = karmaConfig({
     firefox: host.ci ? host.os.linux : true,
     // safari: host.ci ? host.os.linux : host.os.mac,    // TODO bring this browser back on not Saucelabs
     // edge: host.ci ? host.os.linux : host.os.windows,  // TODO bring this browser back on not Saucelabs
-    // ie: host.ci ? host.os.windows : true,
+    ie: host.ci ? host.os.windows : true,
   },
   config: {
     exclude: [
