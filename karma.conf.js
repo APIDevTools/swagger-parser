@@ -14,7 +14,7 @@ module.exports = karmaConfig({
     chrome: host.ci ? host.os.linux : true,
     firefox: host.ci ? host.os.linux : true,
     // safari: host.ci ? host.os.linux : host.os.mac,    // SauceLabs in CI
-    edge: host.ci ? host.os.linux : host.os.windows,  // SauceLabs in CI
+    // edge: host.ci ? host.os.linux : host.os.windows,  // SauceLabs in CI
     // ie: host.ci ? host.os.windows : true,
   },
   config: {
@@ -23,6 +23,5 @@ module.exports = karmaConfig({
       // We still test them in Node though.
       "test/specs/real-world/*",
     ]
-  },
-  retries: 2
+  }
 });
