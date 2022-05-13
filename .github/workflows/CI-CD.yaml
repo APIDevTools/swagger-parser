@@ -63,14 +63,13 @@ jobs:
       matrix:
         os:
           - ubuntu-latest     # Chrome, Firefox
-          - windows-latest    # Internet Explorer
+          - windows-latest    # Internet Explorer, Edge
 
     steps:
 
       - name: Setup Microsoft Edge
+        if: runner.os == 'Windows'
         uses: browser-actions/setup-edge@latest
-      - name: Print Edge version
-        run: (Get-Item (Get-Command msedge).Source).VersionInfo.ProductVersion
 
       - name: Checkout source
         uses: actions/checkout@v3
