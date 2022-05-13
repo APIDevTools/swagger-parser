@@ -29,10 +29,10 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Node ${{ matrix.node }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
 
@@ -66,11 +66,17 @@ jobs:
           - windows-latest    # Internet Explorer
 
     steps:
+
+      - name: Setup Microsoft Edge
+        uses: browser-actions/setup-edge@latest
+      - name: Print Edge version
+        run: (Get-Item (Get-Command msedge).Source).VersionInfo.ProductVersion
+
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 12
 
