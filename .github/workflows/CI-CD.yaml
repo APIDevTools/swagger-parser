@@ -24,6 +24,7 @@ jobs:
         node:
           - 14
           - 16
+          # - 18 TODO bring this back
 
     steps:
       - name: Checkout source
