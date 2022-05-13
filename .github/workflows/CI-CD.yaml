@@ -14,9 +14,8 @@ jobs:
   node_tests:
     name: Node ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 12
+    timeout-minutes: 10
     strategy:
-      fail-fast: true
       matrix:
         os:
           - ubuntu-latest
@@ -25,7 +24,6 @@ jobs:
         node:
           - 14
           - 16
-          - 18
 
     steps:
       - name: Checkout source
