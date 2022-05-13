@@ -1,0 +1,17 @@
+openapi: "3.0.2"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users:
+    get:
+      operationId: users
+      responses:
+        default:
+          description:  hello world
+    post:
+      operationId: users          # <---- duplicate
+      responses:
+        default:
+          description:  hello world

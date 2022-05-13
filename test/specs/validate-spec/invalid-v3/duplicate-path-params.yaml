@@ -1,0 +1,35 @@
+openapi: "3.0.2"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users/{username}:
+    parameters:
+      - name: username
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: foo           # <---- Duplicate param
+        in: header
+        schema:
+          type: string
+        required: false
+      - name: username      # <---- Same param but in header is ok
+        in: header
+        schema:
+          type: string
+      - name: username      # <---- Same param but in query is ok
+        in: query
+        schema:
+          type: string
+      - name: foo           # <---- Duplicate param
+        in: header
+        schema:
+          type: number
+        required: true
+    get:
+      responses:
+        default:
+          description:  hello world

@@ -1,0 +1,51 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Swagger Petstore
+paths:
+  /pets:
+    post:
+      description: Creates a new pet in the store
+      parameters:
+        - $ref: '#/components/parameters/Pet'
+      responses:
+        '200':
+          description: pet response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+components:
+  parameters:
+    Pet:
+      name: pet
+      in: query
+      description: Pet to add to the store
+      required: true
+      schema:
+        type: object
+        required:
+          - name
+        properties:
+          name:
+            type: string
+          color:
+            type: string
+    Unused:
+      name: unused
+      in: query
+      description: Unused to add to the store
+      required: true
+      schema:
+        type: object
+        required:
+          - name
+          - paramUnusedNotExists          # <--- does not exist
+        properties:
+          name:
+            type: string
+          color:
+            type: string

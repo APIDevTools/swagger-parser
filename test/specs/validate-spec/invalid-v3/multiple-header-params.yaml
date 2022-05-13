@@ -1,0 +1,22 @@
+openapi: "3.0.2"
+info:
+  version: "1.0.0"
+  title: Invalid API
+
+paths:
+  /users:
+    patch:
+      parameters:
+        - name: username
+          in: header          # <---- Header param #1
+          required: true
+          schema:
+            type: string
+        - name: username
+          in: header          # <---- Header param #2
+          required: true
+          schema:
+            type: number
+      responses:
+        default:
+          description:  hello world

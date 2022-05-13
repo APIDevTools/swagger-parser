@@ -1,10 +1,10 @@
 "use strict";
 
 const { expect } = require("chai");
-const SwaggerParser = require("../../..");
+const SwaggerParser = require("../../../lib");
 const path = require("../../utils/path");
 
-describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
+describe("Invalid APIs (Swagger v2.0 specification validation)", () => {
   let tests = [
     {
       name: "invalid response code",
@@ -16,13 +16,13 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       name: "duplicate path parameters",
       valid: false,
       file: "duplicate-path-params.yaml",
-      error: 'Validation failed. /paths/users/{username} has duplicate parameters \nValidation failed. Found multiple header parameters named \"foo\"'
+      error: 'Validation failed. /paths/users/{username} has duplicate parameters\nValidation failed. Found multiple header parameters named \"foo\"'
     },
     {
       name: "duplicate operation parameters",
       valid: false,
       file: "duplicate-operation-params.yaml",
-      error: 'Validation failed. /paths/users/{username}/get has duplicate parameters \nValidation failed. Found multiple path parameters named \"username\"'
+      error: 'Validation failed. /paths/users/{username}/get has duplicate parameters\nValidation failed. Found multiple path parameters named \"username\"'
     },
     {
       name: "multiple body parameters in path",
@@ -75,13 +75,13 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
     {
       name: "array param without items",
       valid: false,
-      file: "array-no-items.yaml",
+      file: "param-array-no-items.yaml",
       error: 'Validation failed. /paths/users/get/parameters/tags is an array, so it must include an \"items\" schema'
     },
     {
       name: "array body param without items",
       valid: false,
-      file: "array-body-no-items.yaml",
+      file: "param-array-body-no-items.yaml",
       error: 'Validation failed. /paths/users/post/parameters/people is an array, so it must include an \"items\" schema'
     },
     {
@@ -89,6 +89,12 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       valid: false,
       file: "array-response-header-no-items.yaml",
       error: 'Validation failed. /paths/users/get/responses/default/headers/Last-Modified is an array, so it must include an \"items\" schema'
+    },
+    {
+      name: "array response body without items",
+      valid: false,
+      file: "array-response-body-no-items.yaml",
+      error: 'Validation failed. /paths/users/get/responses/200/schema is an array, so it must include an \"items\" schema'
     },
     {
       name: '"file" param without "consumes"',
@@ -136,11 +142,11 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       error: "Validation failed. Duplicate operation id 'users'"
     },
     {
-      name: "array response body without items",
+      name: "array request body without items",
       valid: false,
-      file: "array-response-body-no-items.yaml",
-      error: 'Validation failed. /paths/users/get/responses/200/schema is an array, so it must include an \"items\" schema'
-    }
+      file: "array-request-body-no-items.yaml",
+      error: "Validation failed. /paths/users/get/responses/200/schema is an array, so it must include an \"items\" schema"
+    },
   ];
 
   it('should pass validation if "options.validate.spec" is false', async () => {
@@ -148,7 +154,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
     expect(invalid.valid).to.equal(false);
 
     const api = await SwaggerParser
-      .validate(path.rel("specs/validate-spec/invalid/" + invalid.file), { validate: { spec: false }});
+      .validate(path.rel("specs/validate-spec/invalid-v2/" + invalid.file), { validate: { spec: false }});
     expect(api).to.be.an("object");
   });
 
@@ -157,8 +163,9 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       it(test.name, async () => {
         try {
           const api = await SwaggerParser
-            .validate(path.rel("specs/validate-spec/valid/" + test.file));
+            .validate(path.rel("specs/validate-spec/valid-v2/" + test.file));
           expect(api).to.be.an("object");
+          expect(api.swagger).to.equal("2.0");
         }
         catch (err) {
           throw new Error("Validation should have succeeded, but it failed!\n" + err.stack);
@@ -168,13 +175,13 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
     else {
       it(test.name, async () => {
         try {
-          await SwaggerParser.validate(path.rel("specs/validate-spec/invalid/" + test.file));
+          await SwaggerParser.validate(path.rel("specs/validate-spec/invalid-v2/" + test.file));
           throw new Error("Validation should have failed, but it succeeded!");
         }
         catch (err) {
           expect(err).to.be.an.instanceOf(SyntaxError);
-          expect(err.message).to.equal(test.error);
-          expect(err.message).to.match(/^Validation failed. \S+/);
+          expect(err.message).to.include(test.error);
+          expect(err.message).to.match(/^Specification check failed.\sValidation failed./);
         }
       });
     }

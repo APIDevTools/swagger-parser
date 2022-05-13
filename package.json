@@ -41,6 +41,7 @@
     "build:website": "simplifyify online/src/js/index.js --outfile online/js/bundle.js --bundle --debug --minify",
     "build:sass": "node-sass --source-map true --output-style compressed online/src/scss/style.scss online/css/style.min.css",
     "test": "npm run test:node && npm run test:typescript && npm run test:browser && npm run lint",
+    "test:quick": "mocha --quick-test",
     "test:node": "mocha",
     "test:browser": "karma start --single-run",
     "test:typescript": "tsc --noEmit --strict --lib esnext,dom test/specs/typescript-definition.spec.ts",

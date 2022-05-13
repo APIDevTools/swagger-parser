@@ -42,8 +42,8 @@ function dropdowns () {
  * Calls the given function whenever the user selects (or deselects)
  * a value in the given drop-down menu.
  *
- * @param {jQuery} menu
- * @param {function} setLabel
+ * @param {jQuery} menu        - dropdown menu we're using
+ * @param {Function} setLabel  - value to be set (or unset)
  */
 function onChange (menu, setLabel) {
   let dropdown = menu.parent(".dropdown");
@@ -144,7 +144,7 @@ function setSelectedMethod (methodName) {
 /**
  * Tracks changes to a checkbox option
  *
- * @param {jQuery} checkbox
+ * @param {jQuery} checkbox - Checkbox that we're tracking changes for
  */
 function trackCheckbox (checkbox) {
   checkbox.on("change", () => {
@@ -166,8 +166,8 @@ function trackButtonLabel (methodName) {
 /**
  * Examines the given checkboxes, and returns arrays of checked and unchecked values.
  *
- * @param {...jQuery} _checkboxes
- * @returns {{checked: string[], unchecked: string[]}}
+ * @param {...jQuery} _checkboxes                         - Checkboxes we're checking
+ * @returns {{checked: string[], unchecked: string[]}}    - Arrays of checked and unchecked values
  */
 function getCheckedAndUnchecked (_checkboxes) {
   let checked = [], unchecked = [];

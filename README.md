@@ -27,7 +27,10 @@ Features
 - Tested on **[over 1,500 real-world APIs](https://apis.guru/browse-apis/)** from Google, Microsoft, Facebook, Spotify, etc.
 - Supports [circular references](https://apitools.dev/swagger-parser/docs/#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
-
+- Checks for inconsistencies in Swagger v2.0 and OpenAPI v3.0 specs:
+  - path parameter mis-matches
+  - required field mis-matches
+  - arrays without item definition
 
 
 Related Projects

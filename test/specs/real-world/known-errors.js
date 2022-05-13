@@ -68,6 +68,62 @@ function getKnownApiErrors () {
       whatToDo: "ignore",
     },
 
+    // adyen.com v3.1.0 schemas seem to be interesting ...
+    {
+      api: "adyen.com",
+      error: "must NOT have unevaluated properties",
+      whatToDo: "ignore"
+    },
+
+    // old field that used to exist included in 'required' ??
+    {
+      api: "airbyte.local:config",
+      error: "Property 'connection' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
+    // old field that used to exist included in 'required' ??
+    {
+      api: "airbyte.local:config",
+      error: "Property 'json_schema' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
+    // old field that used to exist included in 'required' ??
+    {
+      api: "apicurio.local:registry",
+      error: "Property 'group' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
+    // TODO something to investigate
+    {
+      api: "apideck.com:file-storage",
+      error: "Cannot read property 'type' of undefined",
+      whatToDo: "ignore"
+    },
+
+    // old field that used to exist included in 'required' ??
+    {
+      api: "apideck.com:webhook",
+      error: "Property 'data' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
+    // old field that used to exist included in 'required' ??
+    {
+      api: "apideck.com:hris",
+      error: "Property 'name' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
+    // old field that used to exist included in 'required' ??
+    {
+      api: "atlassian.com:jira",
+      error: "Property 'defaultScreen' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
     // Many Azure API definitions erroneously reference external files that don't exist.
     {
       api: "azure.com",
@@ -102,6 +158,41 @@ function getKnownApiErrors () {
       whatToDo: "ignore",
     },
 
+    // old field that used to exist included in 'required' ??
+    {
+      api: "box.com",
+      error: " Property 'grant_type' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
+    // old field that used to exist included in 'required' ??
+    {
+      api: "britbox.co.uk",
+      error: "Property 'email' listed as required but does not exist ",
+      whatToDo: "ignore"
+    },
+
+    // old field that used to exist included in 'required' ??
+    {
+      api: "byautomata.io",
+      error: "Property 'terms' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
+    // old field that used to exist included in 'required' ??
+    {
+      api: "cdcgov.local:prime-data-hub",
+      error: "Property 'jurisdictionalFilter' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
+    // old field that used to exist included in 'required' ??
+    {
+      api: "clicksend.com",
+      error: "/paths/uploads?convert={convert}/post is missing path parameter(s) for {convert}",
+      whatToDo: "ignore"
+    },
+
     // Cloudmersive.com's API definition contains invalid JSON Schema types
     {
       api: "cloudmersive.com:ocr",
@@ -116,11 +207,37 @@ function getKnownApiErrors () {
       whatToDo: "ignore",
     },
 
+    // old field that used to exist included in 'required' ??
+    {
+      api: "dataflowkit.com",
+      error: "Property 'proxy' listed as required but does not exist ",
+      whatToDo: "ignore"
+    },
+
+    {
+      api: "digitallocker.gov.in:authpartner",
+      error: "Property 'id' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
     {
       api: "enode.io",
       error: "schema/items must NOT have additional properties",
       whatToDo: "ignore"
     },
+
+    {
+      api: "etsi.local:MEC010-2_AppPkgMgmt",
+      error: "Property 'featureName' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
+    {
+      api: "exavault.com",
+      error: "Property 'homeResource' listed as required but does not exist",
+      whatToDo: "ignore"
+    },
+
     {
       api: "frankiefinancial.io",
       error: "Property 'rowid' listed as required but does not exist",
