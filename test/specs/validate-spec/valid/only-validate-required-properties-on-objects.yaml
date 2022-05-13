@@ -1,0 +1,86 @@
+swagger: "2.0"
+info:
+  title: API documentation
+  version: "1.0.0"
+paths:
+  /product:
+    get:
+      responses:
+        "200":
+          schema:
+            $ref: "#/definitions/product"
+          description: Successful
+  /products:
+    get:
+      responses:
+        "200":
+          schema:
+            $ref: "#/definitions/products"
+          description: Successful
+  /mood:
+    get:
+      responses:
+        "200":
+          schema:
+            $ref: "#/definitions/mood"
+          description: Successful
+  /temperature:
+    get:
+      responses:
+        "200":
+          schema:
+            $ref: "#/definitions/temperature"
+          description: Successful
+  /age:
+    get:
+      responses:
+        "200":
+          schema:
+            $ref: "#/definitions/age"
+          description: Successful
+  /hunger:
+    get:
+      responses:
+        "200":
+          schema:
+            $ref: "#/definitions/hunger"
+          description: Successful
+definitions:
+  product:
+    type: object
+    properties:
+      expiration:
+        type: string
+        format: date
+      name:
+        type: string
+      weight:
+        type: number
+    required:
+      - name
+  products:
+    type: array
+    items:
+      $ref: "#/definitions/product"
+    required:
+      - items    # <--- Should not be validated since type is not object
+  mood:
+    type: string
+    example: nostalgic
+    required:
+      - length    # <--- Should not be validated since type is not object
+  temperature:
+    type: number
+    example: 86
+    required:
+      - precision    # <--- Should not be validated since type is not object
+  age:
+    type: integer
+    example: 42
+    required:
+      - factors    # <--- Should not be validated since type is not object
+  hunger:
+    type: boolean
+    example: true
+    required:
+      - truth    # <--- Should not be validated since type is not object
