@@ -63,7 +63,7 @@ jobs:
       fail-fast: true
       matrix:
         os:
-          - ubuntu-latest     # Chrome, Firefox, Safari (via SauceLabs), Edge (via SauceLabs)
+          - ubuntu-latest     # Chrome, Firefox
           - windows-latest    # Internet Explorer
 
     steps:
@@ -80,9 +80,6 @@ jobs:
 
       - name: Run tests
         run: npm run coverage:browser
-        env:
-          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
-          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
 
       - name: Combine code coverage data into a single file
         shell: bash
