@@ -13,8 +13,12 @@ module.exports = karmaConfig({
   browsers: {
     chrome: host.ci ? host.os.linux : true,
     firefox: host.ci ? host.os.linux : true,
-    // safari: host.ci ? host.os.linux : host.os.mac,    // SauceLabs in CI
-    edge: host.ci ? host.os.linux : host.os.windows,  // SauceLabs in CI
+    safari: false,
+    edge: false,
+    ie: false,
+    // Find a way to bring back these without using Saucelabs
+    // safari: host.ci ? host.os.linux : host.os.mac,
+    // edge: host.os.windows,
     // ie: host.ci ? host.os.windows : true,
   },
   config: {

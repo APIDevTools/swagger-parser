@@ -6,10 +6,9 @@
 name: CI-CD
 
 on:
-  push:
   pull_request:
-  schedule:
-    - cron: "0 0 1 * *"
+  push:
+    branches: [main]
 
 jobs:
   node_tests:
@@ -17,7 +16,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
-      fail-fast: true
       matrix:
         os:
           - ubuntu-latest
@@ -26,16 +24,16 @@ jobs:
         node:
           - 14
           - 16
-          - 18
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Node ${{ matrix.node }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
@@ -63,26 +61,24 @@ jobs:
       fail-fast: true
       matrix:
         os:
-          - ubuntu-latest     # Chrome, Firefox, Safari (via SauceLabs), Edge (via SauceLabs)
-          - windows-latest    # Internet Explorer
+          - ubuntu-latest     # Chrome, Firefox, Safari (TODO)
+          # - windows-latest    # Internet Explorer, Edge
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 12
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Run tests
         run: npm run coverage:browser
-        env:
-          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
-          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
 
       - name: Combine code coverage data into a single file
         shell: bash
@@ -121,10 +117,13 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
+        with:
+          node-version: 12
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
