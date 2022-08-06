@@ -19,7 +19,7 @@ const openapiObject: OpenAPI.Document = {
 
 
 // SwaggerParser class instance
-let parser = new SwaggerParser.SwaggerParser();
+let parser = new SwaggerParser();
 
 
 // SwaggerParser instance properties

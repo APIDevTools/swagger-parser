@@ -20,7 +20,7 @@ describe("Callback & Promise syntax", () => {
 
   function testCallbackSuccess (method) {
     return function (done) {
-      let parser = new SwaggerParser.SwaggerParser();
+      let parser = new SwaggerParser();
       parser[method](path.rel("specs/callbacks-promises/callbacks-promises.yaml"), (err, result) => {
         try {
           expect(err).to.equal(null);
