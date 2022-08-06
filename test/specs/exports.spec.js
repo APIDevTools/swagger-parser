@@ -3,6 +3,8 @@
 
 const { expect } = require("chai");
 const SwaggerParser = require("../..");
+const { validate } = require("../..");
+const path = require("../utils/path");
 
 describe("Exports", () => {
   it("should export the SwaggerParser class", async () => {
@@ -18,5 +20,9 @@ describe("Exports", () => {
 
   it("should export the validate method", async () => {
     expect(SwaggerParser.validate).to.be.a("function");
+  });
+
+  it("Using named import should work correctly", async () => {
+    await validate(path.rel("specs/validate-spec/valid/file-vendor-specific-consumes-formdata.yaml"));
   });
 });
