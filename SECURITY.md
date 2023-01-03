@@ -121,6 +121,5 @@ You can prevent exploitation by hardening the environment in which the service i
 
 If you have any YAML or JSON files the service must have access to that may contain sensitive information, such as configuration file(s), you must take additional measures to prevent exploitation. A non-exhaustive list:
 
- * You can implement your service so that it reads the configuration into memory at start time, then uses [setuid](https://nodejs.org/api/process.html#processsetuidid) to set the process' UID to the ID of a user that has no access to the file on the filesystem
+ * You can implement your service so that it reads the configuration into memory at start time, then uses [setuid](https://nodejs.org/api/process.html#processsetuidid) and [setgid](https://nodejs.org/api/process.html#processsetgidid) to set the process' UID and GID to the ID of a user and ID of a group that has no access to the file on the filesystem
  * Do not store sensitive information, such as credentials, in the service configuration files
- * Store configuration files at a location that is difficult to guess
