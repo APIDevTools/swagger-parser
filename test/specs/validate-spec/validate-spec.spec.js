@@ -140,7 +140,12 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       valid: false,
       file: "array-response-body-no-items.yaml",
       error: 'Validation failed. /paths/users/get/responses/200/schema is an array, so it must include an \"items\" schema'
-    }
+    },
+    {
+      name: "only validate required properties on objects",
+      valid: true,
+      file: "only-validate-required-properties-on-objects.yaml"
+    },
   ];
 
   it('should pass validation if "options.validate.spec" is false', async () => {

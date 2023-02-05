@@ -17,6 +17,17 @@ describe("Invalid APIs (can't be parsed)", () => {
     }
   });
 
+  it("not a valid OpenAPI 3.1 definition", async () => {
+    try {
+      await SwaggerParser.parse(path.rel("specs/invalid/no-paths-or-webhooks.yaml"));
+      helper.shouldNotGetCalled();
+    }
+    catch (err) {
+      expect(err).to.be.an.instanceOf(SyntaxError);
+      expect(err.message).to.contain("no-paths-or-webhooks.yaml is not a valid Openapi API definition");
+    }
+  });
+
   it("invalid Swagger version (1.2)", async () => {
     try {
       await SwaggerParser.dereference(path.rel("specs/invalid/old-version.yaml"));

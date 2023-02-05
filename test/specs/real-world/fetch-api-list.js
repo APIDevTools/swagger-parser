@@ -37,6 +37,13 @@ function deleteProblematicAPIs (apis) {
   delete apis["docusign.net"];
   delete apis["kubernetes.io"];
   delete apis["microsoft.com:graph"];
+
+  // hangs
+  delete apis["presalytics.io:ooxml"];
+
+  // base security declaration in path/get operation (error message below)
+  // "type array but found type null at #/paths//vault/callback/get/security"
+  delete apis["apideck.com:vault"];
 }
 
 /**

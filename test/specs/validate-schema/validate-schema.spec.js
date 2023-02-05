@@ -134,14 +134,16 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
         }
         catch (err) {
           expect(err).to.be.an.instanceOf(SyntaxError);
-          expect(err.message).to.match(/^Swagger schema validation failed. \n  \w+/);
+          expect(err.message).to.match(/^Swagger schema validation failed.\n(.*)+/);
           expect(err.details).to.be.an("array").with.length.above(0);
-          // Make sure the ZSchema error details object is valid
+
+          // Make sure the Ajv error details object is valid
           let details = err.details[0];
-          expect(details.code).to.be.a("string").and.match(/[A-Z_]+/);
-          expect(details.message).to.be.a("string").with.length.of.at.least(1);
-          expect(details.path).to.be.an("array").with.length.above(0);
-          expect(details.params).to.be.an("array");
+          expect(details.instancePath).to.be.a("string").and.match(/[a-zA-Z\/~01]+/); // /paths/~1users/get/responses
+          expect(details.schemaPath).to.be.a("string").and.match(/^#\/[a-zA-Z\\/]+/); // #/properties/parameters/items/oneOf
+          expect(details.keyword).to.be.a("string").and.match(/\w+/); // oneOf
+          expect(details.params).to.be.a("object"); // { passingSchemas: null }
+          expect(details.message).to.be.a("string").with.length.of.at.least(1); // must match exactly one schema in oneOf
         }
       });
     }
