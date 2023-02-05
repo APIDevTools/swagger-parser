@@ -76,7 +76,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "https://github.com/SoftBugs/json-schema-ref-parser",
+    "@apidevtools/json-schema-ref-parser": "https://github.com/APIDevTools/json-schema-ref-parser.git",
     "@apidevtools/openapi-schemas": "^2.1.0",
     "@apidevtools/swagger-methods": "^3.0.2",
     "@jsdevtools/ono": "^7.1.3",
