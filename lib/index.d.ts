@@ -272,6 +272,11 @@ declare namespace SwaggerParser {
        */
       spec?: boolean;
     };
+    
+    /**
+     * If set to `true`, don't throw on the first error
+     */
+    continueOnError?: boolean;
   }
 
   export interface HTTPResolverOptions extends Partial<ResolverOptions> {
