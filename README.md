@@ -88,7 +88,7 @@ const SwaggerParser = require("@apidevtools/swagger-parser");
 When using a transpiler such as [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/), or a bundler such as [Webpack](https://webpack.js.org/) or [Rollup](https://rollupjs.org/), you can use **ECMAScript modules** syntax instead:
 
 ```javascript
-import SwaggerParser from "@apidevtools/swagger-parser";
+import * as SwaggerParser from '@apidevtools/swagger-parser';
 ```
 
 
