@@ -67,7 +67,7 @@
     "mocha": "^8.1.3",
     "node-fetch": "^2.6.7",
     "node-sass": "^7.0",
-    "npm-check": "^4.1.4",
+    "npm-check": "^6.0.1",
     "nyc": "^15.1.0",
     "openapi-types": "^9.3.0",
     "shx": "^0.3.2",
