@@ -7,7 +7,7 @@ module.exports = samples;
 /**
  * Allows the user to use a sample URL or sample API text
  */
-function samples () {
+function samples() {
   form.samples.url.link.on("click", (event) => {
     event.preventDefault();
     form.url.val(samples.url);
@@ -23,8 +23,7 @@ function samples () {
   form.textBox.on("input", () => {
     if (form.textBox.session.getValue().length === 0) {
       form.samples.text.container.show();
-    }
-    else {
+    } else {
       form.samples.text.container.hide();
     }
   });

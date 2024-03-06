@@ -10,8 +10,7 @@ describe("Invalid APIs (can't be parsed)", () => {
     try {
       await SwaggerParser.parse(path.rel("specs/invalid/not-swagger.yaml"));
       helper.shouldNotGetCalled();
-    }
-    catch (err) {
+    } catch (err) {
       expect(err).to.be.an.instanceOf(SyntaxError);
       expect(err.message).to.contain("not-swagger.yaml is not a valid Openapi API definition");
     }
@@ -21,8 +20,7 @@ describe("Invalid APIs (can't be parsed)", () => {
     try {
       await SwaggerParser.parse(path.rel("specs/invalid/no-paths-or-webhooks.yaml"));
       helper.shouldNotGetCalled();
-    }
-    catch (err) {
+    } catch (err) {
       expect(err).to.be.an.instanceOf(SyntaxError);
       expect(err.message).to.contain("no-paths-or-webhooks.yaml is not a valid Openapi API definition");
     }
@@ -32,8 +30,7 @@ describe("Invalid APIs (can't be parsed)", () => {
     try {
       await SwaggerParser.dereference(path.rel("specs/invalid/old-version.yaml"));
       helper.shouldNotGetCalled();
-    }
-    catch (err) {
+    } catch (err) {
       expect(err).to.be.an.instanceOf(SyntaxError);
       expect(err.message).to.equal("Unrecognized Swagger version: 1.2. Expected 2.0");
     }
@@ -43,8 +40,7 @@ describe("Invalid APIs (can't be parsed)", () => {
     try {
       await SwaggerParser.bundle(path.rel("specs/invalid/newer-version.yaml"));
       helper.shouldNotGetCalled();
-    }
-    catch (err) {
+    } catch (err) {
       expect(err).to.be.an.instanceOf(SyntaxError);
       expect(err.message).to.equal("Unrecognized Swagger version: 3.0. Expected 2.0");
     }
@@ -54,10 +50,9 @@ describe("Invalid APIs (can't be parsed)", () => {
     try {
       await SwaggerParser.validate(path.rel("specs/invalid/numeric-version.yaml"));
       helper.shouldNotGetCalled();
-    }
-    catch (err) {
+    } catch (err) {
       expect(err).to.be.an.instanceOf(SyntaxError);
-      expect(err.message).to.equal('Swagger version number must be a string (e.g. \"2.0\") not a number.');
+      expect(err.message).to.equal('Swagger version number must be a string (e.g. "2.0") not a number.');
     }
   });
 
@@ -65,10 +60,9 @@ describe("Invalid APIs (can't be parsed)", () => {
     try {
       await SwaggerParser.validate(path.rel("specs/invalid/numeric-info-version.yaml"));
       helper.shouldNotGetCalled();
-    }
-    catch (err) {
+    } catch (err) {
       expect(err).to.be.an.instanceOf(SyntaxError);
-      expect(err.message).to.equal('API version number must be a string (e.g. \"1.0.0\") not a number.');
+      expect(err.message).to.equal('API version number must be a string (e.g. "1.0.0") not a number.');
     }
   });
 });

@@ -7,7 +7,7 @@ module.exports = analytics;
 /**
  * Initializes Google Analytics and sends a "pageview" hit
  */
-function analytics () {
+function analytics() {
   if (!debug) {
     if (typeof gtag === "undefined") {
       console.warn("Google Analytics is not enabled");
@@ -29,13 +29,12 @@ analytics.trackEvent = function (category, action, label, value) {
 
     if (!debug) {
       gtag("event", action, {
-        event_category: category,   // eslint-disable-line camelcase
-        event_label: label,         // eslint-disable-line camelcase
-        value
+        event_category: category, // eslint-disable-line camelcase
+        event_label: label, // eslint-disable-line camelcase
+        value,
       });
     }
-  }
-  catch (error) {
+  } catch (error) {
     analytics.trackError(error);
   }
 };
@@ -56,8 +55,7 @@ analytics.trackError = function (err) {
         stack: err.stack,
       });
     }
-  }
-  catch (error) {
+  } catch (error) {
     console.error(err);
   }
 };

@@ -8,7 +8,7 @@ module.exports = editors;
 /**
  * Initializes the ACE text editors
  */
-function editors () {
+function editors() {
   editors.textBox = form.textBox = ace.edit("text-box");
   form.textBox.setTheme(ACE_THEME);
   let session = form.textBox.getSession();
@@ -66,19 +66,38 @@ editors.addResult = function (title, content) {
 
   // Add a tab and pane
   editors.tabs.append(
-    '<li id="results-tab-' + index + '" class="' + active + '" role="presentation">' +
-    ' <a id="' + titleId + '" href="#results-pane-' + index + '" role="tab" aria-controls="results-pane-' + index + '" data-toggle="tab"></a>' +
-    "</li>"
+    '<li id="results-tab-' +
+      index +
+      '" class="' +
+      active +
+      '" role="presentation">' +
+      ' <a id="' +
+      titleId +
+      '" href="#results-pane-' +
+      index +
+      '" role="tab" aria-controls="results-pane-' +
+      index +
+      '" data-toggle="tab"></a>' +
+      "</li>",
   );
   editors.panes.append(
-    '<div id="results-pane-' + index + '" class="tab-pane ' + active + '" role="tabpanel">' +
-    '  <pre id="' + editorId + '" class="editor"></pre>' +
-    "</div>"
+    '<div id="results-pane-' +
+      index +
+      '" class="tab-pane ' +
+      active +
+      '" role="tabpanel">' +
+      '  <pre id="' +
+      editorId +
+      '" class="editor"></pre>' +
+      "</div>",
   );
 
   // Set the tab title
   let shortTitle = getShortTitle(title) || "Sample API";
-  editors.tabs.find("#" + titleId).text(shortTitle).attr("title", title);
+  editors.tabs
+    .find("#" + titleId)
+    .text(shortTitle)
+    .attr("title", title);
 
   // Set the <pre> content
   content = toText(content);
@@ -98,7 +117,7 @@ editors.addResult = function (title, content) {
  * @param {string} title
  * @returns {string}
  */
-function getShortTitle (title) {
+function getShortTitle(title) {
   // Get just the file name
   let lastSlash = title.lastIndexOf("/");
   if (lastSlash !== -1) {
@@ -116,12 +135,13 @@ function getShortTitle (title) {
 /**
  * Ensures that the results are visible, and plays an animation to get the user's attention.
  */
-function showResults () {
+function showResults() {
   let results = editors.results;
 
   setTimeout(() => {
     results[0].scrollIntoView();
-    results.addClass("animated")
+    results
+      .addClass("animated")
       .one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", () => {
         // Remove the "animated" class when the animation ends,
         // so we can replay the animation again next time
@@ -137,24 +157,22 @@ function showResults () {
  * @param {object} obj
  * @returns {object}
  */
-function toText (obj) {
+function toText(obj) {
   if (obj instanceof Error) {
     return {
       isJSON: false,
-      text: obj.message + "\n\n" + obj.stack
+      text: obj.message + "\n\n" + obj.stack,
     };
-  }
-  else {
+  } else {
     try {
       return {
         isJSON: true,
-        text: JSON.stringify(obj, null, 2)
+        text: JSON.stringify(obj, null, 2),
       };
-    }
-    catch (e) {
+    } catch (e) {
       return {
         isJSON: false,
-        text: "This API is valid, but it cannot be shown because it contains circular references\n\n" + e.stack
+        text: "This API is valid, but it cannot be shown because it contains circular references\n\n" + e.stack,
       };
     }
   }

@@ -1,52 +1,48 @@
 "use strict";
 
-module.exports =
-{
+module.exports = {
   definitions: {
     requiredString: {
       minLength: 1,
       type: "string",
-      title: "requiredString"
+      title: "requiredString",
     },
     name: {
-      required: [
-        "first",
-        "last"
-      ],
+      required: ["first", "last"],
       type: "object",
       properties: {
         middle: {
           type: "string",
-          enum: ["string", "requiredString"]
+          enum: ["string", "requiredString"],
         },
         prefix: {
           minLength: 3,
           type: "string",
-          title: "requiredString"
+          title: "requiredString",
         },
         last: {
           minLength: 1,
           type: "string",
-          title: "requiredString"
+          title: "requiredString",
         },
         suffix: {
           minLength: 3,
           maxLength: 3,
           title: "requiredString",
-          type: "string"
+          type: "string",
         },
         first: {
           minLength: 1,
           type: "string",
-          title: "requiredString"
-        }
-      }
-    }
+          title: "requiredString",
+        },
+      },
+    },
   },
   info: {
     version: "1.0.0",
     description: "This is an intentionally over-complicated API that returns a person's name",
-    title: "Name API"
+    title: "Name API",
   },
   paths: {
     "/people/{name}": {
@@ -55,51 +51,48 @@ module.exports =
           required: true,
           type: "string",
           name: "name",
-          in: "path"
-        }
+          in: "path",
+        },
       ],
       get: {
         responses: {
           200: {
             description: "Returns the requested name",
             schema: {
-              required: [
-                "first",
-                "last"
-              ],
+              required: ["first", "last"],
               type: "object",
               properties: {
                 middle: {
                   type: "string",
-                  enum: ["string", "requiredString"]
+                  enum: ["string", "requiredString"],
                 },
                 prefix: {
                   minLength: 3,
                   type: "string",
-                  title: "requiredString"
+                  title: "requiredString",
                 },
                 last: {
                   minLength: 1,
                   type: "string",
-                  title: "requiredString"
+                  title: "requiredString",
                 },
                 suffix: {
                   minLength: 3,
                   maxLength: 3,
                   title: "requiredString",
-                  type: "string"
+                  type: "string",
                 },
                 first: {
                   minLength: 1,
                   type: "string",
-                  title: "requiredString"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  title: "requiredString",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
-  swagger: "2.0"
+  swagger: "2.0",
 };

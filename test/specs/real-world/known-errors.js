@@ -2,7 +2,7 @@
 
 const { host } = require("@jsdevtools/host-environment");
 
-const knownErrors = module.exports = {
+const knownErrors = (module.exports = {
   /**
    * An array of known validation errors in certain API definitions on APIs.guru
    */
@@ -11,7 +11,7 @@ const knownErrors = module.exports = {
   /**
    * Determines whether an API and error match a known error.
    */
-  find (api, error) {
+  find(api, error) {
     for (let knownError of knownErrors.all) {
       if (typeof knownError.api === "string" && !api.name.includes(knownError.api)) {
         continue;
@@ -28,12 +28,12 @@ const knownErrors = module.exports = {
       return knownError;
     }
   },
-};
+});
 
 /**
  * Returns a list of known validation errors in certain API definitions on APIs.guru.
  */
-function getKnownApiErrors () {
+function getKnownApiErrors() {
   let errors = [
     // Many of the Azure API definitions have references to external files that don't exist
     // NOTE: This entry must come FIRST, otherwise every broken Azure API is retried multiple times
@@ -85,13 +85,13 @@ function getKnownApiErrors () {
     {
       api: "avaza.com",
       error: "has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded",
-      whatToDo: "ignore"
+      whatToDo: "ignore",
     },
 
     {
       api: "adyen.com",
       error: "must NOT have unevaluated properties",
-      whatToDo: "ignore"
+      whatToDo: "ignore",
     },
 
     // They have a description of `2015-04-22T10:03:19.323-07:00` and YAML parsing is converting that to a `Date`.
@@ -119,12 +119,12 @@ function getKnownApiErrors () {
     {
       api: "enode.io",
       error: "schema/items must NOT have additional properties",
-      whatToDo: "ignore"
+      whatToDo: "ignore",
     },
     {
       api: "frankiefinancial.io",
       error: "Property 'rowid' listed as required but does not exist",
-      whatToDo: "ignore"
+      whatToDo: "ignore",
     },
     {
       api: "github.com",
@@ -147,7 +147,7 @@ function getKnownApiErrors () {
     {
       api: "motaword.com",
       error: "properties/source must NOT have additional properties",
-      whatToDo: "ignore"
+      whatToDo: "ignore",
     },
     {
       api: "openapi-generator.tech",
@@ -188,17 +188,17 @@ function getKnownApiErrors () {
     {
       api: "statsocial.com",
       error: 'Token "18_24" does not exist',
-      whatToDo: "ignore"
+      whatToDo: "ignore",
     },
     {
       api: "testfire.net:altoroj",
       error: "Property 'passwrod1' listed as required but does not exist",
-      whatToDo: "ignore"
+      whatToDo: "ignore",
     },
     {
       api: "turbinelabs.io",
       error: "Property 'listener_key' listed as required but does not exist",
-      whatToDo: "ignore"
+      whatToDo: "ignore",
     },
 
     // VersionEye's API definition is missing MIME types
@@ -211,17 +211,17 @@ function getKnownApiErrors () {
     {
       api: "vestorly.com",
       error: "Property 'orginator_email' listed as required but does not exist",
-      whatToDo: "ignore"
+      whatToDo: "ignore",
     },
     {
       api: "viator.com",
       error: 'Token "pas" does not exist',
-      whatToDo: "ignore"
+      whatToDo: "ignore",
     },
     {
       api: "whapi.com:accounts",
       error: "Property 'nif (italy only)' listed as required but does not exist",
-      whatToDo: "ignore"
+      whatToDo: "ignore",
     },
   ];
 

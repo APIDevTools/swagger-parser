@@ -14,7 +14,7 @@ module.exports = parser;
 /**
  * Adds event handlers to trigger Swagger Parser methods
  */
-function parser () {
+function parser() {
   // When the form is submitted, parse the Swagger API
   form.form.on("submit", (event) => {
     event.preventDefault();
@@ -33,7 +33,7 @@ function parser () {
  * This function is called when the "Validate it!" button is clicked.
  * It calls Swagger Parser, passing it all the options selected on the form.
  */
-function parseSwagger () {
+function parseSwagger() {
   try {
     // Clear any previous results
     editors.clearResults();
@@ -61,8 +61,7 @@ function parseSwagger () {
     // Track the operation
     counters[method]++;
     analytics.trackEvent("button", "click", method, counters[method]);
-  }
-  catch (err) {
+  } catch (err) {
     editors.showError(ono(err));
     analytics.trackError(err);
   }

@@ -8,7 +8,7 @@ module.exports = fetchApiList;
  * Downloads a list of over 2000 real-world Swagger APIs from apis.guru,
  * and applies some custom filtering logic to it.
  */
-async function fetchApiList () {
+async function fetchApiList() {
   let response = await fetch("https://api.apis.guru/v2/list.json");
 
   if (!response.ok) {
@@ -26,7 +26,7 @@ async function fetchApiList () {
 /**
  * Removes certain APIs that are known to cause problems
  */
-function deleteProblematicAPIs (apis) {
+function deleteProblematicAPIs(apis) {
   // GitHub's CORS policy blocks this request
   delete apis["googleapis.com:adsense"];
 
@@ -49,7 +49,7 @@ function deleteProblematicAPIs (apis) {
 /**
  * Flattens the API object structure into an array containing all versions of all APIs.
  */
-function flatten (apimap) {
+function flatten(apimap) {
   let apiArray = [];
 
   for (let [name, api] of Object.entries(apimap)) {

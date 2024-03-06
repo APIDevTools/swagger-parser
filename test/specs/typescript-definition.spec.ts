@@ -14,18 +14,15 @@ const openapiObject: OpenAPI.Document = {
     title: "My API",
     version: "1.0.0",
   },
-  paths: {}
+  paths: {},
 };
-
 
 // SwaggerParser class instance
 let parser = new SwaggerParser();
 
-
 // SwaggerParser instance properties
 assert(parser.$refs.circular === true);
 assert(parser.api.info.title === "My API");
-
 
 // SwaggerParser instance methods (with callbacks)
 parser.bundle(openapiPath, callback);
@@ -63,7 +60,6 @@ parser.resolve(openapiObject, options, callback);
 parser.resolve(baseUrl, openapiPath, options, callback);
 parser.resolve(baseUrl, openapiObject, options, callback);
 
-
 // SwaggerParser instance methods (with Promises)
 parser.bundle(openapiPath).then(promiseResolve, promiseReject);
 parser.bundle(openapiObject).then(promiseResolve, promiseReject);
@@ -100,7 +96,6 @@ parser.resolve(openapiObject, options).then(promiseResolve, promiseReject);
 parser.resolve(baseUrl, openapiPath, options).then(promiseResolve, promiseReject);
 parser.resolve(baseUrl, openapiObject, options).then(promiseResolve, promiseReject);
 
-
 // SwaggerParser static methods (with callbacks)
 SwaggerParser.bundle(openapiPath, callback);
 SwaggerParser.bundle(openapiObject, callback);
@@ -136,7 +131,6 @@ SwaggerParser.resolve(openapiPath, options, callback);
 SwaggerParser.resolve(openapiObject, options, callback);
 SwaggerParser.resolve(baseUrl, openapiPath, options, callback);
 SwaggerParser.resolve(baseUrl, openapiObject, options, callback);
-
 
 // SwaggerParser static methods (with Promises)
 SwaggerParser.bundle(openapiPath).then(promiseResolve, promiseReject);

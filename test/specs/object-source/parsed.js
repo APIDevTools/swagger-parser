@@ -3,14 +3,13 @@
 const { host } = require("@jsdevtools/host-environment");
 let pathToTestsDirectory = host.karma ? "/base/test/" : "";
 
-module.exports =
-{
+module.exports = {
   api: {
     swagger: "2.0",
     info: {
       version: "1.0.0",
       description: "This is an intentionally over-complicated API that returns a person's name",
-      title: "Name API"
+      title: "Name API",
     },
     paths: {
       "/people/{name}": {
@@ -19,75 +18,72 @@ module.exports =
             required: true,
             type: "string",
             name: "name",
-            in: "path"
-          }
+            in: "path",
+          },
         ],
         get: {
           responses: {
             200: {
               description: "Returns the requested name",
               schema: {
-                $ref: "#/definitions/name"
-              }
-            }
-          }
-        }
-      }
+                $ref: "#/definitions/name",
+              },
+            },
+          },
+        },
+      },
     },
     definitions: {
-      $ref: pathToTestsDirectory + "specs/object-source/definitions/definitions.json"
-    }
+      $ref: pathToTestsDirectory + "specs/object-source/definitions/definitions.json",
+    },
   },
 
   definitions: {
     requiredString: {
-      $ref: "required-string.yaml"
+      $ref: "required-string.yaml",
     },
     string: {
-      $ref: "#/requiredString/type"
+      $ref: "#/requiredString/type",
     },
     name: {
-      $ref: "../definitions/name.yaml"
-    }
+      $ref: "../definitions/name.yaml",
+    },
   },
 
   name: {
-    required: [
-      "first",
-      "last"
-    ],
+    required: ["first", "last"],
     type: "object",
     properties: {
       middle: {
         minLength: {
-          $ref: "#/properties/first/minLength"
+          $ref: "#/properties/first/minLength",
         },
         type: {
-          $ref: "#/properties/first/type"
-        }
+          $ref: "#/properties/first/type",
+        },
       },
       prefix: {
         minLength: 3,
-        $ref: "#/properties/last"
+        $ref: "#/properties/last",
       },
       last: {
-        $ref: "./required-string.yaml"
+        $ref: "./required-string.yaml",
       },
       suffix: {
         $ref: "#/properties/prefix",
         type: "string",
-        maxLength: 3
+        maxLength: 3,
       },
       first: {
-        $ref: "../definitions/definitions.json#/requiredString"
-      }
+        $ref: "../definitions/definitions.json#/requiredString",
+      },
     },
-    title: "name"
+    title: "name",
   },
 
   requiredString: {
     minLength: 1,
     type: "string",
-    title: "requiredString"
-  }
+    title: "requiredString",
+  },
 };

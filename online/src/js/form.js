@@ -7,7 +7,7 @@ module.exports = form;
 /**
  * Finds all form fields and exposes them as properties.
  */
-function form () {
+function form() {
   form.form = $("#swagger-parser-form");
 
   form.allow = {
@@ -17,31 +17,31 @@ function form () {
     yaml: form.form.find("input[name=allow-yaml]"),
     text: form.form.find("input[name=allow-text]"),
     empty: form.form.find("input[name=allow-empty]"),
-    unknown: form.form.find("input[name=allow-unknown]")
+    unknown: form.form.find("input[name=allow-unknown]"),
   };
 
   form.refs = {
     label: form.form.find("#refs-label"),
     menu: form.form.find("#refs-menu"),
     external: form.form.find("input[name=refs-external]"),
-    circular: form.form.find("input[name=refs-circular]")
+    circular: form.form.find("input[name=refs-circular]"),
   };
 
   form.validate = {
     label: form.form.find("#validate-label"),
     menu: form.form.find("#validate-menu"),
     schema: form.form.find("input[name=validate-schema]"),
-    spec: form.form.find("input[name=validate-spec]")
+    spec: form.form.find("input[name=validate-spec]"),
   };
 
   form.tabs = {
     url: form.form.find("#url-tab"),
-    text: form.form.find("#text-tab")
+    text: form.form.find("#text-tab"),
   };
 
   form.method = {
     button: form.form.find("button[name=method]"),
-    menu: form.form.find("#method-menu")
+    menu: form.form.find("#method-menu"),
   };
 
   form.samples = {
@@ -52,7 +52,7 @@ function form () {
     text: {
       container: form.form.find("#text-sample"),
       link: form.form.find("#text-sample-link"),
-    }
+    },
   };
 
   form.url = form.form.find("input[name=url]");
@@ -67,18 +67,26 @@ function form () {
 form.getOptions = function () {
   return {
     parse: {
-      json: form.allow.json.is(":checked") ? {
-        allowEmpty: form.allow.empty.is(":checked"),
-      } : false,
-      yaml: form.allow.yaml.is(":checked") ? {
-        allowEmpty: form.allow.empty.is(":checked"),
-      } : false,
-      text: form.allow.text.is(":checked") ? {
-        allowEmpty: form.allow.empty.is(":checked"),
-      } : false,
-      binary: form.allow.unknown.is(":checked") ? {
-        allowEmpty: form.allow.empty.is(":checked"),
-      } : false,
+      json: form.allow.json.is(":checked")
+        ? {
+            allowEmpty: form.allow.empty.is(":checked"),
+          }
+        : false,
+      yaml: form.allow.yaml.is(":checked")
+        ? {
+            allowEmpty: form.allow.empty.is(":checked"),
+          }
+        : false,
+      text: form.allow.text.is(":checked")
+        ? {
+            allowEmpty: form.allow.empty.is(":checked"),
+          }
+        : false,
+      binary: form.allow.unknown.is(":checked")
+        ? {
+            allowEmpty: form.allow.empty.is(":checked"),
+          }
+        : false,
     },
     resolve: {
       external: form.refs.external.is(":checked"),
@@ -102,20 +110,16 @@ form.getAPI = function () {
     let url = form.url.val();
     if (url) {
       return url;
-    }
-    else {
+    } else {
       throw new URIError("Please specify the URL of your Swagger/OpenAPI definition");
     }
-  }
-  else {
+  } else {
     let text = form.textBox.getValue();
     if (form.allow.yaml.is(":checked")) {
       return jsYAML.safeLoad(text);
-    }
-    else if (form.allow.json.is(":checked")) {
+    } else if (form.allow.json.is(":checked")) {
       return JSON.parse(text);
-    }
-    else {
+    } else {
       throw new SyntaxError("Unable to parse the API. Neither YAML nor JSON are allowed.");
     }
   }

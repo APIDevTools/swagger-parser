@@ -28,29 +28,42 @@
     "type": "git",
     "url": "https://github.com/APIDevTools/swagger-parser.git"
   },
+  "types": "dist/lib/index.d.ts",
+  "main": "dist/lib/index.js",
+  "browser": {
+    "fs": false
+  },
+  "engines": {
+    "node": ">= 16"
+  },
+  "contributors": [
+    {
+      "name": "Phil Sturgeon",
+      "email": "phil@apisyouwonthate.com"
+    },
+    {
+      "name": "JonLuca DeCaro",
+      "email": "swagger@jonlu.ca"
+    }
+  ],
   "license": "MIT",
-  "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
-    "lib"
+    "lib",
+    "dist",
+    "cjs"
   ],
   "scripts": {
-    "clean": "shx rm -rf .nyc_output coverage",
-    "lint": "eslint lib test online/src/js",
-    "build": "npm run build:website && npm run build:sass",
-    "build:website": "simplifyify online/src/js/index.js --outfile online/js/bundle.js --bundle --debug --minify",
-    "build:sass": "node-sass --source-map true --output-style compressed online/src/scss/style.scss online/css/style.min.css",
-    "test": "npm run test:node && npm run test:typescript && npm run test:browser && npm run lint",
-    "test:node": "mocha",
-    "test:browser": "karma start --single-run",
-    "test:typescript": "tsc --noEmit --strict --lib esnext,dom test/specs/typescript-definition.spec.ts",
-    "coverage": "npm run coverage:node && npm run coverage:browser",
-    "coverage:node": "nyc node_modules/mocha/bin/mocha",
-    "coverage:browser": "npm run test:browser -- --coverage",
-    "upgrade": "npm-check -u && npm audit fix",
-    "bump": "bump --tag --push --all",
-    "--release--cannot upgrade or everything breaks": "npm run upgrade && npm run clean && npm run build && npm test && npm run bump",
-    "release": "npm run clean && npm run build && npm test && npm run bump"
+    "prepublishOnly": "yarn build",
+    "lint": "eslint lib",
+    "build": "rimraf dist && tsc",
+    "typecheck": "tsc --noEmit",
+    "prettier": "prettier --write \"**/*.+(js|jsx|ts|tsx|har||json|css|md)\"",
+    "test": "vitest --coverage",
+    "test:node": "yarn test",
+    "test:browser": "cross-env BROWSER=\"true\" yarn test",
+    "test:update": "vitest -u",
+    "test:watch": "vitest -w"
   },
   "devDependencies": {
     "@babel/polyfill": "^7.12",
@@ -58,10 +71,23 @@
     "@jsdevtools/host-environment": "^2.1.2",
     "@jsdevtools/karma-config": "^3.2.0",
     "@jsdevtools/version-bump-prompt": "^6.1.0",
-    "@types/node": "^14.6.4",
+    "@types/eslint": "8.56.5",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^18.19.21",
+    "@typescript-eslint/eslint-plugin": "^7.1.1",
+    "@typescript-eslint/parser": "^7.1.1",
+    "@vitest/coverage-v8": "^1.3.1",
     "chai": "^4.2.0",
-    "eslint": "^7.8.1",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-unused-imports": "^3.1.0",
     "js-yaml": "^3.14.1",
+    "jsdom": "^24.0.0",
     "karma": "^6.3.19",
     "karma-cli": "^2.0.0",
     "mocha": "^8.1.3",
@@ -70,13 +96,16 @@
     "npm-check": "^4.1.4",
     "nyc": "^15.1.0",
     "openapi-types": "^9.3.0",
+    "prettier": "^3.2.5",
+    "rimraf": "^5.0.5",
     "shx": "^0.3.2",
     "simplifyify": "^7.0.7",
     "sinon": "^11.1.2",
-    "typescript": "^4.7.4"
+    "typescript": "^5.3.3",
+    "vitest": "^1.3.1"
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "9.0.6",
+    "@apidevtools/json-schema-ref-parser": "^11.4.1",
     "@apidevtools/openapi-schemas": "^2.1.0",
     "@apidevtools/swagger-methods": "^3.0.2",
     "@jsdevtools/ono": "^7.1.3",
@@ -86,5 +115,24 @@
   },
   "peerDependencies": {
     "openapi-types": ">=7"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/npm",
+      "@semantic-release/github"
+    ]
+  },
+  "packageManager": "yarn@4.1.1",
+  "prettier": {
+    "printWidth": 120,
+    "arrowParens": "always",
+    "semi": true,
+    "tabWidth": 2,
+    "trailingComma": "all"
   }
 }

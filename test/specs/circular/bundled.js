@@ -1,12 +1,11 @@
 "use strict";
 
-module.exports =
-{
+module.exports = {
   swagger: "2.0",
   info: {
     version: "1.0.0",
     description: "This API contains circular (recursive) JSON references",
-    title: "Circular $Refs"
+    title: "Circular $Refs",
   },
   paths: {
     "/pet": {
@@ -15,11 +14,11 @@ module.exports =
           200: {
             description: "Returns a pet",
             schema: {
-              $ref: "#/definitions/pet"
-            }
-          }
-        }
-      }
+              $ref: "#/definitions/pet",
+            },
+          },
+        },
+      },
     },
     "/thing": {
       get: {
@@ -27,11 +26,11 @@ module.exports =
           200: {
             description: "Returns a thing",
             schema: {
-              $ref: "#/definitions/thing"
-            }
-          }
-        }
-      }
+              $ref: "#/definitions/thing",
+            },
+          },
+        },
+      },
     },
     "/person": {
       get: {
@@ -39,11 +38,11 @@ module.exports =
           200: {
             description: "Returns a person",
             schema: {
-              $ref: "#/definitions/person"
-            }
-          }
-        }
-      }
+              $ref: "#/definitions/person",
+            },
+          },
+        },
+      },
     },
     "/parent": {
       get: {
@@ -51,64 +50,59 @@ module.exports =
           200: {
             description: "Returns a parent",
             schema: {
-              $ref: "#/definitions/parent"
-            }
-          }
-        }
-      }
-    }
+              $ref: "#/definitions/parent",
+            },
+          },
+        },
+      },
+    },
   },
   definitions: {
     pet: {
       type: "object",
       properties: {
         age: {
-          type: "number"
+          type: "number",
         },
         name: {
-          type: "string"
+          type: "string",
         },
         species: {
-          enum: [
-            "cat",
-            "dog",
-            "bird",
-            "fish"
-          ],
-          type: "string"
-        }
+          enum: ["cat", "dog", "bird", "fish"],
+          type: "string",
+        },
       },
-      title: "pet"
+      title: "pet",
     },
     thing: {
-      $ref: "#/definitions/thing"
+      $ref: "#/definitions/thing",
     },
     person: {
       title: "person",
       type: "object",
       properties: {
         spouse: {
-          $ref: "#/definitions/person"
+          $ref: "#/definitions/person",
         },
         name: {
-          type: "string"
-        }
-      }
+          type: "string",
+        },
+      },
     },
     parent: {
       title: "parent",
       type: "object",
       properties: {
         name: {
-          type: "string"
+          type: "string",
         },
         children: {
           items: {
-            $ref: "#/definitions/child"
+            $ref: "#/definitions/child",
           },
-          type: "array"
-        }
-      }
+          type: "array",
+        },
+      },
     },
     child: {
       title: "child",
@@ -116,14 +110,14 @@ module.exports =
       properties: {
         parents: {
           items: {
-            $ref: "#/definitions/parent"
+            $ref: "#/definitions/parent",
           },
-          type: "array"
+          type: "array",
         },
         name: {
-          type: "string"
-        }
-      }
-    }
-  }
+          type: "string",
+        },
+      },
+    },
+  },
 };

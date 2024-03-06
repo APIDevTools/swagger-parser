@@ -1,40 +1,50 @@
-"use strict";
+import * as util from "../util";
+import { ono } from "@jsdevtools/ono";
+import { swaggerMethods } from "../util";
+import type { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from "openapi-types";
+import { OpenAPI } from "openapi-types";
+import Operation = OpenAPI.Operation;
 
-const util = require("../util");
-const { ono } = require("@jsdevtools/ono");
-const swaggerMethods = require("@apidevtools/swagger-methods");
+type ParameterObject = OpenAPIV2.ParameterObject | OpenAPIV3.ParameterObject | OpenAPIV3_1.ParameterObject;
+type SchemaObject = OpenAPIV3.SchemaObject | OpenAPIV2.SchemaObject | OpenAPIV3_1.SchemaObject;
+type ResponseObject = OpenAPIV3.ResponseObject | OpenAPIV2.ResponseObject | OpenAPIV3_1.ResponseObject;
+type Parameters = OpenAPIV2.Parameter[] | OpenAPIV3.ParameterObject[] | OpenAPIV3_1.ParameterObject[];
+type ReferenceObject = OpenAPIV3.ReferenceObject | OpenAPIV2.ReferenceObject | OpenAPIV3_1.ReferenceObject;
+type PathItemObject = OpenAPIV3.PathItemObject | OpenAPIV2.PathItemObject | OpenAPIV3_1.PathItemObject;
 const primitiveTypes = ["array", "boolean", "integer", "number", "string"];
 const schemaTypes = ["array", "boolean", "integer", "number", "string", "object", "null", undefined];
 
-module.exports = validateSpec;
+export default validateSpec;
 
 /**
  * Validates parts of the Swagger 2.0 spec that aren't covered by the Swagger 2.0 JSON Schema.
  *
  * @param {SwaggerObject} api
  */
-function validateSpec (api) {
-  if (api.openapi) {
+function validateSpec(api: OpenAPI.Document) {
+  if ("openapi" in api && api.openapi) {
     // We don't (yet) support validating against the OpenAPI spec
     return;
   }
 
-  let paths = Object.keys(api.paths || {});
-  let operationIds = [];
-  for (let pathName of paths) {
-    let path = api.paths[pathName];
-    let pathId = "/paths" + pathName;
+  const paths = Object.keys(api.paths || {});
+  const operationIds: string[] = [];
+  for (const pathName of paths) {
+    const path = api.paths![pathName];
+    const pathId = `/paths${pathName}`;
 
-    if (path && pathName.indexOf("/") === 0) {
+    if (path && pathName[0] === "/") {
       validatePath(api, path, pathId, operationIds);
     }
   }
 
-  let definitions = Object.keys(api.definitions || {});
-  for (let definitionName of definitions) {
-    let definition = api.definitions[definitionName];
-    let definitionId = "/definitions/" + definitionName;
-    validateRequiredPropertiesExist(definition, definitionId);
+  if ("definitions" in api) {
+    const definitions = Object.keys(api.definitions || {}) as (keyof OpenAPIV2.DefinitionsObject)[];
+    for (const definitionName of definitions) {
+      const definition = api.definitions![definitionName];
+      const definitionId = `/definitions/${definitionName}`;
+      validateRequiredPropertiesExist(definition, definitionId);
+    }
   }
 }
 
@@ -46,28 +56,27 @@ function validateSpec (api) {
  * @param {string}        pathId        - A value that uniquely identifies the path
  * @param {string}        operationIds  - An array of collected operationIds found in other paths
  */
-function validatePath (api, path, pathId, operationIds) {
-  for (let operationName of swaggerMethods) {
-    let operation = path[operationName];
-    let operationId = pathId + "/" + operationName;
+function validatePath(api: OpenAPI.Document, path: PathItemObject, pathId: string, operationIds: string[]) {
+  for (const operationName of swaggerMethods) {
+    const operation = path[operationName];
+    const operationId = `${pathId}/${operationName}`;
 
     if (operation) {
-      let declaredOperationId = operation.operationId;
+      const declaredOperationId = operation.operationId;
       if (declaredOperationId) {
-        if (operationIds.indexOf(declaredOperationId) === -1) {
+        if (!operationIds.includes(declaredOperationId)) {
           operationIds.push(declaredOperationId);
-        }
-        else {
+        } else {
           throw ono.syntax(`Validation failed. Duplicate operation id '${declaredOperationId}'`);
         }
       }
       validateParameters(api, path, pathId, operation, operationId);
 
-      let responses = Object.keys(operation.responses || {});
-      for (let responseName of responses) {
-        let response = operation.responses[responseName];
-        let responseId = operationId + "/responses/" + responseName;
-        validateResponse(responseName, (response || {}), responseId);
+      const responses = Object.keys(operation.responses || {});
+      for (const responseName of responses) {
+        const response = operation.responses[responseName];
+        const responseId = `${operationId}/responses/${responseName}`;
+        validateResponse(responseName, response || {}, responseId);
       }
     }
   }
@@ -82,32 +91,34 @@ function validatePath (api, path, pathId, operationIds) {
  * @param {object}        operation     - An Operation object, from the Swagger API
  * @param {string}        operationId   - A value that uniquely identifies the operation
  */
-function validateParameters (api, path, pathId, operation, operationId) {
-  let pathParams = path.parameters || [];
-  let operationParams = operation.parameters || [];
+function validateParameters(
+  api: OpenAPI.Document,
+  { parameters }: PathItemObject,
+  pathId: string,
+  operation: Operation,
+  operationId: string,
+) {
+  const pathParams = (parameters || []) as Parameters;
+  const operationParams = operation.parameters || [];
 
   // Check for duplicate path parameters
   try {
     checkForDuplicates(pathParams);
-  }
-  catch (e) {
+  } catch (e) {
     throw ono.syntax(e, `Validation failed. ${pathId} has duplicate parameters`);
   }
 
   // Check for duplicate operation parameters
   try {
     checkForDuplicates(operationParams);
-  }
-  catch (e) {
+  } catch (e) {
     throw ono.syntax(e, `Validation failed. ${operationId} has duplicate parameters`);
   }
 
   // Combine the path and operation parameters,
   // with the operation params taking precedence over the path params
-  let params = pathParams.reduce((combinedParams, value) => {
-    let duplicate = combinedParams.some((param) => {
-      return param.in === value.in && param.name === value.name;
-    });
+  const params = pathParams.reduce((combinedParams, value) => {
+    const duplicate = combinedParams.some((param) => param.in === value.in && param.name === value.name);
     if (!duplicate) {
       combinedParams.push(value);
     }
@@ -125,17 +136,16 @@ function validateParameters (api, path, pathId, operation, operationId) {
  * @param   {object[]}  params       -  An array of Parameter objects
  * @param   {string}    operationId  -  A value that uniquely identifies the operation
  */
-function validateBodyParameters (params, operationId) {
-  let bodyParams = params.filter((param) => { return param.in === "body"; });
-  let formParams = params.filter((param) => { return param.in === "formData"; });
+function validateBodyParameters(params: Parameters[], operationId: string[]) {
+  const bodyParams = params.filter((param) => param.in === "body");
+  const formParams = params.filter((param) => param.in === "formData");
 
   // There can only be one "body" parameter
   if (bodyParams.length > 1) {
     throw ono.syntax(
       `Validation failed. ${operationId} has ${bodyParams.length} body parameters. Only one is allowed.`,
     );
-  }
-  else if (bodyParams.length > 0 && formParams.length > 0) {
+  } else if (bodyParams.length > 0 && formParams.length > 0) {
     // "body" params and "formData" params are mutually exclusive
     throw ono.syntax(
       `Validation failed. ${operationId} has body parameters and formData parameters. Only one or the other is allowed.`,
@@ -150,34 +160,32 @@ function validateBodyParameters (params, operationId) {
  * @param   {string}    pathId        - A value that uniquely identifies the path
  * @param   {string}    operationId   - A value that uniquely identifies the operation
  */
-function validatePathParameters (params, pathId, operationId) {
+function validatePathParameters(params: Parameters[], pathId: string, operationId: string) {
   // Find all {placeholders} in the path string
-  let placeholders = pathId.match(util.swaggerParamRegExp) || [];
+  const placeholders = pathId.match(util.swaggerParamRegExp) || [];
 
   // Check for duplicates
   for (let i = 0; i < placeholders.length; i++) {
     for (let j = i + 1; j < placeholders.length; j++) {
       if (placeholders[i] === placeholders[j]) {
-        throw ono.syntax(
-          `Validation failed. ${operationId} has multiple path placeholders named ${placeholders[i]}`);
+        throw ono.syntax(`Validation failed. ${operationId} has multiple path placeholders named ${placeholders[i]}`);
       }
     }
   }
 
-  params = params.filter((param) => { return param.in === "path"; });
+  params = params.filter((param) => param.in === "path");
 
-  for (let param of params) {
+  for (const param of params) {
     if (param.required !== true) {
       throw ono.syntax(
-        "Validation failed. Path parameters cannot be optional. " +
-        `Set required=true for the "${param.name}" parameter at ${operationId}`,
+        `Validation failed. Path parameters cannot be optional. ${`Set required=true for the "${param.name}" parameter at ${operationId}`}`,
       );
     }
-    let match = placeholders.indexOf("{" + param.name + "}");
+    const match = placeholders.indexOf(`{${param.name}}`);
     if (match === -1) {
       throw ono.syntax(
         `Validation failed. ${operationId} has a path parameter named "${param.name}", ` +
-        `but there is no corresponding {${param.name}} in the path string`
+          `but there is no corresponding {${param.name}} in the path string`,
       );
     }
     placeholders.splice(match, 1);
@@ -196,10 +204,16 @@ function validatePathParameters (params, pathId, operationId) {
  * @param   {object}    operation    -  An Operation object, from the Swagger API
  * @param   {string}    operationId  -  A value that uniquely identifies the operation
  */
-function validateParameterTypes (params, api, operation, operationId) {
-  for (let param of params) {
-    let parameterId = operationId + "/parameters/" + param.name;
-    let schema, validTypes;
+function validateParameterTypes(
+  params: Parameters[],
+  api: OpenAPI.Document,
+  operation: Operation,
+  operationId: string,
+) {
+  for (const param of params) {
+    const parameterId = `${operationId}/parameters/${param.name}`;
+    let schema;
+    let validTypes;
 
     switch (param.in) {
       case "body":
@@ -220,19 +234,16 @@ function validateParameterTypes (params, api, operation, operationId) {
 
     if (schema.type === "file") {
       // "file" params must consume at least one of these MIME types
-      let formData = /multipart\/(.*\+)?form-data/;
-      let urlEncoded = /application\/(.*\+)?x-www-form-urlencoded/;
+      const formData = /multipart\/(.*\+)?form-data/;
+      const urlEncoded = /application\/(.*\+)?x-www-form-urlencoded/;
 
-      let consumes = operation.consumes || api.consumes || [];
+      const consumes = operation.consumes || api.consumes || [];
 
-      let hasValidMimeType = consumes.some((consume) => {
-        return formData.test(consume) || urlEncoded.test(consume);
-      });
+      const hasValidMimeType = consumes.some((consume) => formData.test(consume) || urlEncoded.test(consume));
 
       if (!hasValidMimeType) {
         throw ono.syntax(
-          `Validation failed. ${operationId} has a file parameter, so it must consume multipart/form-data ` +
-          "or application/x-www-form-urlencoded",
+          `${`Validation failed. ${operationId} has a file parameter, so it must consume multipart/form-data `}or application/x-www-form-urlencoded`,
         );
       }
     }
@@ -244,11 +255,11 @@ function validateParameterTypes (params, api, operation, operationId) {
  *
  * @param   {object[]}  params  - An array of Parameter objects
  */
-function checkForDuplicates (params) {
+function checkForDuplicates(params: Parameters | (ReferenceObject | ParameterObject)[]) {
   for (let i = 0; i < params.length - 1; i++) {
-    let outer = params[i];
+    const outer = params[i];
     for (let j = i + 1; j < params.length; j++) {
-      let inner = params[j];
+      const inner = params[j];
       if (outer.name === inner.name && outer.in === inner.in) {
         throw ono.syntax(`Validation failed. Found multiple ${outer.in} parameters named "${outer.name}"`);
       }
@@ -263,26 +274,33 @@ function checkForDuplicates (params) {
  * @param   {object}    response    -  A Response object, from the Swagger API
  * @param   {string}    responseId  -  A value that uniquely identifies the response
  */
-function validateResponse (code, response, responseId) {
-  if (code !== "default" && (code < 100 || code > 599)) {
+function validateResponse(
+  code: string,
+  response: ResponseObject | ReferenceObject | Record<string, never>,
+  responseId: string,
+) {
+  const numericCode = parseInt(code, 10);
+  if (code !== "default" && !Number.isNaN(numericCode) && (numericCode < 100 || numericCode > 599)) {
     throw ono.syntax(`Validation failed. ${responseId} has an invalid response code (${code})`);
   }
 
-  let headers = Object.keys(response.headers || {});
-  for (let headerName of headers) {
-    let header = response.headers[headerName];
-    let headerId = responseId + "/headers/" + headerName;
-    validateSchema(header, headerId, primitiveTypes);
+  if ("headers" in response && response.headers) {
+    const headers = Object.keys(response.headers || {});
+    for (const headerName of headers) {
+      const header = response.headers[headerName];
+      const headerId = `${responseId}/headers/${headerName}`;
+      validateSchema(header, headerId, primitiveTypes);
+    }
   }
 
-  if (response.schema) {
-    let validTypes = schemaTypes.concat("file");
-    if (validTypes.indexOf(response.schema.type) === -1) {
+  if ("schema" in response && response.schema) {
+    const validTypes = schemaTypes.concat("file");
+    if (!validTypes.includes(response.schema.type)) {
       throw ono.syntax(
-        `Validation failed. ${responseId} has an invalid response schema type (${response.schema.type})`);
-    }
-    else {
-      validateSchema(response.schema, responseId + "/schema", validTypes);
+        `Validation failed. ${responseId} has an invalid response schema type (${response.schema.type})`,
+      );
+    } else {
+      validateSchema(response.schema, `${responseId}/schema`, validTypes);
     }
   }
 }
@@ -294,13 +312,13 @@ function validateResponse (code, response, responseId) {
  * @param {string}    schemaId    - A value that uniquely identifies the schema object
  * @param {string[]}  validTypes  - An array of the allowed schema types
  */
-function validateSchema (schema, schemaId, validTypes) {
-  if (validTypes.indexOf(schema.type) === -1) {
-    throw ono.syntax(
-      `Validation failed. ${schemaId} has an invalid type (${schema.type})`);
+function validateSchema(schema: SchemaObject, schemaId: string, validTypes: string[]) {
+  const type = schema.type;
+  if (!validTypes.includes(type as unknown as string)) {
+    throw ono.syntax(`Validation failed. ${schemaId} has an invalid type (${type})`);
   }
 
-  if (schema.type === "array" && !schema.items) {
+  if (type === "array" && !schema.items) {
     throw ono.syntax(`Validation failed. ${schemaId} is an array, so it must include an "items" schema`);
   }
 }
@@ -311,20 +329,20 @@ function validateSchema (schema, schemaId, validTypes) {
  * @param {object}    schema      - A Schema object, from the Swagger API
  * @param {string}    schemaId    - A value that uniquely identifies the schema object
  */
-function validateRequiredPropertiesExist (schema, schemaId) {
+function validateRequiredPropertiesExist(schema: SchemaObject, schemaId: string) {
   /**
    * Recursively collects all properties of the schema and its ancestors. They are added to the props object.
    */
-  function collectProperties (schemaObj, props) {
-    if (schemaObj.properties) {
-      for (let property in schemaObj.properties) {
-        if (schemaObj.properties.hasOwnProperty(property)) {
-          props[property] = schemaObj.properties[property];
+  function collectProperties({ properties, allOf }: SchemaObject, props: { [x: string]: any }) {
+    if (properties) {
+      for (const property in properties) {
+        if (properties.hasOwnProperty(property)) {
+          props[property] = properties[property];
         }
       }
     }
-    if (schemaObj.allOf) {
-      for (let parent of schemaObj.allOf) {
+    if (allOf) {
+      for (const parent of allOf) {
         collectProperties(parent, props);
       }
     }
@@ -334,17 +352,17 @@ function validateRequiredPropertiesExist (schema, schemaId) {
   if (Array.isArray(schema.type) && !schema.type.includes("object")) {
     return;
   }
-  else if (!Array.isArray(schema.type) && schema.type !== "object") {
+  if (!Array.isArray(schema.type) && schema.type !== "object") {
     return;
   }
 
-  if (schema.required && Array.isArray(schema.required)) {
-    let props = {};
+  if ("required" in schema && schema.required && Array.isArray(schema.required)) {
+    const props = {};
     collectProperties(schema, props);
-    for (let requiredProperty of schema.required) {
+    for (const requiredProperty of schema.required) {
       if (!props[requiredProperty]) {
         throw ono.syntax(
-          `Validation failed. Property '${requiredProperty}' listed as required but does not exist in '${schemaId}'`
+          `Validation failed. Property '${requiredProperty}' listed as required but does not exist in '${schemaId}'`,
         );
       }
     }

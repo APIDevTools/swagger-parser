@@ -1,13 +1,12 @@
 "use strict";
 
-const validatedAPI = module.exports =
-{
+const validatedAPI = (module.exports = {
   fullyDereferenced: {
     swagger: "2.0",
     info: {
       version: "1.0.0",
       description: "This API contains circular (recursive) JSON references",
-      title: "Circular $Refs"
+      title: "Circular $Refs",
     },
     paths: {
       "/pet": {
@@ -15,66 +14,61 @@ const validatedAPI = module.exports =
           responses: {
             200: {
               description: "Returns a pet",
-              schema: null
-            }
-          }
-        }
+              schema: null,
+            },
+          },
+        },
       },
       "/thing": {
         get: {
           responses: {
             200: {
               description: "Returns a thing",
-              schema: null
-            }
-          }
-        }
+              schema: null,
+            },
+          },
+        },
       },
       "/person": {
         get: {
           responses: {
             200: {
               description: "Returns a person",
-              schema: null
-            }
-          }
-        }
+              schema: null,
+            },
+          },
+        },
       },
       "/parent": {
         get: {
           responses: {
             200: {
               description: "Returns a parent",
-              schema: null
-            }
-          }
-        }
-      }
+              schema: null,
+            },
+          },
+        },
+      },
     },
     definitions: {
       pet: {
         type: "object",
         properties: {
           age: {
-            type: "number"
+            type: "number",
           },
           name: {
-            type: "string"
+            type: "string",
           },
           species: {
-            enum: [
-              "cat",
-              "dog",
-              "bird",
-              "fish"
-            ],
-            type: "string"
-          }
+            enum: ["cat", "dog", "bird", "fish"],
+            type: "string",
+          },
         },
-        title: "pet"
+        title: "pet",
       },
       thing: {
-        $ref: "#/definitions/thing"
+        $ref: "#/definitions/thing",
       },
       person: {
         title: "person",
@@ -82,22 +76,22 @@ const validatedAPI = module.exports =
         properties: {
           spouse: null,
           name: {
-            type: "string"
-          }
-        }
+            type: "string",
+          },
+        },
       },
       parent: {
         title: "parent",
         type: "object",
         properties: {
           name: {
-            type: "string"
+            type: "string",
           },
           children: {
             items: null,
-            type: "array"
-          }
-        }
+            type: "array",
+          },
+        },
       },
       child: {
         title: "child",
@@ -105,14 +99,14 @@ const validatedAPI = module.exports =
         properties: {
           parents: {
             items: null,
-            type: "array"
+            type: "array",
           },
           name: {
-            type: "string"
-          }
-        }
-      }
-    }
+            type: "string",
+          },
+        },
+      },
+    },
   },
 
   ignoreCircular$Refs: {
@@ -120,7 +114,7 @@ const validatedAPI = module.exports =
     info: {
       version: "1.0.0",
       description: "This API contains circular (recursive) JSON references",
-      title: "Circular $Refs"
+      title: "Circular $Refs",
     },
     paths: {
       "/parent": {
@@ -129,21 +123,21 @@ const validatedAPI = module.exports =
             200: {
               description: "Returns a parent",
               schema: {
-                $ref: "#/definitions/parent"
-              }
-            }
-          }
-        }
+                $ref: "#/definitions/parent",
+              },
+            },
+          },
+        },
       },
       "/pet": {
         get: {
           responses: {
             200: {
               description: "Returns a pet",
-              schema: null
-            }
-          }
-        }
+              schema: null,
+            },
+          },
+        },
       },
       "/thing": {
         get: {
@@ -151,11 +145,11 @@ const validatedAPI = module.exports =
             200: {
               description: "Returns a thing",
               schema: {
-                $ref: "#/definitions/thing"
-              }
-            }
-          }
-        }
+                $ref: "#/definitions/thing",
+              },
+            },
+          },
+        },
       },
       "/person": {
         get: {
@@ -163,50 +157,45 @@ const validatedAPI = module.exports =
             200: {
               description: "Returns a person",
               schema: {
-                $ref: "#/definitions/person"
-              }
-            }
-          }
-        }
-      }
+                $ref: "#/definitions/person",
+              },
+            },
+          },
+        },
+      },
     },
     definitions: {
       pet: {
         type: "object",
         properties: {
           age: {
-            type: "number"
+            type: "number",
           },
           name: {
-            type: "string"
+            type: "string",
           },
           species: {
-            enum: [
-              "cat",
-              "dog",
-              "bird",
-              "fish"
-            ],
-            type: "string"
-          }
+            enum: ["cat", "dog", "bird", "fish"],
+            type: "string",
+          },
         },
-        title: "pet"
+        title: "pet",
       },
       thing: {
-        $ref: "#/definitions/thing"
+        $ref: "#/definitions/thing",
       },
       person: {
-        $ref: "definitions/person.yaml"
+        $ref: "definitions/person.yaml",
       },
       parent: {
-        $ref: "definitions/parent.yaml"
+        $ref: "definitions/parent.yaml",
       },
       child: {
-        $ref: "definitions/child.yaml"
-      }
-    }
-  }
-};
+        $ref: "definitions/child.yaml",
+      },
+    },
+  },
+});
 
 validatedAPI.fullyDereferenced.paths["/pet"].get.responses["200"].schema =
   validatedAPI.fullyDereferenced.definitions.pet;

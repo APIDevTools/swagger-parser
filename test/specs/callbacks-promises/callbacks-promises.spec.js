@@ -18,7 +18,7 @@ describe("Callback & Promise syntax", () => {
     });
   }
 
-  function testCallbackSuccess (method) {
+  function testCallbackSuccess(method) {
     return function (done) {
       let parser = new SwaggerParser();
       parser[method](path.rel("specs/callbacks-promises/callbacks-promises.yaml"), (err, result) => {
@@ -29,8 +29,7 @@ describe("Callback & Promise syntax", () => {
 
           if (method === "resolve") {
             expect(result).to.equal(parser.$refs);
-          }
-          else {
+          } else {
             expect(result).to.equal(parser.schema);
 
             // Make sure the API was parsed correctly
@@ -38,52 +37,48 @@ describe("Callback & Promise syntax", () => {
             expect(result).to.deep.equal(expected);
           }
           done();
-        }
-        catch (e) {
+        } catch (e) {
           done(e);
         }
       });
     };
   }
 
-  function testCallbackError (method) {
+  function testCallbackError(method) {
     return function (done) {
       SwaggerParser[method](path.rel("specs/callbacks-promises/callbacks-promises-error.yaml"), (err, result) => {
         try {
           expect(err).to.be.an.instanceOf(SyntaxError);
           expect(result).to.equal(undefined);
           done();
-        }
-        catch (e) {
+        } catch (e) {
           done(e);
         }
       });
     };
   }
 
-  function testPromiseSuccess (method) {
+  function testPromiseSuccess(method) {
     return function () {
       let parser = new SwaggerParser();
-      return parser[method](path.rel("specs/callbacks-promises/callbacks-promises.yaml"))
-        .then((result) => {
-          expect(result).to.be.an("object");
-          expect(parser.$refs.paths()).to.deep.equal([path.abs("specs/callbacks-promises/callbacks-promises.yaml")]);
+      return parser[method](path.rel("specs/callbacks-promises/callbacks-promises.yaml")).then((result) => {
+        expect(result).to.be.an("object");
+        expect(parser.$refs.paths()).to.deep.equal([path.abs("specs/callbacks-promises/callbacks-promises.yaml")]);
 
-          if (method === "resolve") {
-            expect(result).to.equal(parser.$refs);
-          }
-          else {
-            expect(result).to.equal(parser.schema);
+        if (method === "resolve") {
+          expect(result).to.equal(parser.$refs);
+        } else {
+          expect(result).to.equal(parser.schema);
 
-            // Make sure the API was parsed correctly
-            let expected = getSchema(method);
-            expect(result).to.deep.equal(expected);
-          }
-        });
+          // Make sure the API was parsed correctly
+          let expected = getSchema(method);
+          expect(result).to.deep.equal(expected);
+        }
+      });
     };
   }
 
-  function testPromiseError (method) {
+  function testPromiseError(method) {
     return function () {
       return SwaggerParser[method](path.rel("specs/callbacks-promises/callbacks-promises-error.yaml"))
         .then(helper.shouldNotGetCalled)
@@ -93,7 +88,7 @@ describe("Callback & Promise syntax", () => {
     };
   }
 
-  function getSchema (method) {
+  function getSchema(method) {
     switch (method) {
       case "parse":
         return parsedAPI;
@@ -104,5 +99,4 @@ describe("Callback & Promise syntax", () => {
         return bundledAPI;
     }
   }
-
 });

@@ -17,11 +17,17 @@ describe("API with deeply-nested circular $refs", () => {
     expect(parser.$refs.paths()).to.deep.equal([path.abs("specs/deep-circular/deep-circular.yaml")]);
   });
 
-  it("should resolve successfully", helper.testResolve(
-    "specs/deep-circular/deep-circular.yaml", parsedAPI.api,
-    "specs/deep-circular/definitions/name.yaml", parsedAPI.name,
-    "specs/deep-circular/definitions/required-string.yaml", parsedAPI.requiredString
-  ));
+  it(
+    "should resolve successfully",
+    helper.testResolve(
+      "specs/deep-circular/deep-circular.yaml",
+      parsedAPI.api,
+      "specs/deep-circular/definitions/name.yaml",
+      parsedAPI.name,
+      "specs/deep-circular/definitions/required-string.yaml",
+      parsedAPI.requiredString,
+    ),
+  );
 
   it("should dereference successfully", async () => {
     let parser = new SwaggerParser();
@@ -31,9 +37,17 @@ describe("API with deeply-nested circular $refs", () => {
     // Reference equality
     expect(api.paths["/family-tree"].get.responses["200"].schema.properties.name.type)
       .to.equal(api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.name.type)
-      .to.equal(api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.name.type)
-      .to.equal(api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.level3.properties.name.type)
-      .to.equal(api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.level3.properties.level4.properties.name.type);
+      .to.equal(
+        api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.name.type,
+      )
+      .to.equal(
+        api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.level3
+          .properties.name.type,
+      )
+      .to.equal(
+        api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.level3
+          .properties.level4.properties.name.type,
+      );
   });
 
   it("should validate successfully", async () => {
@@ -44,9 +58,17 @@ describe("API with deeply-nested circular $refs", () => {
     // Reference equality
     expect(api.paths["/family-tree"].get.responses["200"].schema.properties.name.type)
       .to.equal(api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.name.type)
-      .to.equal(api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.name.type)
-      .to.equal(api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.level3.properties.name.type)
-      .to.equal(api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.level3.properties.level4.properties.name.type);
+      .to.equal(
+        api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.name.type,
+      )
+      .to.equal(
+        api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.level3
+          .properties.name.type,
+      )
+      .to.equal(
+        api.paths["/family-tree"].get.responses["200"].schema.properties.level1.properties.level2.properties.level3
+          .properties.level4.properties.name.type,
+      );
   });
 
   it("should bundle successfully", async () => {

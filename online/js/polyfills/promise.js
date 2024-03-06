@@ -7,28 +7,29 @@
  */
 
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory()
-    : typeof define === 'function' && define.amd ? define(factory)
+  typeof exports === "object" && typeof module !== "undefined"
+    ? (module.exports = factory())
+    : typeof define === "function" && define.amd
+      ? define(factory)
       : (global.ES6Promise = factory());
-}(this, (function () {
-  'use strict';
+})(this, function () {
+  "use strict";
 
-  function objectOrFunction (x) {
+  function objectOrFunction(x) {
     var type = typeof x;
-    return x !== null && (type === 'object' || type === 'function');
+    return x !== null && (type === "object" || type === "function");
   }
 
-  function isFunction (x) {
-    return typeof x === 'function';
+  function isFunction(x) {
+    return typeof x === "function";
   }
 
   var _isArray = undefined;
   if (Array.isArray) {
     _isArray = Array.isArray;
-  }
-  else {
+  } else {
     _isArray = function (x) {
-      return Object.prototype.toString.call(x) === '[object Array]';
+      return Object.prototype.toString.call(x) === "[object Array]";
     };
   }
 
@@ -38,51 +39,54 @@
   var vertxNext = undefined;
   var customSchedulerFn = undefined;
 
-  var asap = function asap (callback, arg) {
+  var asap = function asap(callback, arg) {
     queue[len] = callback;
     queue[len + 1] = arg;
     len += 2;
     if (len === 2) {
-    // If len is 2, that means that we need to schedule an async flush.
-    // If additional callbacks are queued before the queue is flushed, they
-    // will be processed by this flush that we are scheduling.
+      // If len is 2, that means that we need to schedule an async flush.
+      // If additional callbacks are queued before the queue is flushed, they
+      // will be processed by this flush that we are scheduling.
       if (customSchedulerFn) {
         customSchedulerFn(flush);
-      }
-      else {
+      } else {
         scheduleFlush();
       }
     }
   };
 
-  function setScheduler (scheduleFn) {
+  function setScheduler(scheduleFn) {
     customSchedulerFn = scheduleFn;
   }
 
-  function setAsap (asapFn) {
+  function setAsap(asapFn) {
     asap = asapFn;
   }
 
-  var browserWindow = typeof window !== 'undefined' ? window : undefined;
+  var browserWindow = typeof window !== "undefined" ? window : undefined;
   var browserGlobal = browserWindow || {};
   var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
-  var isNode = typeof self === 'undefined' && typeof process !== 'undefined' && ({}).toString.call(process) === '[object process]';
+  var isNode =
+    typeof self === "undefined" && typeof process !== "undefined" && {}.toString.call(process) === "[object process]";
 
   // test for web worker but not in IE10
-  var isWorker = typeof Uint8ClampedArray !== 'undefined' && typeof importScripts !== 'undefined' && typeof MessageChannel !== 'undefined';
+  var isWorker =
+    typeof Uint8ClampedArray !== "undefined" &&
+    typeof importScripts !== "undefined" &&
+    typeof MessageChannel !== "undefined";
 
   // node
-  function useNextTick () {
-  // node version 0.10.x displays a deprecation warning when nextTick is used recursively
-  // see https://github.com/cujojs/when/issues/410 for details
+  function useNextTick() {
+    // node version 0.10.x displays a deprecation warning when nextTick is used recursively
+    // see https://github.com/cujojs/when/issues/410 for details
     return function () {
       return process.nextTick(flush);
     };
   }
 
   // vertx
-  function useVertxTimer () {
-    if (typeof vertxNext !== 'undefined') {
+  function useVertxTimer() {
+    if (typeof vertxNext !== "undefined") {
       return function () {
         vertxNext(flush);
       };
@@ -91,10 +95,10 @@
     return useSetTimeout();
   }
 
-  function useMutationObserver () {
+  function useMutationObserver() {
     var iterations = 0;
     var observer = new BrowserMutationObserver(flush);
-    var node = document.createTextNode('');
+    var node = document.createTextNode("");
     observer.observe(node, { characterData: true });
 
     return function () {
@@ -103,7 +107,7 @@
   }
 
   // web worker
-  function useMessageChannel () {
+  function useMessageChannel() {
     var channel = new MessageChannel();
     channel.port1.onmessage = flush;
     return function () {
@@ -111,9 +115,9 @@
     };
   }
 
-  function useSetTimeout () {
-  // Store setTimeout reference so es6-promise will be unaffected by
-  // other code modifying setTimeout (like sinon.useFakeTimers())
+  function useSetTimeout() {
+    // Store setTimeout reference so es6-promise will be unaffected by
+    // other code modifying setTimeout (like sinon.useFakeTimers())
     var globalSetTimeout = setTimeout;
     return function () {
       return globalSetTimeout(flush, 1);
@@ -121,7 +125,7 @@
   }
 
   var queue = new Array(1000);
-  function flush () {
+  function flush() {
     for (var i = 0; i < len; i += 2) {
       var callback = queue[i];
       var arg = queue[i + 1];
@@ -135,14 +139,13 @@
     len = 0;
   }
 
-  function attemptVertx () {
+  function attemptVertx() {
     try {
       var r = require;
-      var vertx = r('vertx');
+      var vertx = r("vertx");
       vertxNext = vertx.runOnLoop || vertx.runOnContext;
       return useVertxTimer();
-    }
-    catch (e) {
+    } catch (e) {
       return useSetTimeout();
     }
   }
@@ -151,21 +154,17 @@
   // Decide what async method to use to triggering processing of queued callbacks:
   if (isNode) {
     scheduleFlush = useNextTick();
-  }
-  else if (BrowserMutationObserver) {
+  } else if (BrowserMutationObserver) {
     scheduleFlush = useMutationObserver();
-  }
-  else if (isWorker) {
+  } else if (isWorker) {
     scheduleFlush = useMessageChannel();
-  }
-  else if (browserWindow === undefined && typeof require === 'function') {
+  } else if (browserWindow === undefined && typeof require === "function") {
     scheduleFlush = attemptVertx();
-  }
-  else {
+  } else {
     scheduleFlush = useSetTimeout();
   }
 
-  function then (onFulfillment, onRejection) {
+  function then(onFulfillment, onRejection) {
     var _arguments = arguments;
 
     var parent = this;
@@ -184,9 +183,8 @@
         asap(function () {
           return invokeCallback(_state, child, callback, parent._result);
         });
-      }());
-    }
-    else {
+      })();
+    } else {
       subscribe(parent, child, onFulfillment, onRejection);
     }
 
@@ -224,11 +222,11 @@
   @return {Promise} a promise that will become fulfilled with the given
   `value`
 */
-  function resolve$1 (object) {
-  /* jshint validthis:true */
+  function resolve$1(object) {
+    /* jshint validthis:true */
     var Constructor = this;
 
-    if (object && typeof object === 'object' && object.constructor === Constructor) {
+    if (object && typeof object === "object" && object.constructor === Constructor) {
       return object;
     }
 
@@ -239,7 +237,7 @@
 
   var PROMISE_ID = Math.random().toString(36).substring(16);
 
-  function noop () {}
+  function noop() {}
 
   var PENDING = void 0;
   var FULFILLED = 1;
@@ -247,55 +245,58 @@
 
   var GET_THEN_ERROR = new ErrorObject();
 
-  function selfFulfillment () {
-    return new TypeError('You cannot resolve a promise with itself');
+  function selfFulfillment() {
+    return new TypeError("You cannot resolve a promise with itself");
   }
 
-  function cannotReturnOwn () {
-    return new TypeError('A promises callback cannot return that same promise.');
+  function cannotReturnOwn() {
+    return new TypeError("A promises callback cannot return that same promise.");
   }
 
-  function getThen (promise) {
+  function getThen(promise) {
     try {
       return promise.then;
-    }
-    catch (error) {
+    } catch (error) {
       GET_THEN_ERROR.error = error;
       return GET_THEN_ERROR;
     }
   }
 
-  function tryThen (then$$1, value, fulfillmentHandler, rejectionHandler) {
+  function tryThen(then$$1, value, fulfillmentHandler, rejectionHandler) {
     try {
       then$$1.call(value, fulfillmentHandler, rejectionHandler);
-    }
-    catch (e) {
+    } catch (e) {
       return e;
     }
   }
 
-  function handleForeignThenable (promise, thenable, then$$1) {
+  function handleForeignThenable(promise, thenable, then$$1) {
     asap(function (promise) {
       var sealed = false;
-      var error = tryThen(then$$1, thenable, (value) => {
-        if (sealed) {
-          return;
-        }
-        sealed = true;
-        if (thenable !== value) {
-          resolve(promise, value);
-        }
-        else {
-          fulfill(promise, value);
-        }
-      }, (reason) => {
-        if (sealed) {
-          return;
-        }
-        sealed = true;
+      var error = tryThen(
+        then$$1,
+        thenable,
+        (value) => {
+          if (sealed) {
+            return;
+          }
+          sealed = true;
+          if (thenable !== value) {
+            resolve(promise, value);
+          } else {
+            fulfill(promise, value);
+          }
+        },
+        (reason) => {
+          if (sealed) {
+            return;
+          }
+          sealed = true;
 
-        reject(promise, reason);
-      }, 'Settle: ' + (promise._label || ' unknown promise'));
+          reject(promise, reason);
+        },
+        "Settle: " + (promise._label || " unknown promise"),
+      );
 
       if (!sealed && error) {
         sealed = true;
@@ -304,56 +305,57 @@
     }, promise);
   }
 
-  function handleOwnThenable (promise, thenable) {
+  function handleOwnThenable(promise, thenable) {
     if (thenable._state === FULFILLED) {
       fulfill(promise, thenable._result);
-    }
-    else if (thenable._state === REJECTED) {
+    } else if (thenable._state === REJECTED) {
       reject(promise, thenable._result);
-    }
-    else {
-      subscribe(thenable, undefined, (value) => {
-        return resolve(promise, value);
-      }, (reason) => {
-        return reject(promise, reason);
-      });
+    } else {
+      subscribe(
+        thenable,
+        undefined,
+        (value) => {
+          return resolve(promise, value);
+        },
+        (reason) => {
+          return reject(promise, reason);
+        },
+      );
     }
   }
 
-  function handleMaybeThenable (promise, maybeThenable, then$$1) {
-    if (maybeThenable.constructor === promise.constructor && then$$1 === then && maybeThenable.constructor.resolve === resolve$1) {
+  function handleMaybeThenable(promise, maybeThenable, then$$1) {
+    if (
+      maybeThenable.constructor === promise.constructor &&
+      then$$1 === then &&
+      maybeThenable.constructor.resolve === resolve$1
+    ) {
       handleOwnThenable(promise, maybeThenable);
-    }
-    else {
+    } else {
       if (then$$1 === GET_THEN_ERROR) {
         reject(promise, GET_THEN_ERROR.error);
         GET_THEN_ERROR.error = null;
-      }
-      else if (then$$1 === undefined) {
+      } else if (then$$1 === undefined) {
         fulfill(promise, maybeThenable);
-      }
-      else if (isFunction(then$$1)) {
+      } else if (isFunction(then$$1)) {
         handleForeignThenable(promise, maybeThenable, then$$1);
-      }
-      else {
+      } else {
         fulfill(promise, maybeThenable);
       }
     }
   }
 
-  function resolve (promise, value) {
+  function resolve(promise, value) {
     if (promise === value) {
       reject(promise, selfFulfillment());
-    }
-    else if (objectOrFunction(value)) {
+    } else if (objectOrFunction(value)) {
       handleMaybeThenable(promise, value, getThen(value));
-    }
-    else {
+    } else {
       fulfill(promise, value);
     }
   }
 
-  function publishRejection (promise) {
+  function publishRejection(promise) {
     if (promise._onerror) {
       promise._onerror(promise._result);
     }
@@ -361,7 +363,7 @@
     publish(promise);
   }
 
-  function fulfill (promise, value) {
+  function fulfill(promise, value) {
     if (promise._state !== PENDING) {
       return;
     }
@@ -374,7 +376,7 @@
     }
   }
 
-  function reject (promise, reason) {
+  function reject(promise, reason) {
     if (promise._state !== PENDING) {
       return;
     }
@@ -384,7 +386,7 @@
     asap(publishRejection, promise);
   }
 
-  function subscribe (parent, child, onFulfillment, onRejection) {
+  function subscribe(parent, child, onFulfillment, onRejection) {
     var _subscribers = parent._subscribers;
     var length = _subscribers.length;
 
@@ -399,7 +401,7 @@
     }
   }
 
-  function publish (promise) {
+  function publish(promise) {
     var subscribers = promise._subscribers;
     var settled = promise._state;
 
@@ -408,8 +410,8 @@
     }
 
     var child = undefined,
-        callback = undefined,
-        detail = promise._result;
+      callback = undefined,
+      detail = promise._result;
 
     for (var i = 0; i < subscribers.length; i += 3) {
       child = subscribers[i];
@@ -417,8 +419,7 @@
 
       if (child) {
         invokeCallback(settled, child, callback, detail);
-      }
-      else {
+      } else {
         callback(detail);
       }
     }
@@ -426,28 +427,27 @@
     promise._subscribers.length = 0;
   }
 
-  function ErrorObject () {
+  function ErrorObject() {
     this.error = null;
   }
 
   var TRY_CATCH_ERROR = new ErrorObject();
 
-  function tryCatch (callback, detail) {
+  function tryCatch(callback, detail) {
     try {
       return callback(detail);
-    }
-    catch (e) {
+    } catch (e) {
       TRY_CATCH_ERROR.error = e;
       return TRY_CATCH_ERROR;
     }
   }
 
-  function invokeCallback (settled, promise, callback, detail) {
+  function invokeCallback(settled, promise, callback, detail) {
     var hasCallback = isFunction(callback),
-        value = undefined,
-        error = undefined,
-        succeeded = undefined,
-        failed = undefined;
+      value = undefined,
+      error = undefined,
+      succeeded = undefined,
+      failed = undefined;
 
     if (hasCallback) {
       value = tryCatch(callback, detail);
@@ -456,8 +456,7 @@
         failed = true;
         error = value.error;
         value.error = null;
-      }
-      else {
+      } else {
         succeeded = true;
       }
 
@@ -465,55 +464,52 @@
         reject(promise, cannotReturnOwn());
         return;
       }
-    }
-    else {
+    } else {
       value = detail;
       succeeded = true;
     }
 
     if (promise._state !== PENDING) {
-    // noop
-    }
-    else if (hasCallback && succeeded) {
+      // noop
+    } else if (hasCallback && succeeded) {
       resolve(promise, value);
-    }
-    else if (failed) {
+    } else if (failed) {
       reject(promise, error);
-    }
-    else if (settled === FULFILLED) {
+    } else if (settled === FULFILLED) {
       fulfill(promise, value);
-    }
-    else if (settled === REJECTED) {
+    } else if (settled === REJECTED) {
       reject(promise, value);
     }
   }
 
-  function initializePromise (promise, resolver) {
+  function initializePromise(promise, resolver) {
     try {
-      resolver(function resolvePromise (value) {
-        resolve(promise, value);
-      }, function rejectPromise (reason) {
-        reject(promise, reason);
-      });
-    }
-    catch (e) {
+      resolver(
+        function resolvePromise(value) {
+          resolve(promise, value);
+        },
+        function rejectPromise(reason) {
+          reject(promise, reason);
+        },
+      );
+    } catch (e) {
       reject(promise, e);
     }
   }
 
   var id = 0;
-  function nextId () {
+  function nextId() {
     return id++;
   }
 
-  function makePromise (promise) {
+  function makePromise(promise) {
     promise[PROMISE_ID] = id++;
     promise._state = undefined;
     promise._result = undefined;
     promise._subscribers = [];
   }
 
-  function Enumerator$1 (Constructor, input) {
+  function Enumerator$1(Constructor, input) {
     this._instanceConstructor = Constructor;
     this.promise = new Constructor(noop);
 
@@ -529,22 +525,20 @@
 
       if (this.length === 0) {
         fulfill(this.promise, this._result);
-      }
-      else {
+      } else {
         this.length = this.length || 0;
         this._enumerate(input);
         if (this._remaining === 0) {
           fulfill(this.promise, this._result);
         }
       }
-    }
-    else {
+    } else {
       reject(this.promise, validationError());
     }
   }
 
-  function validationError () {
-    return new Error('Array Methods must be provided an Array');
+  function validationError() {
+    return new Error("Array Methods must be provided an Array");
   }
 
   Enumerator$1.prototype._enumerate = function (input) {
@@ -562,23 +556,22 @@
 
       if (_then === then && entry._state !== PENDING) {
         this._settledAt(entry._state, i, entry._result);
-      }
-      else if (typeof _then !== 'function') {
+      } else if (typeof _then !== "function") {
         this._remaining--;
         this._result[i] = entry;
-      }
-      else if (c === Promise$3) {
+      } else if (c === Promise$3) {
         var promise = new c(noop);
         handleMaybeThenable(promise, entry, _then);
         this._willSettleAt(promise, i);
+      } else {
+        this._willSettleAt(
+          new c(function (resolve$$1) {
+            return resolve$$1(entry);
+          }),
+          i,
+        );
       }
-      else {
-        this._willSettleAt(new c(function (resolve$$1) {
-          return resolve$$1(entry);
-        }), i);
-      }
-    }
-    else {
+    } else {
       this._willSettleAt(resolve$$1(entry), i);
     }
   };
@@ -591,8 +584,7 @@
 
       if (state === REJECTED) {
         reject(promise, value);
-      }
-      else {
+      } else {
         this._result[i] = value;
       }
     }
@@ -605,11 +597,16 @@
   Enumerator$1.prototype._willSettleAt = function (promise, i) {
     var enumerator = this;
 
-    subscribe(promise, undefined, (value) => {
-      return enumerator._settledAt(FULFILLED, i, value);
-    }, (reason) => {
-      return enumerator._settledAt(REJECTED, i, reason);
-    });
+    subscribe(
+      promise,
+      undefined,
+      (value) => {
+        return enumerator._settledAt(FULFILLED, i, value);
+      },
+      (reason) => {
+        return enumerator._settledAt(REJECTED, i, reason);
+      },
+    );
   };
 
   /**
@@ -659,7 +656,7 @@
   fulfilled, or rejected if any of them become rejected.
   @static
 */
-  function all$1 (entries) {
+  function all$1(entries) {
     return new Enumerator$1(this, entries).promise;
   }
 
@@ -728,16 +725,15 @@
   @return {Promise} a promise which settles in the same way as the first passed
   promise to settle.
 */
-  function race$1 (entries) {
-  /* jshint validthis:true */
+  function race$1(entries) {
+    /* jshint validthis:true */
     var Constructor = this;
 
     if (!isArray(entries)) {
       return new Constructor(function (_, reject) {
-        return reject(new TypeError('You must pass an array to race.'));
+        return reject(new TypeError("You must pass an array to race."));
       });
-    }
-    else {
+    } else {
       return new Constructor(function (resolve, reject) {
         var length = entries.length;
         for (var i = 0; i < length; i++) {
@@ -781,20 +777,22 @@
   Useful for tooling.
   @return {Promise} a promise rejected with the given `reason`.
 */
-  function reject$1 (reason) {
-  /* jshint validthis:true */
+  function reject$1(reason) {
+    /* jshint validthis:true */
     var Constructor = this;
     var promise = new Constructor(noop);
     reject(promise, reason);
     return promise;
   }
 
-  function needsResolver () {
-    throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
+  function needsResolver() {
+    throw new TypeError("You must pass a resolver function as the first argument to the promise constructor");
   }
 
-  function needsNew () {
-    throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
+  function needsNew() {
+    throw new TypeError(
+      "Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.",
+    );
   }
 
   /**
@@ -900,13 +898,13 @@
   Useful for tooling.
   @constructor
 */
-  function Promise$3 (resolver) {
+  function Promise$3(resolver) {
     this[PROMISE_ID] = nextId();
     this._result = this._state = undefined;
     this._subscribers = [];
 
     if (noop !== resolver) {
-      typeof resolver !== 'function' && needsResolver();
+      typeof resolver !== "function" && needsResolver();
       this instanceof Promise$3 ? initializePromise(this, resolver) : needsNew();
     }
   }
@@ -1144,27 +1142,24 @@
     Useful for tooling.
     @return {Promise}
   */
-    catch: function _catch (onRejection) {
+    catch: function _catch(onRejection) {
       return this.then(null, onRejection);
-    }
+    },
   };
 
   /* global self*/
-  function polyfill$1 () {
+  function polyfill$1() {
     var local = undefined;
 
-    if (typeof global !== 'undefined') {
+    if (typeof global !== "undefined") {
       local = global;
-    }
-    else if (typeof self !== 'undefined') {
+    } else if (typeof self !== "undefined") {
       local = self;
-    }
-    else {
+    } else {
       try {
-        local = Function('return this')();
-      }
-      catch (e) {
-        throw new Error('polyfill failed because global object is unavailable in this environment');
+        local = Function("return this")();
+      } catch (e) {
+        throw new Error("polyfill failed because global object is unavailable in this environment");
       }
     }
 
@@ -1174,12 +1169,11 @@
       var promiseToString = null;
       try {
         promiseToString = Object.prototype.toString.call(P.resolve());
-      }
-      catch (e) {
+      } catch (e) {
         // silently ignored
       }
 
-      if (promiseToString === '[object Promise]' && !P.cast) {
+      if (promiseToString === "[object Promise]" && !P.cast) {
         return;
       }
     }
@@ -1194,7 +1188,6 @@
   Promise$3.polyfill();
 
   return Promise$3;
-
-})));
+});
 
 // # sourceMappingURL=es6-promise.auto.map

@@ -8,7 +8,7 @@ module.exports = querystring;
 /**
  * Initializes the UI, based on the query-string in the URL
  */
-function querystring () {
+function querystring() {
   setFormFields();
   setBookmarkURL();
   form.bookmark.on("click focus mouseenter", setBookmarkURL);
@@ -17,7 +17,7 @@ function querystring () {
 /**
  * Populates all form fields based on the query-string in the URL
  */
-function setFormFields () {
+function setFormFields() {
   let query = qs.parse(window.location.search.substr(1));
 
   setCheckbox(form.allow.json, query["allow-json"]);
@@ -50,7 +50,7 @@ function setFormFields () {
  * @param {jQuery} input
  * @param {*} value
  */
-function setCheckbox (input, value) {
+function setCheckbox(input, value) {
   if (!value || value === "true" || value === "on") {
     value = "yes";
   }
@@ -60,7 +60,7 @@ function setCheckbox (input, value) {
 /**
  * Sets the href of the bookmark link, based on the values of each form field
  */
-function setBookmarkURL () {
+function setBookmarkURL() {
   let query = {};
   let options = form.getOptions();
   options.parse.json || (query["allow-json"] = "no");

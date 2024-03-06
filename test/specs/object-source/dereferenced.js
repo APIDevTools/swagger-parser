@@ -1,12 +1,11 @@
 "use strict";
 
-module.exports =
-{
+module.exports = {
   swagger: "2.0",
   info: {
     version: "1.0.0",
     description: "This is an intentionally over-complicated API that returns a person's name",
-    title: "Name API"
+    title: "Name API",
   },
   paths: {
     "/people/{name}": {
@@ -15,8 +14,8 @@ module.exports =
           required: true,
           type: "string",
           name: "name",
-          in: "path"
-        }
+          in: "path",
+        },
       ],
       get: {
         responses: {
@@ -25,84 +24,78 @@ module.exports =
             schema: {
               title: "name",
               type: "object",
-              required: [
-                "first",
-                "last"
-              ],
+              required: ["first", "last"],
               properties: {
                 first: {
                   title: "requiredString",
                   type: "string",
-                  minLength: 1
+                  minLength: 1,
                 },
                 last: {
                   title: "requiredString",
                   type: "string",
-                  minLength: 1
+                  minLength: 1,
                 },
                 middle: {
                   type: "string",
-                  minLength: 1
+                  minLength: 1,
                 },
                 prefix: {
                   title: "requiredString",
                   type: "string",
-                  minLength: 3
+                  minLength: 3,
                 },
                 suffix: {
                   title: "requiredString",
                   type: "string",
                   minLength: 3,
-                  maxLength: 3
-                }
-              }
+                  maxLength: 3,
+                },
+              },
             },
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   },
   definitions: {
     requiredString: {
       title: "requiredString",
       type: "string",
-      minLength: 1
+      minLength: 1,
     },
     string: "string",
     name: {
       title: "name",
       type: "object",
-      required: [
-        "first",
-        "last"
-      ],
+      required: ["first", "last"],
       properties: {
         first: {
           title: "requiredString",
           type: "string",
-          minLength: 1
+          minLength: 1,
         },
         last: {
           title: "requiredString",
           type: "string",
-          minLength: 1
+          minLength: 1,
         },
         middle: {
           type: "string",
-          minLength: 1
+          minLength: 1,
         },
         prefix: {
           title: "requiredString",
           type: "string",
-          minLength: 3
+          minLength: 3,
         },
         suffix: {
           title: "requiredString",
           type: "string",
           minLength: 3,
-          maxLength: 3
-        }
-      }
-    }
-  }
+          maxLength: 3,
+        },
+      },
+    },
+  },
 };

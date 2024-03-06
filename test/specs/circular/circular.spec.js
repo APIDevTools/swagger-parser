@@ -18,13 +18,21 @@ describe("API with circular (recursive) $refs", () => {
     expect(parser.$refs.paths()).to.deep.equal([path.abs("specs/circular/circular.yaml")]);
   });
 
-  it("should resolve successfully", helper.testResolve(
-    "specs/circular/circular.yaml", parsedAPI.api,
-    "specs/circular/definitions/pet.yaml", parsedAPI.pet,
-    "specs/circular/definitions/child.yaml", parsedAPI.child,
-    "specs/circular/definitions/parent.yaml", parsedAPI.parent,
-    "specs/circular/definitions/person.yaml", parsedAPI.person
-  ));
+  it(
+    "should resolve successfully",
+    helper.testResolve(
+      "specs/circular/circular.yaml",
+      parsedAPI.api,
+      "specs/circular/definitions/pet.yaml",
+      parsedAPI.pet,
+      "specs/circular/definitions/child.yaml",
+      parsedAPI.child,
+      "specs/circular/definitions/parent.yaml",
+      parsedAPI.parent,
+      "specs/circular/definitions/person.yaml",
+      parsedAPI.person,
+    ),
+  );
 
   it("should dereference successfully", async () => {
     let parser = new SwaggerParser();
@@ -50,7 +58,9 @@ describe("API with circular (recursive) $refs", () => {
 
   it('should not dereference circular $refs if "options.dereference.circular" is "ignore"', async () => {
     let parser = new SwaggerParser();
-    const api = await parser.validate(path.rel("specs/circular/circular.yaml"), { dereference: { circular: "ignore" }});
+    const api = await parser.validate(path.rel("specs/circular/circular.yaml"), {
+      dereference: { circular: "ignore" },
+    });
     expect(api).to.equal(parser.api);
     expect(api).to.deep.equal(validatedAPI.ignoreCircular$Refs);
     // Reference equality
@@ -61,10 +71,9 @@ describe("API with circular (recursive) $refs", () => {
     let parser = new SwaggerParser();
 
     try {
-      await parser.validate(path.rel("specs/circular/circular.yaml"), { dereference: { circular: false }});
+      await parser.validate(path.rel("specs/circular/circular.yaml"), { dereference: { circular: false } });
       helper.shouldNotGetCalled();
-    }
-    catch (err) {
+    } catch (err) {
       expect(err).to.be.an.instanceOf(ReferenceError);
       expect(err.message).to.equal("The API contains circular references");
     }
