@@ -1,0 +1,27 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ESNext",
+    "allowJs": true,
+    "noEmit": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "..",
+    "declaration": true,
+    "esModuleInterop": true,
+    "inlineSourceMap": false,
+    "lib": ["esnext", "dom", "DOM"],
+    "listEmittedFiles": false,
+    "listFiles": false,
+    "moduleResolution": "node16",
+    "noFallthroughCasesInSwitch": true,
+    "pretty": true,
+    "resolveJsonModule": true,
+    "rootDir": "..",
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "compileOnSave": false,
+  "exclude": ["node_modules"],
+  "include": ["lib/**/*", "test/**/*", "../vite.config.ts"]
+}

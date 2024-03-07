@@ -1,0 +1,46 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true,
+    "amd": true
+  },
+  "settings": {
+    "react": { "version": "detect" }
+  },
+  "extends": ["prettier", "eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "plugins": ["prettier", "unused-imports", "@typescript-eslint"],
+  "rules": {
+    "prefer-rest-params": "off",
+    "prefer-const": "error",
+    "prefer-spread": "off",
+    "no-case-declarations": "off",
+    "curly": ["error", "all"],
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports"
+      }
+    ],
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-use-before-define": ["off"],
+    "object-shorthand": "error",
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_", "ignoreRestSiblings": true }
+    ],
+    "unused-imports/no-unused-imports-ts": "error"
+  }
+}

@@ -7,24 +7,17 @@
       "request": "launch",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "stopOnEntry": false,
-      "args": [
-        "--quick-test",
-        "--timeout=600000"
-      ],
+      "args": ["--quick-test", "--timeout=600000"],
       "cwd": "${workspaceRoot}",
       "preLaunchTask": null,
       "runtimeExecutable": null,
-      "runtimeArgs": [
-        "--nolazy"
-      ],
+      "runtimeArgs": ["--nolazy"],
       "env": {
         "NODE_ENV": "development"
       },
       "console": "internalConsole",
       "sourceMaps": false,
-      "skipFiles": [
-        "<node_internals>/**/*.js"
-      ]
+      "skipFiles": ["<node_internals>/**/*.js"]
     }
   ]
 }

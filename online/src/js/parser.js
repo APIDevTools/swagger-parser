@@ -7,14 +7,14 @@ const { ono } = require("@jsdevtools/ono");
 const SwaggerParser = require("../../../");
 
 let swaggerParser = null;
-let counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
+const counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
 
 module.exports = parser;
 
 /**
  * Adds event handlers to trigger Swagger Parser methods
  */
-function parser () {
+function parser() {
   // When the form is submitted, parse the Swagger API
   form.form.on("submit", (event) => {
     event.preventDefault();
@@ -33,22 +33,22 @@ function parser () {
  * This function is called when the "Validate it!" button is clicked.
  * It calls Swagger Parser, passing it all the options selected on the form.
  */
-function parseSwagger () {
+function parseSwagger() {
   try {
     // Clear any previous results
     editors.clearResults();
 
     // Get all the parameters
     swaggerParser = swaggerParser || new SwaggerParser();
-    let options = form.getOptions();
-    let method = form.method.button.val();
-    let api = form.getAPI();
+    const options = form.getOptions();
+    const method = form.method.button.val();
+    const api = form.getAPI();
 
     // Call Swagger Parser
     swaggerParser[method](api, options)
       .then(() => {
         // Show the results
-        let results = swaggerParser.$refs.values();
+        const results = swaggerParser.$refs.values();
         Object.keys(results).forEach((key) => {
           editors.showResult(key, results[key]);
         });
@@ -61,8 +61,7 @@ function parseSwagger () {
     // Track the operation
     counters[method]++;
     analytics.trackEvent("button", "click", method, counters[method]);
-  }
-  catch (err) {
+  } catch (err:any) {
     editors.showError(ono(err));
     analytics.trackError(err);
   }
