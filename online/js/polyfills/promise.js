@@ -1113,7 +1113,7 @@
     Useful for tooling.
     @return {Promise}
   */
-    then: then,
+    then,
 
     /**
     `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same

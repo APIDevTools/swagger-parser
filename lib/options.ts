@@ -2,6 +2,8 @@ import type $RefParserOptions from "@apidevtools/json-schema-ref-parser/lib/opti
 import { getNewOptions } from "@apidevtools/json-schema-ref-parser/lib/options";
 import schemaValidator from "./validators/schema";
 import specValidator from "./validators/spec";
+import type { DeepPartial } from "@apidevtools/json-schema-ref-parser/dist/lib/options";
+import type { Document } from "./index";
 export default SwaggerParserOptions;
 
 /**
@@ -11,12 +13,15 @@ export default SwaggerParserOptions;
  * @class
  * @augments $RefParserOptions
  */
-export interface SwaggerParserOptions extends $RefParserOptions {
+export interface ParserOptionsStrict<S extends Document = Document> extends $RefParserOptions<S> {
   validate: {
-    schema: typeof schemaValidator | false;
-    spec: typeof specValidator | false;
+    schema?: typeof schemaValidator | false;
+    spec?: typeof specValidator | false;
   };
 }
+
+export type SwaggerParserOptions<S extends Document = Document> = DeepPartial<ParserOptionsStrict<S>>;
+
 const getSwaggerParserDefaultOptions = (): SwaggerParserOptions => {
   const baseDefaults = getNewOptions({});
   return {
@@ -65,10 +70,12 @@ function merge(target: any, source: any) {
 function isMergeable(val: any) {
   return val && typeof val === "object" && !Array.isArray(val) && !(val instanceof RegExp) && !(val instanceof Date);
 }
-export const getSwaggerParserOptions = (options: SwaggerParserOptions | object): SwaggerParserOptions => {
+export const getSwaggerParserOptions = <S extends Document = Document>(
+  options: SwaggerParserOptions<S> | object,
+): ParserOptionsStrict<S> => {
   const newOptions = getSwaggerParserDefaultOptions();
   if (options) {
     merge(newOptions, options);
   }
-  return newOptions;
+  return newOptions as ParserOptionsStrict;
 };

@@ -1,10 +1,7 @@
-/* eslint-disable require-await */
-"use strict";
-
-const { expect } = require("chai");
-const SwaggerParser = require("../..");
-const { validate } = require("../..");
-const path = require("../utils/path");
+import SwaggerParser from "../../lib/index.js";
+import { validate } from "../../lib/index.js";
+import path from "../utils/path";
+import { expect, it, describe } from "vitest";
 
 describe("Exports", () => {
   it("should export the SwaggerParser class", async () => {
@@ -23,6 +20,6 @@ describe("Exports", () => {
   });
 
   it("Using named import should work correctly", async () => {
-    await validate(path.rel("specs/validate-spec/valid/file-vendor-specific-consumes-formdata.yaml"));
+    await validate(path.rel("test/specs/validate-spec/valid/file-vendor-specific-consumes-formdata.yaml"));
   });
 });

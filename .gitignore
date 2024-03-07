@@ -42,3 +42,4 @@ node_modules
 # Jekyll output
 _site
 .sass-cache
+coverage

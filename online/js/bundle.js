@@ -4,8 +4,8 @@
       if (!n[i]) {
         if (!e[i]) {
           var c = "function" == typeof require && require;
-          if (!f && c) return c(i, !0);
-          if (u) return u(i, !0);
+          if (!f && c) {return c(i, !0);}
+          if (u) {return u(i, !0);}
           var a = new Error("Cannot find module '" + i + "'");
           throw ((a.code = "MODULE_NOT_FOUND"), a);
         }
@@ -26,7 +26,7 @@
       }
       return n[i].exports;
     }
-    for (var u = "function" == typeof require && require, i = 0; i < t.length; i++) o(t[i]);
+    for (var u = "function" == typeof require && require, i = 0; i < t.length; i++) {o(t[i]);}
     return o;
   }
   return r;
@@ -89,11 +89,11 @@
          * @returns {Promise} - The returned promise resolves with the parsed API object.
          */
         SwaggerParser.prototype.parse = async function (path, api, options, callback) {
-          let args = normalizeArgs(arguments);
+          const args = normalizeArgs(arguments);
           args.options = new Options(args.options);
 
           try {
-            let schema = await $RefParser.prototype.parse.call(this, args.path, args.schema, args.options);
+            const schema = await $RefParser.prototype.parse.call(this, args.path, args.schema, args.options);
 
             if (schema.swagger) {
               // Verify that the parsed object is a Swagger API
@@ -109,7 +109,7 @@
                 throw ono.syntax(`Unrecognized Swagger version: ${schema.swagger}. Expected 2.0`);
               }
             } else {
-              let supportedVersions = ["3.0.0", "3.0.1", "3.0.2", "3.0.3", "3.1.0"];
+              const supportedVersions = ["3.0.0", "3.0.1", "3.0.2", "3.0.3", "3.1.0"];
 
               // Verify that the parsed object is a Openapi API
               if (schema.openapi === undefined || schema.info === undefined) {
@@ -158,8 +158,8 @@
          * @returns {Promise} - The returned promise resolves with the parsed API object.
          */
         SwaggerParser.validate = function (path, api, options, callback) {
-          let Class = this; // eslint-disable-line consistent-this
-          let instance = new Class();
+          const Class = this; // eslint-disable-line consistent-this
+          const instance = new Class();
           return instance.validate.apply(instance, arguments);
         };
 
@@ -174,13 +174,13 @@
          * @returns {Promise} - The returned promise resolves with the parsed API object.
          */
         SwaggerParser.prototype.validate = async function (path, api, options, callback) {
-          let me = this;
-          let args = normalizeArgs(arguments);
+          const me = this;
+          const args = normalizeArgs(arguments);
           args.options = new Options(args.options);
 
           // ZSchema doesn't support circular objects, so don't dereference circular $refs yet
           // (see https://github.com/zaggino/z-schema/issues/137)
-          let circular$RefOption = args.options.dereference.circular;
+          const circular$RefOption = args.options.dereference.circular;
           args.options.validate.schema && (args.options.dereference.circular = "ignore");
 
           try {
@@ -413,10 +413,10 @@
           }
 
           // Validate against the schema
-          let isValid = ajv.validate(schema, api);
+          const isValid = ajv.validate(schema, api);
           if (!isValid) {
-            let err = ajv.errors;
-            let message = "Swagger schema validation failed.\n" + formatAjvError(err);
+            const err = ajv.errors;
+            const message = "Swagger schema validation failed.\n" + formatAjvError(err);
             throw ono.syntax(err, { details: err }, message);
           }
         }
@@ -451,7 +451,7 @@
         function formatAjvError(errors, indent) {
           indent = indent || "  ";
           let message = "";
-          for (let error of errors) {
+          for (const error of errors) {
             message += util.format(
               `${indent}#${error.instancePath.length ? error.instancePath : "/"} ${error.message}\n`,
             );
@@ -490,21 +490,21 @@
             return;
           }
 
-          let paths = Object.keys(api.paths || {});
-          let operationIds = [];
-          for (let pathName of paths) {
-            let path = api.paths[pathName];
-            let pathId = "/paths" + pathName;
+          const paths = Object.keys(api.paths || {});
+          const operationIds = [];
+          for (const pathName of paths) {
+            const path = api.paths[pathName];
+            const pathId = "/paths" + pathName;
 
             if (path && pathName.indexOf("/") === 0) {
               validatePath(api, path, pathId, operationIds);
             }
           }
 
-          let definitions = Object.keys(api.definitions || {});
-          for (let definitionName of definitions) {
-            let definition = api.definitions[definitionName];
-            let definitionId = "/definitions/" + definitionName;
+          const definitions = Object.keys(api.definitions || {});
+          for (const definitionName of definitions) {
+            const definition = api.definitions[definitionName];
+            const definitionId = "/definitions/" + definitionName;
             validateRequiredPropertiesExist(definition, definitionId);
           }
         }
@@ -518,12 +518,12 @@
          * @param {string}        operationIds  - An array of collected operationIds found in other paths
          */
         function validatePath(api, path, pathId, operationIds) {
-          for (let operationName of swaggerMethods) {
-            let operation = path[operationName];
-            let operationId = pathId + "/" + operationName;
+          for (const operationName of swaggerMethods) {
+            const operation = path[operationName];
+            const operationId = pathId + "/" + operationName;
 
             if (operation) {
-              let declaredOperationId = operation.operationId;
+              const declaredOperationId = operation.operationId;
               if (declaredOperationId) {
                 if (operationIds.indexOf(declaredOperationId) === -1) {
                   operationIds.push(declaredOperationId);
@@ -533,10 +533,10 @@
               }
               validateParameters(api, path, pathId, operation, operationId);
 
-              let responses = Object.keys(operation.responses || {});
-              for (let responseName of responses) {
-                let response = operation.responses[responseName];
-                let responseId = operationId + "/responses/" + responseName;
+              const responses = Object.keys(operation.responses || {});
+              for (const responseName of responses) {
+                const response = operation.responses[responseName];
+                const responseId = operationId + "/responses/" + responseName;
                 validateResponse(responseName, response || {}, responseId);
               }
             }
@@ -553,8 +553,8 @@
          * @param {string}        operationId   - A value that uniquely identifies the operation
          */
         function validateParameters(api, path, pathId, operation, operationId) {
-          let pathParams = path.parameters || [];
-          let operationParams = operation.parameters || [];
+          const pathParams = path.parameters || [];
+          const operationParams = operation.parameters || [];
 
           // Check for duplicate path parameters
           try {
@@ -572,8 +572,8 @@
 
           // Combine the path and operation parameters,
           // with the operation params taking precedence over the path params
-          let params = pathParams.reduce((combinedParams, value) => {
-            let duplicate = combinedParams.some((param) => {
+          const params = pathParams.reduce((combinedParams, value) => {
+            const duplicate = combinedParams.some((param) => {
               return param.in === value.in && param.name === value.name;
             });
             if (!duplicate) {
@@ -594,10 +594,10 @@
          * @param   {string}    operationId  -  A value that uniquely identifies the operation
          */
         function validateBodyParameters(params, operationId) {
-          let bodyParams = params.filter((param) => {
+          const bodyParams = params.filter((param) => {
             return param.in === "body";
           });
-          let formParams = params.filter((param) => {
+          const formParams = params.filter((param) => {
             return param.in === "formData";
           });
 
@@ -623,7 +623,7 @@
          */
         function validatePathParameters(params, pathId, operationId) {
           // Find all {placeholders} in the path string
-          let placeholders = pathId.match(util.swaggerParamRegExp) || [];
+          const placeholders = pathId.match(util.swaggerParamRegExp) || [];
 
           // Check for duplicates
           for (let i = 0; i < placeholders.length; i++) {
@@ -640,14 +640,14 @@
             return param.in === "path";
           });
 
-          for (let param of params) {
+          for (const param of params) {
             if (param.required !== true) {
               throw ono.syntax(
                 "Validation failed. Path parameters cannot be optional. " +
                   `Set required=true for the "${param.name}" parameter at ${operationId}`,
               );
             }
-            let match = placeholders.indexOf("{" + param.name + "}");
+            const match = placeholders.indexOf("{" + param.name + "}");
             if (match === -1) {
               throw ono.syntax(
                 `Validation failed. ${operationId} has a path parameter named "${param.name}", ` +
@@ -671,8 +671,8 @@
          * @param   {string}    operationId  -  A value that uniquely identifies the operation
          */
         function validateParameterTypes(params, api, operation, operationId) {
-          for (let param of params) {
-            let parameterId = operationId + "/parameters/" + param.name;
+          for (const param of params) {
+            const parameterId = operationId + "/parameters/" + param.name;
             let schema, validTypes;
 
             switch (param.in) {
@@ -694,12 +694,12 @@
 
             if (schema.type === "file") {
               // "file" params must consume at least one of these MIME types
-              let formData = /multipart\/(.*\+)?form-data/;
-              let urlEncoded = /application\/(.*\+)?x-www-form-urlencoded/;
+              const formData = /multipart\/(.*\+)?form-data/;
+              const urlEncoded = /application\/(.*\+)?x-www-form-urlencoded/;
 
-              let consumes = operation.consumes || api.consumes || [];
+              const consumes = operation.consumes || api.consumes || [];
 
-              let hasValidMimeType = consumes.some((consume) => {
+              const hasValidMimeType = consumes.some((consume) => {
                 return formData.test(consume) || urlEncoded.test(consume);
               });
 
@@ -720,9 +720,9 @@
          */
         function checkForDuplicates(params) {
           for (let i = 0; i < params.length - 1; i++) {
-            let outer = params[i];
+            const outer = params[i];
             for (let j = i + 1; j < params.length; j++) {
-              let inner = params[j];
+              const inner = params[j];
               if (outer.name === inner.name && outer.in === inner.in) {
                 throw ono.syntax(`Validation failed. Found multiple ${outer.in} parameters named "${outer.name}"`);
               }
@@ -742,15 +742,15 @@
             throw ono.syntax(`Validation failed. ${responseId} has an invalid response code (${code})`);
           }
 
-          let headers = Object.keys(response.headers || {});
-          for (let headerName of headers) {
-            let header = response.headers[headerName];
-            let headerId = responseId + "/headers/" + headerName;
+          const headers = Object.keys(response.headers || {});
+          for (const headerName of headers) {
+            const header = response.headers[headerName];
+            const headerId = responseId + "/headers/" + headerName;
             validateSchema(header, headerId, primitiveTypes);
           }
 
           if (response.schema) {
-            let validTypes = schemaTypes.concat("file");
+            const validTypes = schemaTypes.concat("file");
             if (validTypes.indexOf(response.schema.type) === -1) {
               throw ono.syntax(
                 `Validation failed. ${responseId} has an invalid response schema type (${response.schema.type})`,
@@ -790,23 +790,23 @@
            */
           function collectProperties(schemaObj, props) {
             if (schemaObj.properties) {
-              for (let property in schemaObj.properties) {
+              for (const property in schemaObj.properties) {
                 if (schemaObj.properties.hasOwnProperty(property)) {
                   props[property] = schemaObj.properties[property];
                 }
               }
             }
             if (schemaObj.allOf) {
-              for (let parent of schemaObj.allOf) {
+              for (const parent of schemaObj.allOf) {
                 collectProperties(parent, props);
               }
             }
           }
 
           if (schema.required && Array.isArray(schema.required)) {
-            let props = {};
+            const props = {};
             collectProperties(schema, props);
-            for (let requiredProperty of schema.required) {
+            for (const requiredProperty of schema.required) {
               if (!props[requiredProperty]) {
                 throw ono.syntax(
                   `Validation failed. Property '${requiredProperty}' listed as required but does not exist in '${schemaId}'`,
@@ -840,7 +840,7 @@
           // console.log('Bundling $ref pointers in %s', parser.$refs._root$Ref.path);
 
           // Build an inventory of all $ref pointers in the JSON Schema
-          let inventory = [];
+          const inventory = [];
           crawl(parser, "schema", parser.$refs._root$Ref.path + "#", "#", 0, inventory, parser.$refs, options);
 
           // Remap all $ref pointers
@@ -859,7 +859,7 @@
          * @param {$RefParserOptions} options
          */
         function crawl(parent, key, path, pathFromRoot, indirections, inventory, $refs, options) {
-          let obj = key === null ? parent : parent[key];
+          const obj = key === null ? parent : parent[key];
 
           if (obj && typeof obj === "object" && !ArrayBuffer.isView(obj)) {
             if ($Ref.isAllowed$Ref(obj)) {
@@ -868,7 +868,7 @@
               // Crawl the object in a specific order that's optimized for bundling.
               // This is important because it determines how `pathFromRoot` gets built,
               // which later determines which keys get dereferenced and which ones get remapped
-              let keys = Object.keys(obj).sort((a, b) => {
+              const keys = Object.keys(obj).sort((a, b) => {
                 // Most people will expect references to be bundled into the the "definitions" property,
                 // so we always crawl that property first, if it exists.
                 if (a === "definitions") {
@@ -883,10 +883,10 @@
               });
 
               // eslint-disable-next-line no-shadow
-              for (let key of keys) {
-                let keyPath = Pointer.join(path, key);
-                let keyPathFromRoot = Pointer.join(pathFromRoot, key);
-                let value = obj[key];
+              for (const key of keys) {
+                const keyPath = Pointer.join(path, key);
+                const keyPathFromRoot = Pointer.join(pathFromRoot, key);
+                const value = obj[key];
 
                 if ($Ref.isAllowed$Ref(value)) {
                   inventory$Ref(obj, key, path, keyPathFromRoot, indirections, inventory, $refs, options);
@@ -911,21 +911,21 @@
          * @param {$RefParserOptions} options
          */
         function inventory$Ref($refParent, $refKey, path, pathFromRoot, indirections, inventory, $refs, options) {
-          let $ref = $refKey === null ? $refParent : $refParent[$refKey];
-          let $refPath = url.resolve(path, $ref.$ref);
-          let pointer = $refs._resolve($refPath, pathFromRoot, options);
+          const $ref = $refKey === null ? $refParent : $refParent[$refKey];
+          const $refPath = url.resolve(path, $ref.$ref);
+          const pointer = $refs._resolve($refPath, pathFromRoot, options);
           if (pointer === null) {
             return;
           }
 
-          let depth = Pointer.parse(pathFromRoot).length;
-          let file = url.stripHash(pointer.path);
-          let hash = url.getHash(pointer.path);
-          let external = file !== $refs._root$Ref.path;
-          let extended = $Ref.isExtended$Ref($ref);
+          const depth = Pointer.parse(pathFromRoot).length;
+          const file = url.stripHash(pointer.path);
+          const hash = url.getHash(pointer.path);
+          const external = file !== $refs._root$Ref.path;
+          const extended = $Ref.isExtended$Ref($ref);
           indirections += pointer.indirections;
 
-          let existingEntry = findInInventory(inventory, $refParent, $refKey);
+          const existingEntry = findInInventory(inventory, $refParent, $refKey);
           if (existingEntry) {
             // This $Ref has already been inventoried, so we don't need to process it again
             if (depth < existingEntry.depth || indirections < existingEntry.indirections) {
@@ -1003,8 +1003,8 @@
             } else {
               // Determine how far each $ref is from the "definitions" property.
               // Most people will expect references to be bundled into the the "definitions" property if possible.
-              let aDefinitionsIndex = a.pathFromRoot.lastIndexOf("/definitions");
-              let bDefinitionsIndex = b.pathFromRoot.lastIndexOf("/definitions");
+              const aDefinitionsIndex = a.pathFromRoot.lastIndexOf("/definitions");
+              const bDefinitionsIndex = b.pathFromRoot.lastIndexOf("/definitions");
 
               if (aDefinitionsIndex !== bDefinitionsIndex) {
                 // Give higher priority to the $ref that's closer to the "definitions" property
@@ -1017,7 +1017,7 @@
           });
 
           let file, hash, pathFromRoot;
-          for (let entry of inventory) {
+          for (const entry of inventory) {
             // console.log('Re-mapping $ref pointer "%s" at %s', entry.$ref.$ref, entry.pathFromRoot);
 
             if (!entry.external) {
@@ -1054,7 +1054,7 @@
          */
         function findInInventory(inventory, $refParent, $refKey) {
           for (let i = 0; i < inventory.length; i++) {
-            let existingEntry = inventory[i];
+            const existingEntry = inventory[i];
             if (existingEntry.parent === $refParent && existingEntry.key === $refKey) {
               return existingEntry;
             }
@@ -1062,7 +1062,7 @@
         }
 
         function removeFromInventory(inventory, entry) {
-          let index = inventory.indexOf(entry);
+          const index = inventory.indexOf(entry);
           inventory.splice(index, 1);
         }
       },
@@ -1088,7 +1088,7 @@
          */
         function dereference(parser, options) {
           // console.log('Dereferencing $ref pointers in %s', parser.$refs._root$Ref.path);
-          let dereferenced = crawl(parser.schema, parser.$refs._root$Ref.path, "#", [], parser.$refs, options);
+          const dereferenced = crawl(parser.schema, parser.$refs._root$Ref.path, "#", [], parser.$refs, options);
           parser.$refs.circular = dereferenced.circular;
           parser.schema = dereferenced.value;
         }
@@ -1106,7 +1106,7 @@
          */
         function crawl(obj, path, pathFromRoot, parents, $refs, options) {
           let dereferenced;
-          let result = {
+          const result = {
             value: obj,
             circular: false,
           };
@@ -1119,10 +1119,10 @@
               result.circular = dereferenced.circular;
               result.value = dereferenced.value;
             } else {
-              for (let key of Object.keys(obj)) {
-                let keyPath = Pointer.join(path, key);
-                let keyPathFromRoot = Pointer.join(pathFromRoot, key);
-                let value = obj[key];
+              for (const key of Object.keys(obj)) {
+                const keyPath = Pointer.join(path, key);
+                const keyPathFromRoot = Pointer.join(pathFromRoot, key);
+                const value = obj[key];
                 let circular = false;
 
                 if ($Ref.isAllowed$Ref(value, options)) {
@@ -1170,8 +1170,8 @@
         function dereference$Ref($ref, path, pathFromRoot, parents, $refs, options) {
           // console.log('Dereferencing $ref pointer "%s" at %s', $ref.$ref, path);
 
-          let $refPath = url.resolve(path, $ref.$ref);
-          let pointer = $refs._resolve($refPath, path, options);
+          const $refPath = url.resolve(path, $ref.$ref);
+          const pointer = $refs._resolve($refPath, path, options);
 
           if (pointer === null) {
             return {
@@ -1181,7 +1181,7 @@
           }
 
           // Check for circular references
-          let directCircular = pointer.circular;
+          const directCircular = pointer.circular;
           let circular = directCircular || parents.indexOf(pointer.value) !== -1;
           circular && foundCircularReference(path, $refs, options);
 
@@ -1191,7 +1191,7 @@
           // Crawl the dereferenced value (unless it's circular)
           if (!circular) {
             // Determine if the dereferenced value is circular
-            let dereferenced = crawl(dereferencedValue, pointer.path, pathFromRoot, parents, $refs, options);
+            const dereferenced = crawl(dereferencedValue, pointer.path, pathFromRoot, parents, $refs, options);
             circular = dereferenced.circular;
             dereferencedValue = dereferenced.value;
           }
@@ -1306,8 +1306,8 @@
              * @returns {Promise} - The returned promise resolves with the parsed JSON schema object.
              */
             $RefParser.parse = function parse(path, schema, options, callback) {
-              let Class = this; // eslint-disable-line consistent-this
-              let instance = new Class();
+              const Class = this; // eslint-disable-line consistent-this
+              const instance = new Class();
               return instance.parse.apply(instance, arguments);
             };
 
@@ -1323,11 +1323,11 @@
              * @returns {Promise} - The returned promise resolves with the parsed JSON schema object.
              */
             $RefParser.prototype.parse = async function parse(path, schema, options, callback) {
-              let args = normalizeArgs(arguments);
+              const args = normalizeArgs(arguments);
               let promise;
 
               if (!args.path && !args.schema) {
-                let err = ono(`Expected a file path, URL, or object. Got ${args.path || args.schema}`);
+                const err = ono(`Expected a file path, URL, or object. Got ${args.path || args.schema}`);
                 return maybe(args.callback, Promise.reject(err));
               }
 
@@ -1353,7 +1353,7 @@
               if (args.schema && typeof args.schema === "object") {
                 // A schema object was passed-in.
                 // So immediately add a new $Ref with the schema object as its value
-                let $ref = this.$refs._add(args.path);
+                const $ref = this.$refs._add(args.path);
                 $ref.value = args.schema;
                 $ref.pathType = pathType;
                 promise = Promise.resolve(args.schema);
@@ -1362,9 +1362,9 @@
                 promise = _parse(args.path, this.$refs, args.options);
               }
 
-              let me = this;
+              const me = this;
               try {
-                let result = await promise;
+                const result = await promise;
 
                 if (result !== null && typeof result === "object" && !Buffer.isBuffer(result)) {
                   me.schema = result;
@@ -1402,8 +1402,8 @@
              * The returned promise resolves with a {@link $Refs} object containing the resolved JSON references
              */
             $RefParser.resolve = function resolve(path, schema, options, callback) {
-              let Class = this; // eslint-disable-line consistent-this
-              let instance = new Class();
+              const Class = this; // eslint-disable-line consistent-this
+              const instance = new Class();
               return instance.resolve.apply(instance, arguments);
             };
 
@@ -1421,8 +1421,8 @@
              * The returned promise resolves with a {@link $Refs} object containing the resolved JSON references
              */
             $RefParser.prototype.resolve = async function resolve(path, schema, options, callback) {
-              let me = this;
-              let args = normalizeArgs(arguments);
+              const me = this;
+              const args = normalizeArgs(arguments);
 
               try {
                 await this.parse(args.path, args.schema, args.options);
@@ -1446,8 +1446,8 @@
              * @returns {Promise} - The returned promise resolves with the bundled JSON schema object.
              */
             $RefParser.bundle = function bundle(path, schema, options, callback) {
-              let Class = this; // eslint-disable-line consistent-this
-              let instance = new Class();
+              const Class = this; // eslint-disable-line consistent-this
+              const instance = new Class();
               return instance.bundle.apply(instance, arguments);
             };
 
@@ -1463,8 +1463,8 @@
              * @returns {Promise} - The returned promise resolves with the bundled JSON schema object.
              */
             $RefParser.prototype.bundle = async function bundle(path, schema, options, callback) {
-              let me = this;
-              let args = normalizeArgs(arguments);
+              const me = this;
+              const args = normalizeArgs(arguments);
 
               try {
                 await this.resolve(args.path, args.schema, args.options);
@@ -1487,8 +1487,8 @@
              * @returns {Promise} - The returned promise resolves with the dereferenced JSON schema object.
              */
             $RefParser.dereference = function dereference(path, schema, options, callback) {
-              let Class = this; // eslint-disable-line consistent-this
-              let instance = new Class();
+              const Class = this; // eslint-disable-line consistent-this
+              const instance = new Class();
               return instance.dereference.apply(instance, arguments);
             };
 
@@ -1503,8 +1503,8 @@
              * @returns {Promise} - The returned promise resolves with the dereferenced JSON schema object.
              */
             $RefParser.prototype.dereference = async function dereference(path, schema, options, callback) {
-              let me = this;
-              let args = normalizeArgs(arguments);
+              const me = this;
+              const args = normalizeArgs(arguments);
 
               try {
                 await this.resolve(args.path, args.schema, args.options);
@@ -1685,11 +1685,11 @@
          */
         function merge(target, source) {
           if (isMergeable(source)) {
-            let keys = Object.keys(source);
+            const keys = Object.keys(source);
             for (let i = 0; i < keys.length; i++) {
-              let key = keys[i];
-              let sourceSetting = source[key];
-              let targetSetting = target[key];
+              const key = keys[i];
+              const sourceSetting = source[key];
+              const targetSetting = target[key];
 
               if (isMergeable(sourceSetting)) {
                 // It's a nested object, so merge it recursively
@@ -1760,10 +1760,10 @@
 
               // Add a new $Ref for this file, even though we don't have the value yet.
               // This ensures that we don't simultaneously read & parse the same file multiple times
-              let $ref = $refs._add(path);
+              const $ref = $refs._add(path);
 
               // This "file object" will be passed to all resolvers and parsers.
-              let file = {
+              const file = {
                 url: path,
                 extension: url.getExtension(path),
               };
@@ -1847,9 +1847,9 @@
                 // Find the parsers that can read this file type.
                 // If none of the parsers are an exact match for this file, then we'll try ALL of them.
                 // This handles situations where the file IS a supported type, just with an unknown extension.
-                let allParsers = plugins.all(options.parse);
-                let filteredParsers = plugins.filter(allParsers, "canParse", file);
-                let parsers = filteredParsers.length > 0 ? filteredParsers : allParsers;
+                const allParsers = plugins.all(options.parse);
+                const filteredParsers = plugins.filter(allParsers, "canParse", file);
+                const parsers = filteredParsers.length > 0 ? filteredParsers : allParsers;
 
                 // Run the parsers, in order, until one of them succeeds
                 plugins.sort(parsers);
@@ -1909,7 +1909,7 @@
           (function () {
             "use strict";
 
-            let BINARY_REGEXP = /\.(jpeg|jpg|gif|png|bmp|ico)$/i;
+            const BINARY_REGEXP = /\.(jpeg|jpg|gif|png|bmp|ico)$/i;
 
             module.exports = {
               /**
@@ -2044,7 +2044,7 @@
 
             const { ParserError } = require("../util/errors");
 
-            let TEXT_REGEXP = /\.(txt|htm|html|md|xml|js|min|map|css|scss|less|svg)$/i;
+            const TEXT_REGEXP = /\.(txt|htm|html|md|xml|js|min|map|css|scss|less|svg)$/i;
 
             module.exports = {
               /**
@@ -2253,7 +2253,7 @@
          * of the resolved value.
          */
         Pointer.prototype.resolve = function (obj, options, pathFromRoot) {
-          let tokens = Pointer.parse(this.path, this.originalPath);
+          const tokens = Pointer.parse(this.path, this.originalPath);
 
           // Crawl the object, one token at a time
           this.value = unwrapOrThrow(obj);
@@ -2268,7 +2268,7 @@
               return this;
             }
 
-            let token = tokens[i];
+            const token = tokens[i];
             if (this.value[token] === undefined || this.value[token] === null) {
               this.value = null;
               throw new MissingPointerError(token, this.originalPath);
@@ -2296,7 +2296,7 @@
          * Returns the modified object, or an entirely new object if the entire object is overwritten.
          */
         Pointer.prototype.set = function (obj, value, options) {
-          let tokens = Pointer.parse(this.path);
+          const tokens = Pointer.parse(this.path);
           let token;
 
           if (tokens.length === 0) {
@@ -2383,7 +2383,7 @@
           // Append each token to the base path
           tokens = Array.isArray(tokens) ? tokens : [tokens];
           for (let i = 0; i < tokens.length; i++) {
-            let token = tokens[i];
+            const token = tokens[i];
             // Encode the token, according to RFC 6901
             base += "/" + encodeURIComponent(token.replace(tildes, "~0").replace(slashes, "~1"));
           }
@@ -2405,13 +2405,13 @@
           // Is the value a JSON reference? (and allowed?)
 
           if ($Ref.isAllowed$Ref(pointer.value, options)) {
-            let $refPath = url.resolve(pointer.path, pointer.value.$ref);
+            const $refPath = url.resolve(pointer.path, pointer.value.$ref);
 
             if ($refPath === pointer.path) {
               // The value is a reference to itself, so there's nothing to do.
               pointer.circular = true;
             } else {
-              let resolved = pointer.$ref.$refs._resolve($refPath, pointer.path, options);
+              const resolved = pointer.$ref.$refs._resolve($refPath, pointer.path, options);
               pointer.indirections += resolved.indirections + 1;
 
               if ($Ref.isExtended$Ref(pointer.value)) {
@@ -2578,7 +2578,7 @@
          * @returns {Pointer}
          */
         $Ref.prototype.resolve = function (path, options, friendlyPath, pathFromRoot) {
-          let pointer = new Pointer(this, path, friendlyPath);
+          const pointer = new Pointer(this, path, friendlyPath);
           try {
             return pointer.resolve(this.value, options, pathFromRoot);
           } catch (err) {
@@ -2609,7 +2609,7 @@
          * @param {*} value - The value to assign
          */
         $Ref.prototype.set = function (path, value) {
-          let pointer = new Pointer(this, path);
+          const pointer = new Pointer(this, path);
           this.value = pointer.set(this.value, value);
         };
 
@@ -2729,14 +2729,14 @@
          */
         $Ref.dereference = function ($ref, resolvedValue) {
           if (resolvedValue && typeof resolvedValue === "object" && $Ref.isExtended$Ref($ref)) {
-            let merged = {};
-            for (let key of Object.keys($ref)) {
+            const merged = {};
+            for (const key of Object.keys($ref)) {
               if (key !== "$ref") {
                 merged[key] = $ref[key];
               }
             }
 
-            for (let key of Object.keys(resolvedValue)) {
+            for (const key of Object.keys(resolvedValue)) {
               if (!(key in merged)) {
                 merged[key] = resolvedValue[key];
               }
@@ -2798,7 +2798,7 @@
          */
         $Refs.prototype.paths = function (types) {
           // eslint-disable-line no-unused-vars
-          let paths = getPaths(this._$refs, arguments);
+          const paths = getPaths(this._$refs, arguments);
           return paths.map((path) => {
             return path.decoded;
           });
@@ -2812,8 +2812,8 @@
          */
         $Refs.prototype.values = function (types) {
           // eslint-disable-line no-unused-vars
-          let $refs = this._$refs;
-          let paths = getPaths($refs, arguments);
+          const $refs = this._$refs;
+          const paths = getPaths($refs, arguments);
           return paths.reduce((obj, path) => {
             obj[path.decoded] = $refs[path.encoded].value;
             return obj;
@@ -2862,9 +2862,9 @@
          * @param {*} value - The value to assign
          */
         $Refs.prototype.set = function (path, value) {
-          let absPath = url.resolve(this._root$Ref.path, path);
-          let withoutHash = url.stripHash(absPath);
-          let $ref = this._$refs[withoutHash];
+          const absPath = url.resolve(this._root$Ref.path, path);
+          const withoutHash = url.stripHash(absPath);
+          const $ref = this._$refs[withoutHash];
 
           if (!$ref) {
             throw ono(`Error resolving $ref pointer "${path}". \n"${withoutHash}" not found.`);
@@ -2879,9 +2879,9 @@
          * @param {string} path  - The file path or URL of the referenced file
          */
         $Refs.prototype._add = function (path) {
-          let withoutHash = url.stripHash(path);
+          const withoutHash = url.stripHash(path);
 
-          let $ref = new $Ref();
+          const $ref = new $Ref();
           $ref.path = withoutHash;
           $ref.$refs = this;
 
@@ -2901,9 +2901,9 @@
          * @protected
          */
         $Refs.prototype._resolve = function (path, pathFromRoot, options) {
-          let absPath = url.resolve(this._root$Ref.path, path);
-          let withoutHash = url.stripHash(absPath);
-          let $ref = this._$refs[withoutHash];
+          const absPath = url.resolve(this._root$Ref.path, path);
+          const withoutHash = url.stripHash(absPath);
+          const $ref = this._$refs[withoutHash];
 
           if (!$ref) {
             throw ono(`Error resolving $ref pointer "${path}". \n"${withoutHash}" not found.`);
@@ -2921,7 +2921,7 @@
          */
         $Refs.prototype._get$Ref = function (path) {
           path = url.resolve(this._root$Ref.path, path);
-          let withoutHash = url.stripHash(path);
+          const withoutHash = url.stripHash(path);
           return this._$refs[withoutHash];
         };
 
@@ -2987,7 +2987,7 @@
 
           try {
             // console.log('Resolving $ref pointers in %s', parser.$refs._root$Ref.path);
-            let promises = crawl(parser.schema, parser.$refs._root$Ref.path + "#", parser.$refs, options);
+            const promises = crawl(parser.schema, parser.$refs._root$Ref.path + "#", parser.$refs, options);
             return Promise.all(promises);
           } catch (e) {
             return Promise.reject(e);
@@ -3015,9 +3015,9 @@
             if ($Ref.isExternal$Ref(obj)) {
               promises.push(resolve$Ref(obj, path, $refs, options));
             } else {
-              for (let key of Object.keys(obj)) {
-                let keyPath = Pointer.join(path, key);
-                let value = obj[key];
+              for (const key of Object.keys(obj)) {
+                const keyPath = Pointer.join(path, key);
+                const value = obj[key];
 
                 if ($Ref.isExternal$Ref(value)) {
                   promises.push(resolve$Ref(value, keyPath, $refs, options));
@@ -3046,8 +3046,8 @@
         async function resolve$Ref($ref, path, $refs, options) {
           // console.log('Resolving $ref pointer "%s" at %s', $ref.$ref, path);
 
-          let resolvedPath = url.resolve(path, $ref.$ref);
-          let withoutHash = url.stripHash(resolvedPath);
+          const resolvedPath = url.resolve(path, $ref.$ref);
+          const withoutHash = url.stripHash(resolvedPath);
 
           // Do we already have this $ref?
           $ref = $refs._$refs[withoutHash];
@@ -3062,7 +3062,7 @@
 
             // Crawl the parsed value
             // console.log('Resolving $ref pointers in %s', withoutHash);
-            let promises = crawl(result, withoutHash + "#", $refs, options);
+            const promises = crawl(result, withoutHash + "#", $refs, options);
 
             return Promise.all(promises);
           } catch (err) {
@@ -3226,7 +3226,7 @@
                * @returns {Promise<Buffer>}
                */
               read(file) {
-                let u = url.parse(file.url);
+                const u = url.parse(file.url);
 
                 if (process.browser && !u.protocol) {
                   // Use the protocol of the current page
@@ -3274,7 +3274,7 @@
                         );
                       } else {
                         // console.log('HTTP %d redirect %s -> %s', res.statusCode, u.href, res.headers.location);
-                        let redirectTo = url.resolve(u, res.headers.location);
+                        const redirectTo = url.resolve(u, res.headers.location);
                         download(redirectTo, httpOptions, redirects).then(resolve, reject);
                       }
                     } else {
@@ -3300,8 +3300,8 @@
               return new Promise((resolve, reject) => {
                 // console.log('GET', u.href);
 
-                let protocol = u.protocol === "https:" ? https : http;
-                let req = protocol.get({
+                const protocol = u.protocol === "https:" ? https : http;
+                const req = protocol.get({
                   hostname: u.hostname,
                   port: u.port,
                   path: u.path,
@@ -3533,7 +3533,7 @@
          * @returns {object[]}
          */
         exports.sort = function (plugins) {
-          for (let plugin of plugins) {
+          for (const plugin of plugins) {
             plugin.order = plugin.order || Number.MAX_SAFE_INTEGER;
           }
 
@@ -3572,7 +3572,7 @@
 
               try {
                 // console.log('  %s', plugin.name);
-                let result = getResult(plugin, method, file, callback, $refs);
+                const result = getResult(plugin, method, file, callback, $refs);
                 if (result && typeof result.then === "function") {
                   // A promise was returned
                   result.then(onSuccess, onError);
@@ -3627,7 +3627,7 @@
          * @returns {*}
          */
         function getResult(obj, prop, file, callback, $refs) {
-          let value = obj[prop];
+          const value = obj[prop];
 
           if (typeof value === "function") {
             return value.apply(obj, [file, callback, $refs]);
@@ -3657,7 +3657,7 @@
           (function () {
             "use strict";
 
-            let isWindows = /^win/.test(process.platform),
+            const isWindows = /^win/.test(process.platform),
               forwardSlashPattern = /\//g,
               protocolPattern = /^(\w{2,}):\/\//i,
               url = module.exports,
@@ -3665,10 +3665,10 @@
               jsonPointerTilde = /~0/g;
 
             // RegExp patterns to URL-encode special characters in local filesystem paths
-            let urlEncodePatterns = [/\?/g, "%3F", /\#/g, "%23"];
+            const urlEncodePatterns = [/\?/g, "%3F", /\#/g, "%23"];
 
             // RegExp patterns to URL-decode special characters for local filesystem paths
-            let urlDecodePatterns = [/\%23/g, "#", /\%24/g, "$", /\%26/g, "&", /\%2C/g, ",", /\%40/g, "@"];
+            const urlDecodePatterns = [/\%23/g, "#", /\%24/g, "$", /\%26/g, "&", /\%2C/g, ",", /\%40/g, "@"];
 
             exports.parse = require("url").parse;
             exports.resolve = require("url").resolve;
@@ -3683,9 +3683,9 @@
                 return location.href;
               }
 
-              let path = process.cwd();
+              const path = process.cwd();
 
-              let lastChar = path.slice(-1);
+              const lastChar = path.slice(-1);
               if (lastChar === "/" || lastChar === "\\") {
                 return path;
               } else {
@@ -3700,7 +3700,7 @@
              * @returns {?string}
              */
             exports.getProtocol = function getProtocol(path) {
-              let match = protocolPattern.exec(path);
+              const match = protocolPattern.exec(path);
               if (match) {
                 return match[1].toLowerCase();
               }
@@ -3714,7 +3714,7 @@
              * @returns {string}
              */
             exports.getExtension = function getExtension(path) {
-              let lastDot = path.lastIndexOf(".");
+              const lastDot = path.lastIndexOf(".");
               if (lastDot >= 0) {
                 return path.substr(lastDot).toLowerCase();
               }
@@ -3729,7 +3729,7 @@
              * @returns {string}
              */
             exports.getHash = function getHash(path) {
-              let hashIndex = path.indexOf("#");
+              const hashIndex = path.indexOf("#");
               if (hashIndex >= 0) {
                 return path.substr(hashIndex);
               }
@@ -3743,7 +3743,7 @@
              * @returns {string}
              */
             exports.stripHash = function stripHash(path) {
-              let hashIndex = path.indexOf("#");
+              const hashIndex = path.indexOf("#");
               if (hashIndex >= 0) {
                 path = path.substr(0, hashIndex);
               }
@@ -3757,7 +3757,7 @@
              * @returns {boolean}
              */
             exports.isHttp = function isHttp(path) {
-              let protocol = url.getProtocol(path);
+              const protocol = url.getProtocol(path);
               if (protocol === "http" || protocol === "https") {
                 return true;
               } else if (protocol === undefined) {
@@ -3783,7 +3783,7 @@
                 return false;
               }
 
-              let protocol = url.getProtocol(path);
+              const protocol = url.getProtocol(path);
               return protocol === undefined || protocol === "file";
             };
 
@@ -8196,9 +8196,9 @@
         function Ono(ErrorConstructor, options) {
           options = normalize_1.normalizeOptions(options);
           function ono(...args) {
-            let { originalError, props, message } = normalize_1.normalizeArgs(args, options);
+            const { originalError, props, message } = normalize_1.normalizeArgs(args, options);
             // Create a new error of the specified type
-            let newError = new ErrorConstructor(message);
+            const newError = new ErrorConstructor(message);
             // Extend the error with the properties of the original error and the `props` object
             return extend_error_1.extendError(newError, originalError, props);
           }
@@ -8245,7 +8245,7 @@
          * @param props - Additional properties to add, if any
          */
         function extendError(error, originalError, props) {
-          let onoError = error;
+          const onoError = error;
           extendStack(onoError, originalError);
           // Copy properties from the original error
           if (originalError && typeof originalError === "object") {
@@ -8271,7 +8271,7 @@
          * Extend the error stack to include its cause
          */
         function extendStack(newError, originalError) {
-          let stackProp = Object.getOwnPropertyDescriptor(newError, "stack");
+          const stackProp = Object.getOwnPropertyDescriptor(newError, "stack");
           if (stack_1.isLazyStack(stackProp)) {
             stack_1.lazyJoinStacks(stackProp, newError, originalError);
           } else if (stack_1.isWritableStack(stackProp)) {
@@ -8289,12 +8289,12 @@
           // NOTE: We specifically exclude properties that we have already set on the new error.
           // This is _especially_ important for the `stack` property, because this property has
           // a lazy getter in some environments
-          let keys = to_json_1.getDeepKeys(originalError, protectedProps);
+          const keys = to_json_1.getDeepKeys(originalError, protectedProps);
           // HACK: We have to cast the errors to `any` so we can use symbol indexers.
           // see https://github.com/Microsoft/TypeScript/issues/1863
-          let _newError = newError;
-          let _originalError = originalError;
-          for (let key of keys) {
+          const _newError = newError;
+          const _originalError = originalError;
+          for (const key of keys) {
             if (_newError[key] === undefined) {
               try {
                 _newError[key] = _originalError[key];
@@ -8314,22 +8314,22 @@
           (this && this.__createBinding) ||
           (Object.create
             ? function (o, m, k, k2) {
-                if (k2 === undefined) k2 = k;
+                if (k2 === undefined) {k2 = k;}
                 Object.defineProperty(o, k2, {
                   enumerable: true,
-                  get: function () {
+                  get () {
                     return m[k];
                   },
                 });
               }
             : function (o, m, k, k2) {
-                if (k2 === undefined) k2 = k;
+                if (k2 === undefined) {k2 = k;}
                 o[k2] = m[k];
               });
         var __exportStar =
           (this && this.__exportStar) ||
           function (m, exports) {
-            for (var p in m) if (p !== "default" && !exports.hasOwnProperty(p)) __createBinding(exports, m, p);
+            for (var p in m) {if (p !== "default" && !exports.hasOwnProperty(p)) {__createBinding(exports, m, p);}}
           };
         Object.defineProperty(exports, "__esModule", { value: true });
         exports.ono = void 0;
@@ -8337,14 +8337,14 @@
         const singleton_1 = require("./singleton");
         Object.defineProperty(exports, "ono", {
           enumerable: true,
-          get: function () {
+          get () {
             return singleton_1.ono;
           },
         });
         var constructor_1 = require("./constructor");
         Object.defineProperty(exports, "Ono", {
           enumerable: true,
-          get: function () {
+          get () {
             return constructor_1.Ono;
           },
         });
@@ -8464,13 +8464,13 @@
          * If an inner error is provided, then the new error will match its type, if possible.
          */
         function ono(...args) {
-          let originalError = args[0];
+          const originalError = args[0];
           // Is the first argument an Error-like object?
           if (typeof originalError === "object" && typeof originalError.name === "string") {
             // Try to find an Ono singleton method that matches this error type
-            for (let typedOno of Object.values(onoMap)) {
+            for (const typedOno of Object.values(onoMap)) {
               if (typeof typedOno === "function" && typedOno.name === "ono") {
-                let species = typedOno[Symbol.species];
+                const species = typedOno[Symbol.species];
                 if (
                   species &&
                   species !== Error &&
@@ -8516,8 +8516,8 @@
          * Appends the original `Error.stack` property to the new Error's stack.
          */
         function joinStacks(newError, originalError) {
-          let newStack = popStack(newError.stack);
-          let originalStack = originalError ? originalError.stack : undefined;
+          const newStack = popStack(newError.stack);
+          const originalStack = originalError ? originalError.stack : undefined;
           if (newStack && originalStack) {
             return newStack + "\n\n" + originalStack;
           } else {
@@ -8532,7 +8532,7 @@
           if (originalError) {
             Object.defineProperty(newError, "stack", {
               get: () => {
-                let newStack = lazyStack.get.apply(newError);
+                const newStack = lazyStack.get.apply(newError);
                 return joinStacks({ stack: newStack }, originalError);
               },
               enumerable: false,
@@ -8548,11 +8548,11 @@
          */
         function popStack(stack) {
           if (stack) {
-            let lines = stack.split(newline);
+            const lines = stack.split(newline);
             // Find the Ono call(s) in the stack, and remove them
             let onoStart;
             for (let i = 0; i < lines.length; i++) {
-              let line = lines[i];
+              const line = lines[i];
               if (onoCall.test(line)) {
                 if (onoStart === undefined) {
                   // We found the first Ono call in the stack trace.
@@ -8603,12 +8603,12 @@
         function toJSON() {
           // HACK: We have to cast the objects to `any` so we can use symbol indexers.
           // see https://github.com/Microsoft/TypeScript/issues/1863
-          let pojo = {};
-          let error = this;
-          for (let key of getDeepKeys(error)) {
+          const pojo = {};
+          const error = this;
+          for (const key of getDeepKeys(error)) {
             if (typeof key === "string") {
-              let value = error[key];
-              let type = typeof value;
+              const value = error[key];
+              const type = typeof value;
               if (!nonJsonTypes.includes(type)) {
                 pojo[key] = value;
               }
@@ -8629,9 +8629,9 @@
             obj = Object.getPrototypeOf(obj);
           }
           // De-duplicate the list of keys
-          let uniqueKeys = new Set(keys);
+          const uniqueKeys = new Set(keys);
           // Remove any omitted keys
-          for (let key of omit.concat(protectedProps)) {
+          for (const key of omit.concat(protectedProps)) {
             uniqueKeys.delete(key);
           }
           return uniqueKeys;
@@ -8676,11 +8676,11 @@
           _addVocabularies() {
             super._addVocabularies();
             draft4_1.default.forEach((v) => this.addVocabulary(v));
-            if (this.opts.discriminator) this.addKeyword(discriminator_1.default);
+            if (this.opts.discriminator) {this.addKeyword(discriminator_1.default);}
           }
           _addDefaultMetaSchema() {
             super._addDefaultMetaSchema();
-            if (!this.opts.meta) return;
+            if (!this.opts.meta) {return;}
             const metaSchema = this.opts.$data
               ? this.$dataMetaSchema(draft4MetaSchema, META_SUPPORT_DATA)
               : draft4MetaSchema;
@@ -8698,44 +8698,44 @@
         var core_2 = require("ajv/dist/core");
         Object.defineProperty(exports, "KeywordCxt", {
           enumerable: true,
-          get: function () {
+          get () {
             return core_2.KeywordCxt;
           },
         });
         var core_3 = require("ajv/dist/core");
         Object.defineProperty(exports, "_", {
           enumerable: true,
-          get: function () {
+          get () {
             return core_3._;
           },
         });
         Object.defineProperty(exports, "str", {
           enumerable: true,
-          get: function () {
+          get () {
             return core_3.str;
           },
         });
         Object.defineProperty(exports, "stringify", {
           enumerable: true,
-          get: function () {
+          get () {
             return core_3.stringify;
           },
         });
         Object.defineProperty(exports, "nil", {
           enumerable: true,
-          get: function () {
+          get () {
             return core_3.nil;
           },
         });
         Object.defineProperty(exports, "Name", {
           enumerable: true,
-          get: function () {
+          get () {
             return core_3.Name;
           },
         });
         Object.defineProperty(exports, "CodeGen", {
           enumerable: true,
-          get: function () {
+          get () {
             return core_3.CodeGen;
           },
         });
@@ -9073,12 +9073,12 @@
           _addVocabularies() {
             super._addVocabularies();
             draft2020_1.default.forEach((v) => this.addVocabulary(v));
-            if (this.opts.discriminator) this.addKeyword(discriminator_1.default);
+            if (this.opts.discriminator) {this.addKeyword(discriminator_1.default);}
           }
           _addDefaultMetaSchema() {
             super._addDefaultMetaSchema();
             const { $data, meta } = this.opts;
-            if (!meta) return;
+            if (!meta) {return;}
             json_schema_2020_12_1.default.call(this, $data);
             this.refs["http://json-schema.org/schema"] = META_SCHEMA_ID;
           }
@@ -9093,44 +9093,44 @@
         var validate_1 = require("./compile/validate");
         Object.defineProperty(exports, "KeywordCxt", {
           enumerable: true,
-          get: function () {
+          get () {
             return validate_1.KeywordCxt;
           },
         });
         var codegen_1 = require("./compile/codegen");
         Object.defineProperty(exports, "_", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1._;
           },
         });
         Object.defineProperty(exports, "str", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1.str;
           },
         });
         Object.defineProperty(exports, "stringify", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1.stringify;
           },
         });
         Object.defineProperty(exports, "nil", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1.nil;
           },
         });
         Object.defineProperty(exports, "Name", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1.Name;
           },
         });
         Object.defineProperty(exports, "CodeGen", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1.CodeGen;
           },
         });
@@ -9169,7 +9169,7 @@
         class Name extends _CodeOrName {
           constructor(s) {
             super();
-            if (!exports.IDENTIFIER.test(s)) throw new Error("CodeGen: name must be a valid identifier");
+            if (!exports.IDENTIFIER.test(s)) {throw new Error("CodeGen: name must be a valid identifier");}
             this.str = s;
           }
           toString() {
@@ -9192,7 +9192,7 @@
             return this.str;
           }
           emptyStr() {
-            if (this._items.length > 1) return false;
+            if (this._items.length > 1) {return false;}
             const item = this._items[0];
             return item === "" || item === '""';
           }
@@ -9207,7 +9207,7 @@
             return (_a = this._names) !== null && _a !== void 0
               ? _a
               : (this._names = this._items.reduce((names, c) => {
-                  if (c instanceof Name) names[c.str] = (names[c.str] || 0) + 1;
+                  if (c instanceof Name) {names[c.str] = (names[c.str] || 0) + 1;}
                   return names;
                 }, {}));
           }
@@ -9238,9 +9238,9 @@
         }
         exports.str = str;
         function addCodeArg(code, arg) {
-          if (arg instanceof _Code) code.push(...arg._items);
-          else if (arg instanceof Name) code.push(arg);
-          else code.push(interpolate(arg));
+          if (arg instanceof _Code) {code.push(...arg._items);}
+          else if (arg instanceof Name) {code.push(arg);}
+          else {code.push(interpolate(arg));}
         }
         exports.addCodeArg = addCodeArg;
         function optimize(expr) {
@@ -9258,15 +9258,15 @@
           }
         }
         function mergeExprItems(a, b) {
-          if (b === '""') return a;
-          if (a === '""') return b;
+          if (b === '""') {return a;}
+          if (a === '""') {return b;}
           if (typeof a == "string") {
-            if (b instanceof Name || a[a.length - 1] !== '"') return;
-            if (typeof b != "string") return `${a.slice(0, -1)}${b}"`;
-            if (b[0] === '"') return a.slice(0, -1) + b.slice(1);
+            if (b instanceof Name || a[a.length - 1] !== '"') {return;}
+            if (typeof b != "string") {return `${a.slice(0, -1)}${b}"`;}
+            if (b[0] === '"') {return a.slice(0, -1) + b.slice(1);}
             return;
           }
-          if (typeof b == "string" && b[0] === '"' && !(a instanceof Name)) return `"${a}${b.slice(1)}`;
+          if (typeof b == "string" && b[0] === '"' && !(a instanceof Name)) {return `"${a}${b.slice(1)}`;}
           return;
         }
         function strConcat(c1, c2) {
@@ -9335,74 +9335,74 @@
         var code_2 = require("./code");
         Object.defineProperty(exports, "_", {
           enumerable: true,
-          get: function () {
+          get () {
             return code_2._;
           },
         });
         Object.defineProperty(exports, "str", {
           enumerable: true,
-          get: function () {
+          get () {
             return code_2.str;
           },
         });
         Object.defineProperty(exports, "strConcat", {
           enumerable: true,
-          get: function () {
+          get () {
             return code_2.strConcat;
           },
         });
         Object.defineProperty(exports, "nil", {
           enumerable: true,
-          get: function () {
+          get () {
             return code_2.nil;
           },
         });
         Object.defineProperty(exports, "getProperty", {
           enumerable: true,
-          get: function () {
+          get () {
             return code_2.getProperty;
           },
         });
         Object.defineProperty(exports, "stringify", {
           enumerable: true,
-          get: function () {
+          get () {
             return code_2.stringify;
           },
         });
         Object.defineProperty(exports, "regexpCode", {
           enumerable: true,
-          get: function () {
+          get () {
             return code_2.regexpCode;
           },
         });
         Object.defineProperty(exports, "Name", {
           enumerable: true,
-          get: function () {
+          get () {
             return code_2.Name;
           },
         });
         var scope_2 = require("./scope");
         Object.defineProperty(exports, "Scope", {
           enumerable: true,
-          get: function () {
+          get () {
             return scope_2.Scope;
           },
         });
         Object.defineProperty(exports, "ValueScope", {
           enumerable: true,
-          get: function () {
+          get () {
             return scope_2.ValueScope;
           },
         });
         Object.defineProperty(exports, "ValueScopeName", {
           enumerable: true,
-          get: function () {
+          get () {
             return scope_2.ValueScopeName;
           },
         });
         Object.defineProperty(exports, "varKinds", {
           enumerable: true,
-          get: function () {
+          get () {
             return scope_2.varKinds;
           },
         });
@@ -9439,8 +9439,8 @@
             return `${varKind} ${this.name}${rhs};` + _n;
           }
           optimizeNames(names, constants) {
-            if (!names[this.name.str]) return;
-            if (this.rhs) this.rhs = optimizeExpr(this.rhs, names, constants);
+            if (!names[this.name.str]) {return;}
+            if (this.rhs) {this.rhs = optimizeExpr(this.rhs, names, constants);}
             return this;
           }
           get names() {
@@ -9458,7 +9458,7 @@
             return `${this.lhs} = ${this.rhs};` + _n;
           }
           optimizeNames(names, constants) {
-            if (this.lhs instanceof code_1.Name && !names[this.lhs.str] && !this.sideEffects) return;
+            if (this.lhs instanceof code_1.Name && !names[this.lhs.str] && !this.sideEffects) {return;}
             this.rhs = optimizeExpr(this.rhs, names, constants);
             return this;
           }
@@ -9541,9 +9541,9 @@
             let i = nodes.length;
             while (i--) {
               const n = nodes[i].optimizeNodes();
-              if (Array.isArray(n)) nodes.splice(i, 1, ...n);
-              else if (n) nodes[i] = n;
-              else nodes.splice(i, 1);
+              if (Array.isArray(n)) {nodes.splice(i, 1, ...n);}
+              else if (n) {nodes[i] = n;}
+              else {nodes.splice(i, 1);}
             }
             return nodes.length > 0 ? this : undefined;
           }
@@ -9553,7 +9553,7 @@
             while (i--) {
               // iterating backwards improves 1-pass optimization
               const n = nodes[i];
-              if (n.optimizeNames(names, constants)) continue;
+              if (n.optimizeNames(names, constants)) {continue;}
               subtractNames(names, n.names);
               nodes.splice(i, 1);
             }
@@ -9578,37 +9578,37 @@
           }
           render(opts) {
             let code = `if(${this.condition})` + super.render(opts);
-            if (this.else) code += "else " + this.else.render(opts);
+            if (this.else) {code += "else " + this.else.render(opts);}
             return code;
           }
           optimizeNodes() {
             super.optimizeNodes();
             const cond = this.condition;
-            if (cond === true) return this.nodes; // else is ignored here
+            if (cond === true) {return this.nodes;} // else is ignored here
             let e = this.else;
             if (e) {
               const ns = e.optimizeNodes();
               e = this.else = Array.isArray(ns) ? new Else(ns) : ns;
             }
             if (e) {
-              if (cond === false) return e instanceof If ? e : e.nodes;
-              if (this.nodes.length) return this;
+              if (cond === false) {return e instanceof If ? e : e.nodes;}
+              if (this.nodes.length) {return this;}
               return new If(not(cond), e instanceof If ? [e] : e.nodes);
             }
-            if (cond === false || !this.nodes.length) return undefined;
+            if (cond === false || !this.nodes.length) {return undefined;}
             return this;
           }
           optimizeNames(names, constants) {
             var _a;
             this.else = (_a = this.else) === null || _a === void 0 ? void 0 : _a.optimizeNames(names, constants);
-            if (!(super.optimizeNames(names, constants) || this.else)) return;
+            if (!(super.optimizeNames(names, constants) || this.else)) {return;}
             this.condition = optimizeExpr(this.condition, names, constants);
             return this;
           }
           get names() {
             const names = super.names;
             addExprNames(names, this.condition);
-            if (this.else) addNames(names, this.else.names);
+            if (this.else) {addNames(names, this.else.names);}
             return names;
           }
         }
@@ -9624,7 +9624,7 @@
             return `for(${this.iteration})` + super.render(opts);
           }
           optimizeNames(names, constants) {
-            if (!super.optimizeNames(names, constants)) return;
+            if (!super.optimizeNames(names, constants)) {return;}
             this.iteration = optimizeExpr(this.iteration, names, constants);
             return this;
           }
@@ -9662,7 +9662,7 @@
             return `for(${this.varKind} ${this.name} ${this.loop} ${this.iterable})` + super.render(opts);
           }
           optimizeNames(names, constants) {
-            if (!super.optimizeNames(names, constants)) return;
+            if (!super.optimizeNames(names, constants)) {return;}
             this.iterable = optimizeExpr(this.iterable, names, constants);
             return this;
           }
@@ -9692,8 +9692,8 @@
         class Try extends BlockNode {
           render(opts) {
             let code = "try" + super.render(opts);
-            if (this.catch) code += this.catch.render(opts);
-            if (this.finally) code += this.finally.render(opts);
+            if (this.catch) {code += this.catch.render(opts);}
+            if (this.finally) {code += this.finally.render(opts);}
             return code;
           }
           optimizeNodes() {
@@ -9712,8 +9712,8 @@
           }
           get names() {
             const names = super.names;
-            if (this.catch) addNames(names, this.catch.names);
-            if (this.finally) addNames(names, this.finally.names);
+            if (this.catch) {addNames(names, this.catch.names);}
+            if (this.finally) {addNames(names, this.finally.names);}
             return names;
           }
         }
@@ -9774,7 +9774,7 @@
           }
           _def(varKind, nameOrPrefix, rhs, constant) {
             const name = this._scope.toName(nameOrPrefix);
-            if (rhs !== undefined && constant) this._constants[name.str] = rhs;
+            if (rhs !== undefined && constant) {this._constants[name.str] = rhs;}
             this._leafNode(new Def(varKind, name, rhs));
             return name;
           }
@@ -9800,15 +9800,15 @@
           }
           // appends passed SafeExpr to code or executes Block
           code(c) {
-            if (typeof c == "function") c();
-            else if (c !== code_1.nil) this._leafNode(new AnyCode(c));
+            if (typeof c == "function") {c();}
+            else if (c !== code_1.nil) {this._leafNode(new AnyCode(c));}
             return this;
           }
           // returns code for object literal for the passed argument list of key-value pairs
           object(...keyValues) {
             const code = ["{"];
             for (const [key, value] of keyValues) {
-              if (code.length > 1) code.push(",");
+              if (code.length > 1) {code.push(",");}
               code.push(key);
               if (key !== value || this.opts.es5) {
                 code.push(":");
@@ -9844,7 +9844,7 @@
           }
           _for(node, forBody) {
             this._blockNode(node);
-            if (forBody) this.code(forBody).endFor();
+            if (forBody) {this.code(forBody).endFor();}
             return this;
           }
           // a generic `for` clause (or statement if `forBody` is passed)
@@ -9900,12 +9900,12 @@
             const node = new Return();
             this._blockNode(node);
             this.code(value);
-            if (node.nodes.length !== 1) throw new Error('CodeGen: "return" should have one node');
+            if (node.nodes.length !== 1) {throw new Error('CodeGen: "return" should have one node');}
             return this._endBlockNode(Return);
           }
           // `try` statement
           try(tryBody, catchCode, finallyCode) {
-            if (!catchCode && !finallyCode) throw new Error('CodeGen: "try" without "catch" and "finally"');
+            if (!catchCode && !finallyCode) {throw new Error('CodeGen: "try" without "catch" and "finally"');}
             const node = new Try();
             this._blockNode(node);
             this.code(tryBody);
@@ -9927,13 +9927,13 @@
           // start self-balancing block
           block(body, nodeCount) {
             this._blockStarts.push(this._nodes.length);
-            if (body) this.code(body).endBlock(nodeCount);
+            if (body) {this.code(body).endBlock(nodeCount);}
             return this;
           }
           // end the current self-balancing block
           endBlock(nodeCount) {
             const len = this._blockStarts.pop();
-            if (len === undefined) throw new Error("CodeGen: not in self-balancing block");
+            if (len === undefined) {throw new Error("CodeGen: not in self-balancing block");}
             const toClose = this._nodes.length - len;
             if (toClose < 0 || (nodeCount !== undefined && toClose !== nodeCount)) {
               throw new Error(`CodeGen: wrong number of nodes: ${toClose} vs ${nodeCount} expected`);
@@ -9944,7 +9944,7 @@
           // `function` heading (or definition if funcBody is passed)
           func(name, args = code_1.nil, async, funcBody) {
             this._blockNode(new Func(name, args, async));
-            if (funcBody) this.code(funcBody).endFunc();
+            if (funcBody) {this.code(funcBody).endFunc();}
             return this;
           }
           // end function definition
@@ -9995,26 +9995,26 @@
         }
         exports.CodeGen = CodeGen;
         function addNames(names, from) {
-          for (const n in from) names[n] = (names[n] || 0) + (from[n] || 0);
+          for (const n in from) {names[n] = (names[n] || 0) + (from[n] || 0);}
           return names;
         }
         function addExprNames(names, from) {
           return from instanceof code_1._CodeOrName ? addNames(names, from.names) : names;
         }
         function optimizeExpr(expr, names, constants) {
-          if (expr instanceof code_1.Name) return replaceName(expr);
-          if (!canOptimize(expr)) return expr;
+          if (expr instanceof code_1.Name) {return replaceName(expr);}
+          if (!canOptimize(expr)) {return expr;}
           return new code_1._Code(
             expr._items.reduce((items, c) => {
-              if (c instanceof code_1.Name) c = replaceName(c);
-              if (c instanceof code_1._Code) items.push(...c._items);
-              else items.push(c);
+              if (c instanceof code_1.Name) {c = replaceName(c);}
+              if (c instanceof code_1._Code) {items.push(...c._items);}
+              else {items.push(c);}
               return items;
             }, []),
           );
           function replaceName(n) {
             const c = constants[n.str];
-            if (c === undefined || names[n.str] !== 1) return n;
+            if (c === undefined || names[n.str] !== 1) {return n;}
             delete names[n.str];
             return c;
           }
@@ -10026,7 +10026,7 @@
           }
         }
         function subtractNames(names, from) {
-          for (const n in from) names[n] = (names[n] || 0) - (from[n] || 0);
+          for (const n in from) {names[n] = (names[n] || 0) - (from[n] || 0);}
         }
         function not(x) {
           return typeof x == "boolean" || typeof x == "number" || x === null ? !x : (0, code_1._)`!${par(x)}`;
@@ -10137,14 +10137,14 @@
           }
           value(nameOrPrefix, value) {
             var _a;
-            if (value.ref === undefined) throw new Error("CodeGen: ref must be passed in value");
+            if (value.ref === undefined) {throw new Error("CodeGen: ref must be passed in value");}
             const name = this.toName(nameOrPrefix);
             const { prefix } = name;
             const valueKey = (_a = value.key) !== null && _a !== void 0 ? _a : value.ref;
             let vs = this._values[prefix];
             if (vs) {
               const _name = vs.get(valueKey);
-              if (_name) return _name;
+              if (_name) {return _name;}
             } else {
               vs = this._values[prefix] = new Map();
             }
@@ -10157,12 +10157,12 @@
           }
           getValue(prefix, keyOrRef) {
             const vs = this._values[prefix];
-            if (!vs) return;
+            if (!vs) {return;}
             return vs.get(keyOrRef);
           }
           scopeRefs(scopeName, values = this._values) {
             return this._reduceValues(values, (name) => {
-              if (name.scopePath === undefined) throw new Error(`CodeGen: name "${name}" has no value`);
+              if (name.scopePath === undefined) {throw new Error(`CodeGen: name "${name}" has no value`);}
               return (0, code_1._)`${scopeName}${name.scopePath}`;
             });
           }
@@ -10170,7 +10170,7 @@
             return this._reduceValues(
               values,
               (name) => {
-                if (name.value === undefined) throw new Error(`CodeGen: name "${name}" has no value`);
+                if (name.value === undefined) {throw new Error(`CodeGen: name "${name}" has no value`);}
                 return name.value.code;
               },
               usedValues,
@@ -10181,10 +10181,10 @@
             let code = code_1.nil;
             for (const prefix in values) {
               const vs = values[prefix];
-              if (!vs) continue;
+              if (!vs) {continue;}
               const nameSet = (usedValues[prefix] = usedValues[prefix] || new Map());
               vs.forEach((name) => {
-                if (nameSet.has(name)) return;
+                if (nameSet.has(name)) {return;}
                 nameSet.set(name, UsedValueState.Started);
                 let c = valueCode(name);
                 if (c) {
@@ -10264,7 +10264,7 @@
         exports.resetErrorsCount = resetErrorsCount;
         function extendErrors({ gen, keyword, schemaValue, data, errsCount, it }) {
           /* istanbul ignore if */
-          if (errsCount === undefined) throw new Error("ajv implementation error");
+          if (errsCount === undefined) {throw new Error("ajv implementation error");}
           const err = gen.name("err");
           gen.forRange("i", errsCount, names_1.default.errors, (i) => {
             gen.const(err, (0, codegen_1._)`${names_1.default.vErrors}[${i}]`);
@@ -10311,7 +10311,7 @@
         };
         function errorObjectCode(cxt, error, errorPaths) {
           const { createErrors } = cxt.it;
-          if (createErrors === false) return (0, codegen_1._)`{}`;
+          if (createErrors === false) {return (0, codegen_1._)`{}`;}
           return errorObject(cxt, error, errorPaths);
         }
         function errorObject(cxt, error, errorPaths = {}) {
@@ -10350,7 +10350,7 @@
               [names_1.default.data, data],
             );
           }
-          if (propertyName) keyValues.push([E.propertyName, propertyName]);
+          if (propertyName) {keyValues.push([E.propertyName, propertyName]);}
         }
       },
       { "./codegen": 49, "./names": 53, "./util": 57 },
@@ -10377,7 +10377,7 @@
             this.refs = {};
             this.dynamicAnchors = {};
             let schema;
-            if (typeof env.schema == "object") schema = env.schema;
+            if (typeof env.schema == "object") {schema = env.schema;}
             this.schema = env.schema;
             this.schemaId = env.schemaId;
             this.root = env.root || this;
@@ -10401,7 +10401,7 @@
         function compileSchema(sch) {
           // TODO refactor - remove compilations
           const _sch = getCompilingSchema.call(this, sch);
-          if (_sch) return _sch;
+          if (_sch) {return _sch;}
           const rootId = (0, resolve_1.getFullPath)(this.opts.uriResolver, sch.root.baseId); // TODO if getFullPath removed 1 tests fails
           const { es5, lines } = this.opts.code;
           const { ownProperties } = this.opts;
@@ -10453,7 +10453,7 @@
             const validateCode = gen.toString();
             sourceCode = `${gen.scopeRefs(names_1.default.scope)}return ${validateCode}`;
             // console.log((codeSize += sourceCode.length), (nodeCount += gen.nodeCount))
-            if (this.opts.code.process) sourceCode = this.opts.code.process(sourceCode, sch);
+            if (this.opts.code.process) {sourceCode = this.opts.code.process(sourceCode, sch);}
             // console.log("\n\n\n *** \n", sourceCode)
             const makeValidate = new Function(`${names_1.default.self}`, `${names_1.default.scope}`, sourceCode);
             const validate = makeValidate(this, this.scope.get());
@@ -10461,7 +10461,7 @@
             validate.errors = null;
             validate.schema = sch.schema;
             validate.schemaEnv = sch;
-            if (sch.$async) validate.$async = true;
+            if (sch.$async) {validate.$async = true;}
             if (this.opts.code.source === true) {
               validate.source = { validateName, validateCode, scopeValues: gen._values };
             }
@@ -10473,14 +10473,14 @@
                 dynamicProps: props instanceof codegen_1.Name,
                 dynamicItems: items instanceof codegen_1.Name,
               };
-              if (validate.source) validate.source.evaluated = (0, codegen_1.stringify)(validate.evaluated);
+              if (validate.source) {validate.source.evaluated = (0, codegen_1.stringify)(validate.evaluated);}
             }
             sch.validate = validate;
             return sch;
           } catch (e) {
             delete sch.validate;
             delete sch.validateName;
-            if (sourceCode) this.logger.error("Error compiling schema, function code:", sourceCode);
+            if (sourceCode) {this.logger.error("Error compiling schema, function code:", sourceCode);}
             // console.log("\n\n\n *** \n", sourceCode, this.opts)
             throw e;
           } finally {
@@ -10492,25 +10492,25 @@
           var _a;
           ref = (0, resolve_1.resolveUrl)(this.opts.uriResolver, baseId, ref);
           const schOrFunc = root.refs[ref];
-          if (schOrFunc) return schOrFunc;
+          if (schOrFunc) {return schOrFunc;}
           let _sch = resolve.call(this, root, ref);
           if (_sch === undefined) {
             const schema = (_a = root.localRefs) === null || _a === void 0 ? void 0 : _a[ref]; // TODO maybe localRefs should hold SchemaEnv
             const { schemaId } = this.opts;
-            if (schema) _sch = new SchemaEnv({ schema, schemaId, root, baseId });
+            if (schema) {_sch = new SchemaEnv({ schema, schemaId, root, baseId });}
           }
-          if (_sch === undefined) return;
+          if (_sch === undefined) {return;}
           return (root.refs[ref] = inlineOrCompile.call(this, _sch));
         }
         exports.resolveRef = resolveRef;
         function inlineOrCompile(sch) {
-          if ((0, resolve_1.inlineRef)(sch.schema, this.opts.inlineRefs)) return sch.schema;
+          if ((0, resolve_1.inlineRef)(sch.schema, this.opts.inlineRefs)) {return sch.schema;}
           return sch.validate ? sch : compileSchema.call(this, sch);
         }
         // Index of schema compilation in the currently compiled list
         function getCompilingSchema(schEnv) {
           for (const sch of this._compilations) {
-            if (sameSchemaEnv(sch, schEnv)) return sch;
+            if (sameSchemaEnv(sch, schEnv)) {return sch;}
           }
         }
         exports.getCompilingSchema = getCompilingSchema;
@@ -10524,7 +10524,7 @@
           ref, // reference to resolve
         ) {
           let sch;
-          while (typeof (sch = this.refs[ref]) == "string") ref = sch;
+          while (typeof (sch = this.refs[ref]) == "string") {ref = sch;}
           return sch || this.schemas[ref] || resolveSchema.call(this, root, ref);
         }
         // Resolve schema, its root and baseId
@@ -10543,16 +10543,16 @@
           const schOrRef = this.refs[id] || this.schemas[id];
           if (typeof schOrRef == "string") {
             const sch = resolveSchema.call(this, root, schOrRef);
-            if (typeof (sch === null || sch === void 0 ? void 0 : sch.schema) !== "object") return;
+            if (typeof (sch === null || sch === void 0 ? void 0 : sch.schema) !== "object") {return;}
             return getJsonPointer.call(this, p, sch);
           }
-          if (typeof (schOrRef === null || schOrRef === void 0 ? void 0 : schOrRef.schema) !== "object") return;
-          if (!schOrRef.validate) compileSchema.call(this, schOrRef);
+          if (typeof (schOrRef === null || schOrRef === void 0 ? void 0 : schOrRef.schema) !== "object") {return;}
+          if (!schOrRef.validate) {compileSchema.call(this, schOrRef);}
           if (id === (0, resolve_1.normalizeId)(ref)) {
             const { schema } = schOrRef;
             const { schemaId } = this.opts;
             const schId = schema[schemaId];
-            if (schId) baseId = (0, resolve_1.resolveUrl)(this.opts.uriResolver, baseId, schId);
+            if (schId) {baseId = (0, resolve_1.resolveUrl)(this.opts.uriResolver, baseId, schId);}
             return new SchemaEnv({ schema, schemaId, root, baseId });
           }
           return getJsonPointer.call(this, p, schOrRef);
@@ -10567,11 +10567,11 @@
         ]);
         function getJsonPointer(parsedRef, { baseId, schema, root }) {
           var _a;
-          if (((_a = parsedRef.fragment) === null || _a === void 0 ? void 0 : _a[0]) !== "/") return;
+          if (((_a = parsedRef.fragment) === null || _a === void 0 ? void 0 : _a[0]) !== "/") {return;}
           for (const part of parsedRef.fragment.slice(1).split("/")) {
-            if (typeof schema === "boolean") return;
+            if (typeof schema === "boolean") {return;}
             const partSchema = schema[(0, util_1.unescapeFragment)(part)];
-            if (partSchema === undefined) return;
+            if (partSchema === undefined) {return;}
             schema = partSchema;
             // TODO PREVENT_SCOPE_CHANGE could be defined in keyword def?
             const schId = typeof schema === "object" && schema[this.opts.schemaId];
@@ -10588,7 +10588,7 @@
           // so that compileAsync loads missing schema.
           const { schemaId } = this.opts;
           env = env || new SchemaEnv({ schema, schemaId, root, baseId });
-          if (env.schema !== env.root.schema) return env;
+          if (env.schema !== env.root.schema) {return env;}
           return undefined;
         }
       },
@@ -10683,37 +10683,37 @@
           "const",
         ]);
         function inlineRef(schema, limit = true) {
-          if (typeof schema == "boolean") return true;
-          if (limit === true) return !hasRef(schema);
-          if (!limit) return false;
+          if (typeof schema == "boolean") {return true;}
+          if (limit === true) {return !hasRef(schema);}
+          if (!limit) {return false;}
           return countKeys(schema) <= limit;
         }
         exports.inlineRef = inlineRef;
         const REF_KEYWORDS = new Set(["$ref", "$recursiveRef", "$recursiveAnchor", "$dynamicRef", "$dynamicAnchor"]);
         function hasRef(schema) {
           for (const key in schema) {
-            if (REF_KEYWORDS.has(key)) return true;
+            if (REF_KEYWORDS.has(key)) {return true;}
             const sch = schema[key];
-            if (Array.isArray(sch) && sch.some(hasRef)) return true;
-            if (typeof sch == "object" && hasRef(sch)) return true;
+            if (Array.isArray(sch) && sch.some(hasRef)) {return true;}
+            if (typeof sch == "object" && hasRef(sch)) {return true;}
           }
           return false;
         }
         function countKeys(schema) {
           let count = 0;
           for (const key in schema) {
-            if (key === "$ref") return Infinity;
+            if (key === "$ref") {return Infinity;}
             count++;
-            if (SIMPLE_INLINED.has(key)) continue;
+            if (SIMPLE_INLINED.has(key)) {continue;}
             if (typeof schema[key] == "object") {
               (0, util_1.eachItem)(schema[key], (sch) => (count += countKeys(sch)));
             }
-            if (count === Infinity) return Infinity;
+            if (count === Infinity) {return Infinity;}
           }
           return count;
         }
         function getFullPath(resolver, id = "", normalize) {
-          if (normalize !== false) id = normalizeId(id);
+          if (normalize !== false) {id = normalizeId(id);}
           const p = resolver.parse(id);
           return _getFullPath(resolver, p);
         }
@@ -10735,7 +10735,7 @@
         exports.resolveUrl = resolveUrl;
         const ANCHOR = /^[a-z_][-a-z0-9._]*$/i;
         function getSchemaRefs(schema, baseId) {
-          if (typeof schema == "boolean") return {};
+          if (typeof schema == "boolean") {return {};}
           const { schemaId, uriResolver } = this.opts;
           const schId = normalizeId(schema[schemaId] || baseId);
           const baseIds = { "": schId };
@@ -10743,10 +10743,10 @@
           const localRefs = {};
           const schemaRefs = new Set();
           traverse(schema, { allKeys: true }, (sch, jsonPtr, _, parentJsonPtr) => {
-            if (parentJsonPtr === undefined) return;
+            if (parentJsonPtr === undefined) {return;}
             const fullPath = pathPrefix + jsonPtr;
             let baseId = baseIds[parentJsonPtr];
-            if (typeof sch[schemaId] == "string") baseId = addRef.call(this, sch[schemaId]);
+            if (typeof sch[schemaId] == "string") {baseId = addRef.call(this, sch[schemaId]);}
             addAnchor.call(this, sch.$anchor);
             addAnchor.call(this, sch.$dynamicAnchor);
             baseIds[jsonPtr] = baseId;
@@ -10754,10 +10754,10 @@
               // eslint-disable-next-line @typescript-eslint/unbound-method
               const _resolve = this.opts.uriResolver.resolve;
               ref = normalizeId(baseId ? _resolve(baseId, ref) : ref);
-              if (schemaRefs.has(ref)) throw ambiguos(ref);
+              if (schemaRefs.has(ref)) {throw ambiguos(ref);}
               schemaRefs.add(ref);
               let schOrRef = this.refs[ref];
-              if (typeof schOrRef == "string") schOrRef = this.refs[schOrRef];
+              if (typeof schOrRef == "string") {schOrRef = this.refs[schOrRef];}
               if (typeof schOrRef == "object") {
                 checkAmbiguosRef(sch, schOrRef.schema, ref);
               } else if (ref !== normalizeId(fullPath)) {
@@ -10772,14 +10772,14 @@
             }
             function addAnchor(anchor) {
               if (typeof anchor == "string") {
-                if (!ANCHOR.test(anchor)) throw new Error(`invalid anchor "${anchor}"`);
+                if (!ANCHOR.test(anchor)) {throw new Error(`invalid anchor "${anchor}"`);}
                 addRef.call(this, `#${anchor}`);
               }
             }
           });
           return localRefs;
           function checkAmbiguosRef(sch1, sch2, ref) {
-            if (sch2 !== undefined && !equal(sch1, sch2)) throw ambiguos(ref);
+            if (sch2 !== undefined && !equal(sch1, sch2)) {throw ambiguos(ref);}
           }
           function ambiguos(ref) {
             return new Error(`reference "${ref}" resolves to more than one schema`);
@@ -10847,43 +10847,43 @@
         // TODO refactor to use Set
         function toHash(arr) {
           const hash = {};
-          for (const item of arr) hash[item] = true;
+          for (const item of arr) {hash[item] = true;}
           return hash;
         }
         exports.toHash = toHash;
         function alwaysValidSchema(it, schema) {
-          if (typeof schema == "boolean") return schema;
-          if (Object.keys(schema).length === 0) return true;
+          if (typeof schema == "boolean") {return schema;}
+          if (Object.keys(schema).length === 0) {return true;}
           checkUnknownRules(it, schema);
           return !schemaHasRules(schema, it.self.RULES.all);
         }
         exports.alwaysValidSchema = alwaysValidSchema;
         function checkUnknownRules(it, schema = it.schema) {
           const { opts, self } = it;
-          if (!opts.strictSchema) return;
-          if (typeof schema === "boolean") return;
+          if (!opts.strictSchema) {return;}
+          if (typeof schema === "boolean") {return;}
           const rules = self.RULES.keywords;
           for (const key in schema) {
-            if (!rules[key]) checkStrictMode(it, `unknown keyword: "${key}"`);
+            if (!rules[key]) {checkStrictMode(it, `unknown keyword: "${key}"`);}
           }
         }
         exports.checkUnknownRules = checkUnknownRules;
         function schemaHasRules(schema, rules) {
-          if (typeof schema == "boolean") return !schema;
-          for (const key in schema) if (rules[key]) return true;
+          if (typeof schema == "boolean") {return !schema;}
+          for (const key in schema) {if (rules[key]) {return true;}}
           return false;
         }
         exports.schemaHasRules = schemaHasRules;
         function schemaHasRulesButRef(schema, RULES) {
-          if (typeof schema == "boolean") return !schema;
-          for (const key in schema) if (key !== "$ref" && RULES.all[key]) return true;
+          if (typeof schema == "boolean") {return !schema;}
+          for (const key in schema) {if (key !== "$ref" && RULES.all[key]) {return true;}}
           return false;
         }
         exports.schemaHasRulesButRef = schemaHasRulesButRef;
         function schemaRefOrVal({ topSchemaRef, schemaPath }, schema, keyword, $data) {
           if (!$data) {
-            if (typeof schema == "number" || typeof schema == "boolean") return schema;
-            if (typeof schema == "string") return (0, codegen_1._)`${schema}`;
+            if (typeof schema == "number" || typeof schema == "boolean") {return schema;}
+            if (typeof schema == "string") {return (0, codegen_1._)`${schema}`;}
           }
           return (0, codegen_1._)`${topSchemaRef}${schemaPath}${(0, codegen_1.getProperty)(keyword)}`;
         }
@@ -10897,7 +10897,7 @@
         }
         exports.escapeFragment = escapeFragment;
         function escapeJsonPointer(str) {
-          if (typeof str == "number") return `${str}`;
+          if (typeof str == "number") {return `${str}`;}
           return str.replace(/~/g, "~0").replace(/\//g, "~1");
         }
         exports.escapeJsonPointer = escapeJsonPointer;
@@ -10907,7 +10907,7 @@
         exports.unescapeJsonPointer = unescapeJsonPointer;
         function eachItem(xs, f) {
           if (Array.isArray(xs)) {
-            for (const x of xs) f(x);
+            for (const x of xs) {f(x);}
           } else {
             f(xs);
           }
@@ -10963,9 +10963,9 @@
           }),
         };
         function evaluatedPropsToName(gen, ps) {
-          if (ps === true) return gen.var("props", true);
+          if (ps === true) {return gen.var("props", true);}
           const props = gen.var("props", (0, codegen_1._)`{}`);
-          if (ps !== undefined) setEvaluated(gen, props, ps);
+          if (ps !== undefined) {setEvaluated(gen, props, ps);}
           return props;
         }
         exports.evaluatedPropsToName = evaluatedPropsToName;
@@ -11002,9 +11002,9 @@
         }
         exports.getErrorPath = getErrorPath;
         function checkStrictMode(it, msg, mode = it.opts.strictSchema) {
-          if (!mode) return;
+          if (!mode) {return;}
           msg = `strict mode: ${msg}`;
-          if (mode === true) throw new Error(msg);
+          if (mode === true) {throw new Error(msg);}
           it.self.logger.warn(msg);
         }
         exports.checkStrictMode = checkStrictMode;
@@ -11115,19 +11115,19 @@
           const types = getJSONTypes(schema.type);
           const hasNull = types.includes("null");
           if (hasNull) {
-            if (schema.nullable === false) throw new Error("type: null contradicts nullable: false");
+            if (schema.nullable === false) {throw new Error("type: null contradicts nullable: false");}
           } else {
             if (!types.length && schema.nullable !== undefined) {
               throw new Error('"nullable" cannot be used without "type"');
             }
-            if (schema.nullable === true) types.push("null");
+            if (schema.nullable === true) {types.push("null");}
           }
           return types;
         }
         exports.getSchemaTypes = getSchemaTypes;
         function getJSONTypes(ts) {
           const types = Array.isArray(ts) ? ts : ts ? [ts] : [];
-          if (types.every(rules_1.isJSONType)) return types;
+          if (types.every(rules_1.isJSONType)) {return types;}
           throw new Error("type must be JSONType or JSONType[]: " + types.join(","));
         }
         exports.getJSONTypes = getJSONTypes;
@@ -11140,8 +11140,8 @@
           if (checkTypes) {
             const wrongType = checkDataTypes(types, data, opts.strictNumbers, DataType.Wrong);
             gen.if(wrongType, () => {
-              if (coerceTo.length) coerceData(it, types, coerceTo);
-              else reportTypeError(it);
+              if (coerceTo.length) {coerceData(it, types, coerceTo);}
+              else {reportTypeError(it);}
             });
           }
           return checkTypes;
@@ -11274,8 +11274,8 @@
           } else {
             cond = codegen_1.nil;
           }
-          if (types.number) delete types.integer;
-          for (const t in types) cond = (0, codegen_1.and)(cond, checkDataType(t, data, strictNums, correct));
+          if (types.number) {delete types.integer;}
+          for (const t in types) {cond = (0, codegen_1.and)(cond, checkDataType(t, data, strictNums, correct));}
           return cond;
         }
         exports.checkDataTypes = checkDataTypes;
@@ -11327,7 +11327,7 @@
         exports.assignDefaults = assignDefaults;
         function assignDefault(it, prop, defaultValue) {
           const { gen, compositeRule, data, opts } = it;
-          if (defaultValue === undefined) return;
+          if (defaultValue === undefined) {return;}
           const childData = (0, codegen_1._)`${data}${(0, codegen_1.getProperty)(prop)}`;
           if (compositeRule) {
             (0, util_1.checkStrictMode)(it, `default is ignored for: ${childData}`);
@@ -11419,28 +11419,28 @@
                 (0, codegen_1._)`${names_1.default.valCxt}.${names_1.default.rootData}`,
               );
               if (opts.dynamicRef)
-                gen.var(
+                {gen.var(
                   names_1.default.dynamicAnchors,
                   (0, codegen_1._)`${names_1.default.valCxt}.${names_1.default.dynamicAnchors}`,
-                );
+                );}
             },
             () => {
               gen.var(names_1.default.instancePath, (0, codegen_1._)`""`);
               gen.var(names_1.default.parentData, (0, codegen_1._)`undefined`);
               gen.var(names_1.default.parentDataProperty, (0, codegen_1._)`undefined`);
               gen.var(names_1.default.rootData, names_1.default.data);
-              if (opts.dynamicRef) gen.var(names_1.default.dynamicAnchors, (0, codegen_1._)`{}`);
+              if (opts.dynamicRef) {gen.var(names_1.default.dynamicAnchors, (0, codegen_1._)`{}`);}
             },
           );
         }
         function topSchemaObjCode(it) {
           const { schema, opts, gen } = it;
           validateFunction(it, () => {
-            if (opts.$comment && schema.$comment) commentKeyword(it);
+            if (opts.$comment && schema.$comment) {commentKeyword(it);}
             checkNoDefault(it);
             gen.let(names_1.default.vErrors, null);
             gen.let(names_1.default.errors, 0);
-            if (opts.unevaluated) resetEvaluated(it);
+            if (opts.unevaluated) {resetEvaluated(it);}
             typeAndKeywords(it);
             returnResults(it);
           });
@@ -11475,8 +11475,8 @@
           (0, boolSchema_1.boolOrEmptySchema)(it, valid);
         }
         function schemaCxtHasRules({ schema, self }) {
-          if (typeof schema == "boolean") return !schema;
-          for (const key in schema) if (self.RULES.all[key]) return true;
+          if (typeof schema == "boolean") {return !schema;}
+          for (const key in schema) {if (self.RULES.all[key]) {return true;}}
           return false;
         }
         function isSchemaObj(it) {
@@ -11484,7 +11484,7 @@
         }
         function subSchemaObjCode(it, valid) {
           const { schema, gen, opts } = it;
-          if (opts.$comment && schema.$comment) commentKeyword(it);
+          if (opts.$comment && schema.$comment) {commentKeyword(it);}
           updateContext(it);
           checkAsyncSchema(it);
           const errsCount = gen.const("_errs", names_1.default.errors);
@@ -11497,7 +11497,7 @@
           checkRefsAndKeywords(it);
         }
         function typeAndKeywords(it, errsCount) {
-          if (it.opts.jtd) return schemaKeywords(it, [], false, errsCount);
+          if (it.opts.jtd) {return schemaKeywords(it, [], false, errsCount);}
           const types = (0, dataType_1.getSchemaTypes)(it.schema);
           const checkedTypes = (0, dataType_1.coerceAndCheckDataType)(it, types);
           schemaKeywords(it, types, !checkedTypes, errsCount);
@@ -11516,10 +11516,10 @@
         }
         function updateContext(it) {
           const schId = it.schema[it.opts.schemaId];
-          if (schId) it.baseId = (0, resolve_1.resolveUrl)(it.opts.uriResolver, it.baseId, schId);
+          if (schId) {it.baseId = (0, resolve_1.resolveUrl)(it.opts.uriResolver, it.baseId, schId);}
         }
         function checkAsyncSchema(it) {
-          if (it.schema.$async && !it.schemaEnv.$async) throw new Error("async schema in sync schema");
+          if (it.schema.$async && !it.schemaEnv.$async) {throw new Error("async schema in sync schema");}
         }
         function commentKeyword({ gen, schemaEnv, schema, errSchemaPath, opts }) {
           const msg = schema.$comment;
@@ -11544,13 +11544,13 @@
             );
           } else {
             gen.assign((0, codegen_1._)`${validateName}.errors`, names_1.default.vErrors);
-            if (opts.unevaluated) assignEvaluated(it);
+            if (opts.unevaluated) {assignEvaluated(it);}
             gen.return((0, codegen_1._)`${names_1.default.errors} === 0`);
           }
         }
         function assignEvaluated({ gen, evaluated, props, items }) {
-          if (props instanceof codegen_1.Name) gen.assign((0, codegen_1._)`${evaluated}.props`, props);
-          if (items instanceof codegen_1.Name) gen.assign((0, codegen_1._)`${evaluated}.items`, items);
+          if (props instanceof codegen_1.Name) {gen.assign((0, codegen_1._)`${evaluated}.props`, props);}
+          if (items instanceof codegen_1.Name) {gen.assign((0, codegen_1._)`${evaluated}.items`, items);}
         }
         function schemaKeywords(it, types, typeErrors, errsCount) {
           const { gen, schema, data, allErrors, opts, self } = it;
@@ -11559,13 +11559,13 @@
             gen.block(() => keywordCode(it, "$ref", RULES.all.$ref.definition)); // TODO typecast
             return;
           }
-          if (!opts.jtd) checkStrictTypes(it, types);
+          if (!opts.jtd) {checkStrictTypes(it, types);}
           gen.block(() => {
-            for (const group of RULES.rules) groupKeywords(group);
+            for (const group of RULES.rules) {groupKeywords(group);}
             groupKeywords(RULES.post);
           });
           function groupKeywords(group) {
-            if (!(0, applicability_1.shouldUseGroup)(schema, group)) return;
+            if (!(0, applicability_1.shouldUseGroup)(schema, group)) {return;}
             if (group.type) {
               gen.if((0, dataType_2.checkDataType)(group.type, data, opts.strictNumbers));
               iterateKeywords(it, group);
@@ -11578,7 +11578,7 @@
               iterateKeywords(it, group);
             }
             // TODO make it "ok" call?
-            if (!allErrors) gen.if((0, codegen_1._)`${names_1.default.errors} === ${errsCount || 0}`);
+            if (!allErrors) {gen.if((0, codegen_1._)`${names_1.default.errors} === ${errsCount || 0}`);}
           }
         }
         function iterateKeywords(it, group) {
@@ -11587,7 +11587,7 @@
             schema,
             opts: { useDefaults },
           } = it;
-          if (useDefaults) (0, defaults_1.assignDefaults)(it, group.type);
+          if (useDefaults) {(0, defaults_1.assignDefaults)(it, group.type);}
           gen.block(() => {
             for (const rule of group.rules) {
               if ((0, applicability_1.shouldUseRule)(schema, rule)) {
@@ -11597,13 +11597,13 @@
           });
         }
         function checkStrictTypes(it, types) {
-          if (it.schemaEnv.meta || !it.opts.strictTypes) return;
+          if (it.schemaEnv.meta || !it.opts.strictTypes) {return;}
           checkContextTypes(it, types);
-          if (!it.opts.allowUnionTypes) checkMultipleTypes(it, types);
+          if (!it.opts.allowUnionTypes) {checkMultipleTypes(it, types);}
           checkKeywordTypes(it, it.dataTypes);
         }
         function checkContextTypes(it, types) {
-          if (!types.length) return;
+          if (!types.length) {return;}
           if (!it.dataTypes.length) {
             it.dataTypes = types;
             return;
@@ -11675,15 +11675,15 @@
           }
           failResult(condition, successAction, failAction) {
             this.gen.if(condition);
-            if (failAction) failAction();
-            else this.error();
+            if (failAction) {failAction();}
+            else {this.error();}
             if (successAction) {
               this.gen.else();
               successAction();
-              if (this.allErrors) this.gen.endIf();
+              if (this.allErrors) {this.gen.endIf();}
             } else {
-              if (this.allErrors) this.gen.endIf();
-              else this.gen.else();
+              if (this.allErrors) {this.gen.endIf();}
+              else {this.gen.else();}
             }
           }
           pass(condition, failAction) {
@@ -11692,16 +11692,16 @@
           fail(condition) {
             if (condition === undefined) {
               this.error();
-              if (!this.allErrors) this.gen.if(false); // this branch will be removed by gen.optimize
+              if (!this.allErrors) {this.gen.if(false);} // this branch will be removed by gen.optimize
               return;
             }
             this.gen.if(condition);
             this.error();
-            if (this.allErrors) this.gen.endIf();
-            else this.gen.else();
+            if (this.allErrors) {this.gen.endIf();}
+            else {this.gen.else();}
           }
           fail$data(condition) {
-            if (!this.$data) return this.fail(condition);
+            if (!this.$data) {return this.fail(condition);}
             const { schemaCode } = this;
             this.fail(
               (0, codegen_1._)`${schemaCode} !== undefined && (${(0, codegen_1.or)(this.invalid$data(), condition)})`,
@@ -11723,15 +11723,15 @@
             (0, errors_1.reportError)(this, this.def.$dataError || errors_1.keyword$DataError);
           }
           reset() {
-            if (this.errsCount === undefined) throw new Error('add "trackErrors" to keyword definition');
+            if (this.errsCount === undefined) {throw new Error('add "trackErrors" to keyword definition');}
             (0, errors_1.resetErrorsCount)(this.gen, this.errsCount);
           }
           ok(cond) {
-            if (!this.allErrors) this.gen.if(cond);
+            if (!this.allErrors) {this.gen.if(cond);}
           }
           setParams(obj, assign) {
-            if (assign) Object.assign(this.params, obj);
-            else this.params = obj;
+            if (assign) {Object.assign(this.params, obj);}
+            else {this.params = obj;}
           }
           block$data(valid, codeBlock, $dataValid = codegen_1.nil) {
             this.gen.block(() => {
@@ -11740,14 +11740,14 @@
             });
           }
           check$data(valid = codegen_1.nil, $dataValid = codegen_1.nil) {
-            if (!this.$data) return;
+            if (!this.$data) {return;}
             const { gen, schemaCode, schemaType, def } = this;
             gen.if((0, codegen_1.or)((0, codegen_1._)`${schemaCode} === undefined`, $dataValid));
-            if (valid !== codegen_1.nil) gen.assign(valid, true);
+            if (valid !== codegen_1.nil) {gen.assign(valid, true);}
             if (schemaType.length || def.validateSchema) {
               gen.elseIf(this.invalid$data());
               this.$dataError();
-              if (valid !== codegen_1.nil) gen.assign(valid, false);
+              if (valid !== codegen_1.nil) {gen.assign(valid, false);}
             }
             gen.else();
           }
@@ -11757,7 +11757,7 @@
             function wrong$DataType() {
               if (schemaType.length) {
                 /* istanbul ignore if */
-                if (!(schemaCode instanceof codegen_1.Name)) throw new Error("ajv implementation error");
+                if (!(schemaCode instanceof codegen_1.Name)) {throw new Error("ajv implementation error");}
                 const st = Array.isArray(schemaType) ? schemaType : [schemaType];
                 return (0,
                 codegen_1._)`${(0, dataType_2.checkDataTypes)(st, schemaCode, it.opts.strictNumbers, dataType_2.DataType.Wrong)}`;
@@ -11782,7 +11782,7 @@
           }
           mergeEvaluated(schemaCxt, toName) {
             const { it, gen } = this;
-            if (!it.opts.unevaluated) return;
+            if (!it.opts.unevaluated) {return;}
             if (it.props !== true && schemaCxt.props !== undefined) {
               it.props = util_1.mergeEvaluated.props(gen, schemaCxt.props, it.props, toName);
             }
@@ -11816,23 +11816,23 @@
         function getData($data, { dataLevel, dataNames, dataPathArr }) {
           let jsonPointer;
           let data;
-          if ($data === "") return names_1.default.rootData;
+          if ($data === "") {return names_1.default.rootData;}
           if ($data[0] === "/") {
-            if (!JSON_POINTER.test($data)) throw new Error(`Invalid JSON-pointer: ${$data}`);
+            if (!JSON_POINTER.test($data)) {throw new Error(`Invalid JSON-pointer: ${$data}`);}
             jsonPointer = $data;
             data = names_1.default.rootData;
           } else {
             const matches = RELATIVE_JSON_POINTER.exec($data);
-            if (!matches) throw new Error(`Invalid JSON-pointer: ${$data}`);
+            if (!matches) {throw new Error(`Invalid JSON-pointer: ${$data}`);}
             const up = +matches[1];
             jsonPointer = matches[2];
             if (jsonPointer === "#") {
-              if (up >= dataLevel) throw new Error(errorMsg("property/index", up));
+              if (up >= dataLevel) {throw new Error(errorMsg("property/index", up));}
               return dataPathArr[dataLevel - up];
             }
-            if (up > dataLevel) throw new Error(errorMsg("data", up));
+            if (up > dataLevel) {throw new Error(errorMsg("data", up));}
             data = dataNames[dataLevel - up];
-            if (!jsonPointer) return data;
+            if (!jsonPointer) {return data;}
           }
           let expr = data;
           const segments = jsonPointer.split("/");
@@ -11880,7 +11880,7 @@
           const { gen, keyword, schema, parentSchema, it } = cxt;
           const macroSchema = def.macro.call(it.self, schema, parentSchema, it);
           const schemaRef = useKeyword(gen, keyword, macroSchema);
-          if (it.opts.validateSchema !== false) it.self.validateSchema(macroSchema, true);
+          if (it.opts.validateSchema !== false) {it.self.validateSchema(macroSchema, true);}
           const valid = gen.name("valid");
           cxt.subschema(
             {
@@ -11907,11 +11907,11 @@
           function validateKeyword() {
             if (def.errors === false) {
               assignValid();
-              if (def.modifying) modifyData(cxt);
+              if (def.modifying) {modifyData(cxt);}
               reportErrs(() => cxt.error());
             } else {
               const ruleErrs = def.async ? validateAsync() : validateSync();
-              if (def.modifying) modifyData(cxt);
+              if (def.modifying) {modifyData(cxt);}
               reportErrs(() => addErrs(cxt, ruleErrs));
             }
           }
@@ -11971,10 +11971,10 @@
           );
         }
         function checkAsyncKeyword({ schemaEnv }, def) {
-          if (def.async && !schemaEnv.$async) throw new Error("async keyword in sync schema");
+          if (def.async && !schemaEnv.$async) {throw new Error("async keyword in sync schema");}
         }
         function useKeyword(gen, keyword, result) {
-          if (result === undefined) throw new Error(`keyword "${keyword}" failed to compile`);
+          if (result === undefined) {throw new Error(`keyword "${keyword}" failed to compile`);}
           return gen.scopeValue(
             "keyword",
             typeof result == "function" ? { ref: result } : { ref: result, code: (0, codegen_1.stringify)(result) },
@@ -12013,8 +12013,8 @@
               const msg =
                 `keyword "${keyword}" value is invalid at path "${errSchemaPath}": ` +
                 self.errorsText(def.validateSchema.errors);
-              if (opts.validateSchema === "log") self.logger.error(msg);
-              else throw new Error(msg);
+              if (opts.validateSchema === "log") {self.logger.error(msg);}
+              else {throw new Error(msg);}
             }
           }
         }
@@ -12079,10 +12079,10 @@
           if (data !== undefined) {
             const nextData = data instanceof codegen_1.Name ? data : gen.let("data", data, true); // replaceable if used once?
             dataContextProps(nextData);
-            if (propertyName !== undefined) subschema.propertyName = propertyName;
+            if (propertyName !== undefined) {subschema.propertyName = propertyName;}
             // TODO something is possibly wrong here with not changing parentDataProperty and not appending dataPathArr
           }
-          if (dataTypes) subschema.dataTypes = dataTypes;
+          if (dataTypes) {subschema.dataTypes = dataTypes;}
           function dataContextProps(_nextData) {
             subschema.data = _nextData;
             subschema.dataLevel = it.dataLevel + 1;
@@ -12097,9 +12097,9 @@
           subschema,
           { jtdDiscriminator, jtdMetadata, compositeRule, createErrors, allErrors },
         ) {
-          if (compositeRule !== undefined) subschema.compositeRule = compositeRule;
-          if (createErrors !== undefined) subschema.createErrors = createErrors;
-          if (allErrors !== undefined) subschema.allErrors = allErrors;
+          if (compositeRule !== undefined) {subschema.compositeRule = compositeRule;}
+          if (createErrors !== undefined) {subschema.createErrors = createErrors;}
+          if (allErrors !== undefined) {subschema.allErrors = allErrors;}
           subschema.jtdDiscriminator = jtdDiscriminator; // not inherited
           subschema.jtdMetadata = jtdMetadata; // not inherited
         }
@@ -12122,44 +12122,44 @@
         var validate_1 = require("./compile/validate");
         Object.defineProperty(exports, "KeywordCxt", {
           enumerable: true,
-          get: function () {
+          get () {
             return validate_1.KeywordCxt;
           },
         });
         var codegen_1 = require("./compile/codegen");
         Object.defineProperty(exports, "_", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1._;
           },
         });
         Object.defineProperty(exports, "str", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1.str;
           },
         });
         Object.defineProperty(exports, "stringify", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1.stringify;
           },
         });
         Object.defineProperty(exports, "nil", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1.nil;
           },
         });
         Object.defineProperty(exports, "Name", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1.Name;
           },
         });
         Object.defineProperty(exports, "CodeGen", {
           enumerable: true,
-          get: function () {
+          get () {
             return codegen_1.CodeGen;
           },
         });
@@ -12248,7 +12248,7 @@
             validateFormats: (_y = o.validateFormats) !== null && _y !== void 0 ? _y : true,
             unicodeRegExp: (_z = o.unicodeRegExp) !== null && _z !== void 0 ? _z : true,
             int32range: (_0 = o.int32range) !== null && _0 !== void 0 ? _0 : true,
-            uriResolver: uriResolver,
+            uriResolver,
           };
         }
         class Ajv {
@@ -12269,11 +12269,11 @@
             checkOptions.call(this, removedOptions, opts, "NOT SUPPORTED");
             checkOptions.call(this, deprecatedOptions, opts, "DEPRECATED", "warn");
             this._metaOpts = getMetaSchemaOptions.call(this);
-            if (opts.formats) addInitialFormats.call(this);
+            if (opts.formats) {addInitialFormats.call(this);}
             this._addVocabularies();
             this._addDefaultMetaSchema();
-            if (opts.keywords) addInitialKeywords.call(this, opts.keywords);
-            if (typeof opts.meta == "object") this.addMetaSchema(opts.meta);
+            if (opts.keywords) {addInitialKeywords.call(this, opts.keywords);}
+            if (typeof opts.meta == "object") {this.addMetaSchema(opts.meta);}
             addInitialSchemas.call(this);
             opts.validateFormats = formatOpt;
           }
@@ -12288,7 +12288,7 @@
               _dataRefSchema.id = _dataRefSchema.$id;
               delete _dataRefSchema.$id;
             }
-            if (meta && $data) this.addMetaSchema(_dataRefSchema, _dataRefSchema[schemaId], false);
+            if (meta && $data) {this.addMetaSchema(_dataRefSchema, _dataRefSchema[schemaId], false);}
           }
           defaultMeta() {
             const { meta, schemaId } = this.opts;
@@ -12301,12 +12301,12 @@
             let v;
             if (typeof schemaKeyRef == "string") {
               v = this.getSchema(schemaKeyRef);
-              if (!v) throw new Error(`no schema with key or ref "${schemaKeyRef}"`);
+              if (!v) {throw new Error(`no schema with key or ref "${schemaKeyRef}"`);}
             } else {
               v = this.compile(schemaKeyRef);
             }
             const valid = v(data);
-            if (!("$async" in v)) this.errors = v.errors;
+            if (!("$async" in v)) {this.errors = v.errors;}
             return valid;
           }
           compile(schema, _meta) {
@@ -12333,7 +12333,7 @@
               try {
                 return this._compileSchemaEnv(sch);
               } catch (e) {
-                if (!(e instanceof ref_error_1.default)) throw e;
+                if (!(e instanceof ref_error_1.default)) {throw e;}
                 checkLoaded.call(this, e);
                 await loadMissingSchema.call(this, e.missingSchema);
                 return _compileAsync.call(this, sch);
@@ -12346,12 +12346,12 @@
             }
             async function loadMissingSchema(ref) {
               const _schema = await _loadSchema.call(this, ref);
-              if (!this.refs[ref]) await loadMetaSchema.call(this, _schema.$schema);
-              if (!this.refs[ref]) this.addSchema(_schema, ref, meta);
+              if (!this.refs[ref]) {await loadMetaSchema.call(this, _schema.$schema);}
+              if (!this.refs[ref]) {this.addSchema(_schema, ref, meta);}
             }
             async function _loadSchema(ref) {
               const p = this._loading[ref];
-              if (p) return p;
+              if (p) {return p;}
               try {
                 return await (this._loading[ref] = loadSchema(ref));
               } finally {
@@ -12367,7 +12367,7 @@
             _validateSchema = this.opts.validateSchema, // false to skip schema validation. Used internally, option validateSchema should be used instead.
           ) {
             if (Array.isArray(schema)) {
-              for (const sch of schema) this.addSchema(sch, undefined, _meta, _validateSchema);
+              for (const sch of schema) {this.addSchema(sch, undefined, _meta, _validateSchema);}
               return this;
             }
             let id;
@@ -12395,7 +12395,7 @@
           }
           //  Validate schema against its meta-schema
           validateSchema(schema, throwOrLogError) {
-            if (typeof schema == "boolean") return true;
+            if (typeof schema == "boolean") {return true;}
             let $schema;
             $schema = schema.$schema;
             if ($schema !== undefined && typeof $schema != "string") {
@@ -12410,8 +12410,8 @@
             const valid = this.validate($schema, schema);
             if (!valid && throwOrLogError) {
               const message = "schema is invalid: " + this.errorsText();
-              if (this.opts.validateSchema === "log") this.logger.error(message);
-              else throw new Error(message);
+              if (this.opts.validateSchema === "log") {this.logger.error(message);}
+              else {throw new Error(message);}
             }
             return valid;
           }
@@ -12419,12 +12419,12 @@
           // (`key` that was passed to `addSchema` or full schema reference - `schema.$id` or resolved id)
           getSchema(keyRef) {
             let sch;
-            while (typeof (sch = getSchEnv.call(this, keyRef)) == "string") keyRef = sch;
+            while (typeof (sch = getSchEnv.call(this, keyRef)) == "string") {keyRef = sch;}
             if (sch === undefined) {
               const { schemaId } = this.opts;
               const root = new compile_1.SchemaEnv({ schema: {}, schemaId });
               sch = compile_1.resolveSchema.call(this, root, keyRef);
-              if (!sch) return;
+              if (!sch) {return;}
               this.refs[keyRef] = sch;
             }
             return sch.validate || this._compileSchemaEnv(sch);
@@ -12447,7 +12447,7 @@
                 return this;
               case "string": {
                 const sch = getSchEnv.call(this, schemaKeyRef);
-                if (typeof sch == "object") this._cache.delete(sch.schema);
+                if (typeof sch == "object") {this._cache.delete(sch.schema);}
                 delete this.schemas[schemaKeyRef];
                 delete this.refs[schemaKeyRef];
                 return this;
@@ -12469,7 +12469,7 @@
           }
           // add "vocabulary" - a collection of keywords
           addVocabulary(definitions) {
-            for (const def of definitions) this.addKeyword(def);
+            for (const def of definitions) {this.addKeyword(def);}
             return this;
           }
           addKeyword(
@@ -12523,13 +12523,13 @@
             delete RULES.all[keyword];
             for (const group of RULES.rules) {
               const i = group.rules.findIndex((rule) => rule.keyword === keyword);
-              if (i >= 0) group.rules.splice(i, 1);
+              if (i >= 0) {group.rules.splice(i, 1);}
             }
             return this;
           }
           // Add format
           addFormat(name, format) {
-            if (typeof format == "string") format = new RegExp(format);
+            if (typeof format == "string") {format = new RegExp(format);}
             this.formats[name] = format;
             return this;
           }
@@ -12537,7 +12537,7 @@
             errors = this.errors, // optional array of validation errors
             { separator = ", ", dataVar = "data" } = {}, // optional options with properties `separator` and `dataVar`
           ) {
-            if (!errors || errors.length === 0) return "No errors";
+            if (!errors || errors.length === 0) {return "No errors";}
             return errors
               .map((e) => `${dataVar}${e.instancePath} ${e.message}`)
               .reduce((text, msg) => text + separator + msg);
@@ -12548,13 +12548,13 @@
             for (const jsonPointer of keywordsJsonPointers) {
               const segments = jsonPointer.split("/").slice(1); // first segment is an empty string
               let keywords = metaSchema;
-              for (const seg of segments) keywords = keywords[seg];
+              for (const seg of segments) {keywords = keywords[seg];}
               for (const key in rules) {
                 const rule = rules[key];
-                if (typeof rule != "object") continue;
+                if (typeof rule != "object") {continue;}
                 const { $data } = rule.definition;
                 const schema = keywords[key];
-                if ($data && schema) keywords[key] = schemaOrData(schema);
+                if ($data && schema) {keywords[key] = schemaOrData(schema);}
               }
             }
             return metaSchema;
@@ -12584,21 +12584,21 @@
             if (typeof schema == "object") {
               id = schema[schemaId];
             } else {
-              if (this.opts.jtd) throw new Error("schema must be object");
-              else if (typeof schema != "boolean") throw new Error("schema must be object or boolean");
+              if (this.opts.jtd) {throw new Error("schema must be object");}
+              else if (typeof schema != "boolean") {throw new Error("schema must be object or boolean");}
             }
             let sch = this._cache.get(schema);
-            if (sch !== undefined) return sch;
+            if (sch !== undefined) {return sch;}
             baseId = (0, resolve_1.normalizeId)(id || baseId);
             const localRefs = resolve_1.getSchemaRefs.call(this, schema, baseId);
             sch = new compile_1.SchemaEnv({ schema, schemaId, meta, baseId, localRefs });
             this._cache.set(sch.schema, sch);
             if (addSchema && !baseId.startsWith("#")) {
               // TODO atm it is allowed to overwrite schemas without id (instead of not adding them)
-              if (baseId) this._checkUnique(baseId);
+              if (baseId) {this._checkUnique(baseId);}
               this.refs[baseId] = sch;
             }
-            if (validateSchema) this.validateSchema(schema, true);
+            if (validateSchema) {this.validateSchema(schema, true);}
             return sch;
           }
           _checkUnique(id) {
@@ -12607,10 +12607,10 @@
             }
           }
           _compileSchemaEnv(sch) {
-            if (sch.meta) this._compileMetaSchema(sch);
-            else compile_1.compileSchema.call(this, sch);
+            if (sch.meta) {this._compileMetaSchema(sch);}
+            else {compile_1.compileSchema.call(this, sch);}
             /* istanbul ignore if */
-            if (!sch.validate) throw new Error("ajv implementation error");
+            if (!sch.validate) {throw new Error("ajv implementation error");}
             return sch.validate;
           }
           _compileMetaSchema(sch) {
@@ -12629,7 +12629,7 @@
         function checkOptions(checkOpts, options, msg, log = "error") {
           for (const key in checkOpts) {
             const opt = key;
-            if (opt in options) this.logger[log](`${msg}: option ${key}. ${checkOpts[opt]}`);
+            if (opt in options) {this.logger[log](`${msg}: option ${key}. ${checkOpts[opt]}`);}
           }
         }
         function getSchEnv(keyRef) {
@@ -12638,14 +12638,14 @@
         }
         function addInitialSchemas() {
           const optsSchemas = this.opts.schemas;
-          if (!optsSchemas) return;
-          if (Array.isArray(optsSchemas)) this.addSchema(optsSchemas);
-          else for (const key in optsSchemas) this.addSchema(optsSchemas[key], key);
+          if (!optsSchemas) {return;}
+          if (Array.isArray(optsSchemas)) {this.addSchema(optsSchemas);}
+          else {for (const key in optsSchemas) {this.addSchema(optsSchemas[key], key);}}
         }
         function addInitialFormats() {
           for (const name in this.opts.formats) {
             const format = this.opts.formats[name];
-            if (format) this.addFormat(name, format);
+            if (format) {this.addFormat(name, format);}
           }
         }
         function addInitialKeywords(defs) {
@@ -12656,30 +12656,30 @@
           this.logger.warn("keywords option as map is deprecated, pass array");
           for (const keyword in defs) {
             const def = defs[keyword];
-            if (!def.keyword) def.keyword = keyword;
+            if (!def.keyword) {def.keyword = keyword;}
             this.addKeyword(def);
           }
         }
         function getMetaSchemaOptions() {
           const metaOpts = { ...this.opts };
-          for (const opt of META_IGNORE_OPTIONS) delete metaOpts[opt];
+          for (const opt of META_IGNORE_OPTIONS) {delete metaOpts[opt];}
           return metaOpts;
         }
         const noLogs = { log() {}, warn() {}, error() {} };
         function getLogger(logger) {
-          if (logger === false) return noLogs;
-          if (logger === undefined) return console;
-          if (logger.log && logger.warn && logger.error) return logger;
+          if (logger === false) {return noLogs;}
+          if (logger === undefined) {return console;}
+          if (logger.log && logger.warn && logger.error) {return logger;}
           throw new Error("logger must implement log, warn and error methods");
         }
         const KEYWORD_NAME = /^[a-z_$][a-z0-9_$:-]*$/i;
         function checkKeyword(keyword, def) {
           const { RULES } = this;
           (0, util_1.eachItem)(keyword, (kwd) => {
-            if (RULES.keywords[kwd]) throw new Error(`Keyword ${kwd} is already defined`);
-            if (!KEYWORD_NAME.test(kwd)) throw new Error(`Keyword ${kwd} has invalid name`);
+            if (RULES.keywords[kwd]) {throw new Error(`Keyword ${kwd} is already defined`);}
+            if (!KEYWORD_NAME.test(kwd)) {throw new Error(`Keyword ${kwd} has invalid name`);}
           });
-          if (!def) return;
+          if (!def) {return;}
           if (def.$data && !("code" in def || "validate" in def)) {
             throw new Error('$data keyword must have "code" or "validate" function');
           }
@@ -12687,7 +12687,7 @@
         function addRule(keyword, definition, dataType) {
           var _a;
           const post = definition === null || definition === void 0 ? void 0 : definition.post;
-          if (dataType && post) throw new Error('keyword with "post" flag cannot have "type"');
+          if (dataType && post) {throw new Error('keyword with "post" flag cannot have "type"');}
           const { RULES } = this;
           let ruleGroup = post ? RULES.post : RULES.rules.find(({ type: t }) => t === dataType);
           if (!ruleGroup) {
@@ -12695,7 +12695,7 @@
             RULES.rules.push(ruleGroup);
           }
           RULES.keywords[keyword] = true;
-          if (!definition) return;
+          if (!definition) {return;}
           const rule = {
             keyword,
             definition: {
@@ -12704,8 +12704,8 @@
               schemaType: (0, dataType_1.getJSONTypes)(definition.schemaType),
             },
           };
-          if (definition.before) addBeforeRule.call(this, ruleGroup, rule, definition.before);
-          else ruleGroup.rules.push(rule);
+          if (definition.before) {addBeforeRule.call(this, ruleGroup, rule, definition.before);}
+          else {ruleGroup.rules.push(rule);}
           RULES.all[keyword] = rule;
           (_a = definition.implements) === null || _a === void 0 ? void 0 : _a.forEach((kwd) => this.addKeyword(kwd));
         }
@@ -12720,8 +12720,8 @@
         }
         function keywordMetaschema(def) {
           let { metaSchema } = def;
-          if (metaSchema === undefined) return;
-          if (def.$data && this.opts.$data) metaSchema = schemaOrData(metaSchema);
+          if (metaSchema === undefined) {return;}
+          if (def.$data && this.opts.$data) {metaSchema = schemaOrData(metaSchema);}
           def.validateSchema = this.compile(metaSchema, true);
         }
         const $dataRef = {
@@ -13202,7 +13202,7 @@
             if (value >= 0xd800 && value <= 0xdbff && pos < len) {
               // high surrogate, and there is a next character
               value = str.charCodeAt(pos);
-              if ((value & 0xfc00) === 0xdc00) pos++; // low surrogate
+              if ((value & 0xfc00) === 0xdc00) {pos++;} // low surrogate
             }
           }
           return length;
@@ -13279,7 +13279,7 @@
           function validateItems(valid) {
             gen.forRange("i", items.length, len, (i) => {
               cxt.subschema({ keyword, dataProp: i, dataPropType: util_1.Type.Num }, valid);
-              if (!it.allErrors) gen.if((0, codegen_1.not)(valid), () => gen.break());
+              if (!it.allErrors) {gen.if((0, codegen_1.not)(valid), () => gen.break());}
             });
           }
         }
@@ -13310,18 +13310,18 @@
           code(cxt) {
             const { gen, schema, parentSchema, data, errsCount, it } = cxt;
             /* istanbul ignore if */
-            if (!errsCount) throw new Error("ajv implementation error");
+            if (!errsCount) {throw new Error("ajv implementation error");}
             const { allErrors, opts } = it;
             it.props = true;
-            if (opts.removeAdditional !== "all" && (0, util_1.alwaysValidSchema)(it, schema)) return;
+            if (opts.removeAdditional !== "all" && (0, util_1.alwaysValidSchema)(it, schema)) {return;}
             const props = (0, code_1.allSchemaProperties)(parentSchema.properties);
             const patProps = (0, code_1.allSchemaProperties)(parentSchema.patternProperties);
             checkAdditionalProperties();
             cxt.ok((0, codegen_1._)`${errsCount} === ${names_1.default.errors}`);
             function checkAdditionalProperties() {
               gen.forIn("key", data, (key) => {
-                if (!props.length && !patProps.length) additionalPropertyCode(key);
-                else gen.if(isAdditional(key), () => additionalPropertyCode(key));
+                if (!props.length && !patProps.length) {additionalPropertyCode(key);}
+                else {gen.if(isAdditional(key), () => additionalPropertyCode(key));}
               });
             }
             function isAdditional(key) {
@@ -13354,7 +13354,7 @@
               if (schema === false) {
                 cxt.setParams({ additionalProperty: key });
                 cxt.error();
-                if (!allErrors) gen.break();
+                if (!allErrors) {gen.break();}
                 return;
               }
               if (typeof schema == "object" && !(0, util_1.alwaysValidSchema)(it, schema)) {
@@ -13367,7 +13367,7 @@
                   });
                 } else {
                   applyAdditionalSchema(key, valid);
-                  if (!allErrors) gen.if((0, codegen_1.not)(valid), () => gen.break());
+                  if (!allErrors) {gen.if((0, codegen_1.not)(valid), () => gen.break());}
                 }
               }
             }
@@ -13403,10 +13403,10 @@
           code(cxt) {
             const { gen, schema, it } = cxt;
             /* istanbul ignore if */
-            if (!Array.isArray(schema)) throw new Error("ajv implementation error");
+            if (!Array.isArray(schema)) {throw new Error("ajv implementation error");}
             const valid = gen.name("valid");
             schema.forEach((sch, i) => {
-              if ((0, util_1.alwaysValidSchema)(it, sch)) return;
+              if ((0, util_1.alwaysValidSchema)(it, sch)) {return;}
               const schCxt = cxt.subschema({ keyword: "allOf", schemaProp: i }, valid);
               cxt.ok(valid);
               cxt.mergeEvaluated(schCxt);
@@ -13480,7 +13480,7 @@
             }
             if ((0, util_1.alwaysValidSchema)(it, schema)) {
               let cond = (0, codegen_1._)`${len} >= ${min}`;
-              if (max !== undefined) cond = (0, codegen_1._)`${cond} && ${len} <= ${max}`;
+              if (max !== undefined) {cond = (0, codegen_1._)`${cond} && ${len} <= ${max}`;}
               cxt.pass(cond);
               return;
             }
@@ -13490,7 +13490,7 @@
               validateItems(valid, () => gen.if(valid, () => gen.break()));
             } else if (min === 0) {
               gen.let(valid, true);
-              if (max !== undefined) gen.if((0, codegen_1._)`${data}.length > 0`, validateItemsWithCount);
+              if (max !== undefined) {gen.if((0, codegen_1._)`${data}.length > 0`, validateItemsWithCount);}
             } else {
               gen.let(valid, false);
               validateItemsWithCount();
@@ -13521,8 +13521,8 @@
                 gen.if((0, codegen_1._)`${count} >= ${min}`, () => gen.assign(valid, true).break());
               } else {
                 gen.if((0, codegen_1._)`${count} > ${max}`, () => gen.assign(valid, false).break());
-                if (min === 1) gen.assign(valid, true);
-                else gen.if((0, codegen_1._)`${count} >= ${min}`, () => gen.assign(valid, true));
+                if (min === 1) {gen.assign(valid, true);}
+                else {gen.if((0, codegen_1._)`${count} >= ${min}`, () => gen.assign(valid, true));}
               }
             }
           },
@@ -13565,7 +13565,7 @@
           const propertyDeps = {};
           const schemaDeps = {};
           for (const key in schema) {
-            if (key === "__proto__") continue;
+            if (key === "__proto__") {continue;}
             const deps = Array.isArray(schema[key]) ? propertyDeps : schemaDeps;
             deps[key] = schema[key];
           }
@@ -13573,11 +13573,11 @@
         }
         function validatePropertyDeps(cxt, propertyDeps = cxt.schema) {
           const { gen, data, it } = cxt;
-          if (Object.keys(propertyDeps).length === 0) return;
+          if (Object.keys(propertyDeps).length === 0) {return;}
           const missing = gen.let("missing");
           for (const prop in propertyDeps) {
             const deps = propertyDeps[prop];
-            if (deps.length === 0) continue;
+            if (deps.length === 0) {continue;}
             const hasProperty = (0, code_1.propertyInData)(gen, data, prop, it.opts.ownProperties);
             cxt.setParams({
               property: prop,
@@ -13602,7 +13602,7 @@
           const { gen, data, keyword, it } = cxt;
           const valid = gen.name("valid");
           for (const prop in schemaDeps) {
-            if ((0, util_1.alwaysValidSchema)(it, schemaDeps[prop])) continue;
+            if ((0, util_1.alwaysValidSchema)(it, schemaDeps[prop])) {continue;}
             gen.if(
               (0, code_1.propertyInData)(gen, data, prop, it.opts.ownProperties),
               () => {
@@ -13656,7 +13656,7 @@
             }
             const hasThen = hasSchema(it, "then");
             const hasElse = hasSchema(it, "else");
-            if (!hasThen && !hasElse) return;
+            if (!hasThen && !hasElse) {return;}
             const valid = gen.let("valid", true);
             const schValid = gen.name("_valid");
             validateIf();
@@ -13688,8 +13688,8 @@
                 const schCxt = cxt.subschema({ keyword }, schValid);
                 gen.assign(valid, schValid);
                 cxt.mergeValidEvaluated(schCxt, valid);
-                if (ifClause) gen.assign(ifClause, (0, codegen_1._)`${keyword}`);
-                else cxt.setParams({ ifClause: keyword });
+                if (ifClause) {gen.assign(ifClause, (0, codegen_1._)`${keyword}`);}
+                else {cxt.setParams({ ifClause: keyword });}
               };
             }
           },
@@ -13739,8 +13739,8 @@
             patternProperties_1.default,
           ];
           // array
-          if (draft2020) applicator.push(prefixItems_1.default, items2020_1.default);
-          else applicator.push(additionalItems_1.default, items_1.default);
+          if (draft2020) {applicator.push(prefixItems_1.default, items2020_1.default);}
+          else {applicator.push(additionalItems_1.default, items_1.default);}
           applicator.push(contains_1.default);
           return applicator;
         }
@@ -13780,9 +13780,9 @@
           before: "uniqueItems",
           code(cxt) {
             const { schema, it } = cxt;
-            if (Array.isArray(schema)) return validateTuple(cxt, "additionalItems", schema);
+            if (Array.isArray(schema)) {return validateTuple(cxt, "additionalItems", schema);}
             it.items = true;
-            if ((0, util_1.alwaysValidSchema)(it, schema)) return;
+            if ((0, util_1.alwaysValidSchema)(it, schema)) {return;}
             cxt.ok((0, code_1.validateArray)(cxt));
           },
         };
@@ -13795,7 +13795,7 @@
           const valid = gen.name("valid");
           const len = gen.const("len", (0, codegen_1._)`${data}.length`);
           schArr.forEach((sch, i) => {
-            if ((0, util_1.alwaysValidSchema)(it, sch)) return;
+            if ((0, util_1.alwaysValidSchema)(it, sch)) {return;}
             gen.if((0, codegen_1._)`${len} > ${i}`, () =>
               cxt.subschema(
                 {
@@ -13845,9 +13845,9 @@
             const { schema, parentSchema, it } = cxt;
             const { prefixItems } = parentSchema;
             it.items = true;
-            if ((0, util_1.alwaysValidSchema)(it, schema)) return;
-            if (prefixItems) (0, additionalItems_1.validateAdditionalItems)(cxt, prefixItems);
-            else cxt.ok((0, code_1.validateArray)(cxt));
+            if ((0, util_1.alwaysValidSchema)(it, schema)) {return;}
+            if (prefixItems) {(0, additionalItems_1.validateAdditionalItems)(cxt, prefixItems);}
+            else {cxt.ok((0, code_1.validateArray)(cxt));}
           },
         };
         exports.default = def;
@@ -13909,8 +13909,8 @@
           code(cxt) {
             const { gen, schema, parentSchema, it } = cxt;
             /* istanbul ignore if */
-            if (!Array.isArray(schema)) throw new Error("ajv implementation error");
-            if (it.opts.discriminator && parentSchema.discriminator) return;
+            if (!Array.isArray(schema)) {throw new Error("ajv implementation error");}
+            if (it.opts.discriminator && parentSchema.discriminator) {return;}
             const schArr = schema;
             const valid = gen.let("valid", false);
             const passing = gen.let("passing", null);
@@ -13948,7 +13948,7 @@
                 gen.if(schValid, () => {
                   gen.assign(valid, true);
                   gen.assign(passing, i);
-                  if (schCxt) cxt.mergeEvaluated(schCxt, codegen_1.Name);
+                  if (schCxt) {cxt.mergeEvaluated(schCxt, codegen_1.Name);}
                 });
               });
             }
@@ -13990,7 +13990,7 @@
             validatePatternProperties();
             function validatePatternProperties() {
               for (const pat of patterns) {
-                if (checkProperties) checkMatchingProperties(pat);
+                if (checkProperties) {checkMatchingProperties(pat);}
                 if (it.allErrors) {
                   validateProperties(pat);
                 } else {
@@ -14084,7 +14084,7 @@
               it.props = util_1.mergeEvaluated.props(gen, (0, util_1.toHash)(allProps), it.props);
             }
             const properties = allProps.filter((p) => !(0, util_1.alwaysValidSchema)(it, schema[p]));
-            if (properties.length === 0) return;
+            if (properties.length === 0) {return;}
             const valid = gen.name("valid");
             for (const prop of properties) {
               if (hasDefault(prop)) {
@@ -14092,7 +14092,7 @@
               } else {
                 gen.if((0, code_1.propertyInData)(gen, data, prop, it.opts.ownProperties));
                 applyPropertySchema(prop);
-                if (!it.allErrors) gen.else().var(valid, true);
+                if (!it.allErrors) {gen.else().var(valid, true);}
                 gen.endIf();
               }
               cxt.it.definedProperties.add(prop);
@@ -14134,7 +14134,7 @@
           error,
           code(cxt) {
             const { gen, schema, data, it } = cxt;
-            if ((0, util_1.alwaysValidSchema)(it, schema)) return;
+            if ((0, util_1.alwaysValidSchema)(it, schema)) {return;}
             const valid = gen.name("valid");
             gen.forIn("key", data, (key) => {
               cxt.setParams({ propertyName: key });
@@ -14150,7 +14150,7 @@
               );
               gen.if((0, codegen_1.not)(valid), () => {
                 cxt.error(true);
-                if (!it.allErrors) gen.break();
+                if (!it.allErrors) {gen.break();}
               });
             });
             cxt.ok(valid);
@@ -14169,7 +14169,7 @@
           keyword: ["then", "else"],
           schemaType: ["object", "boolean"],
           code({ keyword, parentSchema, it }) {
-            if (parentSchema.if === undefined) (0, util_1.checkStrictMode)(it, `"${keyword}" without "if" is ignored`);
+            if (parentSchema.if === undefined) {(0, util_1.checkStrictMode)(it, `"${keyword}" without "if" is ignored`);}
           },
         };
         exports.default = def;
@@ -14267,7 +14267,7 @@
             [names_1.default.parentDataProperty, it.parentDataProperty],
             [names_1.default.rootData, names_1.default.rootData],
           ];
-          if (it.opts.dynamicRef) valCxt.push([names_1.default.dynamicAnchors, names_1.default.dynamicAnchors]);
+          if (it.opts.dynamicRef) {valCxt.push([names_1.default.dynamicAnchors, names_1.default.dynamicAnchors]);}
           const args = (0, codegen_1._)`${dataAndSchema}, ${gen.object(...valCxt)}`;
           return context !== codegen_1.nil
             ? (0, codegen_1._)`${func}.call(${context}, ${args})`
@@ -14317,9 +14317,9 @@
         function validateUnion(cxt) {
           const { gen, schema, keyword, it } = cxt;
           /* istanbul ignore if */
-          if (!Array.isArray(schema)) throw new Error("ajv implementation error");
+          if (!Array.isArray(schema)) {throw new Error("ajv implementation error");}
           const alwaysValid = schema.some((sch) => (0, util_1.alwaysValidSchema)(it, sch));
-          if (alwaysValid && !it.opts.unevaluated) return;
+          if (alwaysValid && !it.opts.unevaluated) {return;}
           const valid = gen.let("valid", false);
           const schValid = gen.name("_valid");
           gen.block(() =>
@@ -14336,7 +14336,7 @@
               const merged = cxt.mergeValidEvaluated(schCxt, schValid);
               // can short-circuit if `unevaluatedProperties/Items` not supported (opts.unevaluated !== true)
               // or if all properties and items were evaluated (it.props === true && it.items === true)
-              if (!merged) gen.if((0, codegen_1.not)(valid));
+              if (!merged) {gen.if((0, codegen_1.not)(valid));}
             }),
           );
           cxt.result(
@@ -14401,13 +14401,13 @@
             const { gen, schema: $ref, it } = cxt;
             const { baseId, schemaEnv: env, validateName, opts, self } = it;
             const { root } = env;
-            if (($ref === "#" || $ref === "#/") && baseId === root.baseId) return callRootRef();
+            if (($ref === "#" || $ref === "#/") && baseId === root.baseId) {return callRootRef();}
             const schOrEnv = compile_1.resolveRef.call(self, root, baseId, $ref);
-            if (schOrEnv === undefined) throw new ref_error_1.default(it.opts.uriResolver, baseId, $ref);
-            if (schOrEnv instanceof compile_1.SchemaEnv) return callValidate(schOrEnv);
+            if (schOrEnv === undefined) {throw new ref_error_1.default(it.opts.uriResolver, baseId, $ref);}
+            if (schOrEnv instanceof compile_1.SchemaEnv) {return callValidate(schOrEnv);}
             return inlineRefSchema(schOrEnv);
             function callRootRef() {
-              if (env === root) return callRef(cxt, validateName, env, env.$async);
+              if (env === root) {return callRef(cxt, validateName, env, env.$async);}
               const rootName = gen.scopeValue("root", { ref: root });
               return callRef(cxt, (0, codegen_1._)`${rootName}.validate`, root, root.$async);
             }
@@ -14447,21 +14447,21 @@
           const { gen, it } = cxt;
           const { allErrors, schemaEnv: env, opts } = it;
           const passCxt = opts.passContext ? names_1.default.this : codegen_1.nil;
-          if ($async) callAsyncRef();
-          else callSyncRef();
+          if ($async) {callAsyncRef();}
+          else {callSyncRef();}
           function callAsyncRef() {
-            if (!env.$async) throw new Error("async schema referenced by sync schema");
+            if (!env.$async) {throw new Error("async schema referenced by sync schema");}
             const valid = gen.let("valid");
             gen.try(
               () => {
                 gen.code((0, codegen_1._)`await ${(0, code_1.callValidateCode)(cxt, v, passCxt)}`);
                 addEvaluatedFrom(v); // TODO will not work with async, it has to be returned with the result
-                if (!allErrors) gen.assign(valid, true);
+                if (!allErrors) {gen.assign(valid, true);}
               },
               (e) => {
                 gen.if((0, codegen_1._)`!(${e} instanceof ${it.ValidationError})`, () => gen.throw(e));
                 addErrorsFrom(e);
-                if (!allErrors) gen.assign(valid, false);
+                if (!allErrors) {gen.assign(valid, false);}
               },
             );
             cxt.ok(valid);
@@ -14484,7 +14484,7 @@
           }
           function addEvaluatedFrom(source) {
             var _a;
-            if (!it.opts.unevaluated) return;
+            if (!it.opts.unevaluated) {return;}
             const schEvaluated =
               (_a = sch === null || sch === void 0 ? void 0 : sch.validate) === null || _a === void 0
                 ? void 0
@@ -14552,9 +14552,9 @@
               throw new Error("discriminator: requires discriminator option");
             }
             const tagName = schema.propertyName;
-            if (typeof tagName != "string") throw new Error("discriminator: requires propertyName");
-            if (schema.mapping) throw new Error("discriminator: mapping is not supported");
-            if (!oneOf) throw new Error("discriminator: requires oneOf keyword");
+            if (typeof tagName != "string") {throw new Error("discriminator: requires propertyName");}
+            if (schema.mapping) {throw new Error("discriminator: mapping is not supported");}
+            if (!oneOf) {throw new Error("discriminator: requires oneOf keyword");}
             const valid = gen.let("valid", false);
             const tag = gen.const("tag", (0, codegen_1._)`${data}${(0, codegen_1.getProperty)(tagName)}`);
             gen.if(
@@ -14597,7 +14597,7 @@
                     it.baseId,
                     sch === null || sch === void 0 ? void 0 : sch.$ref,
                   );
-                  if (sch instanceof compile_1.SchemaEnv) sch = sch.schema;
+                  if (sch instanceof compile_1.SchemaEnv) {sch = sch.schema;}
                 }
                 const propSch =
                   (_a = sch === null || sch === void 0 ? void 0 : sch.properties) === null || _a === void 0
@@ -14611,7 +14611,7 @@
                 tagRequired = tagRequired && (topRequired || hasRequired(sch));
                 addMappings(propSch, i);
               }
-              if (!tagRequired) throw new Error(`discriminator: "${tagName}" must be required`);
+              if (!tagRequired) {throw new Error(`discriminator: "${tagName}" must be required`);}
               return oneOfMapping;
               function hasRequired({ required }) {
                 return Array.isArray(required) && required.includes(tagName);
@@ -14738,7 +14738,7 @@
         };
         function dynamicRef(cxt, ref) {
           const { gen, keyword, it } = cxt;
-          if (ref[0] !== "#") throw new Error(`"${keyword}" only supports hash fragment reference`);
+          if (ref[0] !== "#") {throw new Error(`"${keyword}" only supports hash fragment reference`);}
           const anchor = ref.slice(1);
           if (it.allErrors) {
             _dynamicRef();
@@ -14807,8 +14807,8 @@
           keyword: "$recursiveAnchor",
           schemaType: "boolean",
           code(cxt) {
-            if (cxt.schema) (0, dynamicAnchor_1.dynamicAnchor)(cxt, "");
-            else (0, util_1.checkStrictMode)(cxt.it, "$recursiveAnchor: false is ignored");
+            if (cxt.schema) {(0, dynamicAnchor_1.dynamicAnchor)(cxt, "");}
+            else {(0, util_1.checkStrictMode)(cxt.it, "$recursiveAnchor: false is ignored");}
           },
         };
         exports.default = def;
@@ -14847,9 +14847,9 @@
           code(cxt, ruleType) {
             const { gen, data, $data, schema, schemaCode, it } = cxt;
             const { opts, errSchemaPath, schemaEnv, self } = it;
-            if (!opts.validateFormats) return;
-            if ($data) validate$DataFormat();
-            else validateFormat();
+            if (!opts.validateFormats) {return;}
+            if ($data) {validate$DataFormat();}
+            else {validateFormat();}
             function validate$DataFormat() {
               const fmts = gen.scopeValue("formats", {
                 ref: self.formats,
@@ -14869,7 +14869,7 @@
               );
               cxt.fail$data((0, codegen_1.or)(unknownFmt(), invalidFmt()));
               function unknownFmt() {
-                if (opts.strictSchema === false) return codegen_1.nil;
+                if (opts.strictSchema === false) {return codegen_1.nil;}
                 return (0, codegen_1._)`${schemaCode} && !${format}`;
               }
               function invalidFmt() {
@@ -14887,9 +14887,9 @@
                 unknownFormat();
                 return;
               }
-              if (formatDef === true) return;
+              if (formatDef === true) {return;}
               const [fmtType, format, fmtRef] = getFormat(formatDef);
-              if (fmtType === ruleType) cxt.pass(validCondition());
+              if (fmtType === ruleType) {cxt.pass(validCondition());}
               function unknownFormat() {
                 if (opts.strictSchema === false) {
                   self.logger.warn(unknownMsg());
@@ -14915,7 +14915,7 @@
               }
               function validCondition() {
                 if (typeof formatDef == "object" && !(formatDef instanceof RegExp) && formatDef.async) {
-                  if (!schemaEnv.$async) throw new Error("async format in sync schema");
+                  if (!schemaEnv.$async) {throw new Error("async format in sync schema");}
                   return (0, codegen_1._)`await ${fmtRef}(${data})`;
                 }
                 return typeof format == "function"
@@ -14998,7 +14998,7 @@
           code(cxt) {
             const { gen, schema, data, it } = cxt;
             const items = it.items || 0;
-            if (items === true) return;
+            if (items === true) {return;}
             const len = gen.const("len", (0, codegen_1._)`${data}.length`);
             if (schema === false) {
               cxt.setParams({ len: items });
@@ -15012,7 +15012,7 @@
             function validateItems(valid, from) {
               gen.forRange("i", from, len, (i) => {
                 cxt.subschema({ keyword: "unevaluatedItems", dataProp: i, dataPropType: util_1.Type.Num }, valid);
-                if (!it.allErrors) gen.if((0, codegen_1.not)(valid), () => gen.break());
+                if (!it.allErrors) {gen.if((0, codegen_1.not)(valid), () => gen.break());}
               });
             }
           },
@@ -15041,7 +15041,7 @@
           code(cxt) {
             const { gen, schema, data, errsCount, it } = cxt;
             /* istanbul ignore if */
-            if (!errsCount) throw new Error("ajv implementation error");
+            if (!errsCount) {throw new Error("ajv implementation error");}
             const { allErrors, props } = it;
             if (props instanceof codegen_1.Name) {
               gen.if((0, codegen_1._)`${props} !== true`, () =>
@@ -15060,7 +15060,7 @@
               if (schema === false) {
                 cxt.setParams({ unevaluatedProperty: key });
                 cxt.error();
-                if (!allErrors) gen.break();
+                if (!allErrors) {gen.break();}
                 return;
               }
               if (!(0, util_1.alwaysValidSchema)(it, schema)) {
@@ -15073,7 +15073,7 @@
                   },
                   valid,
                 );
-                if (!allErrors) gen.if((0, codegen_1.not)(valid), () => gen.break());
+                if (!allErrors) {gen.if((0, codegen_1.not)(valid), () => gen.break());}
               }
             }
             function unevaluatedDynamic(evaluatedProps, key) {
@@ -15082,7 +15082,7 @@
             function unevaluatedStatic(evaluatedProps, key) {
               const ps = [];
               for (const p in evaluatedProps) {
-                if (evaluatedProps[p] === true) ps.push((0, codegen_1._)`${key} !== ${p}`);
+                if (evaluatedProps[p] === true) {ps.push((0, codegen_1._)`${key} !== ${p}`);}
               }
               return (0, codegen_1.and)(...ps);
             }
@@ -15154,7 +15154,7 @@
           error,
           code(cxt) {
             const { gen, data, $data, schema, schemaCode, it } = cxt;
-            if (!$data && schema.length === 0) throw new Error("enum must have non-empty array");
+            if (!$data && schema.length === 0) {throw new Error("enum must have non-empty array");}
             const useLoop = schema.length >= it.opts.loopEnum;
             let eql;
             const getEql = () =>
@@ -15165,7 +15165,7 @@
               cxt.block$data(valid, loopEnum);
             } else {
               /* istanbul ignore if */
-              if (!Array.isArray(schema)) throw new Error("ajv implementation error");
+              if (!Array.isArray(schema)) {throw new Error("ajv implementation error");}
               const vSchema = gen.const("vSchema", schemaCode);
               valid = (0, codegen_1.or)(...schema.map((_x, i) => equalCode(vSchema, i)));
             }
@@ -15458,10 +15458,10 @@
           code(cxt) {
             const { gen, schema, schemaCode, data, $data, it } = cxt;
             const { opts } = it;
-            if (!$data && schema.length === 0) return;
+            if (!$data && schema.length === 0) {return;}
             const useLoop = schema.length >= opts.loopRequired;
-            if (it.allErrors) allErrorsMode();
-            else exitOnErrorMode();
+            if (it.allErrors) {allErrorsMode();}
+            else {exitOnErrorMode();}
             if (opts.strictRequired) {
               const props = cxt.parentSchema.properties;
               const { definedProperties } = cxt.it;
@@ -15545,7 +15545,7 @@
           error,
           code(cxt) {
             const { gen, data, $data, schema, parentSchema, schemaCode, it } = cxt;
-            if (!$data && !schema) return;
+            if (!$data && !schema) {return;}
             const valid = gen.let("valid");
             const itemTypes = parentSchema.items ? (0, dataType_1.getSchemaTypes)(parentSchema.items) : [];
             cxt.block$data(valid, validateUniqueItems, (0, codegen_1._)`${schemaCode} === false`);
@@ -15573,7 +15573,7 @@
                 gen.let(item, (0, codegen_1._)`${data}[${i}]`);
                 gen.if(wrongType, (0, codegen_1._)`continue`);
                 if (itemTypes.length > 1)
-                  gen.if((0, codegen_1._)`typeof ${item} == "string"`, (0, codegen_1._)`${item} += "_"`);
+                  {gen.if((0, codegen_1._)`typeof ${item} == "string"`, (0, codegen_1._)`${item} += "_"`);}
                 gen
                   .if((0, codegen_1._)`typeof ${indices}[${item}] == "number"`, () => {
                     gen.assign(j, (0, codegen_1._)`${indices}[${item}]`);
@@ -15639,7 +15639,7 @@
           // Trim off extra bytes after placeholder bytes are found
           // See: https://github.com/beatgammit/base64-js/issues/42
           var validLen = b64.indexOf("=");
-          if (validLen === -1) validLen = len;
+          if (validLen === -1) {validLen = len;}
 
           var placeHoldersLen = validLen === len ? 0 : 4 - (validLen % 4);
 
@@ -15796,7 +15796,7 @@
                 var arr = new Uint8Array(1);
                 arr.__proto__ = {
                   __proto__: Uint8Array.prototype,
-                  foo: function () {
+                  foo () {
                     return 42;
                   },
                 };
@@ -15808,16 +15808,16 @@
 
             Object.defineProperty(Buffer.prototype, "parent", {
               enumerable: true,
-              get: function () {
-                if (!Buffer.isBuffer(this)) return undefined;
+              get () {
+                if (!Buffer.isBuffer(this)) {return undefined;}
                 return this.buffer;
               },
             });
 
             Object.defineProperty(Buffer.prototype, "offset", {
               enumerable: true,
-              get: function () {
-                if (!Buffer.isBuffer(this)) return undefined;
+              get () {
+                if (!Buffer.isBuffer(this)) {return undefined;}
                 return this.byteOffset;
               },
             });
@@ -15896,7 +15896,7 @@
               }
 
               var b = fromObject(value);
-              if (b) return b;
+              if (b) {return b;}
 
               if (
                 typeof Symbol !== "undefined" &&
@@ -16085,13 +16085,13 @@
             };
 
             Buffer.compare = function compare(a, b) {
-              if (isInstance(a, Uint8Array)) a = Buffer.from(a, a.offset, a.byteLength);
-              if (isInstance(b, Uint8Array)) b = Buffer.from(b, b.offset, b.byteLength);
+              if (isInstance(a, Uint8Array)) {a = Buffer.from(a, a.offset, a.byteLength);}
+              if (isInstance(b, Uint8Array)) {b = Buffer.from(b, b.offset, b.byteLength);}
               if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) {
                 throw new TypeError('The "buf1", "buf2" arguments must be one of type Buffer or Uint8Array');
               }
 
-              if (a === b) return 0;
+              if (a === b) {return 0;}
 
               var x = a.length;
               var y = b.length;
@@ -16104,8 +16104,8 @@
                 }
               }
 
-              if (x < y) return -1;
-              if (y < x) return 1;
+              if (x < y) {return -1;}
+              if (y < x) {return 1;}
               return 0;
             };
 
@@ -16178,7 +16178,7 @@
 
               var len = string.length;
               var mustMatch = arguments.length > 2 && arguments[2] === true;
-              if (!mustMatch && len === 0) return 0;
+              if (!mustMatch && len === 0) {return 0;}
 
               // Use a for loop to avoid recursion
               var loweredCase = false;
@@ -16246,7 +16246,7 @@
                 return "";
               }
 
-              if (!encoding) encoding = "utf8";
+              if (!encoding) {encoding = "utf8";}
 
               while (true) {
                 switch (encoding) {
@@ -16274,7 +16274,7 @@
                     return utf16leSlice(this, start, end);
 
                   default:
-                    if (loweredCase) throw new TypeError("Unknown encoding: " + encoding);
+                    if (loweredCase) {throw new TypeError("Unknown encoding: " + encoding);}
                     encoding = (encoding + "").toLowerCase();
                     loweredCase = true;
                 }
@@ -16334,16 +16334,16 @@
 
             Buffer.prototype.toString = function toString() {
               var length = this.length;
-              if (length === 0) return "";
-              if (arguments.length === 0) return utf8Slice(this, 0, length);
+              if (length === 0) {return "";}
+              if (arguments.length === 0) {return utf8Slice(this, 0, length);}
               return slowToString.apply(this, arguments);
             };
 
             Buffer.prototype.toLocaleString = Buffer.prototype.toString;
 
             Buffer.prototype.equals = function equals(b) {
-              if (!Buffer.isBuffer(b)) throw new TypeError("Argument must be a Buffer");
-              if (this === b) return true;
+              if (!Buffer.isBuffer(b)) {throw new TypeError("Argument must be a Buffer");}
+              if (this === b) {return true;}
               return Buffer.compare(this, b) === 0;
             };
 
@@ -16353,7 +16353,7 @@
               str = this.toString("hex", 0, max)
                 .replace(/(.{2})/g, "$1 ")
                 .trim();
-              if (this.length > max) str += " ... ";
+              if (this.length > max) {str += " ... ";}
               return "<Buffer " + str + ">";
             };
 
@@ -16399,7 +16399,7 @@
               thisStart >>>= 0;
               thisEnd >>>= 0;
 
-              if (this === target) return 0;
+              if (this === target) {return 0;}
 
               var x = thisEnd - thisStart;
               var y = end - start;
@@ -16416,8 +16416,8 @@
                 }
               }
 
-              if (x < y) return -1;
-              if (y < x) return 1;
+              if (x < y) {return -1;}
+              if (y < x) {return 1;}
               return 0;
             };
 
@@ -16432,7 +16432,7 @@
             // - dir - true for indexOf, false for lastIndexOf
             function bidirectionalIndexOf(buffer, val, byteOffset, encoding, dir) {
               // Empty buffer means no match
-              if (buffer.length === 0) return -1;
+              if (buffer.length === 0) {return -1;}
 
               // Normalize byteOffset
               if (typeof byteOffset === "string") {
@@ -16450,13 +16450,13 @@
               }
 
               // Normalize byteOffset: negative offsets start from the end of the buffer
-              if (byteOffset < 0) byteOffset = buffer.length + byteOffset;
+              if (byteOffset < 0) {byteOffset = buffer.length + byteOffset;}
               if (byteOffset >= buffer.length) {
-                if (dir) return -1;
-                else byteOffset = buffer.length - 1;
+                if (dir) {return -1;}
+                else {byteOffset = buffer.length - 1;}
               } else if (byteOffset < 0) {
-                if (dir) byteOffset = 0;
-                else return -1;
+                if (dir) {byteOffset = 0;}
+                else {return -1;}
               }
 
               // Normalize val
@@ -16517,15 +16517,15 @@
                 var foundIndex = -1;
                 for (i = byteOffset; i < arrLength; i++) {
                   if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
-                    if (foundIndex === -1) foundIndex = i;
-                    if (i - foundIndex + 1 === valLength) return foundIndex * indexSize;
+                    if (foundIndex === -1) {foundIndex = i;}
+                    if (i - foundIndex + 1 === valLength) {return foundIndex * indexSize;}
                   } else {
-                    if (foundIndex !== -1) i -= i - foundIndex;
+                    if (foundIndex !== -1) {i -= i - foundIndex;}
                     foundIndex = -1;
                   }
                 }
               } else {
-                if (byteOffset + valLength > arrLength) byteOffset = arrLength - valLength;
+                if (byteOffset + valLength > arrLength) {byteOffset = arrLength - valLength;}
                 for (i = byteOffset; i >= 0; i--) {
                   var found = true;
                   for (var j = 0; j < valLength; j++) {
@@ -16534,7 +16534,7 @@
                       break;
                     }
                   }
-                  if (found) return i;
+                  if (found) {return i;}
                 }
               }
 
@@ -16572,7 +16572,7 @@
               }
               for (var i = 0; i < length; ++i) {
                 var parsed = parseInt(string.substr(i * 2, 2), 16);
-                if (numberIsNaN(parsed)) return i;
+                if (numberIsNaN(parsed)) {return i;}
                 buf[offset + i] = parsed;
               }
               return i;
@@ -16614,7 +16614,7 @@
                 offset = offset >>> 0;
                 if (isFinite(length)) {
                   length = length >>> 0;
-                  if (encoding === undefined) encoding = "utf8";
+                  if (encoding === undefined) {encoding = "utf8";}
                 } else {
                   encoding = length;
                   length = undefined;
@@ -16624,13 +16624,13 @@
               }
 
               var remaining = this.length - offset;
-              if (length === undefined || length > remaining) length = remaining;
+              if (length === undefined || length > remaining) {length = remaining;}
 
               if ((string.length > 0 && (length < 0 || offset < 0)) || offset > this.length) {
                 throw new RangeError("Attempt to write outside buffer bounds");
               }
 
-              if (!encoding) encoding = "utf8";
+              if (!encoding) {encoding = "utf8";}
 
               var loweredCase = false;
               for (;;) {
@@ -16660,7 +16660,7 @@
                     return ucs2Write(this, string, offset, length);
 
                   default:
-                    if (loweredCase) throw new TypeError("Unknown encoding: " + encoding);
+                    if (loweredCase) {throw new TypeError("Unknown encoding: " + encoding);}
                     encoding = ("" + encoding).toLowerCase();
                     loweredCase = true;
                 }
@@ -16799,8 +16799,8 @@
             function hexSlice(buf, start, end) {
               var len = buf.length;
 
-              if (!start || start < 0) start = 0;
-              if (!end || end < 0 || end > len) end = len;
+              if (!start || start < 0) {start = 0;}
+              if (!end || end < 0 || end > len) {end = len;}
 
               var out = "";
               for (var i = start; i < end; ++i) {
@@ -16825,19 +16825,19 @@
 
               if (start < 0) {
                 start += len;
-                if (start < 0) start = 0;
+                if (start < 0) {start = 0;}
               } else if (start > len) {
                 start = len;
               }
 
               if (end < 0) {
                 end += len;
-                if (end < 0) end = 0;
+                if (end < 0) {end = 0;}
               } else if (end > len) {
                 end = len;
               }
 
-              if (end < start) end = start;
+              if (end < start) {end = start;}
 
               var newBuf = this.subarray(start, end);
               // Return an augmented `Uint8Array` instance
@@ -16849,14 +16849,14 @@
              * Need to make sure that buffer isn't trying to write out of bounds.
              */
             function checkOffset(offset, ext, length) {
-              if (offset % 1 !== 0 || offset < 0) throw new RangeError("offset is not uint");
-              if (offset + ext > length) throw new RangeError("Trying to access beyond buffer length");
+              if (offset % 1 !== 0 || offset < 0) {throw new RangeError("offset is not uint");}
+              if (offset + ext > length) {throw new RangeError("Trying to access beyond buffer length");}
             }
 
             Buffer.prototype.readUIntLE = function readUIntLE(offset, byteLength, noAssert) {
               offset = offset >>> 0;
               byteLength = byteLength >>> 0;
-              if (!noAssert) checkOffset(offset, byteLength, this.length);
+              if (!noAssert) {checkOffset(offset, byteLength, this.length);}
 
               var val = this[offset];
               var mul = 1;
@@ -16886,32 +16886,32 @@
 
             Buffer.prototype.readUInt8 = function readUInt8(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 1, this.length);
+              if (!noAssert) {checkOffset(offset, 1, this.length);}
               return this[offset];
             };
 
             Buffer.prototype.readUInt16LE = function readUInt16LE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 2, this.length);
+              if (!noAssert) {checkOffset(offset, 2, this.length);}
               return this[offset] | (this[offset + 1] << 8);
             };
 
             Buffer.prototype.readUInt16BE = function readUInt16BE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 2, this.length);
+              if (!noAssert) {checkOffset(offset, 2, this.length);}
               return (this[offset] << 8) | this[offset + 1];
             };
 
             Buffer.prototype.readUInt32LE = function readUInt32LE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 4, this.length);
+              if (!noAssert) {checkOffset(offset, 4, this.length);}
 
               return (this[offset] | (this[offset + 1] << 8) | (this[offset + 2] << 16)) + this[offset + 3] * 0x1000000;
             };
 
             Buffer.prototype.readUInt32BE = function readUInt32BE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 4, this.length);
+              if (!noAssert) {checkOffset(offset, 4, this.length);}
 
               return this[offset] * 0x1000000 + ((this[offset + 1] << 16) | (this[offset + 2] << 8) | this[offset + 3]);
             };
@@ -16919,7 +16919,7 @@
             Buffer.prototype.readIntLE = function readIntLE(offset, byteLength, noAssert) {
               offset = offset >>> 0;
               byteLength = byteLength >>> 0;
-              if (!noAssert) checkOffset(offset, byteLength, this.length);
+              if (!noAssert) {checkOffset(offset, byteLength, this.length);}
 
               var val = this[offset];
               var mul = 1;
@@ -16929,7 +16929,7 @@
               }
               mul *= 0x80;
 
-              if (val >= mul) val -= Math.pow(2, 8 * byteLength);
+              if (val >= mul) {val -= Math.pow(2, 8 * byteLength);}
 
               return val;
             };
@@ -16937,7 +16937,7 @@
             Buffer.prototype.readIntBE = function readIntBE(offset, byteLength, noAssert) {
               offset = offset >>> 0;
               byteLength = byteLength >>> 0;
-              if (!noAssert) checkOffset(offset, byteLength, this.length);
+              if (!noAssert) {checkOffset(offset, byteLength, this.length);}
 
               var i = byteLength;
               var mul = 1;
@@ -16947,74 +16947,74 @@
               }
               mul *= 0x80;
 
-              if (val >= mul) val -= Math.pow(2, 8 * byteLength);
+              if (val >= mul) {val -= Math.pow(2, 8 * byteLength);}
 
               return val;
             };
 
             Buffer.prototype.readInt8 = function readInt8(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 1, this.length);
-              if (!(this[offset] & 0x80)) return this[offset];
+              if (!noAssert) {checkOffset(offset, 1, this.length);}
+              if (!(this[offset] & 0x80)) {return this[offset];}
               return (0xff - this[offset] + 1) * -1;
             };
 
             Buffer.prototype.readInt16LE = function readInt16LE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 2, this.length);
+              if (!noAssert) {checkOffset(offset, 2, this.length);}
               var val = this[offset] | (this[offset + 1] << 8);
               return val & 0x8000 ? val | 0xffff0000 : val;
             };
 
             Buffer.prototype.readInt16BE = function readInt16BE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 2, this.length);
+              if (!noAssert) {checkOffset(offset, 2, this.length);}
               var val = this[offset + 1] | (this[offset] << 8);
               return val & 0x8000 ? val | 0xffff0000 : val;
             };
 
             Buffer.prototype.readInt32LE = function readInt32LE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 4, this.length);
+              if (!noAssert) {checkOffset(offset, 4, this.length);}
 
               return this[offset] | (this[offset + 1] << 8) | (this[offset + 2] << 16) | (this[offset + 3] << 24);
             };
 
             Buffer.prototype.readInt32BE = function readInt32BE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 4, this.length);
+              if (!noAssert) {checkOffset(offset, 4, this.length);}
 
               return (this[offset] << 24) | (this[offset + 1] << 16) | (this[offset + 2] << 8) | this[offset + 3];
             };
 
             Buffer.prototype.readFloatLE = function readFloatLE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 4, this.length);
+              if (!noAssert) {checkOffset(offset, 4, this.length);}
               return ieee754.read(this, offset, true, 23, 4);
             };
 
             Buffer.prototype.readFloatBE = function readFloatBE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 4, this.length);
+              if (!noAssert) {checkOffset(offset, 4, this.length);}
               return ieee754.read(this, offset, false, 23, 4);
             };
 
             Buffer.prototype.readDoubleLE = function readDoubleLE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 8, this.length);
+              if (!noAssert) {checkOffset(offset, 8, this.length);}
               return ieee754.read(this, offset, true, 52, 8);
             };
 
             Buffer.prototype.readDoubleBE = function readDoubleBE(offset, noAssert) {
               offset = offset >>> 0;
-              if (!noAssert) checkOffset(offset, 8, this.length);
+              if (!noAssert) {checkOffset(offset, 8, this.length);}
               return ieee754.read(this, offset, false, 52, 8);
             };
 
             function checkInt(buf, value, offset, ext, max, min) {
-              if (!Buffer.isBuffer(buf)) throw new TypeError('"buffer" argument must be a Buffer instance');
-              if (value > max || value < min) throw new RangeError('"value" argument is out of bounds');
-              if (offset + ext > buf.length) throw new RangeError("Index out of range");
+              if (!Buffer.isBuffer(buf)) {throw new TypeError('"buffer" argument must be a Buffer instance');}
+              if (value > max || value < min) {throw new RangeError('"value" argument is out of bounds');}
+              if (offset + ext > buf.length) {throw new RangeError("Index out of range");}
             }
 
             Buffer.prototype.writeUIntLE = function writeUIntLE(value, offset, byteLength, noAssert) {
@@ -17058,7 +17058,7 @@
             Buffer.prototype.writeUInt8 = function writeUInt8(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
-              if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0);
+              if (!noAssert) {checkInt(this, value, offset, 1, 0xff, 0);}
               this[offset] = value & 0xff;
               return offset + 1;
             };
@@ -17066,7 +17066,7 @@
             Buffer.prototype.writeUInt16LE = function writeUInt16LE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
-              if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
+              if (!noAssert) {checkInt(this, value, offset, 2, 0xffff, 0);}
               this[offset] = value & 0xff;
               this[offset + 1] = value >>> 8;
               return offset + 2;
@@ -17075,7 +17075,7 @@
             Buffer.prototype.writeUInt16BE = function writeUInt16BE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
-              if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
+              if (!noAssert) {checkInt(this, value, offset, 2, 0xffff, 0);}
               this[offset] = value >>> 8;
               this[offset + 1] = value & 0xff;
               return offset + 2;
@@ -17084,7 +17084,7 @@
             Buffer.prototype.writeUInt32LE = function writeUInt32LE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
-              if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
+              if (!noAssert) {checkInt(this, value, offset, 4, 0xffffffff, 0);}
               this[offset + 3] = value >>> 24;
               this[offset + 2] = value >>> 16;
               this[offset + 1] = value >>> 8;
@@ -17095,7 +17095,7 @@
             Buffer.prototype.writeUInt32BE = function writeUInt32BE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
-              if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
+              if (!noAssert) {checkInt(this, value, offset, 4, 0xffffffff, 0);}
               this[offset] = value >>> 24;
               this[offset + 1] = value >>> 16;
               this[offset + 2] = value >>> 8;
@@ -17152,8 +17152,8 @@
             Buffer.prototype.writeInt8 = function writeInt8(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
-              if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80);
-              if (value < 0) value = 0xff + value + 1;
+              if (!noAssert) {checkInt(this, value, offset, 1, 0x7f, -0x80);}
+              if (value < 0) {value = 0xff + value + 1;}
               this[offset] = value & 0xff;
               return offset + 1;
             };
@@ -17161,7 +17161,7 @@
             Buffer.prototype.writeInt16LE = function writeInt16LE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
-              if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
+              if (!noAssert) {checkInt(this, value, offset, 2, 0x7fff, -0x8000);}
               this[offset] = value & 0xff;
               this[offset + 1] = value >>> 8;
               return offset + 2;
@@ -17170,7 +17170,7 @@
             Buffer.prototype.writeInt16BE = function writeInt16BE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
-              if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
+              if (!noAssert) {checkInt(this, value, offset, 2, 0x7fff, -0x8000);}
               this[offset] = value >>> 8;
               this[offset + 1] = value & 0xff;
               return offset + 2;
@@ -17179,7 +17179,7 @@
             Buffer.prototype.writeInt32LE = function writeInt32LE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
-              if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
+              if (!noAssert) {checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);}
               this[offset] = value & 0xff;
               this[offset + 1] = value >>> 8;
               this[offset + 2] = value >>> 16;
@@ -17190,8 +17190,8 @@
             Buffer.prototype.writeInt32BE = function writeInt32BE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
-              if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
-              if (value < 0) value = 0xffffffff + value + 1;
+              if (!noAssert) {checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);}
+              if (value < 0) {value = 0xffffffff + value + 1;}
               this[offset] = value >>> 24;
               this[offset + 1] = value >>> 16;
               this[offset + 2] = value >>> 8;
@@ -17200,8 +17200,8 @@
             };
 
             function checkIEEE754(buf, value, offset, ext, max, min) {
-              if (offset + ext > buf.length) throw new RangeError("Index out of range");
-              if (offset < 0) throw new RangeError("Index out of range");
+              if (offset + ext > buf.length) {throw new RangeError("Index out of range");}
+              if (offset < 0) {throw new RangeError("Index out of range");}
             }
 
             function writeFloat(buf, value, offset, littleEndian, noAssert) {
@@ -17242,26 +17242,26 @@
 
             // copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
             Buffer.prototype.copy = function copy(target, targetStart, start, end) {
-              if (!Buffer.isBuffer(target)) throw new TypeError("argument should be a Buffer");
-              if (!start) start = 0;
-              if (!end && end !== 0) end = this.length;
-              if (targetStart >= target.length) targetStart = target.length;
-              if (!targetStart) targetStart = 0;
-              if (end > 0 && end < start) end = start;
+              if (!Buffer.isBuffer(target)) {throw new TypeError("argument should be a Buffer");}
+              if (!start) {start = 0;}
+              if (!end && end !== 0) {end = this.length;}
+              if (targetStart >= target.length) {targetStart = target.length;}
+              if (!targetStart) {targetStart = 0;}
+              if (end > 0 && end < start) {end = start;}
 
               // Copy 0 bytes; we're done
-              if (end === start) return 0;
-              if (target.length === 0 || this.length === 0) return 0;
+              if (end === start) {return 0;}
+              if (target.length === 0 || this.length === 0) {return 0;}
 
               // Fatal error conditions
               if (targetStart < 0) {
                 throw new RangeError("targetStart out of bounds");
               }
-              if (start < 0 || start >= this.length) throw new RangeError("Index out of range");
-              if (end < 0) throw new RangeError("sourceEnd out of bounds");
+              if (start < 0 || start >= this.length) {throw new RangeError("Index out of range");}
+              if (end < 0) {throw new RangeError("sourceEnd out of bounds");}
 
               // Are we oob?
-              if (end > this.length) end = this.length;
+              if (end > this.length) {end = this.length;}
               if (target.length - targetStart < end - start) {
                 end = target.length - targetStart + start;
               }
@@ -17327,7 +17327,7 @@
               start = start >>> 0;
               end = end === undefined ? this.length : end >>> 0;
 
-              if (!val) val = 0;
+              if (!val) {val = 0;}
 
               var i;
               if (typeof val === "number") {
@@ -17359,7 +17359,7 @@
               // Node strips out invalid characters like \n and \t from the string, base64-js does not
               str = str.trim().replace(INVALID_BASE64_RE, "");
               // Node converts strings with length < 2 to ''
-              if (str.length < 2) return "";
+              if (str.length < 2) {return "";}
               // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
               while (str.length % 4 !== 0) {
                 str = str + "=";
@@ -17368,7 +17368,7 @@
             }
 
             function toHex(n) {
-              if (n < 16) return "0" + n.toString(16);
+              if (n < 16) {return "0" + n.toString(16);}
               return n.toString(16);
             }
 
@@ -17389,11 +17389,11 @@
                     // no lead yet
                     if (codePoint > 0xdbff) {
                       // unexpected trail
-                      if ((units -= 3) > -1) bytes.push(0xef, 0xbf, 0xbd);
+                      if ((units -= 3) > -1) {bytes.push(0xef, 0xbf, 0xbd);}
                       continue;
                     } else if (i + 1 === length) {
                       // unpaired lead
-                      if ((units -= 3) > -1) bytes.push(0xef, 0xbf, 0xbd);
+                      if ((units -= 3) > -1) {bytes.push(0xef, 0xbf, 0xbd);}
                       continue;
                     }
 
@@ -17405,7 +17405,7 @@
 
                   // 2 leads in a row
                   if (codePoint < 0xdc00) {
-                    if ((units -= 3) > -1) bytes.push(0xef, 0xbf, 0xbd);
+                    if ((units -= 3) > -1) {bytes.push(0xef, 0xbf, 0xbd);}
                     leadSurrogate = codePoint;
                     continue;
                   }
@@ -17414,23 +17414,23 @@
                   codePoint = (((leadSurrogate - 0xd800) << 10) | (codePoint - 0xdc00)) + 0x10000;
                 } else if (leadSurrogate) {
                   // valid bmp char, but last char was a lead
-                  if ((units -= 3) > -1) bytes.push(0xef, 0xbf, 0xbd);
+                  if ((units -= 3) > -1) {bytes.push(0xef, 0xbf, 0xbd);}
                 }
 
                 leadSurrogate = null;
 
                 // encode utf8
                 if (codePoint < 0x80) {
-                  if ((units -= 1) < 0) break;
+                  if ((units -= 1) < 0) {break;}
                   bytes.push(codePoint);
                 } else if (codePoint < 0x800) {
-                  if ((units -= 2) < 0) break;
+                  if ((units -= 2) < 0) {break;}
                   bytes.push((codePoint >> 0x6) | 0xc0, (codePoint & 0x3f) | 0x80);
                 } else if (codePoint < 0x10000) {
-                  if ((units -= 3) < 0) break;
+                  if ((units -= 3) < 0) {break;}
                   bytes.push((codePoint >> 0xc) | 0xe0, ((codePoint >> 0x6) & 0x3f) | 0x80, (codePoint & 0x3f) | 0x80);
                 } else if (codePoint < 0x110000) {
-                  if ((units -= 4) < 0) break;
+                  if ((units -= 4) < 0) {break;}
                   bytes.push(
                     (codePoint >> 0x12) | 0xf0,
                     ((codePoint >> 0xc) & 0x3f) | 0x80,
@@ -17458,7 +17458,7 @@
               var c, hi, lo;
               var byteArray = [];
               for (var i = 0; i < str.length; ++i) {
-                if ((units -= 2) < 0) break;
+                if ((units -= 2) < 0) {break;}
 
                 c = str.charCodeAt(i);
                 hi = c >> 8;
@@ -17476,7 +17476,7 @@
 
             function blitBuffer(src, dst, offset, length) {
               for (var i = 0; i < length; ++i) {
-                if (i + offset >= dst.length || i >= src.length) break;
+                if (i + offset >= dst.length || i >= src.length) {break;}
                 dst[i + offset] = src[i];
               }
               return i;
@@ -17669,7 +17669,7 @@
         var hasDefineProperty;
         try {
           var o = {};
-          if (Object.defineProperty) Object.defineProperty(o, "x", { value: 0 });
+          if (Object.defineProperty) {Object.defineProperty(o, "x", { value: 0 });}
           hasDefineProperty = o.x === 0;
         } catch (err) {
           hasDefineProperty = false;
@@ -17677,14 +17677,14 @@
         if (hasDefineProperty) {
           Object.defineProperty(EventEmitter, "defaultMaxListeners", {
             enumerable: true,
-            get: function () {
+            get () {
               return defaultMaxListeners;
             },
-            set: function (arg) {
+            set (arg) {
               // check whether the input is a positive number (whose value is zero or
               // greater and not a NaN).
               if (typeof arg !== "number" || arg < 0 || arg !== arg)
-                throw new TypeError('"defaultMaxListeners" must be a positive number');
+                {throw new TypeError('"defaultMaxListeners" must be a positive number');}
               defaultMaxListeners = arg;
             },
           });
@@ -17695,13 +17695,13 @@
         // Obviously not all Emitters should be limited to 10. This function allows
         // that to be increased. Set to zero for unlimited.
         EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
-          if (typeof n !== "number" || n < 0 || isNaN(n)) throw new TypeError('"n" argument must be a positive number');
+          if (typeof n !== "number" || n < 0 || isNaN(n)) {throw new TypeError('"n" argument must be a positive number');}
           this._maxListeners = n;
           return this;
         };
 
         function $getMaxListeners(that) {
-          if (that._maxListeners === undefined) return EventEmitter.defaultMaxListeners;
+          if (that._maxListeners === undefined) {return EventEmitter.defaultMaxListeners;}
           return that._maxListeners;
         }
 
@@ -17715,44 +17715,44 @@
         // the same number of arguments and thus do not get deoptimized, so the code
         // inside them can execute faster.
         function emitNone(handler, isFn, self) {
-          if (isFn) handler.call(self);
+          if (isFn) {handler.call(self);}
           else {
             var len = handler.length;
             var listeners = arrayClone(handler, len);
-            for (var i = 0; i < len; ++i) listeners[i].call(self);
+            for (var i = 0; i < len; ++i) {listeners[i].call(self);}
           }
         }
         function emitOne(handler, isFn, self, arg1) {
-          if (isFn) handler.call(self, arg1);
+          if (isFn) {handler.call(self, arg1);}
           else {
             var len = handler.length;
             var listeners = arrayClone(handler, len);
-            for (var i = 0; i < len; ++i) listeners[i].call(self, arg1);
+            for (var i = 0; i < len; ++i) {listeners[i].call(self, arg1);}
           }
         }
         function emitTwo(handler, isFn, self, arg1, arg2) {
-          if (isFn) handler.call(self, arg1, arg2);
+          if (isFn) {handler.call(self, arg1, arg2);}
           else {
             var len = handler.length;
             var listeners = arrayClone(handler, len);
-            for (var i = 0; i < len; ++i) listeners[i].call(self, arg1, arg2);
+            for (var i = 0; i < len; ++i) {listeners[i].call(self, arg1, arg2);}
           }
         }
         function emitThree(handler, isFn, self, arg1, arg2, arg3) {
-          if (isFn) handler.call(self, arg1, arg2, arg3);
+          if (isFn) {handler.call(self, arg1, arg2, arg3);}
           else {
             var len = handler.length;
             var listeners = arrayClone(handler, len);
-            for (var i = 0; i < len; ++i) listeners[i].call(self, arg1, arg2, arg3);
+            for (var i = 0; i < len; ++i) {listeners[i].call(self, arg1, arg2, arg3);}
           }
         }
 
         function emitMany(handler, isFn, self, args) {
-          if (isFn) handler.apply(self, args);
+          if (isFn) {handler.apply(self, args);}
           else {
             var len = handler.length;
             var listeners = arrayClone(handler, len);
-            for (var i = 0; i < len; ++i) listeners[i].apply(self, args);
+            for (var i = 0; i < len; ++i) {listeners[i].apply(self, args);}
           }
         }
 
@@ -17761,12 +17761,12 @@
           var doError = type === "error";
 
           events = this._events;
-          if (events) doError = doError && events.error == null;
-          else if (!doError) return false;
+          if (events) {doError = doError && events.error == null;}
+          else if (!doError) {return false;}
 
           // If there is no 'error' event listener then throw.
           if (doError) {
-            if (arguments.length > 1) er = arguments[1];
+            if (arguments.length > 1) {er = arguments[1];}
             if (er instanceof Error) {
               throw er; // Unhandled 'error' event
             } else {
@@ -17780,7 +17780,7 @@
 
           handler = events[type];
 
-          if (!handler) return false;
+          if (!handler) {return false;}
 
           var isFn = typeof handler === "function";
           len = arguments.length;
@@ -17801,7 +17801,7 @@
             // slower
             default:
               args = new Array(len - 1);
-              for (i = 1; i < len; i++) args[i - 1] = arguments[i];
+              for (i = 1; i < len; i++) {args[i - 1] = arguments[i];}
               emitMany(handler, isFn, this, args);
           }
 
@@ -17813,7 +17813,7 @@
           var events;
           var existing;
 
-          if (typeof listener !== "function") throw new TypeError('"listener" argument must be a function');
+          if (typeof listener !== "function") {throw new TypeError('"listener" argument must be a function');}
 
           events = target._events;
           if (!events) {
@@ -17902,14 +17902,14 @@
                 return this.listener.call(this.target, arguments[0], arguments[1], arguments[2]);
               default:
                 var args = new Array(arguments.length);
-                for (var i = 0; i < args.length; ++i) args[i] = arguments[i];
+                for (var i = 0; i < args.length; ++i) {args[i] = arguments[i];}
                 this.listener.apply(this.target, args);
             }
           }
         }
 
         function _onceWrap(target, type, listener) {
-          var state = { fired: false, wrapFn: undefined, target: target, type: type, listener: listener };
+          var state = { fired: false, wrapFn: undefined, target, type, listener };
           var wrapped = bind.call(onceWrapper, state);
           wrapped.listener = listener;
           state.wrapFn = wrapped;
@@ -17917,13 +17917,13 @@
         }
 
         EventEmitter.prototype.once = function once(type, listener) {
-          if (typeof listener !== "function") throw new TypeError('"listener" argument must be a function');
+          if (typeof listener !== "function") {throw new TypeError('"listener" argument must be a function');}
           this.on(type, _onceWrap(this, type, listener));
           return this;
         };
 
         EventEmitter.prototype.prependOnceListener = function prependOnceListener(type, listener) {
-          if (typeof listener !== "function") throw new TypeError('"listener" argument must be a function');
+          if (typeof listener !== "function") {throw new TypeError('"listener" argument must be a function');}
           this.prependListener(type, _onceWrap(this, type, listener));
           return this;
         };
@@ -17932,19 +17932,19 @@
         EventEmitter.prototype.removeListener = function removeListener(type, listener) {
           var list, events, position, i, originalListener;
 
-          if (typeof listener !== "function") throw new TypeError('"listener" argument must be a function');
+          if (typeof listener !== "function") {throw new TypeError('"listener" argument must be a function');}
 
           events = this._events;
-          if (!events) return this;
+          if (!events) {return this;}
 
           list = events[type];
-          if (!list) return this;
+          if (!list) {return this;}
 
           if (list === listener || list.listener === listener) {
-            if (--this._eventsCount === 0) this._events = objectCreate(null);
+            if (--this._eventsCount === 0) {this._events = objectCreate(null);}
             else {
               delete events[type];
-              if (events.removeListener) this.emit("removeListener", type, list.listener || listener);
+              if (events.removeListener) {this.emit("removeListener", type, list.listener || listener);}
             }
           } else if (typeof list !== "function") {
             position = -1;
@@ -17957,14 +17957,14 @@
               }
             }
 
-            if (position < 0) return this;
+            if (position < 0) {return this;}
 
-            if (position === 0) list.shift();
-            else spliceOne(list, position);
+            if (position === 0) {list.shift();}
+            else {spliceOne(list, position);}
 
-            if (list.length === 1) events[type] = list[0];
+            if (list.length === 1) {events[type] = list[0];}
 
-            if (events.removeListener) this.emit("removeListener", type, originalListener || listener);
+            if (events.removeListener) {this.emit("removeListener", type, originalListener || listener);}
           }
 
           return this;
@@ -17974,7 +17974,7 @@
           var listeners, events, i;
 
           events = this._events;
-          if (!events) return this;
+          if (!events) {return this;}
 
           // not listening for removeListener, no need to emit
           if (!events.removeListener) {
@@ -17982,8 +17982,8 @@
               this._events = objectCreate(null);
               this._eventsCount = 0;
             } else if (events[type]) {
-              if (--this._eventsCount === 0) this._events = objectCreate(null);
-              else delete events[type];
+              if (--this._eventsCount === 0) {this._events = objectCreate(null);}
+              else {delete events[type];}
             }
             return this;
           }
@@ -17994,7 +17994,7 @@
             var key;
             for (i = 0; i < keys.length; ++i) {
               key = keys[i];
-              if (key === "removeListener") continue;
+              if (key === "removeListener") {continue;}
               this.removeAllListeners(key);
             }
             this.removeAllListeners("removeListener");
@@ -18020,12 +18020,12 @@
         function _listeners(target, type, unwrap) {
           var events = target._events;
 
-          if (!events) return [];
+          if (!events) {return [];}
 
           var evlistener = events[type];
-          if (!evlistener) return [];
+          if (!evlistener) {return [];}
 
-          if (typeof evlistener === "function") return unwrap ? [evlistener.listener || evlistener] : [evlistener];
+          if (typeof evlistener === "function") {return unwrap ? [evlistener.listener || evlistener] : [evlistener];}
 
           return unwrap ? unwrapListeners(evlistener) : arrayClone(evlistener, evlistener.length);
         }
@@ -18069,13 +18069,13 @@
 
         // About 1.5x faster than the two-arg version of Array#splice().
         function spliceOne(list, index) {
-          for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1) list[i] = list[k];
+          for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1) {list[i] = list[k];}
           list.pop();
         }
 
         function arrayClone(arr, n) {
           var copy = new Array(n);
-          for (var i = 0; i < n; ++i) copy[i] = arr[i];
+          for (var i = 0; i < n; ++i) {copy[i] = arr[i];}
           return copy;
         }
 
@@ -18095,9 +18095,9 @@
         function objectKeysPolyfill(obj) {
           var keys = [];
           for (var k in obj)
-            if (Object.prototype.hasOwnProperty.call(obj, k)) {
+            {if (Object.prototype.hasOwnProperty.call(obj, k)) {
               keys.push(k);
-            }
+            }}
           return k;
         }
         function functionBindPolyfill(context) {
@@ -18116,33 +18116,33 @@
         // do not edit .js files directly - edit src/index.jst
 
         module.exports = function equal(a, b) {
-          if (a === b) return true;
+          if (a === b) {return true;}
 
           if (a && b && typeof a == "object" && typeof b == "object") {
-            if (a.constructor !== b.constructor) return false;
+            if (a.constructor !== b.constructor) {return false;}
 
             var length, i, keys;
             if (Array.isArray(a)) {
               length = a.length;
-              if (length != b.length) return false;
-              for (i = length; i-- !== 0; ) if (!equal(a[i], b[i])) return false;
+              if (length != b.length) {return false;}
+              for (i = length; i-- !== 0; ) {if (!equal(a[i], b[i])) {return false;}}
               return true;
             }
 
-            if (a.constructor === RegExp) return a.source === b.source && a.flags === b.flags;
-            if (a.valueOf !== Object.prototype.valueOf) return a.valueOf() === b.valueOf();
-            if (a.toString !== Object.prototype.toString) return a.toString() === b.toString();
+            if (a.constructor === RegExp) {return a.source === b.source && a.flags === b.flags;}
+            if (a.valueOf !== Object.prototype.valueOf) {return a.valueOf() === b.valueOf();}
+            if (a.toString !== Object.prototype.toString) {return a.toString() === b.toString();}
 
             keys = Object.keys(a);
             length = keys.length;
-            if (length !== Object.keys(b).length) return false;
+            if (length !== Object.keys(b).length) {return false;}
 
-            for (i = length; i-- !== 0; ) if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false;
+            for (i = length; i-- !== 0; ) {if (!Object.prototype.hasOwnProperty.call(b, keys[i])) {return false;}}
 
             for (i = length; i-- !== 0; ) {
               var key = keys[i];
 
-              if (!equal(a[key], b[key])) return false;
+              if (!equal(a[key], b[key])) {return false;}
             }
 
             return true;
@@ -18162,7 +18162,7 @@
         var https = module.exports;
 
         for (var key in http) {
-          if (http.hasOwnProperty(key)) https[key] = http[key];
+          if (http.hasOwnProperty(key)) {https[key] = http[key];}
         }
 
         https.request = function (params, cb) {
@@ -18413,8 +18413,8 @@
         }
 
         function toArray(sequence) {
-          if (Array.isArray(sequence)) return sequence;
-          else if (isNothing(sequence)) return [];
+          if (Array.isArray(sequence)) {return sequence;}
+          else if (isNothing(sequence)) {return [];}
 
           return [sequence];
         }
@@ -18537,7 +18537,7 @@
         function compileStyleMap(schema, map) {
           var result, keys, index, length, tag, style, type;
 
-          if (map === null) return {};
+          if (map === null) {return {};}
 
           result = {};
           keys = Object.keys(map);
@@ -18624,7 +18624,7 @@
               position = next + 1;
             }
 
-            if (line.length && line !== "\n") result += ind;
+            if (line.length && line !== "\n") {result += ind;}
 
             result += line;
           }
@@ -18933,7 +18933,7 @@
         // otherwise settles for the shortest line over the limit.
         // NB. More-indented lines *cannot* be folded, as that would add an extra \n.
         function foldLine(line, width) {
-          if (line === "" || line[0] === " ") return line;
+          if (line === "" || line[0] === " ") {return line;}
 
           // Since a more-indented line adds a \n, breaks can't be followed by a space.
           var breakRe = / [^ ]/g; // note: the match index will always be <= length-2.
@@ -19009,7 +19009,7 @@
           for (index = 0, length = object.length; index < length; index += 1) {
             // Write only valid elements.
             if (writeNode(state, level, object[index], false, false)) {
-              if (index !== 0) _result += "," + (!state.condenseFlow ? " " : "");
+              if (index !== 0) {_result += "," + (!state.condenseFlow ? " " : "");}
               _result += state.dump;
             }
           }
@@ -19057,9 +19057,9 @@
 
           for (index = 0, length = objectKeyList.length; index < length; index += 1) {
             pairBuffer = "";
-            if (index !== 0) pairBuffer += ", ";
+            if (index !== 0) {pairBuffer += ", ";}
 
-            if (state.condenseFlow) pairBuffer += '"';
+            if (state.condenseFlow) {pairBuffer += '"';}
 
             objectKey = objectKeyList[index];
             objectValue = object[objectKey];
@@ -19068,7 +19068,7 @@
               continue; // Skip this pair because of invalid key;
             }
 
-            if (state.dump.length > 1024) pairBuffer += "? ";
+            if (state.dump.length > 1024) {pairBuffer += "? ";}
 
             pairBuffer += state.dump + (state.condenseFlow ? '"' : "") + ":" + (state.condenseFlow ? "" : " ");
 
@@ -19261,7 +19261,7 @@
                 writeScalar(state, state.dump, level, iskey);
               }
             } else {
-              if (state.skipInvalid) return false;
+              if (state.skipInvalid) {return false;}
               throw new YAMLException("unacceptable kind of an object to dump " + type);
             }
 
@@ -19319,9 +19319,9 @@
 
           var state = new State(options);
 
-          if (!state.noRefs) getDuplicateReferences(input, state);
+          if (!state.noRefs) {getDuplicateReferences(input, state);}
 
-          if (writeNode(state, 0, input, true, true)) return state.dump + "\n";
+          if (writeNode(state, 0, input, true, true)) {return state.dump + "\n";}
 
           return "";
         }
@@ -20510,7 +20510,7 @@
 
           ch = state.input.charCodeAt(state.position);
 
-          if (ch !== 0x21 /* ! */) return false;
+          if (ch !== 0x21 /* ! */) {return false;}
 
           if (state.tag !== null) {
             throwError(state, "duplication of a tag property");
@@ -20593,7 +20593,7 @@
 
           ch = state.input.charCodeAt(state.position);
 
-          if (ch !== 0x26 /* & */) return false;
+          if (ch !== 0x26 /* & */) {return false;}
 
           if (state.anchor !== null) {
             throwError(state, "duplication of an anchor property");
@@ -20619,7 +20619,7 @@
 
           ch = state.input.charCodeAt(state.position);
 
-          if (ch !== 0x2a /* * */) return false;
+          if (ch !== 0x2a /* * */) {return false;}
 
           ch = state.input.charCodeAt(++state.position);
           _position = state.position;
@@ -20868,7 +20868,7 @@
                 break;
               }
 
-              if (is_EOL(ch)) break;
+              if (is_EOL(ch)) {break;}
 
               _position = state.position;
 
@@ -20879,7 +20879,7 @@
               directiveArgs.push(state.input.slice(_position, state.position));
             }
 
-            if (ch !== 0) readLineBreak(state);
+            if (ch !== 0) {readLineBreak(state);}
 
             if (_hasOwnProperty.call(directiveHandlers, directiveName)) {
               directiveHandlers[directiveName](state, directiveName, directiveArgs);
@@ -21044,7 +21044,7 @@
         Mark.prototype.getSnippet = function getSnippet(indent, maxLength) {
           var head, start, tail, end, snippet;
 
-          if (!this.buffer) return null;
+          if (!this.buffer) {return null;}
 
           indent = indent || 4;
           maxLength = maxLength || 75;
@@ -21450,7 +21450,7 @@
         var BASE64_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r";
 
         function resolveYamlBinary(data) {
-          if (data === null) return false;
+          if (data === null) {return false;}
 
           var code,
             idx,
@@ -21463,10 +21463,10 @@
             code = map.indexOf(data.charAt(idx));
 
             // Skip CR/LF
-            if (code > 64) continue;
+            if (code > 64) {continue;}
 
             // Fail on illegal characters
-            if (code < 0) return false;
+            if (code < 0) {return false;}
 
             bitlen += 6;
           }
@@ -21586,7 +21586,7 @@
         var Type = require("../type");
 
         function resolveYamlBoolean(data) {
-          if (data === null) return false;
+          if (data === null) {return false;}
 
           var max = data.length;
 
@@ -21610,13 +21610,13 @@
           construct: constructYamlBoolean,
           predicate: isBoolean,
           represent: {
-            lowercase: function (object) {
+            lowercase (object) {
               return object ? "true" : "false";
             },
-            uppercase: function (object) {
+            uppercase (object) {
               return object ? "TRUE" : "FALSE";
             },
-            camelcase: function (object) {
+            camelcase (object) {
               return object ? "True" : "False";
             },
           },
@@ -21647,7 +21647,7 @@
         );
 
         function resolveYamlFloat(data) {
-          if (data === null) return false;
+          if (data === null) {return false;}
 
           if (
             !YAML_FLOAT_PATTERN.test(data) ||
@@ -21780,14 +21780,14 @@
         }
 
         function resolveYamlInteger(data) {
-          if (data === null) return false;
+          if (data === null) {return false;}
 
           var max = data.length,
             index = 0,
             hasDigits = false,
             ch;
 
-          if (!max) return false;
+          if (!max) {return false;}
 
           ch = data[index];
 
@@ -21798,7 +21798,7 @@
 
           if (ch === "0") {
             // 0
-            if (index + 1 === max) return true;
+            if (index + 1 === max) {return true;}
             ch = data[++index];
 
             // base 2, base 8, base 16
@@ -21809,8 +21809,8 @@
 
               for (; index < max; index++) {
                 ch = data[index];
-                if (ch === "_") continue;
-                if (ch !== "0" && ch !== "1") return false;
+                if (ch === "_") {continue;}
+                if (ch !== "0" && ch !== "1") {return false;}
                 hasDigits = true;
               }
               return hasDigits && ch !== "_";
@@ -21822,8 +21822,8 @@
 
               for (; index < max; index++) {
                 ch = data[index];
-                if (ch === "_") continue;
-                if (!isHexCode(data.charCodeAt(index))) return false;
+                if (ch === "_") {continue;}
+                if (!isHexCode(data.charCodeAt(index))) {return false;}
                 hasDigits = true;
               }
               return hasDigits && ch !== "_";
@@ -21832,8 +21832,8 @@
             // base 8
             for (; index < max; index++) {
               ch = data[index];
-              if (ch === "_") continue;
-              if (!isOctCode(data.charCodeAt(index))) return false;
+              if (ch === "_") {continue;}
+              if (!isOctCode(data.charCodeAt(index))) {return false;}
               hasDigits = true;
             }
             return hasDigits && ch !== "_";
@@ -21842,12 +21842,12 @@
           // base 10 (except 0) or base 60
 
           // value should not start with `_`;
-          if (ch === "_") return false;
+          if (ch === "_") {return false;}
 
           for (; index < max; index++) {
             ch = data[index];
-            if (ch === "_") continue;
-            if (ch === ":") break;
+            if (ch === "_") {continue;}
+            if (ch === ":") {break;}
             if (!isDecCode(data.charCodeAt(index))) {
               return false;
             }
@@ -21855,10 +21855,10 @@
           }
 
           // Should have digits and should not end with `_`
-          if (!hasDigits || ch === "_") return false;
+          if (!hasDigits || ch === "_") {return false;}
 
           // if !base60 - done;
-          if (ch !== ":") return true;
+          if (ch !== ":") {return true;}
 
           // base60 almost not used, no needs to optimize
           return /^(:[0-5]?[0-9])+$/.test(data.slice(index));
@@ -21878,16 +21878,16 @@
           ch = value[0];
 
           if (ch === "-" || ch === "+") {
-            if (ch === "-") sign = -1;
+            if (ch === "-") {sign = -1;}
             value = value.slice(1);
             ch = value[0];
           }
 
-          if (value === "0") return 0;
+          if (value === "0") {return 0;}
 
           if (ch === "0") {
-            if (value[1] === "b") return sign * parseInt(value.slice(2), 2);
-            if (value[1] === "x") return sign * parseInt(value, 16);
+            if (value[1] === "b") {return sign * parseInt(value.slice(2), 2);}
+            if (value[1] === "x") {return sign * parseInt(value, 16);}
             return sign * parseInt(value, 8);
           }
 
@@ -21924,17 +21924,17 @@
           construct: constructYamlInteger,
           predicate: isInteger,
           represent: {
-            binary: function (obj) {
+            binary (obj) {
               return obj >= 0 ? "0b" + obj.toString(2) : "-0b" + obj.toString(2).slice(1);
             },
-            octal: function (obj) {
+            octal (obj) {
               return obj >= 0 ? "0" + obj.toString(8) : "-0" + obj.toString(8).slice(1);
             },
-            decimal: function (obj) {
+            decimal (obj) {
               return obj.toString(10);
             },
             /* eslint-disable max-len */
-            hexadecimal: function (obj) {
+            hexadecimal (obj) {
               return obj >= 0 ? "0x" + obj.toString(16).toUpperCase() : "-0x" + obj.toString(16).toUpperCase().slice(1);
             },
           },
@@ -21969,13 +21969,13 @@
         } catch (_) {
           /* eslint-disable no-redeclare */
           /* global window */
-          if (typeof window !== "undefined") esprima = window.esprima;
+          if (typeof window !== "undefined") {esprima = window.esprima;}
         }
 
         var Type = require("../../type");
 
         function resolveJavascriptFunction(data) {
-          if (data === null) return false;
+          if (data === null) {return false;}
 
           try {
             var source = "(" + data + ")",
@@ -22058,8 +22058,8 @@
         var Type = require("../../type");
 
         function resolveJavascriptRegExp(data) {
-          if (data === null) return false;
-          if (data.length === 0) return false;
+          if (data === null) {return false;}
+          if (data.length === 0) {return false;}
 
           var regexp = data,
             tail = /\/([gim]*)$/.exec(data),
@@ -22068,11 +22068,11 @@
           // if regexp starts with '/' it can have modifiers and must be properly closed
           // `/foo/gim` - modifiers tail can be maximum 3 chars
           if (regexp[0] === "/") {
-            if (tail) modifiers = tail[1];
+            if (tail) {modifiers = tail[1];}
 
-            if (modifiers.length > 3) return false;
+            if (modifiers.length > 3) {return false;}
             // if expression starts with /, is should be properly terminated
-            if (regexp[regexp.length - modifiers.length - 1] !== "/") return false;
+            if (regexp[regexp.length - modifiers.length - 1] !== "/") {return false;}
           }
 
           return true;
@@ -22085,7 +22085,7 @@
 
           // `/foo/gim` - tail can be maximum 4 chars
           if (regexp[0] === "/") {
-            if (tail) modifiers = tail[1];
+            if (tail) {modifiers = tail[1];}
             regexp = regexp.slice(1, regexp.length - modifiers.length - 1);
           }
 
@@ -22095,9 +22095,9 @@
         function representJavascriptRegExp(object /*, style*/) {
           var result = "/" + object.source + "/";
 
-          if (object.global) result += "g";
-          if (object.multiline) result += "m";
-          if (object.ignoreCase) result += "i";
+          if (object.global) {result += "g";}
+          if (object.multiline) {result += "m";}
+          if (object.ignoreCase) {result += "i";}
 
           return result;
         }
@@ -22157,7 +22157,7 @@
 
         module.exports = new Type("tag:yaml.org,2002:map", {
           kind: "mapping",
-          construct: function (data) {
+          construct (data) {
             return data !== null ? data : {};
           },
         });
@@ -22188,7 +22188,7 @@
         var Type = require("../type");
 
         function resolveYamlNull(data) {
-          if (data === null) return true;
+          if (data === null) {return true;}
 
           var max = data.length;
 
@@ -22209,16 +22209,16 @@
           construct: constructYamlNull,
           predicate: isNull,
           represent: {
-            canonical: function () {
+            canonical () {
               return "~";
             },
-            lowercase: function () {
+            lowercase () {
               return "null";
             },
-            uppercase: function () {
+            uppercase () {
               return "NULL";
             },
-            camelcase: function () {
+            camelcase () {
               return "Null";
             },
           },
@@ -22237,7 +22237,7 @@
         var _toString = Object.prototype.toString;
 
         function resolveYamlOmap(data) {
-          if (data === null) return true;
+          if (data === null) {return true;}
 
           var objectKeys = [],
             index,
@@ -22251,19 +22251,19 @@
             pair = object[index];
             pairHasKey = false;
 
-            if (_toString.call(pair) !== "[object Object]") return false;
+            if (_toString.call(pair) !== "[object Object]") {return false;}
 
             for (pairKey in pair) {
               if (_hasOwnProperty.call(pair, pairKey)) {
-                if (!pairHasKey) pairHasKey = true;
-                else return false;
+                if (!pairHasKey) {pairHasKey = true;}
+                else {return false;}
               }
             }
 
-            if (!pairHasKey) return false;
+            if (!pairHasKey) {return false;}
 
-            if (objectKeys.indexOf(pairKey) === -1) objectKeys.push(pairKey);
-            else return false;
+            if (objectKeys.indexOf(pairKey) === -1) {objectKeys.push(pairKey);}
+            else {return false;}
           }
 
           return true;
@@ -22290,7 +22290,7 @@
         var _toString = Object.prototype.toString;
 
         function resolveYamlPairs(data) {
-          if (data === null) return true;
+          if (data === null) {return true;}
 
           var index,
             length,
@@ -22304,11 +22304,11 @@
           for (index = 0, length = object.length; index < length; index += 1) {
             pair = object[index];
 
-            if (_toString.call(pair) !== "[object Object]") return false;
+            if (_toString.call(pair) !== "[object Object]") {return false;}
 
             keys = Object.keys(pair);
 
-            if (keys.length !== 1) return false;
+            if (keys.length !== 1) {return false;}
 
             result[index] = [keys[0], pair[keys[0]]];
           }
@@ -22317,7 +22317,7 @@
         }
 
         function constructYamlPairs(data) {
-          if (data === null) return [];
+          if (data === null) {return [];}
 
           var index,
             length,
@@ -22355,7 +22355,7 @@
 
         module.exports = new Type("tag:yaml.org,2002:seq", {
           kind: "sequence",
-          construct: function (data) {
+          construct (data) {
             return data !== null ? data : [];
           },
         });
@@ -22371,14 +22371,14 @@
         var _hasOwnProperty = Object.prototype.hasOwnProperty;
 
         function resolveYamlSet(data) {
-          if (data === null) return true;
+          if (data === null) {return true;}
 
           var key,
             object = data;
 
           for (key in object) {
             if (_hasOwnProperty.call(object, key)) {
-              if (object[key] !== null) return false;
+              if (object[key] !== null) {return false;}
             }
           }
 
@@ -22405,7 +22405,7 @@
 
         module.exports = new Type("tag:yaml.org,2002:str", {
           kind: "scalar",
-          construct: function (data) {
+          construct (data) {
             return data !== null ? data : "";
           },
         });
@@ -22438,9 +22438,9 @@
         ); // [11] tz_minute
 
         function resolveYamlTimestamp(data) {
-          if (data === null) return false;
-          if (YAML_DATE_REGEXP.exec(data) !== null) return true;
-          if (YAML_TIMESTAMP_REGEXP.exec(data) !== null) return true;
+          if (data === null) {return false;}
+          if (YAML_DATE_REGEXP.exec(data) !== null) {return true;}
+          if (YAML_TIMESTAMP_REGEXP.exec(data) !== null) {return true;}
           return false;
         }
 
@@ -22459,9 +22459,9 @@
             date;
 
           match = YAML_DATE_REGEXP.exec(data);
-          if (match === null) match = YAML_TIMESTAMP_REGEXP.exec(data);
+          if (match === null) {match = YAML_TIMESTAMP_REGEXP.exec(data);}
 
-          if (match === null) throw new Error("Date resolve error");
+          if (match === null) {throw new Error("Date resolve error");}
 
           // match: [1] year [2] month [3] day
 
@@ -22495,12 +22495,12 @@
             tz_hour = +match[10];
             tz_minute = +(match[11] || 0);
             delta = (tz_hour * 60 + tz_minute) * 60000; // delta in mili-seconds
-            if (match[9] === "-") delta = -delta;
+            if (match[9] === "-") {delta = -delta;}
           }
 
           date = new Date(Date.UTC(year, month, day, hour, minute, second, fraction));
 
-          if (delta) date.setTime(date.getTime() - delta);
+          if (delta) {date.setTime(date.getTime() - delta);}
 
           return date;
         }
@@ -22604,7 +22604,7 @@
               if (Array.isArray(sch)) {
                 if (key in traverse.arrayKeywords) {
                   for (var i = 0; i < sch.length; i++)
-                    _traverse(
+                    {_traverse(
                       opts,
                       pre,
                       post,
@@ -22615,12 +22615,12 @@
                       key,
                       schema,
                       i,
-                    );
+                    );}
                 }
               } else if (key in traverse.propsKeywords) {
                 if (sch && typeof sch == "object") {
                   for (var prop in sch)
-                    _traverse(
+                    {_traverse(
                       opts,
                       pre,
                       post,
@@ -22631,7 +22631,7 @@
                       key,
                       schema,
                       prop,
-                    );
+                    );}
                 }
               } else if (key in traverse.keywords || (opts.allKeys && !(key in traverse.skipKeywords))) {
                 _traverse(opts, pre, post, sch, jsonPtr + "/" + key, rootSchema, jsonPtr, key, schema);
@@ -23321,10 +23321,10 @@
                   decode: ucs2decode,
                   encode: ucs2encode,
                 },
-                decode: decode,
-                encode: encode,
-                toASCII: toASCII,
-                toUnicode: toUnicode,
+                decode,
+                encode,
+                toASCII,
+                toUnicode,
               };
 
               /** Expose `punycode` */
@@ -23518,7 +23518,7 @@
             }).join(sep);
           }
 
-          if (!name) return "";
+          if (!name) {return "";}
           return encodeURIComponent(stringifyPrimitive(name)) + eq + encodeURIComponent(stringifyPrimitive(obj));
         };
 
@@ -23529,7 +23529,7 @@
           };
 
         function map(xs, f) {
-          if (xs.map) return xs.map(f);
+          if (xs.map) {return xs.map(f);}
           var res = [];
           for (var i = 0; i < xs.length; i++) {
             res.push(f(xs[i], i));
@@ -23542,7 +23542,7 @@
           function (obj) {
             var res = [];
             for (var key in obj) {
-              if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
+              if (Object.prototype.hasOwnProperty.call(obj, key)) {res.push(key);}
             }
             return res;
           };
@@ -23766,19 +23766,19 @@
 
               for (var v = 0; v < keys.length; v++) {
                 var method = keys[v];
-                if (!Duplex.prototype[method]) Duplex.prototype[method] = Writable.prototype[method];
+                if (!Duplex.prototype[method]) {Duplex.prototype[method] = Writable.prototype[method];}
               }
             }
 
             function Duplex(options) {
-              if (!(this instanceof Duplex)) return new Duplex(options);
+              if (!(this instanceof Duplex)) {return new Duplex(options);}
               Readable.call(this, options);
               Writable.call(this, options);
               this.allowHalfOpen = true;
 
               if (options) {
-                if (options.readable === false) this.readable = false;
-                if (options.writable === false) this.writable = false;
+                if (options.readable === false) {this.readable = false;}
+                if (options.writable === false) {this.writable = false;}
 
                 if (options.allowHalfOpen === false) {
                   this.allowHalfOpen = false;
@@ -23817,7 +23817,7 @@
 
             function onend() {
               // If the writable side ended, then we're ok.
-              if (this._writableState.ended) return; // no more data can be written.
+              if (this._writableState.ended) {return;} // no more data can be written.
               // But allow more writes to happen in this tick.
 
               process.nextTick(onEndNT, this);
@@ -23890,7 +23890,7 @@
         require("inherits")(PassThrough, Transform);
 
         function PassThrough(options) {
-          if (!(this instanceof PassThrough)) return new PassThrough(options);
+          if (!(this instanceof PassThrough)) {return new PassThrough(options);}
           Transform.call(this, options);
         }
 
@@ -23996,14 +23996,14 @@
             function prependListener(emitter, event, fn) {
               // Sadly this is not cacheable as some libraries bundle their own
               // event emitter implementation with them.
-              if (typeof emitter.prependListener === "function") return emitter.prependListener(event, fn); // This is a hack to make sure that our error handler is attached before any
+              if (typeof emitter.prependListener === "function") {return emitter.prependListener(event, fn);} // This is a hack to make sure that our error handler is attached before any
               // userland ones.  NEVER DO THIS. This is here only because this code needs
               // to continue to work with older versions of Node.js that do not include
               // the prependListener() method. The goal is to eventually remove this hack.
 
-              if (!emitter._events || !emitter._events[event]) emitter.on(event, fn);
-              else if (Array.isArray(emitter._events[event])) emitter._events[event].unshift(fn);
-              else emitter._events[event] = [fn, emitter._events[event]];
+              if (!emitter._events || !emitter._events[event]) {emitter.on(event, fn);}
+              else if (Array.isArray(emitter._events[event])) {emitter._events[event].unshift(fn);}
+              else {emitter._events[event] = [fn, emitter._events[event]];}
             }
 
             function ReadableState(options, stream, isDuplex) {
@@ -24014,11 +24014,11 @@
               // values for the readable and the writable sides of the duplex stream.
               // These options can be provided separately as readableXXX and writableXXX.
 
-              if (typeof isDuplex !== "boolean") isDuplex = stream instanceof Duplex; // object stream flag. Used to make read(n) ignore n and to
+              if (typeof isDuplex !== "boolean") {isDuplex = stream instanceof Duplex;} // object stream flag. Used to make read(n) ignore n and to
               // make all the buffer merging and length checks go away
 
               this.objectMode = !!options.objectMode;
-              if (isDuplex) this.objectMode = this.objectMode || !!options.readableObjectMode; // the point at which it stops calling _read() to fill the buffer
+              if (isDuplex) {this.objectMode = this.objectMode || !!options.readableObjectMode;} // the point at which it stops calling _read() to fill the buffer
               // Note: 0 is a valid value, means "don't call _read preemptively ever"
 
               this.highWaterMark = getHighWaterMark(this, options, "readableHighWaterMark", isDuplex); // A linked list is used to store data chunks instead of an array because the
@@ -24063,7 +24063,7 @@
               this.encoding = null;
 
               if (options.encoding) {
-                if (!StringDecoder) StringDecoder = require("string_decoder/").StringDecoder;
+                if (!StringDecoder) {StringDecoder = require("string_decoder/").StringDecoder;}
                 this.decoder = new StringDecoder(options.encoding);
                 this.encoding = options.encoding;
               }
@@ -24071,7 +24071,7 @@
 
             function Readable(options) {
               Duplex = Duplex || require("./_stream_duplex");
-              if (!(this instanceof Readable)) return new Readable(options); // Checking for a Stream.Duplex instance is faster here instead of inside
+              if (!(this instanceof Readable)) {return new Readable(options);} // Checking for a Stream.Duplex instance is faster here instead of inside
               // the ReadableState constructor, at least with V8 6.5
 
               var isDuplex = this instanceof Duplex;
@@ -24080,8 +24080,8 @@
               this.readable = true;
 
               if (options) {
-                if (typeof options.read === "function") this._read = options.read;
-                if (typeof options.destroy === "function") this._destroy = options.destroy;
+                if (typeof options.read === "function") {this._read = options.read;}
+                if (typeof options.destroy === "function") {this._destroy = options.destroy;}
               }
 
               Stream.call(this);
@@ -24155,7 +24155,7 @@
                 onEofChunk(stream, state);
               } else {
                 var er;
-                if (!skipChunkCheck) er = chunkInvalid(state, chunk);
+                if (!skipChunkCheck) {er = chunkInvalid(state, chunk);}
 
                 if (er) {
                   errorOrDestroy(stream, er);
@@ -24169,8 +24169,8 @@
                   }
 
                   if (addToFront) {
-                    if (state.endEmitted) errorOrDestroy(stream, new ERR_STREAM_UNSHIFT_AFTER_END_EVENT());
-                    else addChunk(stream, state, chunk, true);
+                    if (state.endEmitted) {errorOrDestroy(stream, new ERR_STREAM_UNSHIFT_AFTER_END_EVENT());}
+                    else {addChunk(stream, state, chunk, true);}
                   } else if (state.ended) {
                     errorOrDestroy(stream, new ERR_STREAM_PUSH_AFTER_EOF());
                   } else if (state.destroyed) {
@@ -24180,8 +24180,8 @@
 
                     if (state.decoder && !encoding) {
                       chunk = state.decoder.write(chunk);
-                      if (state.objectMode || chunk.length !== 0) addChunk(stream, state, chunk, false);
-                      else maybeReadMore(stream, state);
+                      if (state.objectMode || chunk.length !== 0) {addChunk(stream, state, chunk, false);}
+                      else {maybeReadMore(stream, state);}
                     } else {
                       addChunk(stream, state, chunk, false);
                     }
@@ -24204,9 +24204,9 @@
               } else {
                 // update the buffer info.
                 state.length += state.objectMode ? 1 : chunk.length;
-                if (addToFront) state.buffer.unshift(chunk);
-                else state.buffer.push(chunk);
-                if (state.needReadable) emitReadable(stream);
+                if (addToFront) {state.buffer.unshift(chunk);}
+                else {state.buffer.push(chunk);}
+                if (state.needReadable) {emitReadable(stream);}
               }
 
               maybeReadMore(stream, state);
@@ -24227,7 +24227,7 @@
             }; // backwards compatibility.
 
             Readable.prototype.setEncoding = function (enc) {
-              if (!StringDecoder) StringDecoder = require("string_decoder/").StringDecoder;
+              if (!StringDecoder) {StringDecoder = require("string_decoder/").StringDecoder;}
               var decoder = new StringDecoder(enc);
               this._readableState.decoder = decoder; // If setEncoding(null), decoder.encoding equals utf8
 
@@ -24243,7 +24243,7 @@
 
               this._readableState.buffer.clear();
 
-              if (content !== "") this._readableState.buffer.push(content);
+              if (content !== "") {this._readableState.buffer.push(content);}
               this._readableState.length = content.length;
               return this;
             }; // Don't raise the hwm > 1GB
@@ -24271,17 +24271,17 @@
             // changes to the function body.
 
             function howMuchToRead(n, state) {
-              if (n <= 0 || (state.length === 0 && state.ended)) return 0;
-              if (state.objectMode) return 1;
+              if (n <= 0 || (state.length === 0 && state.ended)) {return 0;}
+              if (state.objectMode) {return 1;}
 
               if (n !== n) {
                 // Only flow one buffer at a time
-                if (state.flowing && state.length) return state.buffer.head.data.length;
-                else return state.length;
+                if (state.flowing && state.length) {return state.buffer.head.data.length;}
+                else {return state.length;}
               } // If we're asking for more than the current hwm, then raise the hwm.
 
-              if (n > state.highWaterMark) state.highWaterMark = computeNewHighWaterMark(n);
-              if (n <= state.length) return n; // Don't have enough
+              if (n > state.highWaterMark) {state.highWaterMark = computeNewHighWaterMark(n);}
+              if (n <= state.length) {return n;} // Don't have enough
 
               if (!state.ended) {
                 state.needReadable = true;
@@ -24296,7 +24296,7 @@
               n = parseInt(n, 10);
               var state = this._readableState;
               var nOrig = n;
-              if (n !== 0) state.emittedReadable = false; // if we're doing read(0) to trigger a readable event, but we
+              if (n !== 0) {state.emittedReadable = false;} // if we're doing read(0) to trigger a readable event, but we
               // already have a bunch of data in the buffer, then just trigger
               // the 'readable' event and move on.
 
@@ -24306,15 +24306,15 @@
                 ((state.highWaterMark !== 0 ? state.length >= state.highWaterMark : state.length > 0) || state.ended)
               ) {
                 debug("read: emitReadable", state.length, state.ended);
-                if (state.length === 0 && state.ended) endReadable(this);
-                else emitReadable(this);
+                if (state.length === 0 && state.ended) {endReadable(this);}
+                else {emitReadable(this);}
                 return null;
               }
 
               n = howMuchToRead(n, state); // if we've ended, and we're now clear, then finish it up.
 
               if (n === 0 && state.ended) {
-                if (state.length === 0) endReadable(this);
+                if (state.length === 0) {endReadable(this);}
                 return null;
               } // All the actual chunk generation logic needs to be
               // *below* the call to _read.  The reason is that in certain
@@ -24356,19 +24356,19 @@
                 state.reading = true;
                 state.sync = true; // if the length is currently zero, then we *need* a readable event.
 
-                if (state.length === 0) state.needReadable = true; // call internal read method
+                if (state.length === 0) {state.needReadable = true;} // call internal read method
 
                 this._read(state.highWaterMark);
 
                 state.sync = false; // If _read pushed data synchronously, then `reading` will be false,
                 // and we need to re-evaluate how much data we can return to the user.
 
-                if (!state.reading) n = howMuchToRead(nOrig, state);
+                if (!state.reading) {n = howMuchToRead(nOrig, state);}
               }
 
               var ret;
-              if (n > 0) ret = fromList(n, state);
-              else ret = null;
+              if (n > 0) {ret = fromList(n, state);}
+              else {ret = null;}
 
               if (ret === null) {
                 state.needReadable = state.length <= state.highWaterMark;
@@ -24381,18 +24381,18 @@
               if (state.length === 0) {
                 // If we have nothing in the buffer, then we want to know
                 // as soon as we *do* get something into the buffer.
-                if (!state.ended) state.needReadable = true; // If we tried to read() past the EOF, then emit end on the next tick.
+                if (!state.ended) {state.needReadable = true;} // If we tried to read() past the EOF, then emit end on the next tick.
 
-                if (nOrig !== n && state.ended) endReadable(this);
+                if (nOrig !== n && state.ended) {endReadable(this);}
               }
 
-              if (ret !== null) this.emit("data", ret);
+              if (ret !== null) {this.emit("data", ret);}
               return ret;
             };
 
             function onEofChunk(stream, state) {
               debug("onEofChunk");
-              if (state.ended) return;
+              if (state.ended) {return;}
 
               if (state.decoder) {
                 var chunk = state.decoder.end();
@@ -24499,7 +24499,7 @@
                 stream.read(0);
                 if (len === state.length)
                   // didn't get any data, stop spinning.
-                  break;
+                  {break;}
               }
 
               state.readingMore = false;
@@ -24534,8 +24534,8 @@
               debug("pipe count=%d opts=%j", state.pipesCount, pipeOpts);
               var doEnd = (!pipeOpts || pipeOpts.end !== false) && dest !== process.stdout && dest !== process.stderr;
               var endFn = doEnd ? onend : unpipe;
-              if (state.endEmitted) process.nextTick(endFn);
-              else src.once("end", endFn);
+              if (state.endEmitted) {process.nextTick(endFn);}
+              else {src.once("end", endFn);}
               dest.on("unpipe", onunpipe);
 
               function onunpipe(readable, unpipeInfo) {
@@ -24578,7 +24578,7 @@
                 // So, if this is awaiting a drain, then we just call it now.
                 // If we don't know, then assume that we are waiting for one.
 
-                if (state.awaitDrain && (!dest._writableState || dest._writableState.needDrain)) ondrain();
+                if (state.awaitDrain && (!dest._writableState || dest._writableState.needDrain)) {ondrain();}
               }
 
               src.on("data", ondata);
@@ -24611,7 +24611,7 @@
                 debug("onerror", er);
                 unpipe();
                 dest.removeListener("error", onerror);
-                if (EElistenerCount(dest, "error") === 0) errorOrDestroy(dest, er);
+                if (EElistenerCount(dest, "error") === 0) {errorOrDestroy(dest, er);}
               } // Make sure our error handler is attached before userland ones.
 
               prependListener(dest, "error", onerror); // Both close and finish should trigger unpipe, but only once.
@@ -24650,7 +24650,7 @@
               return function pipeOnDrainFunctionResult() {
                 var state = src._readableState;
                 debug("pipeOnDrain", state.awaitDrain);
-                if (state.awaitDrain) state.awaitDrain--;
+                if (state.awaitDrain) {state.awaitDrain--;}
 
                 if (state.awaitDrain === 0 && EElistenerCount(src, "data")) {
                   state.flowing = true;
@@ -24665,17 +24665,17 @@
                 hasUnpiped: false,
               }; // if we're not piping anywhere, then do nothing.
 
-              if (state.pipesCount === 0) return this; // just one destination.  most common case.
+              if (state.pipesCount === 0) {return this;} // just one destination.  most common case.
 
               if (state.pipesCount === 1) {
                 // passed in one, but it's not the right one.
-                if (dest && dest !== state.pipes) return this;
-                if (!dest) dest = state.pipes; // got a match.
+                if (dest && dest !== state.pipes) {return this;}
+                if (!dest) {dest = state.pipes;} // got a match.
 
                 state.pipes = null;
                 state.pipesCount = 0;
                 state.flowing = false;
-                if (dest) dest.emit("unpipe", this, unpipeInfo);
+                if (dest) {dest.emit("unpipe", this, unpipeInfo);}
                 return this;
               } // slow case. multiple pipe destinations.
 
@@ -24697,10 +24697,10 @@
               } // try to find the right one.
 
               var index = indexOf(state.pipes, dest);
-              if (index === -1) return this;
+              if (index === -1) {return this;}
               state.pipes.splice(index, 1);
               state.pipesCount -= 1;
-              if (state.pipesCount === 1) state.pipes = state.pipes[0];
+              if (state.pipesCount === 1) {state.pipes = state.pipes[0];}
               dest.emit("unpipe", this, unpipeInfo);
               return this;
             }; // set up data events if they are asked for
@@ -24715,7 +24715,7 @@
                 // a few lines down. This is needed to support once('readable').
                 state.readableListening = this.listenerCount("readable") > 0; // Try start flowing on next tick if stream isn't explicitly paused
 
-                if (state.flowing !== false) this.resume();
+                if (state.flowing !== false) {this.resume();}
               } else if (ev === "readable") {
                 if (!state.endEmitted && !state.readableListening) {
                   state.readableListening = state.needReadable = true;
@@ -24820,7 +24820,7 @@
               state.resumeScheduled = false;
               stream.emit("resume");
               flow(stream);
-              if (state.flowing && !state.reading) stream.read(0);
+              if (state.flowing && !state.reading) {stream.read(0);}
             }
 
             Readable.prototype.pause = function () {
@@ -24855,17 +24855,17 @@
 
                 if (state.decoder && !state.ended) {
                   var chunk = state.decoder.end();
-                  if (chunk && chunk.length) _this.push(chunk);
+                  if (chunk && chunk.length) {_this.push(chunk);}
                 }
 
                 _this.push(null);
               });
               stream.on("data", function (chunk) {
                 debug("wrapped data");
-                if (state.decoder) chunk = state.decoder.write(chunk); // don't skip over falsy values in objectMode
+                if (state.decoder) {chunk = state.decoder.write(chunk);} // don't skip over falsy values in objectMode
 
-                if (state.objectMode && (chunk === null || chunk === undefined)) return;
-                else if (!state.objectMode && (!chunk || !chunk.length)) return;
+                if (state.objectMode && (chunk === null || chunk === undefined)) {return;}
+                else if (!state.objectMode && (!chunk || !chunk.length)) {return;}
 
                 var ret = _this.push(chunk);
 
@@ -24962,14 +24962,14 @@
 
             function fromList(n, state) {
               // nothing buffered
-              if (state.length === 0) return null;
+              if (state.length === 0) {return null;}
               var ret;
-              if (state.objectMode) ret = state.buffer.shift();
+              if (state.objectMode) {ret = state.buffer.shift();}
               else if (!n || n >= state.length) {
                 // read it all, truncate the list
-                if (state.decoder) ret = state.buffer.join("");
-                else if (state.buffer.length === 1) ret = state.buffer.first();
-                else ret = state.buffer.concat(state.length);
+                if (state.decoder) {ret = state.buffer.join("");}
+                else if (state.buffer.length === 1) {ret = state.buffer.first();}
+                else {ret = state.buffer.concat(state.length);}
                 state.buffer.clear();
               } else {
                 // read part of list
@@ -25020,7 +25020,7 @@
 
             function indexOf(xs, x) {
               for (var i = 0, l = xs.length; i < l; i++) {
-                if (xs[i] === x) return i;
+                if (xs[i] === x) {return i;}
               }
 
               return -1;
@@ -25145,7 +25145,7 @@
           ts.writecb = null;
           if (data != null)
             // single equals check for both `null` and `undefined`
-            this.push(data);
+            {this.push(data);}
           cb(er);
           var rs = this._readableState;
           rs.reading = false;
@@ -25156,7 +25156,7 @@
         }
 
         function Transform(options) {
-          if (!(this instanceof Transform)) return new Transform(options);
+          if (!(this instanceof Transform)) {return new Transform(options);}
           Duplex.call(this, options);
           this._transformState = {
             afterTransform: afterTransform.bind(this),
@@ -25174,8 +25174,8 @@
           this._readableState.sync = false;
 
           if (options) {
-            if (typeof options.transform === "function") this._transform = options.transform;
-            if (typeof options.flush === "function") this._flush = options.flush;
+            if (typeof options.transform === "function") {this._transform = options.transform;}
+            if (typeof options.flush === "function") {this._flush = options.flush;}
           } // When the writable side finishes, then flush out anything remaining.
 
           this.on("prefinish", prefinish);
@@ -25219,7 +25219,7 @@
 
           if (!ts.transforming) {
             var rs = this._readableState;
-            if (ts.needTransform || rs.needReadable || rs.length < rs.highWaterMark) this._read(rs.highWaterMark);
+            if (ts.needTransform || rs.needReadable || rs.length < rs.highWaterMark) {this._read(rs.highWaterMark);}
           }
         }; // Doesn't matter what the args are here.
         // _transform does all the work.
@@ -25246,15 +25246,15 @@
         };
 
         function done(stream, er, data) {
-          if (er) return stream.emit("error", er);
+          if (er) {return stream.emit("error", er);}
           if (data != null)
             // single equals check for both `null` and `undefined`
-            stream.push(data); // TODO(BridgeAR): Write a test for these two error cases
+            {stream.push(data);} // TODO(BridgeAR): Write a test for these two error cases
           // if there's nothing in the write buffer, then that means
           // that nothing more will ever be provided
 
-          if (stream._writableState.length) throw new ERR_TRANSFORM_WITH_LENGTH_0();
-          if (stream._transformState.transforming) throw new ERR_TRANSFORM_ALREADY_TRANSFORMING();
+          if (stream._writableState.length) {throw new ERR_TRANSFORM_WITH_LENGTH_0();}
+          if (stream._transformState.transforming) {throw new ERR_TRANSFORM_ALREADY_TRANSFORMING();}
           return stream.push(null);
         }
       },
@@ -25371,11 +25371,11 @@
               // values for the readable and the writable sides of the duplex stream,
               // e.g. options.readableObjectMode vs. options.writableObjectMode, etc.
 
-              if (typeof isDuplex !== "boolean") isDuplex = stream instanceof Duplex; // object stream flag to indicate whether or not this stream
+              if (typeof isDuplex !== "boolean") {isDuplex = stream instanceof Duplex;} // object stream flag to indicate whether or not this stream
               // contains buffers or objects.
 
               this.objectMode = !!options.objectMode;
-              if (isDuplex) this.objectMode = this.objectMode || !!options.writableObjectMode; // the point at which write() starts returning false
+              if (isDuplex) {this.objectMode = this.objectMode || !!options.writableObjectMode;} // the point at which write() starts returning false
               // Note: 0 is a valid value, means that we always return false if
               // the entire buffer is not flushed immediately on write()
 
@@ -25484,8 +25484,8 @@
               realHasInstance = Function.prototype[Symbol.hasInstance];
               Object.defineProperty(Writable, Symbol.hasInstance, {
                 value: function value(object) {
-                  if (realHasInstance.call(this, object)) return true;
-                  if (this !== Writable) return false;
+                  if (realHasInstance.call(this, object)) {return true;}
+                  if (this !== Writable) {return false;}
                   return object && object._writableState instanceof WritableState;
                 },
               });
@@ -25506,16 +25506,16 @@
               // the WritableState constructor, at least with V8 6.5
 
               var isDuplex = this instanceof Duplex;
-              if (!isDuplex && !realHasInstance.call(Writable, this)) return new Writable(options);
+              if (!isDuplex && !realHasInstance.call(Writable, this)) {return new Writable(options);}
               this._writableState = new WritableState(options, this, isDuplex); // legacy.
 
               this.writable = true;
 
               if (options) {
-                if (typeof options.write === "function") this._write = options.write;
-                if (typeof options.writev === "function") this._writev = options.writev;
-                if (typeof options.destroy === "function") this._destroy = options.destroy;
-                if (typeof options.final === "function") this._final = options.final;
+                if (typeof options.write === "function") {this._write = options.write;}
+                if (typeof options.writev === "function") {this._writev = options.writev;}
+                if (typeof options.destroy === "function") {this._destroy = options.destroy;}
+                if (typeof options.final === "function") {this._final = options.final;}
               }
 
               Stream.call(this);
@@ -25567,10 +25567,10 @@
                 encoding = null;
               }
 
-              if (isBuf) encoding = "buffer";
-              else if (!encoding) encoding = state.defaultEncoding;
-              if (typeof cb !== "function") cb = nop;
-              if (state.ending) writeAfterEnd(this, cb);
+              if (isBuf) {encoding = "buffer";}
+              else if (!encoding) {encoding = state.defaultEncoding;}
+              if (typeof cb !== "function") {cb = nop;}
+              if (state.ending) {writeAfterEnd(this, cb);}
               else if (isBuf || validChunk(this, state, chunk, cb)) {
                 state.pendingcb++;
                 ret = writeOrBuffer(this, state, isBuf, chunk, encoding, cb);
@@ -25588,13 +25588,13 @@
               if (state.corked) {
                 state.corked--;
                 if (!state.writing && !state.corked && !state.bufferProcessing && state.bufferedRequest)
-                  clearBuffer(this, state);
+                  {clearBuffer(this, state);}
               }
             };
 
             Writable.prototype.setDefaultEncoding = function setDefaultEncoding(encoding) {
               // node::ParseEncoding() requires lower case.
-              if (typeof encoding === "string") encoding = encoding.toLowerCase();
+              if (typeof encoding === "string") {encoding = encoding.toLowerCase();}
               if (
                 !(
                   [
@@ -25612,7 +25612,7 @@
                   ].indexOf((encoding + "").toLowerCase()) > -1
                 )
               )
-                throw new ERR_UNKNOWN_ENCODING(encoding);
+                {throw new ERR_UNKNOWN_ENCODING(encoding);}
               this._writableState.defaultEncoding = encoding;
               return this;
             };
@@ -25662,14 +25662,14 @@
               state.length += len;
               var ret = state.length < state.highWaterMark; // we must ensure that previous needDrain will not be reset to false.
 
-              if (!ret) state.needDrain = true;
+              if (!ret) {state.needDrain = true;}
 
               if (state.writing || state.corked) {
                 var last = state.lastBufferedRequest;
                 state.lastBufferedRequest = {
-                  chunk: chunk,
-                  encoding: encoding,
-                  isBuf: isBuf,
+                  chunk,
+                  encoding,
+                  isBuf,
                   callback: cb,
                   next: null,
                 };
@@ -25693,9 +25693,9 @@
               state.writecb = cb;
               state.writing = true;
               state.sync = true;
-              if (state.destroyed) state.onwrite(new ERR_STREAM_DESTROYED("write"));
-              else if (writev) stream._writev(chunk, state.onwrite);
-              else stream._write(chunk, encoding, state.onwrite);
+              if (state.destroyed) {state.onwrite(new ERR_STREAM_DESTROYED("write"));}
+              else if (writev) {stream._writev(chunk, state.onwrite);}
+              else {stream._write(chunk, encoding, state.onwrite);}
               state.sync = false;
             }
 
@@ -25734,9 +25734,9 @@
               var state = stream._writableState;
               var sync = state.sync;
               var cb = state.writecb;
-              if (typeof cb !== "function") throw new ERR_MULTIPLE_CALLBACK();
+              if (typeof cb !== "function") {throw new ERR_MULTIPLE_CALLBACK();}
               onwriteStateUpdate(state);
-              if (er) onwriteError(stream, state, sync, er, cb);
+              if (er) {onwriteError(stream, state, sync, er, cb);}
               else {
                 // Check if we're actually ready to finish, but don't emit yet
                 var finished = needFinish(state) || stream.destroyed;
@@ -25754,7 +25754,7 @@
             }
 
             function afterWrite(stream, state, finished, cb) {
-              if (!finished) onwriteDrain(stream, state);
+              if (!finished) {onwriteDrain(stream, state);}
               state.pendingcb--;
               cb();
               finishMaybe(stream, state);
@@ -25784,7 +25784,7 @@
 
                 while (entry) {
                   buffer[count] = entry;
-                  if (!entry.isBuf) allBuffers = false;
+                  if (!entry.isBuf) {allBuffers = false;}
                   entry = entry.next;
                   count += 1;
                 }
@@ -25823,7 +25823,7 @@
                   }
                 }
 
-                if (entry === null) state.lastBufferedRequest = null;
+                if (entry === null) {state.lastBufferedRequest = null;}
               }
 
               state.bufferedRequest = entry;
@@ -25848,14 +25848,14 @@
                 encoding = null;
               }
 
-              if (chunk !== null && chunk !== undefined) this.write(chunk, encoding); // .end() fully uncorks
+              if (chunk !== null && chunk !== undefined) {this.write(chunk, encoding);} // .end() fully uncorks
 
               if (state.corked) {
                 state.corked = 1;
                 this.uncork();
               } // ignore unnecessary end() calls.
 
-              if (!state.ending) endWritable(this, state, cb);
+              if (!state.ending) {endWritable(this, state, cb);}
               return this;
             };
 
@@ -25936,8 +25936,8 @@
               finishMaybe(stream, state);
 
               if (cb) {
-                if (state.finished) process.nextTick(cb);
-                else stream.once("finish", cb);
+                if (state.finished) {process.nextTick(cb);}
+                else {stream.once("finish", cb);}
               }
 
               state.ended = true;
@@ -26022,7 +26022,7 @@
 
             function _defineProperty(obj, key, value) {
               if (key in obj) {
-                Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });
+                Object.defineProperty(obj, key, { value, enumerable: true, configurable: true, writable: true });
               } else {
                 obj[key] = value;
               }
@@ -26041,8 +26041,8 @@
 
             function createIterResult(value, done) {
               return {
-                value: value,
-                done: done,
+                value,
+                done,
               };
             }
 
@@ -26259,9 +26259,9 @@
           if (Object.getOwnPropertySymbols) {
             var symbols = Object.getOwnPropertySymbols(object);
             if (enumerableOnly)
-              symbols = symbols.filter(function (sym) {
+              {symbols = symbols.filter(function (sym) {
                 return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-              });
+              });}
             keys.push.apply(keys, symbols);
           }
           return keys;
@@ -26287,7 +26287,7 @@
 
         function _defineProperty(obj, key, value) {
           if (key in obj) {
-            Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });
+            Object.defineProperty(obj, key, { value, enumerable: true, configurable: true, writable: true });
           } else {
             obj[key] = value;
           }
@@ -26305,14 +26305,14 @@
             var descriptor = props[i];
             descriptor.enumerable = descriptor.enumerable || false;
             descriptor.configurable = true;
-            if ("value" in descriptor) descriptor.writable = true;
+            if ("value" in descriptor) {descriptor.writable = true;}
             Object.defineProperty(target, descriptor.key, descriptor);
           }
         }
 
         function _createClass(Constructor, protoProps, staticProps) {
-          if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-          if (staticProps) _defineProperties(Constructor, staticProps);
+          if (protoProps) {_defineProperties(Constructor.prototype, protoProps);}
+          if (staticProps) {_defineProperties(Constructor, staticProps);}
           return Constructor;
         }
 
@@ -26347,8 +26347,8 @@
                     data: v,
                     next: null,
                   };
-                  if (this.length > 0) this.tail.next = entry;
-                  else this.head = entry;
+                  if (this.length > 0) {this.tail.next = entry;}
+                  else {this.head = entry;}
                   this.tail = entry;
                   ++this.length;
                 },
@@ -26360,7 +26360,7 @@
                     data: v,
                     next: this.head,
                   };
-                  if (this.length === 0) this.tail = entry;
+                  if (this.length === 0) {this.tail = entry;}
                   this.head = entry;
                   ++this.length;
                 },
@@ -26368,10 +26368,10 @@
               {
                 key: "shift",
                 value: function shift() {
-                  if (this.length === 0) return;
+                  if (this.length === 0) {return;}
                   var ret = this.head.data;
-                  if (this.length === 1) this.head = this.tail = null;
-                  else this.head = this.head.next;
+                  if (this.length === 1) {this.head = this.tail = null;}
+                  else {this.head = this.head.next;}
                   --this.length;
                   return ret;
                 },
@@ -26386,7 +26386,7 @@
               {
                 key: "join",
                 value: function join(s) {
-                  if (this.length === 0) return "";
+                  if (this.length === 0) {return "";}
                   var p = this.head;
                   var ret = "" + p.data;
 
@@ -26400,7 +26400,7 @@
               {
                 key: "concat",
                 value: function concat(n) {
-                  if (this.length === 0) return Buffer.alloc(0);
+                  if (this.length === 0) {return Buffer.alloc(0);}
                   var ret = Buffer.allocUnsafe(n >>> 0);
                   var p = this.head;
                   var i = 0;
@@ -26451,15 +26451,15 @@
                   while ((p = p.next)) {
                     var str = p.data;
                     var nb = n > str.length ? str.length : n;
-                    if (nb === str.length) ret += str;
-                    else ret += str.slice(0, n);
+                    if (nb === str.length) {ret += str;}
+                    else {ret += str.slice(0, n);}
                     n -= nb;
 
                     if (n === 0) {
                       if (nb === str.length) {
                         ++c;
-                        if (p.next) this.head = p.next;
-                        else this.head = this.tail = null;
+                        if (p.next) {this.head = p.next;}
+                        else {this.head = this.tail = null;}
                       } else {
                         this.head = p;
                         p.data = str.slice(nb);
@@ -26493,8 +26493,8 @@
                     if (n === 0) {
                       if (nb === buf.length) {
                         ++c;
-                        if (p.next) this.head = p.next;
-                        else this.head = this.tail = null;
+                        if (p.next) {this.head = p.next;}
+                        else {this.head = this.tail = null;}
                       } else {
                         this.head = p;
                         p.data = buf.slice(nb);
@@ -26594,8 +26594,8 @@
             }
 
             function emitCloseNT(self) {
-              if (self._writableState && !self._writableState.emitClose) return;
-              if (self._readableState && !self._readableState.emitClose) return;
+              if (self._writableState && !self._writableState.emitClose) {return;}
+              if (self._readableState && !self._readableState.emitClose) {return;}
               self.emit("close");
             }
 
@@ -26630,14 +26630,14 @@
               // semver major update we should change the default to this.
               var rState = stream._readableState;
               var wState = stream._writableState;
-              if ((rState && rState.autoDestroy) || (wState && wState.autoDestroy)) stream.destroy(err);
-              else stream.emit("error", err);
+              if ((rState && rState.autoDestroy) || (wState && wState.autoDestroy)) {stream.destroy(err);}
+              else {stream.emit("error", err);}
             }
 
             module.exports = {
-              destroy: destroy,
-              undestroy: undestroy,
-              errorOrDestroy: errorOrDestroy,
+              destroy,
+              undestroy,
+              errorOrDestroy,
             };
           }).call(this);
         }).call(this, require("_process"));
@@ -26655,7 +26655,7 @@
         function once(callback) {
           var called = false;
           return function () {
-            if (called) return;
+            if (called) {return;}
             called = true;
 
             for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
@@ -26673,14 +26673,14 @@
         }
 
         function eos(stream, opts, callback) {
-          if (typeof opts === "function") return eos(stream, null, opts);
-          if (!opts) opts = {};
+          if (typeof opts === "function") {return eos(stream, null, opts);}
+          if (!opts) {opts = {};}
           callback = once(callback || noop);
           var readable = opts.readable || (opts.readable !== false && stream.readable);
           var writable = opts.writable || (opts.writable !== false && stream.writable);
 
           var onlegacyfinish = function onlegacyfinish() {
-            if (!stream.writable) onfinish();
+            if (!stream.writable) {onfinish();}
           };
 
           var writableEnded = stream._writableState && stream._writableState.finished;
@@ -26688,7 +26688,7 @@
           var onfinish = function onfinish() {
             writable = false;
             writableEnded = true;
-            if (!readable) callback.call(stream);
+            if (!readable) {callback.call(stream);}
           };
 
           var readableEnded = stream._readableState && stream._readableState.endEmitted;
@@ -26696,7 +26696,7 @@
           var onend = function onend() {
             readable = false;
             readableEnded = true;
-            if (!writable) callback.call(stream);
+            if (!writable) {callback.call(stream);}
           };
 
           var onerror = function onerror(err) {
@@ -26707,12 +26707,12 @@
             var err;
 
             if (readable && !readableEnded) {
-              if (!stream._readableState || !stream._readableState.ended) err = new ERR_STREAM_PREMATURE_CLOSE();
+              if (!stream._readableState || !stream._readableState.ended) {err = new ERR_STREAM_PREMATURE_CLOSE();}
               return callback.call(stream, err);
             }
 
             if (writable && !writableEnded) {
-              if (!stream._writableState || !stream._writableState.ended) err = new ERR_STREAM_PREMATURE_CLOSE();
+              if (!stream._writableState || !stream._writableState.ended) {err = new ERR_STREAM_PREMATURE_CLOSE();}
               return callback.call(stream, err);
             }
           };
@@ -26724,8 +26724,8 @@
           if (isRequest(stream)) {
             stream.on("complete", onfinish);
             stream.on("abort", onclose);
-            if (stream.req) onrequest();
-            else stream.on("request", onrequest);
+            if (stream.req) {onrequest();}
+            else {stream.on("request", onrequest);}
           } else if (writable && !stream._writableState) {
             // legacy streams
             stream.on("end", onlegacyfinish);
@@ -26734,13 +26734,13 @@
 
           stream.on("end", onend);
           stream.on("finish", onfinish);
-          if (opts.error !== false) stream.on("error", onerror);
+          if (opts.error !== false) {stream.on("error", onerror);}
           stream.on("close", onclose);
           return function () {
             stream.removeListener("complete", onfinish);
             stream.removeListener("abort", onclose);
             stream.removeListener("request", onrequest);
-            if (stream.req) stream.req.removeListener("finish", onfinish);
+            if (stream.req) {stream.req.removeListener("finish", onfinish);}
             stream.removeListener("end", onlegacyfinish);
             stream.removeListener("close", onlegacyfinish);
             stream.removeListener("finish", onfinish);
@@ -26773,7 +26773,7 @@
         function once(callback) {
           var called = false;
           return function () {
-            if (called) return;
+            if (called) {return;}
             called = true;
             callback.apply(void 0, arguments);
           };
@@ -26785,7 +26785,7 @@
 
         function noop(err) {
           // Rethrow the error if it exists to avoid swallowing it
-          if (err) throw err;
+          if (err) {throw err;}
         }
 
         function isRequest(stream) {
@@ -26798,7 +26798,7 @@
           stream.on("close", function () {
             closed = true;
           });
-          if (eos === undefined) eos = require("./end-of-stream");
+          if (eos === undefined) {eos = require("./end-of-stream");}
           eos(
             stream,
             {
@@ -26806,19 +26806,19 @@
               writable: writing,
             },
             function (err) {
-              if (err) return callback(err);
+              if (err) {return callback(err);}
               closed = true;
               callback();
             },
           );
           var destroyed = false;
           return function (err) {
-            if (closed) return;
-            if (destroyed) return;
+            if (closed) {return;}
+            if (destroyed) {return;}
             destroyed = true; // request.destroy just do .end - .abort is what we want
 
-            if (isRequest(stream)) return stream.abort();
-            if (typeof stream.destroy === "function") return stream.destroy();
+            if (isRequest(stream)) {return stream.abort();}
+            if (typeof stream.destroy === "function") {return stream.destroy();}
             callback(err || new ERR_STREAM_DESTROYED("pipe"));
           };
         }
@@ -26832,8 +26832,8 @@
         }
 
         function popCallback(streams) {
-          if (!streams.length) return noop;
-          if (typeof streams[streams.length - 1] !== "function") return noop;
+          if (!streams.length) {return noop;}
+          if (typeof streams[streams.length - 1] !== "function") {return noop;}
           return streams.pop();
         }
 
@@ -26843,7 +26843,7 @@
           }
 
           var callback = popCallback(streams);
-          if (Array.isArray(streams[0])) streams = streams[0];
+          if (Array.isArray(streams[0])) {streams = streams[0];}
 
           if (streams.length < 2) {
             throw new ERR_MISSING_ARGS("streams");
@@ -26854,9 +26854,9 @@
             var reading = i < streams.length - 1;
             var writing = i > 0;
             return destroyer(stream, reading, writing, function (err) {
-              if (!error) error = err;
-              if (err) destroys.forEach(call);
-              if (reading) return;
+              if (!error) {error = err;}
+              if (err) {destroys.forEach(call);}
+              if (reading) {return;}
               destroys.forEach(call);
               callback(error);
             });
@@ -26894,7 +26894,7 @@
         }
 
         module.exports = {
-          getHighWaterMark: getHighWaterMark,
+          getHighWaterMark,
         };
       },
       { "../../../errors": 177 },
@@ -26940,8 +26940,8 @@
             var http = exports;
 
             http.request = function (opts, cb) {
-              if (typeof opts === "string") opts = url.parse(opts);
-              else opts = extend(opts);
+              if (typeof opts === "string") {opts = url.parse(opts);}
+              else {opts = extend(opts);}
 
               // Normally, the page is loaded from http or https, so not specifying a protocol
               // will result in a (valid) protocol-relative url. However, this won't work if
@@ -26954,7 +26954,7 @@
               var path = opts.path || "/";
 
               // Necessary for IPv6 addresses
-              if (host && host.indexOf(":") !== -1) host = "[" + host + "]";
+              if (host && host.indexOf(":") !== -1) {host = "[" + host + "]";}
 
               // This may be a relative url. The browser should always be able to interpret it correctly.
               opts.url = (host ? protocol + "//" + host : "") + (port ? ":" + port : "") + path;
@@ -26964,7 +26964,7 @@
               // Also valid opts.auth, opts.mode
 
               var req = new ClientRequest(opts);
-              if (cb) req.on("response", cb);
+              if (cb) {req.on("response", cb);}
               return req;
             };
 
@@ -27042,7 +27042,7 @@
             var xhr;
             function getXHR() {
               // Cache the xhr value
-              if (xhr !== undefined) return xhr;
+              if (xhr !== undefined) {return xhr;}
 
               if (global.XMLHttpRequest) {
                 xhr = new global.XMLHttpRequest();
@@ -27063,7 +27063,7 @@
 
             function checkTypeSupport(type) {
               var xhr = getXHR();
-              if (!xhr) return false;
+              if (!xhr) {return false;}
               try {
                 xhr.responseType = type;
                 return xhr.responseType === type;
@@ -27136,7 +27136,7 @@
               self._opts = opts;
               self._body = [];
               self._headers = {};
-              if (opts.auth) self.setHeader("Authorization", "Basic " + Buffer.from(opts.auth).toString("base64"));
+              if (opts.auth) {self.setHeader("Authorization", "Basic " + Buffer.from(opts.auth).toString("base64"));}
               Object.keys(opts.headers).forEach(function (name) {
                 self.setHeader(name, opts.headers[name]);
               });
@@ -27178,17 +27178,17 @@
               // This check is not necessary, but it prevents warnings from browsers about setting unsafe
               // headers. To be honest I'm not entirely sure hiding these warnings is a good thing, but
               // http-browserify did it, so I will too.
-              if (unsafeHeaders.indexOf(lowerName) !== -1) return;
+              if (unsafeHeaders.indexOf(lowerName) !== -1) {return;}
 
               self._headers[lowerName] = {
-                name: name,
-                value: value,
+                name,
+                value,
               };
             };
 
             ClientRequest.prototype.getHeader = function (name) {
               var header = this._headers[name.toLowerCase()];
-              if (header) return header.value;
+              if (header) {return header.value;}
               return null;
             };
 
@@ -27200,7 +27200,7 @@
             ClientRequest.prototype._onFinish = function () {
               var self = this;
 
-              if (self._destroyed) return;
+              if (self._destroyed) {return;}
               var opts = self._opts;
 
               if ("timeout" in opts && opts.timeout !== 0) {
@@ -27239,7 +27239,7 @@
                   if ("requestTimeout" in opts && opts.requestTimeout !== 0) {
                     self._fetchTimer = global.setTimeout(function () {
                       self.emit("requestTimeout");
-                      if (self._fetchAbortController) self._fetchAbortController.abort();
+                      if (self._fetchAbortController) {self._fetchAbortController.abort();}
                     }, opts.requestTimeout);
                   }
                 }
@@ -27251,7 +27251,7 @@
                     body: body || undefined,
                     mode: "cors",
                     credentials: opts.withCredentials ? "include" : "same-origin",
-                    signal: signal,
+                    signal,
                   })
                   .then(
                     function (response) {
@@ -27261,7 +27261,7 @@
                     },
                     function (reason) {
                       self._resetTimers(true);
-                      if (!self._destroyed) self.emit("error", reason);
+                      if (!self._destroyed) {self.emit("error", reason);}
                     },
                   );
               } else {
@@ -27276,12 +27276,12 @@
                 }
 
                 // Can't set responseType on really old browsers
-                if ("responseType" in xhr) xhr.responseType = self._mode;
+                if ("responseType" in xhr) {xhr.responseType = self._mode;}
 
-                if ("withCredentials" in xhr) xhr.withCredentials = !!opts.withCredentials;
+                if ("withCredentials" in xhr) {xhr.withCredentials = !!opts.withCredentials;}
 
                 if (self._mode === "text" && "overrideMimeType" in xhr)
-                  xhr.overrideMimeType("text/plain; charset=x-user-defined");
+                  {xhr.overrideMimeType("text/plain; charset=x-user-defined");}
 
                 if ("requestTimeout" in opts) {
                   xhr.timeout = opts.requestTimeout;
@@ -27312,7 +27312,7 @@
                 }
 
                 xhr.onerror = function () {
-                  if (self._destroyed) return;
+                  if (self._destroyed) {return;}
                   self._resetTimers(true);
                   self.emit("error", new Error("XHR error"));
                 };
@@ -27347,9 +27347,9 @@
 
               self._resetTimers(false);
 
-              if (!statusValid(self._xhr) || self._destroyed) return;
+              if (!statusValid(self._xhr) || self._destroyed) {return;}
 
-              if (!self._response) self._connect();
+              if (!self._response) {self._connect();}
 
               self._response._onXHRProgress(self._resetTimers.bind(self));
             };
@@ -27357,7 +27357,7 @@
             ClientRequest.prototype._connect = function () {
               var self = this;
 
-              if (self._destroyed) return;
+              if (self._destroyed) {return;}
 
               self._response = new IncomingMessage(
                 self._xhr,
@@ -27399,11 +27399,11 @@
               var self = this;
               self._destroyed = true;
               self._resetTimers(true);
-              if (self._response) self._response._destroyed = true;
-              if (self._xhr) self._xhr.abort();
-              else if (self._fetchAbortController) self._fetchAbortController.abort();
+              if (self._response) {self._response._destroyed = true;}
+              if (self._xhr) {self._xhr.abort();}
+              else if (self._fetchAbortController) {self._fetchAbortController.abort();}
 
-              if (err) self.emit("error", err);
+              if (err) {self.emit("error", err);}
             };
 
             ClientRequest.prototype.end = function (data, encoding, cb) {
@@ -27419,7 +27419,7 @@
             ClientRequest.prototype.setTimeout = function (timeout, cb) {
               var self = this;
 
-              if (cb) self.once("timeout", cb);
+              if (cb) {self.once("timeout", cb);}
 
               self._socketTimeout = timeout;
               self._resetTimers(false);
@@ -27516,7 +27516,7 @@
 
                 if (capability.writableStream) {
                   var writable = new WritableStream({
-                    write: function (chunk) {
+                    write (chunk) {
                       resetTimers(false);
                       return new Promise(function (resolve, reject) {
                         if (self._destroyed) {
@@ -27528,20 +27528,20 @@
                         }
                       });
                     },
-                    close: function () {
+                    close () {
                       resetTimers(true);
-                      if (!self._destroyed) self.push(null);
+                      if (!self._destroyed) {self.push(null);}
                     },
-                    abort: function (err) {
+                    abort (err) {
                       resetTimers(true);
-                      if (!self._destroyed) self.emit("error", err);
+                      if (!self._destroyed) {self.emit("error", err);}
                     },
                   });
 
                   try {
                     response.body.pipeTo(writable).catch(function (err) {
                       resetTimers(true);
-                      if (!self._destroyed) self.emit("error", err);
+                      if (!self._destroyed) {self.emit("error", err);}
                     });
                     return;
                   } catch (e) {} // pipeTo method isn't defined. Can't find a better way to feature test this
@@ -27552,7 +27552,7 @@
                   reader
                     .read()
                     .then(function (result) {
-                      if (self._destroyed) return;
+                      if (self._destroyed) {return;}
                       resetTimers(result.done);
                       if (result.done) {
                         self.push(null);
@@ -27563,7 +27563,7 @@
                     })
                     .catch(function (err) {
                       resetTimers(true);
-                      if (!self._destroyed) self.emit("error", err);
+                      if (!self._destroyed) {self.emit("error", err);}
                     });
                 }
                 read();
@@ -27602,7 +27602,7 @@
                       self._charset = charsetMatch[1].toLowerCase();
                     }
                   }
-                  if (!self._charset) self._charset = "utf-8"; // best guess
+                  if (!self._charset) {self._charset = "utf-8";} // best guess
                 }
               }
             });
@@ -27632,7 +27632,7 @@
                     var newData = response.substr(self._pos);
                     if (self._charset === "x-user-defined") {
                       var buffer = Buffer.alloc(newData.length);
-                      for (var i = 0; i < newData.length; i++) buffer[i] = newData.charCodeAt(i) & 0xff;
+                      for (var i = 0; i < newData.length; i++) {buffer[i] = newData.charCodeAt(i) & 0xff;}
 
                       self.push(buffer);
                     } else {
@@ -27642,18 +27642,18 @@
                   }
                   break;
                 case "arraybuffer":
-                  if (xhr.readyState !== rStates.DONE || !xhr.response) break;
+                  if (xhr.readyState !== rStates.DONE || !xhr.response) {break;}
                   response = xhr.response;
                   self.push(Buffer.from(new Uint8Array(response)));
                   break;
                 case "moz-chunked-arraybuffer": // take whole
                   response = xhr.response;
-                  if (xhr.readyState !== rStates.LOADING || !response) break;
+                  if (xhr.readyState !== rStates.LOADING || !response) {break;}
                   self.push(Buffer.from(new Uint8Array(response)));
                   break;
                 case "ms-stream":
                   response = xhr.response;
-                  if (xhr.readyState !== rStates.LOADING) break;
+                  if (xhr.readyState !== rStates.LOADING) {break;}
                   var reader = new global.MSStreamReader();
                   reader.onprogress = function () {
                     if (reader.result.byteLength > self._pos) {
@@ -27745,7 +27745,7 @@
           };
 
         function _normalizeEncoding(enc) {
-          if (!enc) return "utf8";
+          if (!enc) {return "utf8";}
           var retried;
           while (true) {
             switch (enc) {
@@ -27765,7 +27765,7 @@
               case "hex":
                 return enc;
               default:
-                if (retried) return; // undefined
+                if (retried) {return;} // undefined
                 enc = ("" + enc).toLowerCase();
                 retried = true;
             }
@@ -27777,7 +27777,7 @@
         function normalizeEncoding(enc) {
           var nenc = _normalizeEncoding(enc);
           if (typeof nenc !== "string" && (Buffer.isEncoding === isEncoding || !isEncoding(enc)))
-            throw new Error("Unknown encoding: " + enc);
+            {throw new Error("Unknown encoding: " + enc);}
           return nenc || enc;
         }
 
@@ -27814,18 +27814,18 @@
         }
 
         StringDecoder.prototype.write = function (buf) {
-          if (buf.length === 0) return "";
+          if (buf.length === 0) {return "";}
           var r;
           var i;
           if (this.lastNeed) {
             r = this.fillLast(buf);
-            if (r === undefined) return "";
+            if (r === undefined) {return "";}
             i = this.lastNeed;
             this.lastNeed = 0;
           } else {
             i = 0;
           }
-          if (i < buf.length) return r ? r + this.text(buf, i) : this.text(buf, i);
+          if (i < buf.length) {return r ? r + this.text(buf, i) : this.text(buf, i);}
           return r || "";
         };
 
@@ -27847,10 +27847,10 @@
         // Checks the type of a UTF-8 byte, whether it's ASCII, a leading byte, or a
         // continuation byte. If an invalid byte is detected, -2 is returned.
         function utf8CheckByte(byte) {
-          if (byte <= 0x7f) return 0;
-          else if (byte >> 5 === 0x06) return 2;
-          else if (byte >> 4 === 0x0e) return 3;
-          else if (byte >> 3 === 0x1e) return 4;
+          if (byte <= 0x7f) {return 0;}
+          else if (byte >> 5 === 0x06) {return 2;}
+          else if (byte >> 4 === 0x0e) {return 3;}
+          else if (byte >> 3 === 0x1e) {return 4;}
           return byte >> 6 === 0x02 ? -1 : -2;
         }
 
@@ -27859,24 +27859,24 @@
         // needed to complete the UTF-8 character (if applicable) are returned.
         function utf8CheckIncomplete(self, buf, i) {
           var j = buf.length - 1;
-          if (j < i) return 0;
+          if (j < i) {return 0;}
           var nb = utf8CheckByte(buf[j]);
           if (nb >= 0) {
-            if (nb > 0) self.lastNeed = nb - 1;
+            if (nb > 0) {self.lastNeed = nb - 1;}
             return nb;
           }
-          if (--j < i || nb === -2) return 0;
+          if (--j < i || nb === -2) {return 0;}
           nb = utf8CheckByte(buf[j]);
           if (nb >= 0) {
-            if (nb > 0) self.lastNeed = nb - 2;
+            if (nb > 0) {self.lastNeed = nb - 2;}
             return nb;
           }
-          if (--j < i || nb === -2) return 0;
+          if (--j < i || nb === -2) {return 0;}
           nb = utf8CheckByte(buf[j]);
           if (nb >= 0) {
             if (nb > 0) {
-              if (nb === 2) nb = 0;
-              else self.lastNeed = nb - 3;
+              if (nb === 2) {nb = 0;}
+              else {self.lastNeed = nb - 3;}
             }
             return nb;
           }
@@ -27914,7 +27914,7 @@
         function utf8FillLast(buf) {
           var p = this.lastTotal - this.lastNeed;
           var r = utf8CheckExtraBytes(this, buf, p);
-          if (r !== undefined) return r;
+          if (r !== undefined) {return r;}
           if (this.lastNeed <= buf.length) {
             buf.copy(this.lastChar, p, 0, this.lastNeed);
             return this.lastChar.toString(this.encoding, 0, this.lastTotal);
@@ -27928,7 +27928,7 @@
         // number of bytes are available.
         function utf8Text(buf, i) {
           var total = utf8CheckIncomplete(this, buf, i);
-          if (!this.lastNeed) return buf.toString("utf8", i);
+          if (!this.lastNeed) {return buf.toString("utf8", i);}
           this.lastTotal = total;
           var end = buf.length - (total - this.lastNeed);
           buf.copy(this.lastChar, 0, end);
@@ -27939,7 +27939,7 @@
         // character.
         function utf8End(buf) {
           var r = buf && buf.length ? this.write(buf) : "";
-          if (this.lastNeed) return r + "\ufffd";
+          if (this.lastNeed) {return r + "\ufffd";}
           return r;
         }
 
@@ -27981,7 +27981,7 @@
 
         function base64Text(buf, i) {
           var n = (buf.length - i) % 3;
-          if (n === 0) return buf.toString("base64", i);
+          if (n === 0) {return buf.toString("base64", i);}
           this.lastNeed = 3 - n;
           this.lastTotal = 3;
           if (n === 1) {
@@ -27995,7 +27995,7 @@
 
         function base64End(buf) {
           var r = buf && buf.length ? this.write(buf) : "";
-          if (this.lastNeed) return r + this.lastChar.toString("base64", 0, 3 - this.lastNeed);
+          if (this.lastNeed) {return r + this.lastChar.toString("base64", 0, 3 - this.lastNeed);}
           return r;
         }
 
@@ -28411,16 +28411,16 @@
                 for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
                   _arr.push(_s.value);
 
-                  if (i && _arr.length === i) break;
+                  if (i && _arr.length === i) {break;}
                 }
               } catch (err) {
                 _d = true;
                 _e = err;
               } finally {
                 try {
-                  if (!_n && _i["return"]) _i["return"]();
+                  if (!_n && _i["return"]) {_i["return"]();}
                 } finally {
-                  if (_d) throw _e;
+                  if (_d) {throw _e;}
                 }
               }
 
@@ -28440,7 +28440,7 @@
 
           var toConsumableArray = function (arr) {
             if (Array.isArray(arr)) {
-              for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+              for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {arr2[i] = arr[i];}
 
               return arr2;
             } else {
@@ -28947,10 +28947,10 @@
               decode: ucs2decode,
               encode: ucs2encode,
             },
-            decode: decode,
-            encode: encode,
-            toASCII: toASCII,
-            toUnicode: toUnicode,
+            decode,
+            encode,
+            toASCII,
+            toUnicode,
           };
 
           /**
@@ -28991,18 +28991,18 @@
           function pctEncChar(chr) {
             var c = chr.charCodeAt(0);
             var e = void 0;
-            if (c < 16) e = "%0" + c.toString(16).toUpperCase();
-            else if (c < 128) e = "%" + c.toString(16).toUpperCase();
+            if (c < 16) {e = "%0" + c.toString(16).toUpperCase();}
+            else if (c < 128) {e = "%" + c.toString(16).toUpperCase();}
             else if (c < 2048)
-              e = "%" + ((c >> 6) | 192).toString(16).toUpperCase() + "%" + ((c & 63) | 128).toString(16).toUpperCase();
+              {e = "%" + ((c >> 6) | 192).toString(16).toUpperCase() + "%" + ((c & 63) | 128).toString(16).toUpperCase();}
             else
-              e =
+              {e =
                 "%" +
                 ((c >> 12) | 224).toString(16).toUpperCase() +
                 "%" +
                 (((c >> 6) & 63) | 128).toString(16).toUpperCase() +
                 "%" +
-                ((c & 63) | 128).toString(16).toUpperCase();
+                ((c & 63) | 128).toString(16).toUpperCase();}
             return e;
           }
           function pctDecChars(str) {
@@ -29044,36 +29044,36 @@
               return !decStr.match(protocol.UNRESERVED) ? str : decStr;
             }
             if (components.scheme)
-              components.scheme = String(components.scheme)
+              {components.scheme = String(components.scheme)
                 .replace(protocol.PCT_ENCODED, decodeUnreserved)
                 .toLowerCase()
-                .replace(protocol.NOT_SCHEME, "");
+                .replace(protocol.NOT_SCHEME, "");}
             if (components.userinfo !== undefined)
-              components.userinfo = String(components.userinfo)
+              {components.userinfo = String(components.userinfo)
                 .replace(protocol.PCT_ENCODED, decodeUnreserved)
                 .replace(protocol.NOT_USERINFO, pctEncChar)
-                .replace(protocol.PCT_ENCODED, toUpperCase);
+                .replace(protocol.PCT_ENCODED, toUpperCase);}
             if (components.host !== undefined)
-              components.host = String(components.host)
+              {components.host = String(components.host)
                 .replace(protocol.PCT_ENCODED, decodeUnreserved)
                 .toLowerCase()
                 .replace(protocol.NOT_HOST, pctEncChar)
-                .replace(protocol.PCT_ENCODED, toUpperCase);
+                .replace(protocol.PCT_ENCODED, toUpperCase);}
             if (components.path !== undefined)
-              components.path = String(components.path)
+              {components.path = String(components.path)
                 .replace(protocol.PCT_ENCODED, decodeUnreserved)
                 .replace(components.scheme ? protocol.NOT_PATH : protocol.NOT_PATH_NOSCHEME, pctEncChar)
-                .replace(protocol.PCT_ENCODED, toUpperCase);
+                .replace(protocol.PCT_ENCODED, toUpperCase);}
             if (components.query !== undefined)
-              components.query = String(components.query)
+              {components.query = String(components.query)
                 .replace(protocol.PCT_ENCODED, decodeUnreserved)
                 .replace(protocol.NOT_QUERY, pctEncChar)
-                .replace(protocol.PCT_ENCODED, toUpperCase);
+                .replace(protocol.PCT_ENCODED, toUpperCase);}
             if (components.fragment !== undefined)
-              components.fragment = String(components.fragment)
+              {components.fragment = String(components.fragment)
                 .replace(protocol.PCT_ENCODED, decodeUnreserved)
                 .replace(protocol.NOT_FRAGMENT, pctEncChar)
-                .replace(protocol.PCT_ENCODED, toUpperCase);
+                .replace(protocol.PCT_ENCODED, toUpperCase);}
             return components;
           }
 
@@ -29123,7 +29123,7 @@
                   if (lastLongest && lastLongest.index + lastLongest.length === index) {
                     lastLongest.length++;
                   } else {
-                    acc.push({ index: index, length: 1 });
+                    acc.push({ index, length: 1 });
                   }
                 }
                 return acc;
@@ -29156,7 +29156,7 @@
             var components = {};
             var protocol = options.iri !== false ? IRI_PROTOCOL : URI_PROTOCOL;
             if (options.reference === "suffix")
-              uriString = (options.scheme ? options.scheme + ":" : "") + "//" + uriString;
+              {uriString = (options.scheme ? options.scheme + ":" : "") + "//" + uriString;}
             var matches = uriString.match(URI_PARSE);
             if (matches) {
               if (NO_MATCH_IS_UNDEFINED) {
@@ -29307,7 +29307,7 @@
             //find scheme handler
             var schemeHandler = SCHEMES[(options.scheme || components.scheme || "").toLowerCase()];
             //perform scheme specific serialization
-            if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(components, options);
+            if (schemeHandler && schemeHandler.serialize) {schemeHandler.serialize(components, options);}
             if (components.host) {
               //if host component is an IPv6 address
               if (protocol.IPV6ADDRESS.test(components.host)) {
@@ -29641,7 +29641,7 @@
                       break;
                   }
                 }
-                if (unknownHeaders) mailtoComponents.headers = headers;
+                if (unknownHeaders) {mailtoComponents.headers = headers;}
               }
               mailtoComponents.query = undefined;
               for (var _x2 = 0, _xl2 = to.length; _x2 < _xl2; ++_x2) {
@@ -29694,8 +29694,8 @@
                 components.path = to.join(",");
               }
               var headers = (mailtoComponents.headers = mailtoComponents.headers || {});
-              if (mailtoComponents.subject) headers["subject"] = mailtoComponents.subject;
-              if (mailtoComponents.body) headers["body"] = mailtoComponents.body;
+              if (mailtoComponents.subject) {headers["subject"] = mailtoComponents.subject;}
+              if (mailtoComponents.body) {headers["body"] = mailtoComponents.body;}
               var fields = [];
               for (var name in headers) {
                 if (headers[name] !== O[name]) {
@@ -29905,7 +29905,7 @@
           querystring = require("querystring");
 
         function urlParse(url, parseQueryString, slashesDenoteHost) {
-          if (url && util.isObject(url) && url instanceof Url) return url;
+          if (url && util.isObject(url) && url instanceof Url) {return url;}
 
           var u = new Url();
           u.parse(url, parseQueryString, slashesDenoteHost);
@@ -29995,7 +29995,7 @@
             var hostEnd = -1;
             for (var i = 0; i < hostEndingChars.length; i++) {
               var hec = rest.indexOf(hostEndingChars[i]);
-              if (hec !== -1 && (hostEnd === -1 || hec < hostEnd)) hostEnd = hec;
+              if (hec !== -1 && (hostEnd === -1 || hec < hostEnd)) {hostEnd = hec;}
             }
 
             // at this point, either we have an explicit point where the
@@ -30022,10 +30022,10 @@
             hostEnd = -1;
             for (var i = 0; i < nonHostChars.length; i++) {
               var hec = rest.indexOf(nonHostChars[i]);
-              if (hec !== -1 && (hostEnd === -1 || hec < hostEnd)) hostEnd = hec;
+              if (hec !== -1 && (hostEnd === -1 || hec < hostEnd)) {hostEnd = hec;}
             }
             // if we still have not hit it, then the entire thing is a host.
-            if (hostEnd === -1) hostEnd = rest.length;
+            if (hostEnd === -1) {hostEnd = rest.length;}
 
             this.host = rest.slice(0, hostEnd);
             rest = rest.slice(hostEnd);
@@ -30046,7 +30046,7 @@
               var hostparts = this.hostname.split(/\./);
               for (var i = 0, l = hostparts.length; i < l; i++) {
                 var part = hostparts[i];
-                if (!part) continue;
+                if (!part) {continue;}
                 if (!part.match(hostnamePartPattern)) {
                   var newpart = "";
                   for (var j = 0, k = part.length; j < k; j++) {
@@ -30116,7 +30116,7 @@
             // need to be.
             for (var i = 0, l = autoEscape.length; i < l; i++) {
               var ae = autoEscape[i];
-              if (rest.indexOf(ae) === -1) continue;
+              if (rest.indexOf(ae) === -1) {continue;}
               var esc = encodeURIComponent(ae);
               if (esc === ae) {
                 esc = escape(ae);
@@ -30145,7 +30145,7 @@
             this.search = "";
             this.query = {};
           }
-          if (rest) this.pathname = rest;
+          if (rest) {this.pathname = rest;}
           if (slashedProtocol[lowerProto] && this.hostname && !this.pathname) {
             this.pathname = "/";
           }
@@ -30168,8 +30168,8 @@
           // If it's an obj, this is a no-op.
           // this way, you can call url_format() on strings
           // to clean up potentially wonky urls.
-          if (util.isString(obj)) obj = urlParse(obj);
-          if (!(obj instanceof Url)) return Url.prototype.format.call(obj);
+          if (util.isString(obj)) {obj = urlParse(obj);}
+          if (!(obj instanceof Url)) {return Url.prototype.format.call(obj);}
           return obj.format();
         }
 
@@ -30202,19 +30202,19 @@
 
           var search = this.search || (query && "?" + query) || "";
 
-          if (protocol && protocol.substr(-1) !== ":") protocol += ":";
+          if (protocol && protocol.substr(-1) !== ":") {protocol += ":";}
 
           // only the slashedProtocols get the //.  Not mailto:, xmpp:, etc.
           // unless they had them to begin with.
           if (this.slashes || ((!protocol || slashedProtocol[protocol]) && host !== false)) {
             host = "//" + (host || "");
-            if (pathname && pathname.charAt(0) !== "/") pathname = "/" + pathname;
+            if (pathname && pathname.charAt(0) !== "/") {pathname = "/" + pathname;}
           } else if (!host) {
             host = "";
           }
 
-          if (hash && hash.charAt(0) !== "#") hash = "#" + hash;
-          if (search && search.charAt(0) !== "?") search = "?" + search;
+          if (hash && hash.charAt(0) !== "#") {hash = "#" + hash;}
+          if (search && search.charAt(0) !== "?") {search = "?" + search;}
 
           pathname = pathname.replace(/[?#]/g, function (match) {
             return encodeURIComponent(match);
@@ -30233,7 +30233,7 @@
         };
 
         function urlResolveObject(source, relative) {
-          if (!source) return relative;
+          if (!source) {return relative;}
           return urlParse(source, false, true).resolveObject(relative);
         }
 
@@ -30267,7 +30267,7 @@
             var rkeys = Object.keys(relative);
             for (var rk = 0; rk < rkeys.length; rk++) {
               var rkey = rkeys[rk];
-              if (rkey !== "protocol") result[rkey] = relative[rkey];
+              if (rkey !== "protocol") {result[rkey] = relative[rkey];}
             }
 
             //urlParse appends trailing / to urls like http://www.example.com
@@ -30301,11 +30301,11 @@
             result.protocol = relative.protocol;
             if (!relative.host && !hostlessProtocol[relative.protocol]) {
               var relPath = (relative.pathname || "").split("/");
-              while (relPath.length && !(relative.host = relPath.shift()));
-              if (!relative.host) relative.host = "";
-              if (!relative.hostname) relative.hostname = "";
-              if (relPath[0] !== "") relPath.unshift("");
-              if (relPath.length < 2) relPath.unshift("");
+              while (relPath.length && !(relative.host = relPath.shift())){}
+              if (!relative.host) {relative.host = "";}
+              if (!relative.hostname) {relative.hostname = "";}
+              if (relPath[0] !== "") {relPath.unshift("");}
+              if (relPath.length < 2) {relPath.unshift("");}
               result.pathname = relPath.join("/");
             } else {
               result.pathname = relative.pathname;
@@ -30344,16 +30344,16 @@
             result.hostname = "";
             result.port = null;
             if (result.host) {
-              if (srcPath[0] === "") srcPath[0] = result.host;
-              else srcPath.unshift(result.host);
+              if (srcPath[0] === "") {srcPath[0] = result.host;}
+              else {srcPath.unshift(result.host);}
             }
             result.host = "";
             if (relative.protocol) {
               relative.hostname = null;
               relative.port = null;
               if (relative.host) {
-                if (relPath[0] === "") relPath[0] = relative.host;
-                else relPath.unshift(relative.host);
+                if (relPath[0] === "") {relPath[0] = relative.host;}
+                else {relPath.unshift(relative.host);}
               }
               relative.host = null;
             }
@@ -30371,7 +30371,7 @@
           } else if (relPath.length) {
             // it's relative
             // throw away the existing file, and take the new path instead.
-            if (!srcPath) srcPath = [];
+            if (!srcPath) {srcPath = [];}
             srcPath.pop();
             srcPath = srcPath.concat(relPath);
             result.search = relative.search;
@@ -30501,7 +30501,7 @@
             }
             host = host.substr(0, host.length - port.length);
           }
-          if (host) this.hostname = host;
+          if (host) {this.hostname = host;}
         };
       },
       { "./util": 200, punycode: 173, querystring: 176 },
@@ -30511,16 +30511,16 @@
         "use strict";
 
         module.exports = {
-          isString: function (arg) {
+          isString (arg) {
             return typeof arg === "string";
           },
-          isObject: function (arg) {
+          isObject (arg) {
             return typeof arg === "object" && arg !== null;
           },
-          isNull: function (arg) {
+          isNull (arg) {
             return arg === null;
           },
-          isNullOrUndefined: function (arg) {
+          isNullOrUndefined (arg) {
             return arg == null;
           },
         };
@@ -30589,12 +30589,12 @@
             function config(name) {
               // accessing global.localStorage can trigger a DOMException in sandboxed iframes
               try {
-                if (!global.localStorage) return false;
+                if (!global.localStorage) {return false;}
               } catch (_) {
                 return false;
               }
               var val = global.localStorage[name];
-              if (null == val) return false;
+              if (null == val) {return false;}
               return String(val).toLowerCase() === "true";
             }
           }).call(this);
@@ -30692,8 +30692,8 @@
               var args = arguments;
               var len = args.length;
               var str = String(f).replace(formatRegExp, function (x) {
-                if (x === "%%") return "%";
-                if (i >= len) return x;
+                if (x === "%%") {return "%";}
+                if (i >= len) {return x;}
                 switch (x) {
                   case "%s":
                     return String(args[i++]);
@@ -30755,7 +30755,7 @@
             var debugs = {};
             var debugEnviron;
             exports.debuglog = function (set) {
-              if (isUndefined(debugEnviron)) debugEnviron = process.env.NODE_DEBUG || "";
+              if (isUndefined(debugEnviron)) {debugEnviron = process.env.NODE_DEBUG || "";}
               set = set.toUpperCase();
               if (!debugs[set]) {
                 if (new RegExp("\\b" + set + "\\b", "i").test(debugEnviron)) {
@@ -30786,8 +30786,8 @@
                 stylize: stylizeNoColor,
               };
               // legacy...
-              if (arguments.length >= 3) ctx.depth = arguments[2];
-              if (arguments.length >= 4) ctx.colors = arguments[3];
+              if (arguments.length >= 3) {ctx.depth = arguments[2];}
+              if (arguments.length >= 4) {ctx.colors = arguments[3];}
               if (isBoolean(opts)) {
                 // legacy...
                 ctx.showHidden = opts;
@@ -30796,11 +30796,11 @@
                 exports._extend(ctx, opts);
               }
               // set default options
-              if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-              if (isUndefined(ctx.depth)) ctx.depth = 2;
-              if (isUndefined(ctx.colors)) ctx.colors = false;
-              if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-              if (ctx.colors) ctx.stylize = stylizeWithColor;
+              if (isUndefined(ctx.showHidden)) {ctx.showHidden = false;}
+              if (isUndefined(ctx.depth)) {ctx.depth = 2;}
+              if (isUndefined(ctx.colors)) {ctx.colors = false;}
+              if (isUndefined(ctx.customInspect)) {ctx.customInspect = true;}
+              if (ctx.colors) {ctx.stylize = stylizeWithColor;}
               return formatValue(ctx, obj, ctx.depth);
             }
             exports.inspect = inspect;
@@ -30975,16 +30975,16 @@
             }
 
             function formatPrimitive(ctx, value) {
-              if (isUndefined(value)) return ctx.stylize("undefined", "undefined");
+              if (isUndefined(value)) {return ctx.stylize("undefined", "undefined");}
               if (isString(value)) {
                 var simple =
                   "'" + JSON.stringify(value).replace(/^"|"$/g, "").replace(/'/g, "\\'").replace(/\\"/g, '"') + "'";
                 return ctx.stylize(simple, "string");
               }
-              if (isNumber(value)) return ctx.stylize("" + value, "number");
-              if (isBoolean(value)) return ctx.stylize("" + value, "boolean");
+              if (isNumber(value)) {return ctx.stylize("" + value, "number");}
+              if (isBoolean(value)) {return ctx.stylize("" + value, "boolean");}
               // For some reason typeof null is "object", so special case here.
-              if (isNull(value)) return ctx.stylize("null", "null");
+              if (isNull(value)) {return ctx.stylize("null", "null");}
             }
 
             function formatError(value) {
@@ -31080,7 +31080,7 @@
               var numLinesEst = 0;
               var length = output.reduce(function (prev, cur) {
                 numLinesEst++;
-                if (cur.indexOf("\n") >= 0) numLinesEst++;
+                if (cur.indexOf("\n") >= 0) {numLinesEst++;}
                 return prev + cur.replace(/\u001b\[\d\d?m/g, "").length + 1;
               }, 0);
 
@@ -31211,7 +31211,7 @@
 
             exports._extend = function (origin, add) {
               // Don't do anything if add isn't an object
-              if (!add || !isObject(add)) return origin;
+              if (!add || !isObject(add)) {return origin;}
 
               var keys = Object.keys(add);
               var i = keys.length;
@@ -31267,7 +31267,7 @@
       function (require, module, exports) {
         "use strict";
 
-        let debug = location.hostname === "localhost";
+        const debug = location.hostname === "localhost";
 
         module.exports = analytics;
 
@@ -31365,7 +31365,7 @@
           form.method.menu.find("a").on("click", function (event) {
             form.method.menu.dropdown("toggle");
             event.stopPropagation();
-            let methodName = $(this).data("value");
+            const methodName = $(this).data("value");
             setSelectedMethod(methodName);
             trackButtonLabel(methodName);
           });
@@ -31379,7 +31379,7 @@
          * @param {function} setLabel
          */
         function onChange(menu, setLabel) {
-          let dropdown = menu.parent(".dropdown");
+          const dropdown = menu.parent(".dropdown");
 
           // Don't auto-close the menu when items are clicked
           menu.find("a").on("click", (event) => {
@@ -31400,7 +31400,7 @@
          * Sets the "allow" label, based on which options are selected
          */
         function setAllowLabel() {
-          let values = getCheckedAndUnchecked(
+          const values = getCheckedAndUnchecked(
             form.allow.json,
             form.allow.yaml,
             form.allow.text,
@@ -31433,7 +31433,7 @@
          * Sets the "refs" label, based on which options are selected
          */
         function setRefsLabel() {
-          let values = getCheckedAndUnchecked(form.refs.external, form.refs.circular);
+          const values = getCheckedAndUnchecked(form.refs.external, form.refs.circular);
 
           switch (values.checked.length) {
             case 0:
@@ -31451,7 +31451,7 @@
          * Sets the "validate" label, based on which options are selected
          */
         function setValidateLabel() {
-          let values = getCheckedAndUnchecked(form.validate.schema, form.validate.spec);
+          const values = getCheckedAndUnchecked(form.validate.schema, form.validate.spec);
 
           switch (values.checked.length) {
             case 0:
@@ -31486,7 +31486,7 @@
          */
         function trackCheckbox(checkbox) {
           checkbox.on("change", () => {
-            let value = checkbox.is(":checked") ? 1 : 0;
+            const value = checkbox.is(":checked") ? 1 : 0;
             analytics.trackEvent("options", "changed", checkbox.attr("name"), value);
           });
         }
@@ -31497,7 +31497,7 @@
          * @param {string} methodName - The method name (e.g. "validate", "dereference", etc.)
          */
         function trackButtonLabel(methodName) {
-          let value = ["", "parse", "resolve", "bundle", "dereference", "validate"].indexOf(methodName);
+          const value = ["", "parse", "resolve", "bundle", "dereference", "validate"].indexOf(methodName);
           analytics.trackEvent("options", "changed", "method", value);
         }
 
@@ -31508,10 +31508,10 @@
          * @returns {{checked: string[], unchecked: string[]}}
          */
         function getCheckedAndUnchecked(_checkboxes) {
-          let checked = [],
+          const checked = [],
             unchecked = [];
           for (let i = 0; i < arguments.length; i++) {
-            let checkbox = arguments[i];
+            const checkbox = arguments[i];
             if (checkbox.is(":checked")) {
               checked.push(checkbox.data("value"));
             } else {
@@ -31538,7 +31538,7 @@
         function editors() {
           editors.textBox = form.textBox = ace.edit("text-box");
           form.textBox.setTheme(ACE_THEME);
-          let session = form.textBox.getSession();
+          const session = form.textBox.getSession();
           session.setMode("ace/mode/yaml");
           session.setTabSize(2);
 
@@ -31586,10 +31586,10 @@
          * @param {object|string} content - An object that will be displayed as JSON in the editor
          */
         editors.addResult = function (title, content) {
-          let index = editors.tabs.children().length;
-          let titleId = "results-tab-" + index + "-title";
-          let editorId = "results-" + index;
-          let active = index === 0 ? "active" : "";
+          const index = editors.tabs.children().length;
+          const titleId = "results-tab-" + index + "-title";
+          const editorId = "results-" + index;
+          const active = index === 0 ? "active" : "";
 
           // Add a tab and pane
           editors.tabs.append(
@@ -31620,7 +31620,7 @@
           );
 
           // Set the tab title
-          let shortTitle = getShortTitle(title) || "Sample API";
+          const shortTitle = getShortTitle(title) || "Sample API";
           editors.tabs
             .find("#" + titleId)
             .text(shortTitle)
@@ -31631,7 +31631,7 @@
           editors.panes.find("#" + editorId).text(content.text);
 
           // Turn the <pre> into an Ace Editor
-          let editor = ace.edit(editorId);
+          const editor = ace.edit(editorId);
           editor.setTheme(ACE_THEME);
           editor.session.setOption("useWorker", false);
           content.isJSON && editor.getSession().setMode("ace/mode/json");
@@ -31646,7 +31646,7 @@
          */
         function getShortTitle(title) {
           // Get just the file name
-          let lastSlash = title.lastIndexOf("/");
+          const lastSlash = title.lastIndexOf("/");
           if (lastSlash !== -1) {
             title = title.substr(lastSlash + 1);
           }
@@ -31663,7 +31663,7 @@
          * Ensures that the results are visible, and plays an animation to get the user's attention.
          */
         function showResults() {
-          let results = editors.results;
+          const results = editors.results;
 
           setTimeout(() => {
             results[0].scrollIntoView();
@@ -31818,14 +31818,14 @@
         form.getAPI = function () {
           // Determine which tab is selected
           if (form.tabs.url.parent().attr("class").indexOf("active") >= 0) {
-            let url = form.url.val();
+            const url = form.url.val();
             if (url) {
               return url;
             } else {
               throw new URIError("Please specify the URL of your Swagger/OpenAPI definition");
             }
           } else {
-            let text = form.textBox.getValue();
+            const text = form.textBox.getValue();
             if (form.allow.yaml.is(":checked")) {
               return jsYAML.safeLoad(text);
             } else if (form.allow.json.is(":checked")) {
@@ -31881,7 +31881,7 @@
         const SwaggerParser = require("../../../");
 
         let swaggerParser = null;
-        let counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
+        const counters = { parse: 0, resolve: 0, bundle: 0, dereference: 0, validate: 0 };
 
         module.exports = parser;
 
@@ -31914,15 +31914,15 @@
 
             // Get all the parameters
             swaggerParser = swaggerParser || new SwaggerParser();
-            let options = form.getOptions();
-            let method = form.method.button.val();
-            let api = form.getAPI();
+            const options = form.getOptions();
+            const method = form.method.button.val();
+            const api = form.getAPI();
 
             // Call Swagger Parser
             swaggerParser[method](api, options)
               .then(() => {
                 // Show the results
-                let results = swaggerParser.$refs.values();
+                const results = swaggerParser.$refs.values();
                 Object.keys(results).forEach((key) => {
                   editors.showResult(key, results[key]);
                 });
@@ -31965,7 +31965,7 @@
          * Populates all form fields based on the query-string in the URL
          */
         function setFormFields() {
-          let query = qs.parse(window.location.search.substr(1));
+          const query = qs.parse(window.location.search.substr(1));
 
           setCheckbox(form.allow.json, query["allow-json"]);
           setCheckbox(form.allow.yaml, query["allow-yaml"]);
@@ -32008,8 +32008,8 @@
          * Sets the href of the bookmark link, based on the values of each form field
          */
         function setBookmarkURL() {
-          let query = {};
-          let options = form.getOptions();
+          const query = {};
+          const options = form.getOptions();
           options.parse.json || (query["allow-json"] = "no");
           options.parse.yaml || (query["allow-yaml"] = "no");
           options.parse.text || (query["allow-text"] = "no");
@@ -32020,13 +32020,13 @@
           options.validate.schema || (query["validate-schema"] = "no");
           options.validate.spec || (query["validate-spec"] = "no");
 
-          let method = form.method.button.val();
+          const method = form.method.button.val();
           method === "validate" || (query.method = method);
 
-          let url = form.url.val();
+          const url = form.url.val();
           url === "" || (query.url = url);
 
-          let bookmark = "?" + qs.stringify(query);
+          const bookmark = "?" + qs.stringify(query);
           form.bookmark.attr("href", bookmark);
         }
       },

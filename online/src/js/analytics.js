@@ -1,6 +1,6 @@
 "use strict";
 
-let debug = location.hostname === "localhost";
+const debug = location.hostname === "localhost";
 
 module.exports = analytics;
 

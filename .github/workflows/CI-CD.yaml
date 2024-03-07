@@ -22,34 +22,30 @@ jobs:
           - macos-latest
           - windows-latest
         node:
-          - 14
-          - 16
-          # - 18 TODO bring this back
+          - 18
+          - lts/*
+          - current
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Node ${{ matrix.node }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       - name: Run linter
-        run: npm run lint
-
-      - name: Run TypeScript tests
-        run: npm run test:typescript
+        run: yarn lint
 
       - name: Run Node tests
-        run: npm run coverage:node
+        run: yarn test:node
 
       - name: Send code coverage results to Coveralls
-        uses: coverallsapp/github-action@v1.1.0
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
@@ -57,38 +53,31 @@ jobs:
   browser_tests:
     name: Browser Tests
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 15
     strategy:
       fail-fast: true
       matrix:
         os:
-          - ubuntu-latest     # Chrome, Firefox, Safari (TODO)
-          # - windows-latest    # Internet Explorer, Edge
+          - ubuntu-latest # Chrome, Firefox
+          - windows-latest # Internet Explorer
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 12
-          cache: 'npm'
+          node-version: lts/*
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       - name: Run tests
-        run: npm run coverage:browser
-
-      - name: Combine code coverage data into a single file
-        shell: bash
-        run: |
-          ls -Rlh coverage/*/lcov.info
-          cat coverage/*/lcov.info > ./coverage/lcov.info
+        run: yarn test:browser
 
       - name: Send code coverage results to Coveralls
-        uses: coverallsapp/github-action@v1.1.0
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
@@ -96,52 +85,39 @@ jobs:
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     needs:
       - node_tests
       - browser_tests
     steps:
       - name: Let Coveralls know that all tests have finished
-        uses: coverallsapp/github-action@v1.1.0
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
 
-  deploy:
-    name: Publish to NPM
+  release:
+    name: Release
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs:
       - node_tests
       - browser_tests
-
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v3
-
-      - name: Install Node
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 12
-          cache: 'npm'
+          node-version: lts/*
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
+
+      - name: Prepare Unscoped Package
+        run: yarn build
 
       - name: Publish to NPM
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-
-      - name: Prepare the non-scoped packaged
-        run: |
-          cp LICENSE *.md dist
-          VERSION=$(node -e "console.log(require('./package.json').version)")
-          sed -i "s/X.X.X/${VERSION}/g" dist/package.json
-
-      - name: Publish the non-scoped package to NPM
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          package: dist/package.json
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

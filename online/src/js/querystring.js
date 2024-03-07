@@ -18,7 +18,7 @@ function querystring() {
  * Populates all form fields based on the query-string in the URL
  */
 function setFormFields() {
-  let query = qs.parse(window.location.search.substr(1));
+  const query = qs.parse(window.location.search.substr(1));
 
   setCheckbox(form.allow.json, query["allow-json"]);
   setCheckbox(form.allow.yaml, query["allow-yaml"]);
@@ -61,8 +61,8 @@ function setCheckbox(input, value) {
  * Sets the href of the bookmark link, based on the values of each form field
  */
 function setBookmarkURL() {
-  let query = {};
-  let options = form.getOptions();
+  const query = {};
+  const options = form.getOptions();
   options.parse.json || (query["allow-json"] = "no");
   options.parse.yaml || (query["allow-yaml"] = "no");
   options.parse.text || (query["allow-text"] = "no");
@@ -73,12 +73,12 @@ function setBookmarkURL() {
   options.validate.schema || (query["validate-schema"] = "no");
   options.validate.spec || (query["validate-spec"] = "no");
 
-  let method = form.method.button.val();
+  const method = form.method.button.val();
   method === "validate" || (query.method = method);
 
-  let url = form.url.val();
+  const url = form.url.val();
   url === "" || (query.url = url);
 
-  let bookmark = "?" + qs.stringify(query);
+  const bookmark = "?" + qs.stringify(query);
   form.bookmark.attr("href", bookmark);
 }

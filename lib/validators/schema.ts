@@ -19,11 +19,11 @@ function validateSchema(api: OpenAPI.Document) {
   // Choose the appropriate schema (Swagger or OpenAPI)
   let schema;
 
-  if ("swagger" in api && api.swagger) {
+  if (api && "swagger" in api && api.swagger) {
     schema = openapi.v2;
     ajv = initializeAjv();
   } else {
-    if ("openapi" in api && api.openapi.startsWith("3.1")) {
+    if (api && "openapi" in api && api.openapi.startsWith("3.1")) {
       schema = openapi.v31;
 
       // There's a bug with Ajv in how it handles `$dynamicRef` in the way that it's used within the 3.1 schema so we
@@ -63,7 +63,7 @@ function validateSchema(api: OpenAPI.Document) {
   if (!isValid) {
     const err = ajv.errors!;
     const message = `Swagger schema validation failed.\n${formatAjvError(err)}`;
-    throw ono.syntax(err!, { details: err }, message);
+    throw ono.syntax<any, { details: any }>(err!, { details: err }, message);
   }
 }
 

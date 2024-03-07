@@ -107,14 +107,14 @@ form.getOptions = function () {
 form.getAPI = function () {
   // Determine which tab is selected
   if (form.tabs.url.parent().attr("class").indexOf("active") >= 0) {
-    let url = form.url.val();
+    const url = form.url.val();
     if (url) {
       return url;
     } else {
       throw new URIError("Please specify the URL of your Swagger/OpenAPI definition");
     }
   } else {
-    let text = form.textBox.getValue();
+    const text = form.textBox.getValue();
     if (form.allow.yaml.is(":checked")) {
       return jsYAML.safeLoad(text);
     } else if (form.allow.json.is(":checked")) {

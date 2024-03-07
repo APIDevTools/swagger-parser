@@ -17,7 +17,7 @@ export const swaggerParamRegExp = /\{([^/}]+)}/g;
 /**
  * List of HTTP verbs used for OperationItem as per the Swagger specification
  */
-const operationsList = ["get", "post", "put", "delete", "patch", "options", "head", "trace"];
+const operationsList = ["get", "post", "put", "delete", "patch", "options", "head", "trace"] as const;
 export const swaggerMethods = ["get", "put", "post", "delete", "options", "head", "patch"] as const;
 
 /**
@@ -77,7 +77,7 @@ function fixOasRelativeServers(schema: OpenAPI.Document, filePath?: string) {
               for (const server of pathItemElement) {
                 fixServers(server, filePath);
               }
-            } else if (operationsList.includes(opItem) && typeof pathItemElement === "object") {
+            } else if (operationsList.includes(opItem as any) && typeof pathItemElement === "object") {
               // servers at operation level
               if ("servers" in pathItemElement && pathItemElement.servers) {
                 for (const server of pathItemElement.servers) {

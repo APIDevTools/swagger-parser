@@ -149,10 +149,10 @@
 
     function makeArrayAccessor(index) {
       Object.defineProperty(obj, index, {
-        get: function () {
+        get () {
           return obj._getter(index);
         },
-        set: function (v) {
+        set (v) {
           obj._setter(index, v);
         },
         enumerable: true,
@@ -498,14 +498,14 @@
 
     // %TypedArray%.from ( source , mapfn=undefined, thisArg=undefined )
     Object.defineProperty($TypedArray$, "from", {
-      value: function (iterable) {
+      value (iterable) {
         return new this(iterable);
       },
     });
 
     // %TypedArray%.of ( ...items )
     Object.defineProperty($TypedArray$, "of", {
-      value: function (/* ...items*/) {
+      value (/* ...items*/) {
         return new this(arguments);
       },
     });
@@ -516,7 +516,7 @@
 
     // WebIDL: getter type (unsigned long index);
     Object.defineProperty($TypedArray$.prototype, "_getter", {
-      value: function (index) {
+      value (index) {
         if (arguments.length < 1) {
           throw SyntaxError("Not enough arguments");
         }
@@ -541,7 +541,7 @@
 
     // WebIDL: setter void (unsigned long index, type value);
     Object.defineProperty($TypedArray$.prototype, "_setter", {
-      value: function (index, value) {
+      value (index, value) {
         if (arguments.length < 2) {
           throw SyntaxError("Not enough arguments");
         }
@@ -570,7 +570,7 @@
 
     // %TypedArray%.prototype.copyWithin (target, start, end = this.length )
     Object.defineProperty($TypedArray$.prototype, "copyWithin", {
-      value: function (target, start) {
+      value (target, start) {
         var end = arguments[2];
 
         var o = ToObject(this);
@@ -627,7 +627,7 @@
 
     // %TypedArray%.prototype.every ( callbackfn, thisArg = undefined )
     Object.defineProperty($TypedArray$.prototype, "every", {
-      value: function (callbackfn) {
+      value (callbackfn) {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -648,7 +648,7 @@
 
     // %TypedArray%.prototype.fill (value, start = 0, end = this.length )
     Object.defineProperty($TypedArray$.prototype, "fill", {
-      value: function (value) {
+      value (value) {
         var start = arguments[1],
           end = arguments[2];
 
@@ -685,7 +685,7 @@
 
     // %TypedArray%.prototype.filter ( callbackfn, thisArg = undefined )
     Object.defineProperty($TypedArray$.prototype, "filter", {
-      value: function (callbackfn) {
+      value (callbackfn) {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -708,7 +708,7 @@
 
     // %TypedArray%.prototype.find (predicate, thisArg = undefined)
     Object.defineProperty($TypedArray$.prototype, "find", {
-      value: function (predicate) {
+      value (predicate) {
         var o = ToObject(this);
         var lenValue = o.length;
         var len = ToUint32(lenValue);
@@ -731,7 +731,7 @@
 
     // %TypedArray%.prototype.findIndex ( predicate, thisArg = undefined )
     Object.defineProperty($TypedArray$.prototype, "findIndex", {
-      value: function (predicate) {
+      value (predicate) {
         var o = ToObject(this);
         var lenValue = o.length;
         var len = ToUint32(lenValue);
@@ -754,7 +754,7 @@
 
     // %TypedArray%.prototype.forEach ( callbackfn, thisArg = undefined )
     Object.defineProperty($TypedArray$.prototype, "forEach", {
-      value: function (callbackfn) {
+      value (callbackfn) {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -772,7 +772,7 @@
 
     // %TypedArray%.prototype.indexOf (searchElement, fromIndex = 0 )
     Object.defineProperty($TypedArray$.prototype, "indexOf", {
-      value: function (searchElement) {
+      value (searchElement) {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -805,7 +805,7 @@
 
     // %TypedArray%.prototype.join ( separator )
     Object.defineProperty($TypedArray$.prototype, "join", {
-      value: function (separator) {
+      value (separator) {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -824,7 +824,7 @@
 
     // %TypedArray%.prototype.lastIndexOf ( searchElement, fromIndex = this.length-1 )
     Object.defineProperty($TypedArray$.prototype, "lastIndexOf", {
-      value: function (searchElement) {
+      value (searchElement) {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -857,7 +857,7 @@
 
     // %TypedArray%.prototype.map ( callbackfn, thisArg = undefined )
     Object.defineProperty($TypedArray$.prototype, "map", {
-      value: function (callbackfn) {
+      value (callbackfn) {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -878,7 +878,7 @@
 
     // %TypedArray%.prototype.reduce ( callbackfn [, initialValue] )
     Object.defineProperty($TypedArray$.prototype, "reduce", {
-      value: function (callbackfn) {
+      value (callbackfn) {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -908,7 +908,7 @@
 
     // %TypedArray%.prototype.reduceRight ( callbackfn [, initialValue] )
     Object.defineProperty($TypedArray$.prototype, "reduceRight", {
-      value: function (callbackfn) {
+      value (callbackfn) {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -938,7 +938,7 @@
 
     // %TypedArray%.prototype.reverse ( )
     Object.defineProperty($TypedArray$.prototype, "reverse", {
-      value: function () {
+      value () {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -959,7 +959,7 @@
     // WebIDL: void set(TypedArray array, optional unsigned long offset);
     // WebIDL: void set(sequence<type> array, optional unsigned long offset);
     Object.defineProperty($TypedArray$.prototype, "set", {
-      value: function (index, value) {
+      value (index, value) {
         if (arguments.length < 1) {
           throw SyntaxError("Not enough arguments");
         }
@@ -1012,7 +1012,7 @@
 
     // %TypedArray%.prototype.slice ( start, end )
     Object.defineProperty($TypedArray$.prototype, "slice", {
-      value: function (start, end) {
+      value (start, end) {
         var o = ToObject(this);
         var lenVal = o.length;
         var len = ToUint32(lenVal);
@@ -1036,7 +1036,7 @@
 
     // %TypedArray%.prototype.some ( callbackfn, thisArg = undefined )
     Object.defineProperty($TypedArray$.prototype, "some", {
-      value: function (callbackfn) {
+      value (callbackfn) {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -1057,7 +1057,7 @@
 
     // %TypedArray%.prototype.sort ( comparefn )
     Object.defineProperty($TypedArray$.prototype, "sort", {
-      value: function (comparefn) {
+      value (comparefn) {
         if (this === undefined || this === null) {
           throw TypeError();
         }
@@ -1082,7 +1082,7 @@
     // %TypedArray%.prototype.subarray(begin = 0, end = this.length )
     // WebIDL: TypedArray subarray(long begin, optional long end);
     Object.defineProperty($TypedArray$.prototype, "subarray", {
-      value: function (start, end) {
+      value (start, end) {
         function clamp(v, min, max) {
           return v < min ? min : v > max ? max : v;
         }
