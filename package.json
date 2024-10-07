@@ -76,7 +76,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "9.0.6",
+    "@apidevtools/json-schema-ref-parser": "11.6.2",
     "@apidevtools/openapi-schemas": "^2.1.0",
     "@apidevtools/swagger-methods": "^3.0.2",
     "@jsdevtools/ono": "^7.1.3",
