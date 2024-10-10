@@ -37,6 +37,7 @@
   "scripts": {
     "clean": "shx rm -rf .nyc_output coverage",
     "lint": "eslint lib test online/src/js",
+    "lint:fix": "eslint --fix lib test online/src/js",
     "build": "npm run build:website && npm run build:sass",
     "build:website": "simplifyify online/src/js/index.js --outfile online/js/bundle.js --bundle --debug --minify",
     "build:sass": "node-sass --source-map true --output-style compressed online/src/scss/style.scss online/css/style.min.css",
@@ -53,13 +54,12 @@
     "release": "npm run clean && npm run build && npm test && npm run bump"
   },
   "devDependencies": {
-    "@jsdevtools/eslint-config": "^1.1.4",
     "@jsdevtools/host-environment": "^2.1.2",
     "@jsdevtools/karma-config": "^3.2.0",
     "@jsdevtools/version-bump-prompt": "^6.1.0",
     "@types/node": "^22.7.5",
     "chai": "^4",
-    "eslint": "^7",
+    "eslint": "^8",
     "eslint-plugin-jsdoc": "^50.3.1",
     "js-yaml": "^4.1.0",
     "karma": "^6.4.4",
