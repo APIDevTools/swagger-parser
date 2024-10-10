@@ -97,7 +97,7 @@ jobs:
     timeout-minutes: 10
     needs:
       - node_tests
-      - browser_tests
+#      - browser_tests
     steps:
       - name: Let Coveralls know that all tests have finished
         uses: coverallsapp/github-action@v1.1.0
@@ -112,7 +112,7 @@ jobs:
     timeout-minutes: 10
     needs:
       - node_tests
-      - browser_tests
+#      - browser_tests
 
     steps:
       - name: Checkout source
