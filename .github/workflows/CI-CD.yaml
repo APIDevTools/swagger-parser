@@ -52,44 +52,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
 
-  browser_tests:
-    name: Browser Tests
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    strategy:
-      fail-fast: true
-      matrix:
-        os:
-          - ubuntu-latest # Chrome, Firefox, Safari (TODO)
-          # - windows-latest    # Internet Explorer, Edge
-
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-
-      - name: Install Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm run coverage:browser
-
-      - name: Combine code coverage data into a single file
-        shell: bash
-        run: |
-          ls -Rlh coverage/*/lcov.info
-          cat coverage/*/lcov.info > ./coverage/lcov.info
-
-      - name: Send code coverage results to Coveralls
-        uses: coverallsapp/github-action@v1.1.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel: true
 
   coverage:
     name: Code Coverage
@@ -97,7 +59,6 @@ jobs:
     timeout-minutes: 10
     needs:
       - node_tests
-#      - browser_tests
     steps:
       - name: Let Coveralls know that all tests have finished
         uses: coverallsapp/github-action@v1.1.0
@@ -112,7 +73,6 @@ jobs:
     timeout-minutes: 10
     needs:
       - node_tests
-#      - browser_tests
 
     steps:
       - name: Checkout source
