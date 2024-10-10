@@ -3,7 +3,7 @@
 # https://jstools.dev/eslint-config/
 
 root: true
-extends: "@jsdevtools"
+extends: "./eslint-config/lib/index.js"
 env:
   node: true
   browser: true

@@ -43,7 +43,7 @@ function dropdowns () {
  * a value in the given drop-down menu.
  *
  * @param {jQuery} menu
- * @param {function} setLabel
+ * @param {Function} setLabel
  */
 function onChange (menu, setLabel) {
   let dropdown = menu.parent(".dropdown");
