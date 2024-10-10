@@ -1,6 +1,5 @@
 "use strict";
 
-const qs = require("querystring");
 const form = require("./form");
 
 module.exports = querystring;
@@ -18,7 +17,8 @@ function querystring () {
  * Populates all form fields based on the query-string in the URL
  */
 function setFormFields () {
-  let query = qs.parse(window.location.search.substr(1));
+  const params = new URLSearchParams(window.location.search);
+  let query = Object.fromEntries(params.entries());
 
   setCheckbox(form.allow.json, query["allow-json"]);
   setCheckbox(form.allow.yaml, query["allow-yaml"]);
@@ -79,6 +79,7 @@ function setBookmarkURL () {
   let url = form.url.val();
   url === "" || (query.url = url);
 
-  let bookmark = "?" + qs.stringify(query);
+  const params = new URLSearchParams(query);
+  let bookmark = "?" + params.toString();
   form.bookmark.attr("href", bookmark);
 }
