@@ -34,6 +34,10 @@ function filesystemPathHelpers () {
      */
     abs (file) {
       file = nodePath.join(testsDir, file || nodePath.sep);
+      if (isWindows) {
+        file = file.replace(/\\/g, "/");  // Convert Windows separators to URL separators
+      }
+
       return file;
     },
 
