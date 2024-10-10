@@ -46,7 +46,7 @@
     "test:browser": "karma start --single-run",
     "test:typescript": "tsc --noEmit --strict --lib esnext,dom test/specs/typescript-definition.spec.ts",
     "coverage": "npm run coverage:node && npm run coverage:browser",
-    "coverage:node": "nyc node_modules/mocha/bin/mocha",
+    "coverage:node": "QUICK_TEST=true nyc mocha",
     "coverage:browser": "npm run test:browser -- --coverage",
     "upgrade": "npm-check -u && npm audit fix",
     "bump": "bump --tag --push --all",
