@@ -20,8 +20,8 @@ describe("Object sources (instead of file paths)", () => {
       path.abs("specs/object-source/definitions/definitions.json"),
       path.abs("specs/object-source/definitions/name.yaml"),
       path.abs("specs/object-source/definitions/required-string.yaml")
-    ];
-    expect(parser.$refs.paths()).to.have.same.members(expectedPaths);
+    ].sort();
+    expect(parser.$refs.paths().sort()).to.have.same.members(expectedPaths);
     expect(parser.$refs.values()).to.have.keys(expectedPaths);
     // Reference equality
     expect(api.paths["/people/{name}"].get.responses["200"].schema)

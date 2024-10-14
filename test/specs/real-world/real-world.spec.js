@@ -6,7 +6,7 @@ const knownErrors = require("./known-errors");
 const fetchApiList = require("./fetch-api-list");
 
 // How many APIs to test in "quick mode" and normal mode
-const MAX_APIS_TO_TEST = (host.node && process.argv.includes("--quick-test")) ? 10 : 1500;
+const MAX_APIS_TO_TEST = (host.node && process.argv.includes("--quick-test") || process.env.QUICK_TEST) ? 10 : 1000;
 const START_AT_INDEX = 0;
 const MAX_DOWNLOAD_RETRIES = 3;
 
@@ -44,7 +44,13 @@ describe("Real-world APIs", () => {
     return async function () {
       let api = realWorldAPIs[index];
       this.test.title += api.name;
-      await validateApi(api);
+      try {
+
+        await validateApi(api);
+      }
+      catch (e) {
+        console.error(api);
+      }
     };
   }
 

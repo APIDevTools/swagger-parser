@@ -34,6 +34,10 @@ function filesystemPathHelpers () {
      */
     abs (file) {
       file = nodePath.join(testsDir, file || nodePath.sep);
+      if (isWindows) {
+        file = file.replace(/\\/g, "/");  // Convert Windows separators to URL separators
+      }
+
       return file;
     },
 
@@ -61,7 +65,11 @@ function filesystemPathHelpers () {
      * Returns the absolute path of the current working directory.
      */
     cwd () {
-      return nodePath.join(process.cwd(), nodePath.sep);
+      let file = nodePath.join(process.cwd(), nodePath.sep);
+      if (isWindows) {
+        file = file.replace(/\\/g, "/");  // Convert Windows separators to URL separators
+      }
+      return file;
     }
   };
 
