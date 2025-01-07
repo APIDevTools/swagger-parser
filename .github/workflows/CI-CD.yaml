@@ -52,7 +52,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
 
-
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
@@ -88,9 +87,9 @@ jobs:
         run: npm ci
 
       - name: Publish to NPM
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Prepare the non-scoped packaged
         run: |
@@ -99,7 +98,7 @@ jobs:
           sed -i "s/X.X.X/${VERSION}/g" dist/package.json
 
       - name: Publish the non-scoped package to NPM
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          package: dist/package.json
+        run: npm publish --provenance --access public
+        working-directory: dist
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
