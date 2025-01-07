@@ -106,6 +106,10 @@ API Documentation
 Full API documentation is available [right here](https://apitools.dev/swagger-parser/docs/)
 
 
+Security
+--------------------------
+The library, by default, attempts to resolve any files referenced using `$ref`, without considering file extensions or the location of the files. This can result in Local File Inclusion (LFI), thus, potentially sensitive information disclosure. Developers must be cautious when working with documents from untrusted sources. See [here](SECURITY.md) for more details and information on how to mitigate LFI.
+
 
 Contributing
 --------------------------
