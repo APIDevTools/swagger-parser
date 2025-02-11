@@ -36,6 +36,8 @@
   ],
   "scripts": {
     "clean": "shx rm -rf .nyc_output coverage",
+    "lint": "eslint lib test",
+    "lint:fix": "eslint --fix lib test",
     "test": "npm run test:node && npm run test:typescript",
     "test:node": "mocha",
     "test:typescript": "tsc --noEmit --strict --lib esnext,dom test/specs/typescript-definition.spec.ts",
