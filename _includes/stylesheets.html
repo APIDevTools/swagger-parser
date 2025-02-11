@@ -1,14 +1,3 @@
-{% if page.url == "/online/" %}
-  {% comment %} Use custom stylesheets for the "Online Demo" page instead of the normal stylesheets {% endcomment %}
-
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/style.min.css">
-
-{% else %}
-  {% comment %} Use the normal stylesheets for all other pages {% endcomment %}
-
-  <!-- {{ page.url }} -->
-  <link rel="stylesheet" href="/css/style.css?v=3" media="screen" type="text/css">
-  <link rel="stylesheet" href="/css/print.css" media="print" type="text/css">
-
-{% endif %}
+<!-- {{ page.url }} -->
+<link rel="stylesheet" href="/css/style.css?v=3" media="screen" type="text/css">
+<link rel="stylesheet" href="/css/print.css" media="print" type="text/css">
