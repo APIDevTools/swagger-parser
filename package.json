@@ -54,7 +54,7 @@
     "@types/node": "^22.7.5",
     "chai": "^4",
     "cross-env": "^7.0.3",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.25.0",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "eslint": "^8",
     "eslint-plugin-jsdoc": "^50.3.1",
