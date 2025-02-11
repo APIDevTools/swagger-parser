@@ -36,20 +36,17 @@
   ],
   "scripts": {
     "clean": "shx rm -rf .nyc_output coverage",
-    "lint": "eslint lib test online/src/js",
-    "lint:fix": "eslint --fix lib test online/src/js",
-    "build": "npm run build:website && npm run build:sass",
-    "build:website": "node build-website.mjs",
-    "build:sass": "sass online/src/scss/style.scss online/css/style.min.css",
-    "test": "npm run test:node && npm run test:typescript && npm run lint",
+    "lint": "eslint lib test",
+    "lint:fix": "eslint --fix lib test",
+    "test": "npm run test:node && npm run test:typescript",
     "test:node": "mocha",
     "test:typescript": "tsc --noEmit --strict --lib esnext,dom test/specs/typescript-definition.spec.ts",
     "coverage": "npm run coverage:node",
     "coverage:node": "cross-env QUICK_TEST=true nyc mocha",
     "upgrade": "npm-check -u && npm audit fix",
     "bump": "bump --tag --push --all",
-    "--release--cannot upgrade or everything breaks": "npm run upgrade && npm run clean && npm run build && npm test && npm run bump",
-    "release": "npm run clean && npm run build && npm test && npm run bump"
+    "--release--cannot upgrade or everything breaks": "npm run upgrade && npm run clean && npm test && npm run bump",
+    "release": "npm run clean && npm test && npm run bump"
   },
   "devDependencies": {
     "@jsdevtools/host-environment": "^2.1.2",

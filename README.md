@@ -112,8 +112,7 @@ Contributing
 --------------------------
 I welcome any contributions, enhancements, and bug-fixes.  [Open an issue](https://github.com/APIDevTools/swagger-parser/issues) on GitHub and [submit a pull request](https://github.com/APIDevTools/swagger-parser/pulls).
 
-#### Building/Testing
-To build/test the project locally on your computer:
+To test the project locally on your computer:
 
 1. __Clone this repo__<br>
 `git clone https://github.com/APIDevTools/swagger-parser.git`
@@ -121,20 +120,17 @@ To build/test the project locally on your computer:
 2. __Install dependencies__<br>
 `npm install`
 
-3. __Run the build script__<br>
-`npm run build`
-
-4. __Run the tests__<br>
+3. __Run the tests__<br>
 `npm test`
 
-5. __Check the code coverage__<br>
+4. __Check the code coverage__<br>
 `npm run coverage`
 
 License
 --------------------------
 Swagger Parser is 100% free and open-source, under the [MIT license](LICENSE). Use it however you want.
 
-This package is [Treeware](http://treeware.earth). If you use it in production, then we ask that you [**buy the world a tree**](https://plant.treeware.earth/APIDevTools/swagger-parser) to thank us for our work. By contributing to the Treeware forest you’ll be creating employment for local families and restoring wildlife habitats.
+This package is [Treeware](http://treeware.earth). If you use it in production, then we ask that you [**buy the world a tree**](https://shop.protect.earth) to thank us for our work.
 
 
 
