@@ -60,7 +60,7 @@ catch(err) {
 }
 ```
 
-For more detailed examples, please see the [API Documentation](https://apitools.dev/swagger-parser/docs/)
+For more detailed examples, please see the [API Documentation](https://apitools.dev/swagger-parser/)
 
 
 
