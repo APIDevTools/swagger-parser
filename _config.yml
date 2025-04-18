@@ -1,7 +1,7 @@
 remote_theme: APIDevTools/gh-pages-theme
 
 title: Swagger Parser
-logo: https://apitools.dev/img/logos/logo.png
+logo: https://apidevtools.com/img/logos/logo.png
 
 author:
   twitter: APIDevTools
@@ -16,7 +16,7 @@ defaults:
   - scope:
       path: ""
     values:
-      image: https://apitools.dev/img/logos/card.png
+      image: https://apidevtools.com/img/logos/card.png
 
   - scope:
       path: "test/specs/**/*"
