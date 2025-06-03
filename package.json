@@ -49,6 +49,8 @@
     "release": "npm run clean && npm test && npm run bump"
   },
   "devDependencies": {
+    "@eslint/compat": "^1.2.9",
+    "@eslint/js": "^9.28.0",
     "@jsdevtools/host-environment": "^2.1.2",
     "@jsdevtools/version-bump-prompt": "^6.1.0",
     "@types/node": "^22.15.29",
@@ -56,24 +58,29 @@
     "cross-env": "^7.0.3",
     "esbuild": "^0.25.5",
     "esbuild-plugin-polyfill-node": "^0.3.0",
-    "eslint": "^9",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-jsdoc": "^50.7.1",
+    "eslint-plugin-prettier": "^5.4.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "globals": "^16.2.0",
     "js-yaml": "^4.1.0",
     "mocha": "^11.5.0",
     "node-fetch": "^3",
     "npm-check": "^6.0.1",
     "nyc": "^17.1.0",
     "openapi-types": "^12.1.3",
+    "prettier": "^3.5.3",
     "sass": "^1.89.1",
     "shx": "^0.4.0",
     "sinon": "^20.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.1"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "13.0.0",
     "@apidevtools/openapi-schemas": "^2.1.0",
     "@apidevtools/swagger-methods": "^3.0.2",
-    "@jsdevtools/ono": "^7.1.3",
     "ajv": "^8.17.1",
     "ajv-draft-04": "^1.0.0",
     "call-me-maybe": "^1.0.2"

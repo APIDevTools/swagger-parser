@@ -8,9 +8,9 @@ paths:
     get:
       responses:
         "default":
-          description:  hello world
+          description: hello world
           headers:
             Content-Type:
               type: string
             Last-Modified:
-              type: object      # <--- Not a valid header type
+              type: object # <--- Not a valid header type

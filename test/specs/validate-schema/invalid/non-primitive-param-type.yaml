@@ -8,8 +8,8 @@ paths:
     parameters:
       - name: user
         in: query
-        type: object      # <---- only primitive types are allowed for params
+        type: object # <---- only primitive types are allowed for params
     post:
       responses:
         default:
-          description:  hello world
+          description: hello world

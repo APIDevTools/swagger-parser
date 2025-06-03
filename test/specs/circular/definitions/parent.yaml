@@ -6,4 +6,4 @@ properties:
   children:
     type: array
     items:
-      $ref: child.yaml   # indirect circular reference
+      $ref: child.yaml # indirect circular reference

@@ -10,10 +10,10 @@ paths:
         in: path
         required: true
         type: string
-      - name: img_id     # <--- Error! Missing "required: true"
+      - name: img_id # <--- Error! Missing "required: true"
         in: path
         type: number
     get:
       responses:
         default:
-          description:  hello world
+          description: hello world

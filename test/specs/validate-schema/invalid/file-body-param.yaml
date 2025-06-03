@@ -13,8 +13,8 @@ paths:
       - name: image
         in: body
         schema:
-          type: file      # <--- The "file" type can't be used with "body" params
+          type: file # <--- The "file" type can't be used with "body" params
     post:
       responses:
         default:
-          description:  hello world
+          description: hello world

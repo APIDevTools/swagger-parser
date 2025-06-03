@@ -1,9 +1,0 @@
-# ESLint config
-# http://eslint.org/docs/user-guide/configuring
-# https://jstools.dev/eslint-config/
-
-root: true
-extends: "./eslint-config/lib/index.js"
-env:
-  node: true
-  browser: true

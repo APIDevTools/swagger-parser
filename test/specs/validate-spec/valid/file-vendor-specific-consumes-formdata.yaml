@@ -12,10 +12,10 @@ paths:
         required: true
       - name: image
         in: formData
-        type: file      # <--- "file" params REQUIRE multipart/form-data or application/x-www-form-urlencoded
+        type: file # <--- "file" params REQUIRE multipart/form-data or application/x-www-form-urlencoded
     post:
       consumes:
-        - multipart/vnd.specific+form-data;version=1.0    # <--- Vendor specific version of multipart/form-data with a parameter
+        - multipart/vnd.specific+form-data;version=1.0 # <--- Vendor specific version of multipart/form-data with a parameter
       responses:
         default:
-          description:  hello world
+          description: hello world

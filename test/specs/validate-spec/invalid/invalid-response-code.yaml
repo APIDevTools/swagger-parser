@@ -7,5 +7,5 @@ paths:
   /users:
     get:
       responses:
-        "888":                        # <----- Invalid HTTP response code
-          description:  hello world
+        "888": # <----- Invalid HTTP response code
+          description: hello world

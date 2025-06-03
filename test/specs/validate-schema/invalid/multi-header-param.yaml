@@ -11,8 +11,8 @@ paths:
         type: array
         items:
           type: string
-        collectionFormat: multi     # <--- Not valid for header params
+        collectionFormat: multi # <--- Not valid for header params
     get:
       responses:
         default:
-          description:  hello world
+          description: hello world

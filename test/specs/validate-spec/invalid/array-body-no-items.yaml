@@ -13,4 +13,4 @@ paths:
     post:
       responses:
         default:
-          description:  hello world
+          description: hello world

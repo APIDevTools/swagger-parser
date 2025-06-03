@@ -8,6 +8,6 @@ paths:
     get:
       responses:
         "default":
-          description:  hello world
+          description: hello world
           schema:
-            type: user    # <--- Invalid response type
+            type: user # <--- Invalid response type

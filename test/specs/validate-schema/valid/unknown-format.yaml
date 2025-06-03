@@ -8,16 +8,16 @@ paths:
     get:
       responses:
         default:
-          description:  hello world
+          description: hello world
           schema:
             type: object
             properties:
               foo:
                 type: boolean
-                format: falsy             # <--- Unknown boolean format
+                format: falsy # <--- Unknown boolean format
               bar:
                 type: integer
-                format: abignumber        # <--- Unknown integer format
+                format: abignumber # <--- Unknown integer format
               baz:
                 type: string
-                format: customdateformat  # <--- Unknown string format
+                format: customdateformat # <--- Unknown string format

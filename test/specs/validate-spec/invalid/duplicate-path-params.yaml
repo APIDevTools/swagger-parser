@@ -10,7 +10,7 @@ paths:
         in: path
         required: true
         type: string
-      - name: foo           # <---- Duplicate param
+      - name: foo # <---- Duplicate param
         in: header
         type: string
         required: false
@@ -21,11 +21,11 @@ paths:
         in: body
         schema:
           type: string
-      - name: foo           # <---- Duplicate param
+      - name: foo # <---- Duplicate param
         in: header
         type: number
         required: true
     get:
       responses:
         default:
-          description:  hello world
+          description: hello world

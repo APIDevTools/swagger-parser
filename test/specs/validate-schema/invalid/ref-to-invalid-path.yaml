@@ -7,7 +7,7 @@ paths:
   /users:
     $ref: "#/definitions/users/default"
   /products:
-    $ref: "#/definitions/products"       # <--- Points to the "products" MODEL, not a Path
+    $ref: "#/definitions/products" # <--- Points to the "products" MODEL, not a Path
 
 definitions:
   users:
@@ -15,7 +15,7 @@ definitions:
       get:
         responses:
           default:
-            description:  hello world
+            description: hello world
 
   products:
     type: object

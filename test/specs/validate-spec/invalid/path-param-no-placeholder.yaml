@@ -4,7 +4,7 @@ info:
   title: Invalid API
 
 paths:
-  /users/{username}:        # <---- {username} placeholder
+  /users/{username}: # <---- {username} placeholder
     parameters:
       - name: username
         in: path
@@ -26,17 +26,17 @@ paths:
             type: number
       responses:
         default:
-          description:  hello world
+          description: hello world
     post:
       parameters:
         - name: username
           in: path
           required: true
           type: string
-        - name: foo         # <---- There is no {foo} placeholder
+        - name: foo # <---- There is no {foo} placeholder
           in: path
           required: true
           type: number
       responses:
         default:
-          description:  hello world
+          description: hello world

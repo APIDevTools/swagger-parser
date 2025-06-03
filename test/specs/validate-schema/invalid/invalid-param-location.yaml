@@ -11,9 +11,9 @@ paths:
         required: true
         type: string
       - name: img_id
-        in: cookie        # <--- "cookie" is not a valid Swagger param location
+        in: cookie # <--- "cookie" is not a valid Swagger param location
         type: number
     get:
       responses:
         default:
-          description:  hello world
+          description: hello world

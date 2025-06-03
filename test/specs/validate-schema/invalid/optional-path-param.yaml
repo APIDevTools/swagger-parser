@@ -12,9 +12,9 @@ paths:
         type: string
       - name: img_id
         in: path
-        required: false     # <--- Error! Path params *must* be required
+        required: false # <--- Error! Path params *must* be required
         type: number
     get:
       responses:
         default:
-          description:  hello world
+          description: hello world

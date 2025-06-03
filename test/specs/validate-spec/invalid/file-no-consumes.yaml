@@ -12,8 +12,8 @@ paths:
         required: true
       - name: image
         in: formData
-        type: file      # <--- "file" type requires "consumes" to be specified
+        type: file # <--- "file" type requires "consumes" to be specified
     post:
       responses:
         default:
-          description:  hello world
+          description: hello world

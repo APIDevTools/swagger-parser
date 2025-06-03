@@ -11,7 +11,7 @@ paths:
         required: true
         type: string
       - name: username
-        in: body          # <---- Body param #1
+        in: body # <---- Body param #1
         schema:
           type: string
       - name: bar
@@ -19,10 +19,10 @@ paths:
         type: number
         required: true
       - name: bar
-        in: body          # <---- Body param #2
+        in: body # <---- Body param #2
         schema:
           type: number
     get:
       responses:
         default:
-          description:  hello world
+          description: hello world

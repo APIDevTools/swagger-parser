@@ -6,9 +6,9 @@
 
 The library, by default, attempts to resolve any files pointed to by `$ref`, which can be a problem in specific scenarios, for example:
 
- * A backend service uses the library, AND
- * The service processes OpenAPI documents from untrusted sources, AND
- * The service performs actual requests based on the processed OpenAPI document
+- A backend service uses the library, AND
+- The service processes OpenAPI documents from untrusted sources, AND
+- The service performs actual requests based on the processed OpenAPI document
 
 For example, the below OpenAPI document refers to `/etc/passwd` via the `leak` property of the Pet object.
 
@@ -30,7 +30,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
+              $ref: "#/components/schemas/Pet"
         required: true
 components:
   schemas:
@@ -46,8 +46,8 @@ components:
           example: 10
         leak:
           type: string
-          default: 
-            $ref: '/etc/passwd'
+          default:
+            $ref: "/etc/passwd"
         name:
           type: string
           example: doggie
@@ -110,16 +110,16 @@ Configuring the file resolver this way only partially mitigates LFI. See the nex
 
 With the previously mentioned mitigation in place, an attacker could still craft a malicious OpenAPI document to make the library read arbitrary JSON or YAML files on the filesystem and potentially gain access to sensitive data (e.g. credentials). This is possible if:
 
- * The actor knows (or successfully guesses) the location of a JSON or YAML file on the file system
- * The service using the library has privileges to read the file
- * The service using the library sends requests to the server specified in the OpenAPI document
+- The actor knows (or successfully guesses) the location of a JSON or YAML file on the file system
+- The service using the library has privileges to read the file
+- The service using the library sends requests to the server specified in the OpenAPI document
 
 You can prevent exploitation by hardening the environment in which the service is running:
 
- * The service should run under its own dedicated user account
- * File system permissions should be configured so that the service cannot read any YAML or JSON files not owned by the service user
+- The service should run under its own dedicated user account
+- File system permissions should be configured so that the service cannot read any YAML or JSON files not owned by the service user
 
 If you have any YAML or JSON files the service must have access to that may contain sensitive information, such as configuration file(s), you must take additional measures to prevent exploitation. A non-exhaustive list:
 
- * You can implement your service so that it reads the configuration into memory at start time, then uses [setuid](https://nodejs.org/api/process.html#processsetuidid) and [setgid](https://nodejs.org/api/process.html#processsetgidid) to set the process' UID and GID to the ID of a user and ID of a group that has no access to the file on the filesystem
- * Do not store sensitive information, such as credentials, in the service configuration files
+- You can implement your service so that it reads the configuration into memory at start time, then uses [setuid](https://nodejs.org/api/process.html#processsetuidid) and [setgid](https://nodejs.org/api/process.html#processsetgidid) to set the process' UID and GID to the ID of a user and ID of a group that has no access to the file on the filesystem
+- Do not store sensitive information, such as credentials, in the service configuration files

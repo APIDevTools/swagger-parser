@@ -8,9 +8,9 @@ paths:
     get:
       responses:
         default:
-          description:  hello world
+          description: hello world
           schema:
-            oneOf:                  # <--- "oneOf" is not supported by Swagger 2.0.  Only "allOf" is supported.
+            oneOf: # <--- "oneOf" is not supported by Swagger 2.0.  Only "allOf" is supported.
               - properties:
                   firstName:
                     type: string

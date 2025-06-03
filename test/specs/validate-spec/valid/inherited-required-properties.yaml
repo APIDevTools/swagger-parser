@@ -1,4 +1,4 @@
-swagger: '2.0'
+swagger: "2.0"
 schemes:
   - https
 host: api.iqualify.com
@@ -19,14 +19,14 @@ paths:
           name: offering
           required: true
           schema:
-            $ref: '#/definitions/OfferingRequired'
+            $ref: "#/definitions/OfferingRequired"
       produces:
         - application/json
       responses:
-        '201':
+        "201":
           description: offering created
           schema:
-            $ref: '#/definitions/OfferingMetadataResponse'
+            $ref: "#/definitions/OfferingMetadataResponse"
       summary: Create offering
 definitions:
   Offering:
@@ -47,9 +47,9 @@ definitions:
         type: string
   OfferingRequired:
     allOf:
-      - $ref: '#/definitions/Offering'
+      - $ref: "#/definitions/Offering"
     required:
-      - contentId                        # <-- all required properties are inherited
+      - contentId # <-- all required properties are inherited
       - start
       - end
   OfferingMetadataResponse:

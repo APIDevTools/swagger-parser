@@ -22,7 +22,7 @@ jobs:
           - macos-latest
           - windows-latest
         node:
-          - 20
+          - 22
 
     steps:
       - name: Checkout source
@@ -32,19 +32,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-          cache: "npm"
+          cache: "yarn"
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --immutable
 
       - name: Run linter
-        run: npm run lint
+        run: yarn lint
 
       - name: Run TypeScript tests
-        run: npm run test:typescript
+        run: yarn test:typescript
 
       - name: Run Node tests
-        run: npm run coverage:node
+        run: yarn coverage:node
 
       - name: Send code coverage results to Coveralls
         uses: coverallsapp/github-action@v1.1.0
@@ -74,33 +74,14 @@ jobs:
       - node_tests
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-
-      - name: Install Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: "npm"
+          node-version: latest
+          cache: "yarn"
+      - run: yarn install --immutable
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Publish to NPM
-        run: npm publish --provenance --access public
+      - run: npx semantic-release --branches main
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Prepare the non-scoped packaged
-        run: |
-          cp LICENSE *.md dist
-          VERSION=$(node -e "console.log(require('./package.json').version)")
-          sed -i "s/X.X.X/${VERSION}/g" dist/package.json
-
-      - name: Publish the non-scoped package to NPM
-        run: npm publish --provenance --access public
-        working-directory: dist
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

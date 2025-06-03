@@ -4,9 +4,9 @@ info:
   title: Invalid API
 
 paths:
-  /users/{username}/{foo}:        # <---- {username} and {foo} placeholders
+  /users/{username}/{foo}: # <---- {username} and {foo} placeholders
     parameters:
-      - name: username            # <---- "username" path param
+      - name: username # <---- "username" path param
         in: path
         required: true
         type: string
@@ -15,7 +15,7 @@ paths:
         schema:
           type: string
     get:
-      parameters:                   # <---- there's no "foo" path param
+      parameters: # <---- there's no "foo" path param
         - name: username
           in: path
           required: true
@@ -26,13 +26,13 @@ paths:
             type: number
       responses:
         default:
-          description:  hello world
+          description: hello world
     post:
-      parameters:                   # <---- there's no "foo" path param
+      parameters: # <---- there's no "foo" path param
         - name: username
           in: path
           required: true
           type: string
       responses:
         default:
-          description:  hello world
+          description: hello world

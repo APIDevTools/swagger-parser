@@ -12,4 +12,4 @@ paths:
     get:
       responses:
         default:
-          description:  hello world
+          description: hello world

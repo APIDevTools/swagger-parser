@@ -63,24 +63,24 @@ definitions:
     items:
       $ref: "#/definitions/product"
     required:
-      - items    # <--- Should not be validated since type is not object
+      - items # <--- Should not be validated since type is not object
   mood:
     type: string
     example: nostalgic
     required:
-      - length    # <--- Should not be validated since type is not object
+      - length # <--- Should not be validated since type is not object
   temperature:
     type: number
     example: 86
     required:
-      - precision    # <--- Should not be validated since type is not object
+      - precision # <--- Should not be validated since type is not object
   age:
     type: integer
     example: 42
     required:
-      - factors    # <--- Should not be validated since type is not object
+      - factors # <--- Should not be validated since type is not object
   hunger:
     type: boolean
     example: true
     required:
-      - truth    # <--- Should not be validated since type is not object
+      - truth # <--- Should not be validated since type is not object

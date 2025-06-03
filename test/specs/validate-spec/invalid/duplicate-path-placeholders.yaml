@@ -4,7 +4,7 @@ info:
   title: Invalid API
 
 paths:
-  /users/{username}/profile/{username}/image/{img_id}:   # <---- duplicate {username} placeholders
+  /users/{username}/profile/{username}/image/{img_id}: # <---- duplicate {username} placeholders
     parameters:
       - name: username
         in: path
@@ -17,4 +17,4 @@ paths:
     get:
       responses:
         default:
-          description:  hello world
+          description: hello world

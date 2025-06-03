@@ -7,7 +7,7 @@ paths:
   /users/{username}:
     get:
       parameters:
-        - name: username           # <---- Duplicate param
+        - name: username # <---- Duplicate param
           in: path
           required: true
           type: string
@@ -22,10 +22,10 @@ paths:
           in: body
           schema:
             type: string
-        - name: username           # <---- Duplicate param
+        - name: username # <---- Duplicate param
           in: path
           type: number
           required: true
       responses:
         default:
-          description:  hello world
+          description: hello world

@@ -9,9 +9,9 @@ paths:
       operationId: users
       responses:
         default:
-          description:  hello world
+          description: hello world
     post:
-      operationId: users          # <---- duplicate
+      operationId: users # <---- duplicate
       responses:
         default:
-          description:  hello world
+          description: hello world

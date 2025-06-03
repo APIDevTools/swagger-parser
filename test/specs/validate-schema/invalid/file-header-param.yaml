@@ -12,8 +12,8 @@ paths:
         required: true
       - name: image
         in: header
-        type: file      # <--- The "file" type can't be used with "header" params
+        type: file # <--- The "file" type can't be used with "header" params
     post:
       responses:
         default:
-          description:  hello world
+          description: hello world

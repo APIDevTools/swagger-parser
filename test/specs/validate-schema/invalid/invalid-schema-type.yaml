@@ -9,8 +9,8 @@ paths:
       - name: user
         in: body
         schema:
-          type: user      # <---- "user" is not a valid JSON Schema type
+          type: user # <---- "user" is not a valid JSON Schema type
     post:
       responses:
         default:
-          description:  hello world
+          description: hello world

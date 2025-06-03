@@ -11,7 +11,7 @@ paths:
         required: true
         type: string
       - name: username
-        in: body          # <---- Body param #1
+        in: body # <---- Body param #1
         schema:
           type: string
     get:
@@ -24,13 +24,13 @@ paths:
           in: header
           type: number
           required: true
-        - name: username  # <---- Not an error. This just overrides the path-level param
+        - name: username # <---- Not an error. This just overrides the path-level param
           in: body
           schema:
             type: number
       responses:
         default:
-          description:  hello world
+          description: hello world
     post:
       parameters:
         - name: username
@@ -42,9 +42,9 @@ paths:
           type: number
           required: true
         - name: bar
-          in: body          # <---- Body param #2
+          in: body # <---- Body param #2
           schema:
             type: number
       responses:
         default:
-          description:  hello world
+          description: hello world

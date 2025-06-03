@@ -8,8 +8,8 @@ paths:
     parameters:
       - name: user
         in: query
-        type: user      # <---- "user" is not a valid param type
+        type: user # <---- "user" is not a valid param type
     post:
       responses:
         default:
-          description:  hello world
+          description: hello world
