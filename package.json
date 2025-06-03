@@ -1,6 +1,6 @@
 {
   "name": "@apidevtools/swagger-parser",
-  "version": "10.1.1",
+  "version": "11.0.0",
   "description": "Swagger 2.0 and OpenAPI 3.0 parser and validator for Node and browsers",
   "keywords": [
     "swagger",
@@ -19,10 +19,15 @@
     "reference",
     "dereference"
   ],
-  "author": {
-    "name": "James Messinger",
-    "url": "https://jamesmessinger.com"
-  },
+  "contributors": [
+    {
+      "name": "James Messinger"
+    },
+    {
+      "name": "JonLuca DeCaro",
+      "email": "apis@jonlu.ca"
+    }
+  ],
   "homepage": "https://apidevtools.com/swagger-parser/",
   "repository": {
     "type": "git",
