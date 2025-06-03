@@ -58,7 +58,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       valid: false,
       file: "path-param-no-placeholder.yaml",
       error:
-        'Validation failed. /paths/users/{username}/post has a path parameter named \"foo\", but there is no corresponding {foo} in the path string',
+        "Validation failed. /paths/users/{username}/post has a path parameter named \"foo\", but there is no corresponding {foo} in the path string",
     },
     {
       name: "path placeholder with no param",
@@ -86,43 +86,43 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       valid: false,
       file: "array-no-items.yaml",
       error:
-        'Validation failed. /paths/users/get/parameters/tags is an array, so it must include an \"items\" schema',
+        "Validation failed. /paths/users/get/parameters/tags is an array, so it must include an \"items\" schema",
     },
     {
       name: "array body param without items",
       valid: false,
       file: "array-body-no-items.yaml",
       error:
-        'Validation failed. /paths/users/post/parameters/people is an array, so it must include an \"items\" schema',
+        "Validation failed. /paths/users/post/parameters/people is an array, so it must include an \"items\" schema",
     },
     {
       name: "array response header without items",
       valid: false,
       file: "array-response-header-no-items.yaml",
       error:
-        'Validation failed. /paths/users/get/responses/default/headers/Last-Modified is an array, so it must include an \"items\" schema',
+        "Validation failed. /paths/users/get/responses/default/headers/Last-Modified is an array, so it must include an \"items\" schema",
     },
     {
-      name: '"file" param without "consumes"',
+      name: "\"file\" param without \"consumes\"",
       valid: false,
       file: "file-no-consumes.yaml",
       error:
         "Validation failed. /paths/users/{username}/profile/image/post has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded",
     },
     {
-      name: '"file" param with invalid "consumes"',
+      name: "\"file\" param with invalid \"consumes\"",
       valid: false,
       file: "file-invalid-consumes.yaml",
       error:
         "Validation failed. /paths/users/{username}/profile/image/post has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded",
     },
     {
-      name: '"file" param with vendor specific form-data "consumes"',
+      name: "\"file\" param with vendor specific form-data \"consumes\"",
       valid: true,
       file: "file-vendor-specific-consumes-formdata.yaml",
     },
     {
-      name: '"file" param with vendor specific urlencoded "consumes"',
+      name: "\"file\" param with vendor specific urlencoded \"consumes\"",
       valid: true,
       file: "file-vendor-specific-consumes-urlencoded.yaml",
     },
@@ -156,7 +156,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       valid: false,
       file: "array-response-body-no-items.yaml",
       error:
-        'Validation failed. /paths/users/get/responses/200/schema is an array, so it must include an \"items\" schema',
+        "Validation failed. /paths/users/get/responses/200/schema is an array, so it must include an \"items\" schema",
     },
     {
       name: "only validate required properties on objects",
@@ -165,7 +165,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
     },
   ];
 
-  it('should pass validation if "options.validate.spec" is false', async () => {
+  it("should pass validation if \"options.validate.spec\" is false", async () => {
     let invalid = tests[0];
     expect(invalid.valid).to.equal(false);
 

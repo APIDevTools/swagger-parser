@@ -1,271 +1,271 @@
-'use strict';
+"use strict";
 
 module.exports = {
-	swagger: '2.0',
-	info: {
-		version: '1.0.0',
-		description:
-      'This API contains a VERY DEEP circular (recursive) JSON reference',
-		title: 'Deep Circular $Ref',
-	},
-	paths: {
-		'/family-tree': {
-			get: {
-				responses: {
-					200: {
-						description: 'Returns a really deep family tree',
-						schema: {
-							type: 'object',
-							required: ['name'],
-							properties: {
-								level1: {
-									required: ['name'],
-									type: 'object',
-									properties: {
-										level2: {
-											required: ['name'],
-											type: 'object',
-											properties: {
-												level3: {
-													required: ['name'],
-													type: 'object',
-													properties: {
-														level4: {
-															required: ['name'],
-															type: 'object',
-															properties: {
-																name: {
-																	$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-																},
-																level5: {
-																	required: ['name'],
-																	type: 'object',
-																	properties: {
-																		name: {
-																			$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-																		},
-																		level6: {
-																			required: ['name'],
-																			type: 'object',
-																			properties: {
-																				name: {
-																					$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-																				},
-																				level7: {
-																					required: ['name'],
-																					type: 'object',
-																					properties: {
-																						level8: {
-																							required: ['name'],
-																							type: 'object',
-																							properties: {
-																								level9: {
-																									required: ['name'],
-																									type: 'object',
-																									properties: {
-																										level10: {
-																											required: ['name'],
-																											type: 'object',
-																											properties: {
-																												level11: {
-																													required: ['name'],
-																													type: 'object',
-																													properties: {
-																														level12: {
-																															required: [
-																																'name',
-																															],
-																															type: 'object',
-																															properties: {
-																																level13: {
-																																	required: [
-																																		'name',
-																																	],
-																																	type: 'object',
-																																	properties: {
-																																		name: {
-																																			$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-																																		},
-																																		level14: {
-																																			required:
+  swagger: "2.0",
+  info: {
+    version: "1.0.0",
+    description:
+      "This API contains a VERY DEEP circular (recursive) JSON reference",
+    title: "Deep Circular $Ref",
+  },
+  paths: {
+    "/family-tree": {
+      get: {
+        responses: {
+          200: {
+            description: "Returns a really deep family tree",
+            schema: {
+              type: "object",
+              required: ["name"],
+              properties: {
+                level1: {
+                  required: ["name"],
+                  type: "object",
+                  properties: {
+                    level2: {
+                      required: ["name"],
+                      type: "object",
+                      properties: {
+                        level3: {
+                          required: ["name"],
+                          type: "object",
+                          properties: {
+                            level4: {
+                              required: ["name"],
+                              type: "object",
+                              properties: {
+                                name: {
+                                  $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                },
+                                level5: {
+                                  required: ["name"],
+                                  type: "object",
+                                  properties: {
+                                    name: {
+                                      $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                    },
+                                    level6: {
+                                      required: ["name"],
+                                      type: "object",
+                                      properties: {
+                                        name: {
+                                          $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                        },
+                                        level7: {
+                                          required: ["name"],
+                                          type: "object",
+                                          properties: {
+                                            level8: {
+                                              required: ["name"],
+                                              type: "object",
+                                              properties: {
+                                                level9: {
+                                                  required: ["name"],
+                                                  type: "object",
+                                                  properties: {
+                                                    level10: {
+                                                      required: ["name"],
+                                                      type: "object",
+                                                      properties: {
+                                                        level11: {
+                                                          required: ["name"],
+                                                          type: "object",
+                                                          properties: {
+                                                            level12: {
+                                                              required: [
+                                                                "name",
+                                                              ],
+                                                              type: "object",
+                                                              properties: {
+                                                                level13: {
+                                                                  required: [
+                                                                    "name",
+                                                                  ],
+                                                                  type: "object",
+                                                                  properties: {
+                                                                    name: {
+                                                                      $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                    },
+                                                                    level14: {
+                                                                      required:
                                                                         [
-                                                                        	'name',
+                                                                          "name",
                                                                         ],
-																																			type: 'object',
-																																			properties:
+                                                                      type: "object",
+                                                                      properties:
                                                                         {
-                                                                        	name: {
-                                                                        		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                        	},
-                                                                        	level15:
+                                                                          name: {
+                                                                            $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                          },
+                                                                          level15:
                                                                             {
-                                                                            	required:
+                                                                              required:
                                                                                 [
-                                                                                	'name',
+                                                                                  "name",
                                                                                 ],
-                                                                            	type: 'object',
-                                                                            	properties:
+                                                                              type: "object",
+                                                                              properties:
                                                                                 {
-                                                                                	level16:
+                                                                                  level16:
                                                                                     {
-                                                                                    	required:
+                                                                                      required:
                                                                                         [
-                                                                                        	'name',
+                                                                                          "name",
                                                                                         ],
-                                                                                    	type: 'object',
-                                                                                    	properties:
+                                                                                      type: "object",
+                                                                                      properties:
                                                                                         {
-                                                                                        	name: {
-                                                                                        		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                        	},
-                                                                                        	level17:
+                                                                                          name: {
+                                                                                            $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                          },
+                                                                                          level17:
                                                                                             {
-                                                                                            	required:
+                                                                                              required:
                                                                                                 [
-                                                                                                	'name',
+                                                                                                  "name",
                                                                                                 ],
-                                                                                            	type: 'object',
-                                                                                            	properties:
+                                                                                              type: "object",
+                                                                                              properties:
                                                                                                 {
-                                                                                                	level18:
+                                                                                                  level18:
                                                                                                     {
-                                                                                                    	required:
+                                                                                                      required:
                                                                                                         [
-                                                                                                        	'name',
+                                                                                                          "name",
                                                                                                         ],
-                                                                                                    	type: 'object',
-                                                                                                    	properties:
+                                                                                                      type: "object",
+                                                                                                      properties:
                                                                                                         {
-                                                                                                        	level19:
+                                                                                                          level19:
                                                                                                             {
-                                                                                                            	required:
+                                                                                                              required:
                                                                                                                 [
-                                                                                                                	'name',
+                                                                                                                  "name",
                                                                                                                 ],
-                                                                                                            	type: 'object',
-                                                                                                            	properties:
+                                                                                                              type: "object",
+                                                                                                              properties:
                                                                                                                 {
-                                                                                                                	level20:
+                                                                                                                  level20:
                                                                                                                     {
-                                                                                                                    	required:
+                                                                                                                      required:
                                                                                                                         [
-                                                                                                                        	'name',
+                                                                                                                          "name",
                                                                                                                         ],
-                                                                                                                    	type: 'object',
-                                                                                                                    	properties:
+                                                                                                                      type: "object",
+                                                                                                                      properties:
                                                                                                                         {
-                                                                                                                        	level21:
+                                                                                                                          level21:
                                                                                                                             {
-                                                                                                                            	required:
+                                                                                                                              required:
                                                                                                                                 [
-                                                                                                                                	'name',
+                                                                                                                                  "name",
                                                                                                                                 ],
-                                                                                                                            	type: 'object',
-                                                                                                                            	properties:
+                                                                                                                              type: "object",
+                                                                                                                              properties:
                                                                                                                                 {
-                                                                                                                                	level22:
+                                                                                                                                  level22:
                                                                                                                                     {
-                                                                                                                                    	required:
+                                                                                                                                      required:
                                                                                                                                         [
-                                                                                                                                        	'name',
+                                                                                                                                          "name",
                                                                                                                                         ],
-                                                                                                                                    	type: 'object',
-                                                                                                                                    	properties:
+                                                                                                                                      type: "object",
+                                                                                                                                      properties:
                                                                                                                                         {
-                                                                                                                                        	level23:
+                                                                                                                                          level23:
                                                                                                                                             {
-                                                                                                                                            	required:
+                                                                                                                                              required:
                                                                                                                                                 [
-                                                                                                                                                	'name',
+                                                                                                                                                  "name",
                                                                                                                                                 ],
-                                                                                                                                            	type: 'object',
-                                                                                                                                            	properties:
+                                                                                                                                              type: "object",
+                                                                                                                                              properties:
                                                                                                                                                 {
-                                                                                                                                                	name: {
-                                                                                                                                                		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                                                                	},
-                                                                                                                                                	level24:
+                                                                                                                                                  name: {
+                                                                                                                                                    $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                                                                  },
+                                                                                                                                                  level24:
                                                                                                                                                     {
-                                                                                                                                                    	required:
+                                                                                                                                                      required:
                                                                                                                                                         [
-                                                                                                                                                        	'name',
+                                                                                                                                                          "name",
                                                                                                                                                         ],
-                                                                                                                                                    	type: 'object',
-                                                                                                                                                    	properties:
+                                                                                                                                                      type: "object",
+                                                                                                                                                      properties:
                                                                                                                                                         {
-                                                                                                                                                        	name: {
-                                                                                                                                                        		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                                                                        	},
-                                                                                                                                                        	level25:
+                                                                                                                                                          name: {
+                                                                                                                                                            $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                                                                          },
+                                                                                                                                                          level25:
                                                                                                                                                             {
-                                                                                                                                                            	required:
+                                                                                                                                                              required:
                                                                                                                                                                 [
-                                                                                                                                                                	'name',
+                                                                                                                                                                  "name",
                                                                                                                                                                 ],
-                                                                                                                                                            	type: 'object',
-                                                                                                                                                            	properties:
+                                                                                                                                                              type: "object",
+                                                                                                                                                              properties:
                                                                                                                                                                 {
-                                                                                                                                                                	name: {
-                                                                                                                                                                		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                                                                                	},
-                                                                                                                                                                	level26:
+                                                                                                                                                                  name: {
+                                                                                                                                                                    $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                                                                                  },
+                                                                                                                                                                  level26:
                                                                                                                                                                     {
-                                                                                                                                                                    	required:
+                                                                                                                                                                      required:
                                                                                                                                                                         [
-                                                                                                                                                                        	'name',
+                                                                                                                                                                          "name",
                                                                                                                                                                         ],
-                                                                                                                                                                    	type: 'object',
-                                                                                                                                                                    	properties:
+                                                                                                                                                                      type: "object",
+                                                                                                                                                                      properties:
                                                                                                                                                                         {
-                                                                                                                                                                        	level27:
+                                                                                                                                                                          level27:
                                                                                                                                                                             {
-                                                                                                                                                                            	required:
+                                                                                                                                                                              required:
                                                                                                                                                                                 [
-                                                                                                                                                                                	'name',
+                                                                                                                                                                                  "name",
                                                                                                                                                                                 ],
-                                                                                                                                                                            	type: 'object',
-                                                                                                                                                                            	properties:
+                                                                                                                                                                              type: "object",
+                                                                                                                                                                              properties:
                                                                                                                                                                                 {
-                                                                                                                                                                                	level28:
+                                                                                                                                                                                  level28:
                                                                                                                                                                                     {
-                                                                                                                                                                                    	required:
+                                                                                                                                                                                      required:
                                                                                                                                                                                         [
-                                                                                                                                                                                        	'name',
+                                                                                                                                                                                          "name",
                                                                                                                                                                                         ],
-                                                                                                                                                                                    	type: 'object',
-                                                                                                                                                                                    	properties:
+                                                                                                                                                                                      type: "object",
+                                                                                                                                                                                      properties:
                                                                                                                                                                                         {
-                                                                                                                                                                                        	level29:
+                                                                                                                                                                                          level29:
                                                                                                                                                                                             {
-                                                                                                                                                                                            	required:
+                                                                                                                                                                                              required:
                                                                                                                                                                                                 [
-                                                                                                                                                                                                	'name',
+                                                                                                                                                                                                  "name",
                                                                                                                                                                                                 ],
-                                                                                                                                                                                            	type: 'object',
-                                                                                                                                                                                            	properties:
+                                                                                                                                                                                              type: "object",
+                                                                                                                                                                                              properties:
                                                                                                                                                                                                 {
-                                                                                                                                                                                                	level30:
+                                                                                                                                                                                                  level30:
                                                                                                                                                                                                     {
-                                                                                                                                                                                                    	$ref: '#/paths/~1family-tree/get/responses/200/schema',
+                                                                                                                                                                                                      $ref: "#/paths/~1family-tree/get/responses/200/schema",
                                                                                                                                                                                                     },
-                                                                                                                                                                                                	name: {
-                                                                                                                                                                                                		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                                                                                                                	},
+                                                                                                                                                                                                  name: {
+                                                                                                                                                                                                    $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                                                                                                                  },
                                                                                                                                                                                                 },
                                                                                                                                                                                             },
-                                                                                                                                                                                        	name: {
-                                                                                                                                                                                        		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                                                                                                        	},
+                                                                                                                                                                                          name: {
+                                                                                                                                                                                            $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                                                                                                          },
                                                                                                                                                                                         },
                                                                                                                                                                                     },
-                                                                                                                                                                                	name: {
-                                                                                                                                                                                		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                                                                                                	},
+                                                                                                                                                                                  name: {
+                                                                                                                                                                                    $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                                                                                                  },
                                                                                                                                                                                 },
                                                                                                                                                                             },
-                                                                                                                                                                        	name: {
-                                                                                                                                                                        		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                                                                                        	},
+                                                                                                                                                                          name: {
+                                                                                                                                                                            $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                                                                                          },
                                                                                                                                                                         },
                                                                                                                                                                     },
                                                                                                                                                                 },
@@ -274,138 +274,138 @@ module.exports = {
                                                                                                                                                     },
                                                                                                                                                 },
                                                                                                                                             },
-                                                                                                                                        	name: {
-                                                                                                                                        		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                                                        	},
+                                                                                                                                          name: {
+                                                                                                                                            $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                                                          },
                                                                                                                                         },
                                                                                                                                     },
-                                                                                                                                	name: {
-                                                                                                                                		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                                                	},
+                                                                                                                                  name: {
+                                                                                                                                    $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                                                  },
                                                                                                                                 },
                                                                                                                             },
-                                                                                                                        	name: {
-                                                                                                                        		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                                        	},
+                                                                                                                          name: {
+                                                                                                                            $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                                          },
                                                                                                                         },
                                                                                                                     },
-                                                                                                                	name: {
-                                                                                                                		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                                	},
+                                                                                                                  name: {
+                                                                                                                    $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                                  },
                                                                                                                 },
                                                                                                             },
-                                                                                                        	name: {
-                                                                                                        		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                        	},
+                                                                                                          name: {
+                                                                                                            $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                          },
                                                                                                         },
                                                                                                     },
-                                                                                                	name: {
-                                                                                                		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                                	},
+                                                                                                  name: {
+                                                                                                    $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                                  },
                                                                                                 },
                                                                                             },
                                                                                         },
                                                                                     },
-                                                                                	name: {
-                                                                                		$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-                                                                                	},
+                                                                                  name: {
+                                                                                    $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                                  },
                                                                                 },
                                                                             },
                                                                         },
-																																		},
-																																	},
-																																},
-																																name: {
-																																	$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-																																},
-																															},
-																														},
-																														name: {
-																															$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-																														},
-																													},
-																												},
-																												name: {
-																													$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-																												},
-																											},
-																										},
-																										name: {
-																											$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-																										},
-																									},
-																								},
-																								name: {
-																									$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-																								},
-																							},
-																						},
-																						name: {
-																							$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-																						},
-																					},
-																				},
-																			},
-																		},
-																	},
-																},
-															},
-														},
-														name: {
-															$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-														},
-													},
-												},
-												name: {
-													$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-												},
-											},
-										},
-										name: {
-											$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name',
-										},
-									},
-								},
-								name: {
-									required: ['first', 'last'],
-									type: 'object',
-									properties: {
-										middle: {
-											type: 'string',
-											enum: [
-												{
-													$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last/type',
-												},
-												{
-													$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last/title',
-												},
-											],
-										},
-										prefix: {
-											minLength: 3,
-											$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last',
-										},
-										last: {
-											minLength: 1,
-											type: 'string',
-											title: 'requiredString',
-										},
-										suffix: {
-											$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/prefix',
-											type: 'string',
-											maxLength: 3,
-										},
-										first: {
-											$ref: '#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last',
-										},
-									},
-									title: 'name',
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	},
+                                                                    },
+                                                                  },
+                                                                },
+                                                                name: {
+                                                                  $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                                },
+                                                              },
+                                                            },
+                                                            name: {
+                                                              $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                            },
+                                                          },
+                                                        },
+                                                        name: {
+                                                          $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                        },
+                                                      },
+                                                    },
+                                                    name: {
+                                                      $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                    },
+                                                  },
+                                                },
+                                                name: {
+                                                  $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                                },
+                                              },
+                                            },
+                                            name: {
+                                              $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                                            },
+                                          },
+                                        },
+                                      },
+                                    },
+                                  },
+                                },
+                              },
+                            },
+                            name: {
+                              $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                            },
+                          },
+                        },
+                        name: {
+                          $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                        },
+                      },
+                    },
+                    name: {
+                      $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name",
+                    },
+                  },
+                },
+                name: {
+                  required: ["first", "last"],
+                  type: "object",
+                  properties: {
+                    middle: {
+                      type: "string",
+                      enum: [
+                        {
+                          $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last/type",
+                        },
+                        {
+                          $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last/title",
+                        },
+                      ],
+                    },
+                    prefix: {
+                      minLength: 3,
+                      $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last",
+                    },
+                    last: {
+                      minLength: 1,
+                      type: "string",
+                      title: "requiredString",
+                    },
+                    suffix: {
+                      $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/prefix",
+                      type: "string",
+                      maxLength: 3,
+                    },
+                    first: {
+                      $ref: "#/paths/~1family-tree/get/responses/200/schema/properties/name/properties/last",
+                    },
+                  },
+                  title: "name",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 };

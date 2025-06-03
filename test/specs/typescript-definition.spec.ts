@@ -1,20 +1,20 @@
-import * as assert from 'assert';
-import type { OpenAPI } from 'openapi-types';
-import * as SwaggerParser from '../../lib';
+import * as assert from "assert";
+import type { OpenAPI } from "openapi-types";
+import * as SwaggerParser from "../../lib";
 
-const baseUrl = 'http://example.com/api';
-const openapiPath = 'my-api.json';
+const baseUrl = "http://example.com/api";
+const openapiPath = "my-api.json";
 const options = {};
 const promiseResolve = (_: object) => undefined;
 const promiseReject = (_: Error) => undefined;
 const callback = (_err: Error | null, _api?: object) => undefined;
 const openapiObject: OpenAPI.Document = {
-	openapi: '3.0.0',
-	info: {
-		title: 'My API',
-		version: '1.0.0',
-	},
-	paths: {},
+  openapi: "3.0.0",
+  info: {
+    title: "My API",
+    version: "1.0.0",
+  },
+  paths: {},
 };
 
 // SwaggerParser class instance
@@ -22,7 +22,7 @@ const parser = new SwaggerParser();
 
 // SwaggerParser instance properties
 assert(parser.$refs.circular === true);
-assert(parser.api.info.title === 'My API');
+assert(parser.api.info.title === "My API");
 
 // SwaggerParser instance methods (with callbacks)
 parser.bundle(openapiPath, callback);
@@ -66,33 +66,33 @@ parser.bundle(openapiObject).then(promiseResolve, promiseReject);
 parser.bundle(openapiPath, options).then(promiseResolve, promiseReject);
 parser.bundle(openapiObject, options).then(promiseResolve, promiseReject);
 parser
-	.bundle(baseUrl, openapiPath, options)
-	.then(promiseResolve, promiseReject);
+  .bundle(baseUrl, openapiPath, options)
+  .then(promiseResolve, promiseReject);
 parser
-	.bundle(baseUrl, openapiObject, options)
-	.then(promiseResolve, promiseReject);
+  .bundle(baseUrl, openapiObject, options)
+  .then(promiseResolve, promiseReject);
 
 parser.dereference(openapiPath).then(promiseResolve, promiseReject);
 parser.dereference(openapiObject).then(promiseResolve, promiseReject);
 parser.dereference(openapiPath, options).then(promiseResolve, promiseReject);
 parser.dereference(openapiObject, options).then(promiseResolve, promiseReject);
 parser
-	.dereference(baseUrl, openapiPath, options)
-	.then(promiseResolve, promiseReject);
+  .dereference(baseUrl, openapiPath, options)
+  .then(promiseResolve, promiseReject);
 parser
-	.dereference(baseUrl, openapiObject, options)
-	.then(promiseResolve, promiseReject);
+  .dereference(baseUrl, openapiObject, options)
+  .then(promiseResolve, promiseReject);
 
 parser.validate(openapiPath).then(promiseResolve, promiseReject);
 parser.validate(openapiObject).then(promiseResolve, promiseReject);
 parser.validate(openapiPath, options).then(promiseResolve, promiseReject);
 parser.validate(openapiObject, options).then(promiseResolve, promiseReject);
 parser
-	.validate(baseUrl, openapiPath, options)
-	.then(promiseResolve, promiseReject);
+  .validate(baseUrl, openapiPath, options)
+  .then(promiseResolve, promiseReject);
 parser
-	.validate(baseUrl, openapiObject, options)
-	.then(promiseResolve, promiseReject);
+  .validate(baseUrl, openapiObject, options)
+  .then(promiseResolve, promiseReject);
 
 parser.parse(openapiPath).then(promiseResolve, promiseReject);
 parser.parse(openapiObject).then(promiseResolve, promiseReject);
@@ -100,19 +100,19 @@ parser.parse(openapiPath, options).then(promiseResolve, promiseReject);
 parser.parse(openapiObject, options).then(promiseResolve, promiseReject);
 parser.parse(baseUrl, openapiPath, options).then(promiseResolve, promiseReject);
 parser
-	.parse(baseUrl, openapiObject, options)
-	.then(promiseResolve, promiseReject);
+  .parse(baseUrl, openapiObject, options)
+  .then(promiseResolve, promiseReject);
 
 parser.resolve(openapiPath).then(promiseResolve, promiseReject);
 parser.resolve(openapiObject).then(promiseResolve, promiseReject);
 parser.resolve(openapiPath, options).then(promiseResolve, promiseReject);
 parser.resolve(openapiObject, options).then(promiseResolve, promiseReject);
 parser
-	.resolve(baseUrl, openapiPath, options)
-	.then(promiseResolve, promiseReject);
+  .resolve(baseUrl, openapiPath, options)
+  .then(promiseResolve, promiseReject);
 parser
-	.resolve(baseUrl, openapiObject, options)
-	.then(promiseResolve, promiseReject);
+  .resolve(baseUrl, openapiObject, options)
+  .then(promiseResolve, promiseReject);
 
 // SwaggerParser static methods (with callbacks)
 SwaggerParser.bundle(openapiPath, callback);
@@ -155,54 +155,54 @@ SwaggerParser.bundle(openapiPath).then(promiseResolve, promiseReject);
 SwaggerParser.bundle(openapiObject).then(promiseResolve, promiseReject);
 SwaggerParser.bundle(openapiPath, options).then(promiseResolve, promiseReject);
 SwaggerParser.bundle(openapiObject, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 SwaggerParser.bundle(baseUrl, openapiPath, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 SwaggerParser.bundle(baseUrl, openapiObject, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 
 SwaggerParser.dereference(openapiPath).then(promiseResolve, promiseReject);
 SwaggerParser.dereference(openapiObject).then(promiseResolve, promiseReject);
 SwaggerParser.dereference(openapiPath, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 SwaggerParser.dereference(openapiObject, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 SwaggerParser.dereference(baseUrl, openapiPath, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 SwaggerParser.dereference(baseUrl, openapiObject, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 
 SwaggerParser.validate(openapiPath).then(promiseResolve, promiseReject);
 SwaggerParser.validate(openapiObject).then(promiseResolve, promiseReject);
 SwaggerParser.validate(openapiPath, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 SwaggerParser.validate(openapiObject, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 SwaggerParser.validate(baseUrl, openapiPath, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 SwaggerParser.validate(baseUrl, openapiObject, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 
 SwaggerParser.parse(openapiPath).then(promiseResolve, promiseReject);
@@ -210,26 +210,26 @@ SwaggerParser.parse(openapiObject).then(promiseResolve, promiseReject);
 SwaggerParser.parse(openapiPath, options).then(promiseResolve, promiseReject);
 SwaggerParser.parse(openapiObject, options).then(promiseResolve, promiseReject);
 SwaggerParser.parse(baseUrl, openapiPath, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 SwaggerParser.parse(baseUrl, openapiObject, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 
 SwaggerParser.resolve(openapiPath).then(promiseResolve, promiseReject);
 SwaggerParser.resolve(openapiObject).then(promiseResolve, promiseReject);
 SwaggerParser.resolve(openapiPath, options).then(promiseResolve, promiseReject);
 SwaggerParser.resolve(openapiObject, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 SwaggerParser.resolve(baseUrl, openapiPath, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
 SwaggerParser.resolve(baseUrl, openapiObject, options).then(
-	promiseResolve,
-	promiseReject,
+  promiseResolve,
+  promiseReject,
 );
