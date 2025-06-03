@@ -15,13 +15,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apidevtools/json-schema-ref-parser@npm:13.0.0":
-  version: 13.0.0
-  resolution: "@apidevtools/json-schema-ref-parser@npm:13.0.0"
+"@apidevtools/json-schema-ref-parser@npm:13.0.1":
+  version: 13.0.1
+  resolution: "@apidevtools/json-schema-ref-parser@npm:13.0.1"
   dependencies:
     "@types/json-schema": "npm:^7.0.15"
     js-yaml: "npm:^4.1.0"
-  checksum: 10c0/5a3a1c737092e7db4f3a910c0c1c3f75896a5e3afbb3cea76d06b51f71d0c96621112eb6709b4142a22aa4e6970c7eb83e8b23b71d83e6f8ea93e5d10ab87887
+  checksum: 10c0/c1dcf0a54abec679489bf09d380f5ec70f0123b50b63876748eeae503ad173068f85b00f0b50a566734669d2452e79591372f4b07338f4115027e3580ccb0ebb
   languageName: node
   linkType: hard
 
@@ -43,7 +43,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@apidevtools/swagger-parser@workspace:."
   dependencies:
-    "@apidevtools/json-schema-ref-parser": "npm:13.0.0"
+    "@apidevtools/json-schema-ref-parser": "npm:13.0.1"
     "@apidevtools/openapi-schemas": "npm:^2.1.0"
     "@apidevtools/swagger-methods": "npm:^3.0.2"
     "@eslint/compat": "npm:^1.2.9"

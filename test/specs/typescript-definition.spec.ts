@@ -4,7 +4,7 @@ import * as SwaggerParser from "../../lib";
 
 const baseUrl = "http://example.com/api";
 const openapiPath = "my-api.json";
-const options = {};
+const options: SwaggerParser.Options = {};
 const promiseResolve = (_: object) => undefined;
 const promiseReject = (_: Error) => undefined;
 const callback = (_err: Error | null, _api?: object) => undefined;

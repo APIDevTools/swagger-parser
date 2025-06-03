@@ -4,9 +4,8 @@ import type {
   ResolverOptions,
   ParserOptions,
   FileInfo,
+  $Refs,
 } from "@apidevtools/json-schema-ref-parser";
-import type $Refs from "@apidevtools/json-schema-ref-parser/dist/lib/refs";
-import type $RefParserOptions from "@apidevtools/json-schema-ref-parser/lib/options";
 export = SwaggerParser;
 
 /**
@@ -343,7 +342,7 @@ declare namespace SwaggerParser {
   /**
    * See https://apitools.dev/swagger-parser/docs/options.html
    */
-  export interface Options extends $RefParserOptions {
+  export interface Options extends Partial<ParserOptions> {
     /**
      * The `validate` options control how Swagger Parser will validate the API.
      */

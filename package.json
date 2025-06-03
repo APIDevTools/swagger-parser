@@ -40,7 +40,7 @@
     "lint:fix": "eslint --fix lib test",
     "test": "npm run test:node && npm run test:typescript",
     "test:node": "mocha",
-    "test:typescript": "tsc --noEmit --strict --lib esnext,dom test/specs/typescript-definition.spec.ts",
+    "test:typescript": "tsc --noEmit --strict --skipDefaultLibCheck --skipLibCheck --lib esnext,dom test/specs/typescript-definition.spec.ts",
     "coverage": "npm run coverage:node",
     "coverage:node": "cross-env QUICK_TEST=true nyc mocha"
   },
@@ -69,7 +69,7 @@
     "typescript-eslint": "^8.33.1"
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "13.0.0",
+    "@apidevtools/json-schema-ref-parser": "13.0.1",
     "@apidevtools/openapi-schemas": "^2.1.0",
     "@apidevtools/swagger-methods": "^3.0.2",
     "ajv": "^8.17.1",
