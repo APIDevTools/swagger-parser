@@ -15,9 +15,7 @@ describe("API with circular (recursive) $refs", () => {
     const api = await parser.parse(path.rel("specs/circular/circular.yaml"));
     expect(api).to.equal(parser.api);
     expect(api).to.deep.equal(parsedAPI.api);
-    expect(parser.$refs.paths()).to.deep.equal([
-      path.abs("specs/circular/circular.yaml"),
-    ]);
+    expect(parser.$refs.paths()).to.deep.equal([path.abs("specs/circular/circular.yaml")]);
   });
 
   it(
@@ -38,21 +36,13 @@ describe("API with circular (recursive) $refs", () => {
 
   it("should dereference successfully", async () => {
     let parser = new SwaggerParser();
-    const api = await parser.dereference(
-      path.rel("specs/circular/circular.yaml"),
-    );
+    const api = await parser.dereference(path.rel("specs/circular/circular.yaml"));
     expect(api).to.equal(parser.api);
     expect(api).to.deep.equal(dereferencedAPI);
     // Reference equality
-    expect(api.definitions.person.properties.spouse).to.equal(
-      api.definitions.person,
-    );
-    expect(api.definitions.parent.properties.children.items).to.equal(
-      api.definitions.child,
-    );
-    expect(api.definitions.child.properties.parents.items).to.equal(
-      api.definitions.parent,
-    );
+    expect(api.definitions.person.properties.spouse).to.equal(api.definitions.person);
+    expect(api.definitions.parent.properties.children.items).to.equal(api.definitions.child);
+    expect(api.definitions.child.properties.parents.items).to.equal(api.definitions.parent);
   });
 
   it("should validate successfully", async () => {
@@ -61,29 +51,20 @@ describe("API with circular (recursive) $refs", () => {
     expect(api).to.equal(parser.api);
     expect(api).to.deep.equal(validatedAPI.fullyDereferenced);
     // Reference equality
-    expect(api.definitions.person.properties.spouse).to.equal(
-      api.definitions.person,
-    );
-    expect(api.definitions.parent.properties.children.items).to.equal(
-      api.definitions.child,
-    );
-    expect(api.definitions.child.properties.parents.items).to.equal(
-      api.definitions.parent,
-    );
+    expect(api.definitions.person.properties.spouse).to.equal(api.definitions.person);
+    expect(api.definitions.parent.properties.children.items).to.equal(api.definitions.child);
+    expect(api.definitions.child.properties.parents.items).to.equal(api.definitions.parent);
   });
 
   it("should not dereference circular $refs if \"options.dereference.circular\" is \"ignore\"", async () => {
     let parser = new SwaggerParser();
-    const api = await parser.validate(
-      path.rel("specs/circular/circular.yaml"),
-      { dereference: { circular: "ignore" } },
-    );
+    const api = await parser.validate(path.rel("specs/circular/circular.yaml"), {
+      dereference: { circular: "ignore" },
+    });
     expect(api).to.equal(parser.api);
     expect(api).to.deep.equal(validatedAPI.ignoreCircular$Refs);
     // Reference equality
-    expect(api.paths["/pet"].get.responses["200"].schema).to.equal(
-      api.definitions.pet,
-    );
+    expect(api.paths["/pet"].get.responses["200"].schema).to.equal(api.definitions.pet);
   });
 
   it("should fail validation if \"options.dereference.circular\" is false", async () => {

@@ -109,10 +109,9 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
     let invalid = tests[0];
     expect(invalid.valid).to.equal(false);
 
-    const api = await SwaggerParser.validate(
-      path.rel("specs/validate-schema/invalid/" + invalid.file),
-      { validate: { schema: false } },
-    );
+    const api = await SwaggerParser.validate(path.rel("specs/validate-schema/invalid/" + invalid.file), {
+      validate: { schema: false },
+    });
     expect(api).to.be.an("object");
   });
 
@@ -120,28 +119,20 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
     if (test.valid) {
       it(test.name, async () => {
         try {
-          const api = await SwaggerParser.validate(
-            path.rel("specs/validate-schema/valid/" + test.file),
-          );
+          const api = await SwaggerParser.validate(path.rel("specs/validate-schema/valid/" + test.file));
           expect(api).to.be.an("object");
         } catch (err) {
-          throw new Error(
-            "Validation should have succeeded, but it failed!\n" + err.stack,
-          );
+          throw new Error("Validation should have succeeded, but it failed!\n" + err.stack);
         }
       });
     } else {
       it(test.name, async () => {
         try {
-          await SwaggerParser.validate(
-            path.rel("specs/validate-schema/invalid/" + test.file),
-          );
+          await SwaggerParser.validate(path.rel("specs/validate-schema/invalid/" + test.file));
           throw new Error("Validation should have failed, but it succeeded!");
         } catch (err) {
           expect(err).to.be.an.instanceOf(SyntaxError);
-          expect(err.message).to.match(
-            /^Swagger schema validation failed.\n(.*)+/,
-          );
+          expect(err.message).to.match(/^Swagger schema validation failed.\n(.*)+/);
           expect(err.details).to.be.an("array").with.length.above(0);
 
           // Make sure the Ajv error details object is valid

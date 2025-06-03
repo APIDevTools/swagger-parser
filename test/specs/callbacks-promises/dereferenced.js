@@ -41,8 +41,7 @@ module.exports = {
   },
   info: {
     version: "1.0.0",
-    description:
-      "This is an intentionally over-complicated API that returns a person's name",
+    description: "This is an intentionally over-complicated API that returns a person's name",
     title: "Name API",
   },
   paths: {

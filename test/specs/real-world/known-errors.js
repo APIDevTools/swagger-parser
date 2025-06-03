@@ -13,24 +13,15 @@ const knownErrors = (module.exports = {
    */
   find(api, error) {
     for (let knownError of knownErrors.all) {
-      if (
-        typeof knownError.api === "string" &&
-        !api.name.includes(knownError.api)
-      ) {
+      if (typeof knownError.api === "string" && !api.name.includes(knownError.api)) {
         continue;
       }
 
-      if (
-        typeof knownError.error === "string" &&
-        !error.message.includes(knownError.error)
-      ) {
+      if (typeof knownError.error === "string" && !error.message.includes(knownError.error)) {
         continue;
       }
 
-      if (
-        knownError.error instanceof RegExp &&
-        !knownError.error.test(error.message)
-      ) {
+      if (knownError.error instanceof RegExp && !knownError.error.test(error.message)) {
         continue;
       }
 
@@ -93,8 +84,7 @@ function getKnownApiErrors() {
 
     {
       api: "avaza.com",
-      error:
-        "has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded",
+      error: "has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded",
       whatToDo: "ignore",
     },
 
@@ -122,8 +112,7 @@ function getKnownApiErrors() {
     // Contribly's API has a misspelled field name
     {
       api: "contribly.com",
-      error:
-        "Property 'includeThumbnail' listed as required but does not exist",
+      error: "Property 'includeThumbnail' listed as required but does not exist",
       whatToDo: "ignore",
     },
 
@@ -215,8 +204,7 @@ function getKnownApiErrors() {
     // VersionEye's API definition is missing MIME types
     {
       api: "versioneye.com",
-      error:
-        "has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded",
+      error: "has a file parameter, so it must consume multipart/form-data or application/x-www-form-urlencoded",
       whatToDo: "ignore",
     },
 
@@ -232,16 +220,12 @@ function getKnownApiErrors() {
     },
     {
       api: "whapi.com:accounts",
-      error:
-        "Property 'nif (italy only)' listed as required but does not exist",
+      error: "Property 'nif (italy only)' listed as required but does not exist",
       whatToDo: "ignore",
     },
   ];
 
-  if (
-    (host.node && host.node.version < 8) ||
-    (host.browser && !host.browser.chrome)
-  ) {
+  if ((host.node && host.node.version < 8) || (host.browser && !host.browser.chrome)) {
     // Many AWS APIs contain RegEx patterns that are invalid on older versions of Node
     // and some browsers. They work fine on Node 8+ and Chrome though.
     //

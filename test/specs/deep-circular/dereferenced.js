@@ -37,8 +37,7 @@ const dereferencedAPI = (module.exports = {
   swagger: "2.0",
   info: {
     version: "1.0.0",
-    description:
-      "This API contains a VERY DEEP circular (recursive) JSON reference",
+    description: "This API contains a VERY DEEP circular (recursive) JSON reference",
     title: "Deep Circular $Ref",
   },
   paths: {
@@ -99,66 +98,62 @@ const dereferencedAPI = (module.exports = {
                                                           type: "object",
                                                           properties: {
                                                             level12: {
-                                                              required: [
-                                                                "name",
-                                                              ],
+                                                              required: ["name"],
                                                               type: "object",
                                                               properties: {
                                                                 level13: {
-                                                                  required: [
-                                                                    "name",
-                                                                  ],
+                                                                  required: ["name"],
                                                                   type: "object",
                                                                   properties: {
                                                                     name,
                                                                     level14: {
-                                                                      required:
-                                                                        [
-                                                                          "name",
-                                                                        ],
+                                                                      required: ["name"],
                                                                       type: "object",
-                                                                      properties:
-                                                                        {
-                                                                          name,
-                                                                          level15:
-                                                                            {
-                                                                              required:
-                                                                                [
-                                                                                  "name",
-                                                                                ],
+                                                                      properties: {
+                                                                        name,
+                                                                        level15: {
+                                                                          required: ["name"],
+                                                                          type: "object",
+                                                                          properties: {
+                                                                            level16: {
+                                                                              required: ["name"],
                                                                               type: "object",
-                                                                              properties:
-                                                                                {
-                                                                                  level16:
-                                                                                    {
-                                                                                      required:
-                                                                                        [
-                                                                                          "name",
-                                                                                        ],
+                                                                              properties: {
+                                                                                name,
+                                                                                level17: {
+                                                                                  required: ["name"],
+                                                                                  type: "object",
+                                                                                  properties: {
+                                                                                    level18: {
+                                                                                      required: ["name"],
                                                                                       type: "object",
-                                                                                      properties:
-                                                                                        {
-                                                                                          name,
-                                                                                          level17:
-                                                                                            {
-                                                                                              required:
-                                                                                                [
-                                                                                                  "name",
-                                                                                                ],
+                                                                                      properties: {
+                                                                                        level19: {
+                                                                                          required: ["name"],
+                                                                                          type: "object",
+                                                                                          properties: {
+                                                                                            level20: {
+                                                                                              required: ["name"],
                                                                                               type: "object",
-                                                                                              properties:
-                                                                                                {
-                                                                                                  level18:
-                                                                                                    {
-                                                                                                      required:
-                                                                                                        [
-                                                                                                          "name",
-                                                                                                        ],
+                                                                                              properties: {
+                                                                                                level21: {
+                                                                                                  required: ["name"],
+                                                                                                  type: "object",
+                                                                                                  properties: {
+                                                                                                    level22: {
+                                                                                                      required: [
+                                                                                                        "name",
+                                                                                                      ],
                                                                                                       type: "object",
-                                                                                                      properties:
-                                                                                                        {
-                                                                                                          level19:
-                                                                                                            {
+                                                                                                      properties: {
+                                                                                                        level23: {
+                                                                                                          required: [
+                                                                                                            "name",
+                                                                                                          ],
+                                                                                                          type: "object",
+                                                                                                          properties: {
+                                                                                                            name,
+                                                                                                            level24: {
                                                                                                               required:
                                                                                                                 [
                                                                                                                   "name",
@@ -166,7 +161,8 @@ const dereferencedAPI = (module.exports = {
                                                                                                               type: "object",
                                                                                                               properties:
                                                                                                                 {
-                                                                                                                  level20:
+                                                                                                                  name,
+                                                                                                                  level25:
                                                                                                                     {
                                                                                                                       required:
                                                                                                                         [
@@ -175,7 +171,8 @@ const dereferencedAPI = (module.exports = {
                                                                                                                       type: "object",
                                                                                                                       properties:
                                                                                                                         {
-                                                                                                                          level21:
+                                                                                                                          name,
+                                                                                                                          level26:
                                                                                                                             {
                                                                                                                               required:
                                                                                                                                 [
@@ -184,7 +181,7 @@ const dereferencedAPI = (module.exports = {
                                                                                                                               type: "object",
                                                                                                                               properties:
                                                                                                                                 {
-                                                                                                                                  level22:
+                                                                                                                                  level27:
                                                                                                                                     {
                                                                                                                                       required:
                                                                                                                                         [
@@ -193,7 +190,7 @@ const dereferencedAPI = (module.exports = {
                                                                                                                                       type: "object",
                                                                                                                                       properties:
                                                                                                                                         {
-                                                                                                                                          level23:
+                                                                                                                                          level28:
                                                                                                                                             {
                                                                                                                                               required:
                                                                                                                                                 [
@@ -202,8 +199,7 @@ const dereferencedAPI = (module.exports = {
                                                                                                                                               type: "object",
                                                                                                                                               properties:
                                                                                                                                                 {
-                                                                                                                                                  name,
-                                                                                                                                                  level24:
+                                                                                                                                                  level29:
                                                                                                                                                     {
                                                                                                                                                       required:
                                                                                                                                                         [
@@ -213,68 +209,9 @@ const dereferencedAPI = (module.exports = {
                                                                                                                                                       properties:
                                                                                                                                                         {
                                                                                                                                                           name,
-                                                                                                                                                          level25:
-                                                                                                                                                            {
-                                                                                                                                                              required:
-                                                                                                                                                                [
-                                                                                                                                                                  "name",
-                                                                                                                                                                ],
-                                                                                                                                                              type: "object",
-                                                                                                                                                              properties:
-                                                                                                                                                                {
-                                                                                                                                                                  name,
-                                                                                                                                                                  level26:
-                                                                                                                                                                    {
-                                                                                                                                                                      required:
-                                                                                                                                                                        [
-                                                                                                                                                                          "name",
-                                                                                                                                                                        ],
-                                                                                                                                                                      type: "object",
-                                                                                                                                                                      properties:
-                                                                                                                                                                        {
-                                                                                                                                                                          level27:
-                                                                                                                                                                            {
-                                                                                                                                                                              required:
-                                                                                                                                                                                [
-                                                                                                                                                                                  "name",
-                                                                                                                                                                                ],
-                                                                                                                                                                              type: "object",
-                                                                                                                                                                              properties:
-                                                                                                                                                                                {
-                                                                                                                                                                                  level28:
-                                                                                                                                                                                    {
-                                                                                                                                                                                      required:
-                                                                                                                                                                                        [
-                                                                                                                                                                                          "name",
-                                                                                                                                                                                        ],
-                                                                                                                                                                                      type: "object",
-                                                                                                                                                                                      properties:
-                                                                                                                                                                                        {
-                                                                                                                                                                                          level29:
-                                                                                                                                                                                            {
-                                                                                                                                                                                              required:
-                                                                                                                                                                                                [
-                                                                                                                                                                                                  "name",
-                                                                                                                                                                                                ],
-                                                                                                                                                                                              type: "object",
-                                                                                                                                                                                              properties:
-                                                                                                                                                                                                {
-                                                                                                                                                                                                  name,
-                                                                                                                                                                                                },
-                                                                                                                                                                                            },
-                                                                                                                                                                                          name,
-                                                                                                                                                                                        },
-                                                                                                                                                                                    },
-                                                                                                                                                                                  name,
-                                                                                                                                                                                },
-                                                                                                                                                                            },
-                                                                                                                                                                          name,
-                                                                                                                                                                        },
-                                                                                                                                                                    },
-                                                                                                                                                                },
-                                                                                                                                                            },
                                                                                                                                                         },
                                                                                                                                                     },
+                                                                                                                                                  name,
                                                                                                                                                 },
                                                                                                                                             },
                                                                                                                                           name,
@@ -283,24 +220,36 @@ const dereferencedAPI = (module.exports = {
                                                                                                                                   name,
                                                                                                                                 },
                                                                                                                             },
-                                                                                                                          name,
                                                                                                                         },
                                                                                                                     },
-                                                                                                                  name,
                                                                                                                 },
                                                                                                             },
-                                                                                                          name,
+                                                                                                          },
                                                                                                         },
+                                                                                                        name,
+                                                                                                      },
                                                                                                     },
-                                                                                                  name,
+                                                                                                    name,
+                                                                                                  },
                                                                                                 },
+                                                                                                name,
+                                                                                              },
                                                                                             },
+                                                                                            name,
+                                                                                          },
                                                                                         },
+                                                                                        name,
+                                                                                      },
                                                                                     },
-                                                                                  name,
+                                                                                    name,
+                                                                                  },
                                                                                 },
+                                                                              },
                                                                             },
+                                                                            name,
+                                                                          },
                                                                         },
+                                                                      },
                                                                     },
                                                                   },
                                                                 },

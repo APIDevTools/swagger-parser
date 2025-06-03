@@ -22,10 +22,6 @@ describe("Exports", () => {
   });
 
   it("Using named import should work correctly", async () => {
-    await validate(
-      path.rel(
-        "specs/validate-spec/valid/file-vendor-specific-consumes-formdata.yaml",
-      ),
-    );
+    await validate(path.rel("specs/validate-spec/valid/file-vendor-specific-consumes-formdata.yaml"));
   });
 });

@@ -24,19 +24,12 @@ describe("Object sources (instead of file paths)", () => {
     expect(parser.$refs.paths().sort()).to.have.same.members(expectedPaths);
     expect(parser.$refs.values()).to.have.keys(expectedPaths);
     // Reference equality
-    expect(api.paths["/people/{name}"].get.responses["200"].schema).to.equal(
-      api.definitions.name,
-    );
+    expect(api.paths["/people/{name}"].get.responses["200"].schema).to.equal(api.definitions.name);
     expect(api.definitions.requiredString)
       .to.equal(api.definitions.name.properties.first)
       .to.equal(api.definitions.name.properties.last)
-      .to.equal(
-        api.paths["/people/{name}"].get.responses["200"].schema.properties
-          .first,
-      )
-      .to.equal(
-        api.paths["/people/{name}"].get.responses["200"].schema.properties.last,
-      );
+      .to.equal(api.paths["/people/{name}"].get.responses["200"].schema.properties.first)
+      .to.equal(api.paths["/people/{name}"].get.responses["200"].schema.properties.last);
   });
 
   it("should bundle an object that references external files", async () => {
@@ -70,18 +63,11 @@ describe("Object sources (instead of file paths)", () => {
     expect(parser.$refs.paths()).to.have.same.members(expectedPaths);
     expect(parser.$refs.values()).to.have.keys(expectedPaths);
     // Reference equality
-    expect(api.paths["/people/{name}"].get.responses["200"].schema).to.equal(
-      api.definitions.name,
-    );
+    expect(api.paths["/people/{name}"].get.responses["200"].schema).to.equal(api.definitions.name);
     expect(api.definitions.requiredString)
       .to.equal(api.definitions.name.properties.first)
       .to.equal(api.definitions.name.properties.last)
-      .to.equal(
-        api.paths["/people/{name}"].get.responses["200"].schema.properties
-          .first,
-      )
-      .to.equal(
-        api.paths["/people/{name}"].get.responses["200"].schema.properties.last,
-      );
+      .to.equal(api.paths["/people/{name}"].get.responses["200"].schema.properties.first)
+      .to.equal(api.paths["/people/{name}"].get.responses["200"].schema.properties.last);
   });
 });

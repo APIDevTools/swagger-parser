@@ -10,8 +10,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       name: "invalid response code",
       valid: false,
       file: "invalid-response-code.yaml",
-      error:
-        "Validation failed. /paths/users/get/responses/888 has an invalid response code (888)",
+      error: "Validation failed. /paths/users/get/responses/888 has an invalid response code (888)",
     },
     {
       name: "duplicate path parameters",
@@ -29,22 +28,19 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       name: "multiple body parameters in path",
       valid: false,
       file: "multiple-path-body-params.yaml",
-      error:
-        "Validation failed. /paths/users/{username}/get has 2 body parameters. Only one is allowed.",
+      error: "Validation failed. /paths/users/{username}/get has 2 body parameters. Only one is allowed.",
     },
     {
       name: "multiple body parameters in operation",
       valid: false,
       file: "multiple-operation-body-params.yaml",
-      error:
-        "Validation failed. /paths/users/{username}/patch has 2 body parameters. Only one is allowed.",
+      error: "Validation failed. /paths/users/{username}/patch has 2 body parameters. Only one is allowed.",
     },
     {
       name: "multiple body parameters in path & operation",
       valid: false,
       file: "multiple-body-params.yaml",
-      error:
-        "Validation failed. /paths/users/{username}/post has 2 body parameters. Only one is allowed.",
+      error: "Validation failed. /paths/users/{username}/post has 2 body parameters. Only one is allowed.",
     },
     {
       name: "body and formData parameters",
@@ -64,8 +60,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       name: "path placeholder with no param",
       valid: false,
       file: "path-placeholder-no-param.yaml",
-      error:
-        "Validation failed. /paths/users/{username}/{foo}/get is missing path parameter(s) for {foo}",
+      error: "Validation failed. /paths/users/{username}/{foo}/get is missing path parameter(s) for {foo}",
     },
     {
       name: "duplicate path placeholders",
@@ -78,22 +73,19 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       name: "no path parameters",
       valid: false,
       file: "no-path-params.yaml",
-      error:
-        "Validation failed. /paths/users/{username}/{foo}/get is missing path parameter(s) for {username},{foo}",
+      error: "Validation failed. /paths/users/{username}/{foo}/get is missing path parameter(s) for {username},{foo}",
     },
     {
       name: "array param without items",
       valid: false,
       file: "array-no-items.yaml",
-      error:
-        "Validation failed. /paths/users/get/parameters/tags is an array, so it must include an \"items\" schema",
+      error: "Validation failed. /paths/users/get/parameters/tags is an array, so it must include an \"items\" schema",
     },
     {
       name: "array body param without items",
       valid: false,
       file: "array-body-no-items.yaml",
-      error:
-        "Validation failed. /paths/users/post/parameters/people is an array, so it must include an \"items\" schema",
+      error: "Validation failed. /paths/users/post/parameters/people is an array, so it must include an \"items\" schema",
     },
     {
       name: "array response header without items",
@@ -137,8 +129,7 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
       name: "required property in definition does not exist",
       valid: false,
       file: "required-property-not-defined-definitions.yaml",
-      error:
-        "Validation failed. Property 'photoUrls' listed as required but does not exist in '/definitions/Pet'",
+      error: "Validation failed. Property 'photoUrls' listed as required but does not exist in '/definitions/Pet'",
     },
     {
       name: "schema declares required properties which are inherited (allOf)",
@@ -169,10 +160,9 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
     let invalid = tests[0];
     expect(invalid.valid).to.equal(false);
 
-    const api = await SwaggerParser.validate(
-      path.rel("specs/validate-spec/invalid/" + invalid.file),
-      { validate: { spec: false } },
-    );
+    const api = await SwaggerParser.validate(path.rel("specs/validate-spec/invalid/" + invalid.file), {
+      validate: { spec: false },
+    });
     expect(api).to.be.an("object");
   });
 
@@ -180,22 +170,16 @@ describe("Invalid APIs (Swagger 2.0 specification validation)", () => {
     if (test.valid) {
       it(test.name, async () => {
         try {
-          const api = await SwaggerParser.validate(
-            path.rel("specs/validate-spec/valid/" + test.file),
-          );
+          const api = await SwaggerParser.validate(path.rel("specs/validate-spec/valid/" + test.file));
           expect(api).to.be.an("object");
         } catch (err) {
-          throw new Error(
-            "Validation should have succeeded, but it failed!\n" + err.stack,
-          );
+          throw new Error("Validation should have succeeded, but it failed!\n" + err.stack);
         }
       });
     } else {
       it(test.name, async () => {
         try {
-          await SwaggerParser.validate(
-            path.rel("specs/validate-spec/invalid/" + test.file),
-          );
+          await SwaggerParser.validate(path.rel("specs/validate-spec/invalid/" + test.file));
           throw new Error("Validation should have failed, but it succeeded!");
         } catch (err) {
           expect(err).to.be.an.instanceOf(SyntaxError);

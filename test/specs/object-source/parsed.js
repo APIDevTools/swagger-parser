@@ -8,8 +8,7 @@ module.exports = {
     swagger: "2.0",
     info: {
       version: "1.0.0",
-      description:
-        "This is an intentionally over-complicated API that returns a person's name",
+      description: "This is an intentionally over-complicated API that returns a person's name",
       title: "Name API",
     },
     paths: {
@@ -35,9 +34,7 @@ module.exports = {
       },
     },
     definitions: {
-      $ref:
-        pathToTestsDirectory +
-        "specs/object-source/definitions/definitions.json",
+      $ref: pathToTestsDirectory + "specs/object-source/definitions/definitions.json",
     },
   },
 

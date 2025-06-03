@@ -45,9 +45,7 @@ const helper = (module.exports = {
         expect($refs.paths(["file"])).to.have.same.members(expectedFiles);
         expect($refs.paths("http")).to.be.an("array").with.lengthOf(0);
       } else {
-        expect($refs.paths(["http", "https"])).to.have.same.members(
-          expectedFiles,
-        );
+        expect($refs.paths(["http", "https"])).to.have.same.members(expectedFiles);
         expect($refs.paths("fs")).to.be.an("array").with.lengthOf(0);
       }
 
@@ -66,11 +64,7 @@ const helper = (module.exports = {
    * Converts Buffer objects to POJOs, so they can be compared using Chai
    */
   convertNodeBuffersToPOJOs(value) {
-    if (
-      value &&
-      (value._isBuffer ||
-        (value.constructor && value.constructor.name === "Buffer"))
-    ) {
+    if (value && (value._isBuffer || (value.constructor && value.constructor.name === "Buffer"))) {
       // Convert Buffers to POJOs for comparison
       value = value.toJSON();
 

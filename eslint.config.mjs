@@ -36,10 +36,7 @@ export default tseslint.config({
     "no-undef": "off",
     "@typescript-eslint/no-require-imports": "off",
     "@typescript-eslint/no-unused-vars": "off",
-    "linebreak-style": [
-      "error",
-      process.platform === "win32" ? "windows" : "unix",
-    ],
+    "linebreak-style": ["error", process.platform === "win32" ? "windows" : "unix"],
     quotes: ["error", "double"],
     semi: ["error", "always"],
     "@typescript-eslint/ban-ts-comment": "off",

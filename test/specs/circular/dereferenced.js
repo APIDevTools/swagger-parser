@@ -108,19 +108,14 @@ const dereferencedAPI = (module.exports = {
   },
 });
 
-dereferencedAPI.paths["/pet"].get.responses["200"].schema =
-  dereferencedAPI.definitions.pet;
+dereferencedAPI.paths["/pet"].get.responses["200"].schema = dereferencedAPI.definitions.pet;
 
-dereferencedAPI.paths["/thing"].get.responses["200"].schema =
-  dereferencedAPI.definitions.thing;
+dereferencedAPI.paths["/thing"].get.responses["200"].schema = dereferencedAPI.definitions.thing;
 
-dereferencedAPI.paths["/person"].get.responses["200"].schema =
-  dereferencedAPI.definitions.person.properties.spouse =
-    dereferencedAPI.definitions.person;
+dereferencedAPI.paths["/person"].get.responses["200"].schema = dereferencedAPI.definitions.person.properties.spouse =
+  dereferencedAPI.definitions.person;
 
-dereferencedAPI.definitions.parent.properties.children.items =
-  dereferencedAPI.definitions.child;
+dereferencedAPI.definitions.parent.properties.children.items = dereferencedAPI.definitions.child;
 
 dereferencedAPI.paths["/parent"].get.responses["200"].schema =
-  dereferencedAPI.definitions.child.properties.parents.items =
-    dereferencedAPI.definitions.parent;
+  dereferencedAPI.definitions.child.properties.parents.items = dereferencedAPI.definitions.parent;

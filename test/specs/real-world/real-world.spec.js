@@ -6,10 +6,7 @@ const knownErrors = require("./known-errors");
 const fetchApiList = require("./fetch-api-list");
 
 // How many APIs to test in "quick mode" and normal mode
-const MAX_APIS_TO_TEST =
-  (host.node && process.argv.includes("--quick-test")) || process.env.QUICK_TEST
-    ? 10
-    : 1000;
+const MAX_APIS_TO_TEST = (host.node && process.argv.includes("--quick-test")) || process.env.QUICK_TEST ? 10 : 1000;
 const START_AT_INDEX = 0;
 const MAX_DOWNLOAD_RETRIES = 3;
 
@@ -36,11 +33,7 @@ describe("Real-world APIs", () => {
 
   // Mocha requires us to create our tests synchronously. But the list of APIs is downloaded asynchronously.
   // So, we just create a bunch of placeholder tests, and then rename them later to reflect which API they're testing.
-  for (
-    let index = START_AT_INDEX;
-    index < START_AT_INDEX + MAX_APIS_TO_TEST;
-    index++
-  ) {
+  for (let index = START_AT_INDEX; index < START_AT_INDEX + MAX_APIS_TO_TEST; index++) {
     it(`${index + 1}) `, testAPI(index));
   }
 

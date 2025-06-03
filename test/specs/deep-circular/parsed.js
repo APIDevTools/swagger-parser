@@ -5,8 +5,7 @@ module.exports = {
     swagger: "2.0",
     info: {
       version: "1.0.0",
-      description:
-        "This API contains a VERY DEEP circular (recursive) JSON reference",
+      description: "This API contains a VERY DEEP circular (recursive) JSON reference",
       title: "Deep Circular $Ref",
     },
     paths: {
@@ -73,73 +72,71 @@ module.exports = {
                                                             type: "object",
                                                             properties: {
                                                               level12: {
-                                                                required: [
-                                                                  "name",
-                                                                ],
+                                                                required: ["name"],
                                                                 type: "object",
                                                                 properties: {
                                                                   level13: {
-                                                                    required: [
-                                                                      "name",
-                                                                    ],
+                                                                    required: ["name"],
                                                                     type: "object",
-                                                                    properties:
-                                                                      {
-                                                                        name: {
-                                                                          $ref: "definitions/name.yaml",
-                                                                        },
-                                                                        level14:
-                                                                          {
-                                                                            required:
-                                                                              [
-                                                                                "name",
-                                                                              ],
+                                                                    properties: {
+                                                                      name: {
+                                                                        $ref: "definitions/name.yaml",
+                                                                      },
+                                                                      level14: {
+                                                                        required: ["name"],
+                                                                        type: "object",
+                                                                        properties: {
+                                                                          name: {
+                                                                            $ref: "definitions/name.yaml",
+                                                                          },
+                                                                          level15: {
+                                                                            required: ["name"],
                                                                             type: "object",
-                                                                            properties:
-                                                                              {
-                                                                                name: {
-                                                                                  $ref: "definitions/name.yaml",
-                                                                                },
-                                                                                level15:
-                                                                                  {
-                                                                                    required:
-                                                                                      [
-                                                                                        "name",
-                                                                                      ],
+                                                                            properties: {
+                                                                              level16: {
+                                                                                required: ["name"],
+                                                                                type: "object",
+                                                                                properties: {
+                                                                                  name: {
+                                                                                    $ref: "definitions/name.yaml",
+                                                                                  },
+                                                                                  level17: {
+                                                                                    required: ["name"],
                                                                                     type: "object",
-                                                                                    properties:
-                                                                                      {
-                                                                                        level16:
-                                                                                          {
-                                                                                            required:
-                                                                                              [
-                                                                                                "name",
-                                                                                              ],
+                                                                                    properties: {
+                                                                                      level18: {
+                                                                                        required: ["name"],
+                                                                                        type: "object",
+                                                                                        properties: {
+                                                                                          level19: {
+                                                                                            required: ["name"],
                                                                                             type: "object",
-                                                                                            properties:
-                                                                                              {
-                                                                                                name: {
-                                                                                                  $ref: "definitions/name.yaml",
-                                                                                                },
-                                                                                                level17:
-                                                                                                  {
-                                                                                                    required:
-                                                                                                      [
-                                                                                                        "name",
-                                                                                                      ],
+                                                                                            properties: {
+                                                                                              level20: {
+                                                                                                required: ["name"],
+                                                                                                type: "object",
+                                                                                                properties: {
+                                                                                                  level21: {
+                                                                                                    required: ["name"],
                                                                                                     type: "object",
-                                                                                                    properties:
-                                                                                                      {
-                                                                                                        level18:
-                                                                                                          {
-                                                                                                            required:
-                                                                                                              [
-                                                                                                                "name",
-                                                                                                              ],
+                                                                                                    properties: {
+                                                                                                      level22: {
+                                                                                                        required: [
+                                                                                                          "name",
+                                                                                                        ],
+                                                                                                        type: "object",
+                                                                                                        properties: {
+                                                                                                          level23: {
+                                                                                                            required: [
+                                                                                                              "name",
+                                                                                                            ],
                                                                                                             type: "object",
                                                                                                             properties:
                                                                                                               {
-                                                                                                                level19:
+                                                                                                                name: {
+                                                                                                                  $ref: "definitions/name.yaml",
+                                                                                                                },
+                                                                                                                level24:
                                                                                                                   {
                                                                                                                     required:
                                                                                                                       [
@@ -148,7 +145,10 @@ module.exports = {
                                                                                                                     type: "object",
                                                                                                                     properties:
                                                                                                                       {
-                                                                                                                        level20:
+                                                                                                                        name: {
+                                                                                                                          $ref: "definitions/name.yaml",
+                                                                                                                        },
+                                                                                                                        level25:
                                                                                                                           {
                                                                                                                             required:
                                                                                                                               [
@@ -157,7 +157,10 @@ module.exports = {
                                                                                                                             type: "object",
                                                                                                                             properties:
                                                                                                                               {
-                                                                                                                                level21:
+                                                                                                                                name: {
+                                                                                                                                  $ref: "definitions/name.yaml",
+                                                                                                                                },
+                                                                                                                                level26:
                                                                                                                                   {
                                                                                                                                     required:
                                                                                                                                       [
@@ -166,7 +169,7 @@ module.exports = {
                                                                                                                                     type: "object",
                                                                                                                                     properties:
                                                                                                                                       {
-                                                                                                                                        level22:
+                                                                                                                                        level27:
                                                                                                                                           {
                                                                                                                                             required:
                                                                                                                                               [
@@ -175,7 +178,7 @@ module.exports = {
                                                                                                                                             type: "object",
                                                                                                                                             properties:
                                                                                                                                               {
-                                                                                                                                                level23:
+                                                                                                                                                level28:
                                                                                                                                                   {
                                                                                                                                                     required:
                                                                                                                                                       [
@@ -184,10 +187,7 @@ module.exports = {
                                                                                                                                                     type: "object",
                                                                                                                                                     properties:
                                                                                                                                                       {
-                                                                                                                                                        name: {
-                                                                                                                                                          $ref: "definitions/name.yaml",
-                                                                                                                                                        },
-                                                                                                                                                        level24:
+                                                                                                                                                        level29:
                                                                                                                                                           {
                                                                                                                                                             required:
                                                                                                                                                               [
@@ -196,85 +196,18 @@ module.exports = {
                                                                                                                                                             type: "object",
                                                                                                                                                             properties:
                                                                                                                                                               {
+                                                                                                                                                                level30:
+                                                                                                                                                                  {
+                                                                                                                                                                    $ref: "#/paths/~1family-tree/get/responses/200/schema",
+                                                                                                                                                                  },
                                                                                                                                                                 name: {
                                                                                                                                                                   $ref: "definitions/name.yaml",
                                                                                                                                                                 },
-                                                                                                                                                                level25:
-                                                                                                                                                                  {
-                                                                                                                                                                    required:
-                                                                                                                                                                      [
-                                                                                                                                                                        "name",
-                                                                                                                                                                      ],
-                                                                                                                                                                    type: "object",
-                                                                                                                                                                    properties:
-                                                                                                                                                                      {
-                                                                                                                                                                        name: {
-                                                                                                                                                                          $ref: "definitions/name.yaml",
-                                                                                                                                                                        },
-                                                                                                                                                                        level26:
-                                                                                                                                                                          {
-                                                                                                                                                                            required:
-                                                                                                                                                                              [
-                                                                                                                                                                                "name",
-                                                                                                                                                                              ],
-                                                                                                                                                                            type: "object",
-                                                                                                                                                                            properties:
-                                                                                                                                                                              {
-                                                                                                                                                                                level27:
-                                                                                                                                                                                  {
-                                                                                                                                                                                    required:
-                                                                                                                                                                                      [
-                                                                                                                                                                                        "name",
-                                                                                                                                                                                      ],
-                                                                                                                                                                                    type: "object",
-                                                                                                                                                                                    properties:
-                                                                                                                                                                                      {
-                                                                                                                                                                                        level28:
-                                                                                                                                                                                          {
-                                                                                                                                                                                            required:
-                                                                                                                                                                                              [
-                                                                                                                                                                                                "name",
-                                                                                                                                                                                              ],
-                                                                                                                                                                                            type: "object",
-                                                                                                                                                                                            properties:
-                                                                                                                                                                                              {
-                                                                                                                                                                                                level29:
-                                                                                                                                                                                                  {
-                                                                                                                                                                                                    required:
-                                                                                                                                                                                                      [
-                                                                                                                                                                                                        "name",
-                                                                                                                                                                                                      ],
-                                                                                                                                                                                                    type: "object",
-                                                                                                                                                                                                    properties:
-                                                                                                                                                                                                      {
-                                                                                                                                                                                                        level30:
-                                                                                                                                                                                                          {
-                                                                                                                                                                                                            $ref: "#/paths/~1family-tree/get/responses/200/schema",
-                                                                                                                                                                                                          },
-                                                                                                                                                                                                        name: {
-                                                                                                                                                                                                          $ref: "definitions/name.yaml",
-                                                                                                                                                                                                        },
-                                                                                                                                                                                                      },
-                                                                                                                                                                                                  },
-                                                                                                                                                                                                name: {
-                                                                                                                                                                                                  $ref: "definitions/name.yaml",
-                                                                                                                                                                                                },
-                                                                                                                                                                                              },
-                                                                                                                                                                                          },
-                                                                                                                                                                                        name: {
-                                                                                                                                                                                          $ref: "definitions/name.yaml",
-                                                                                                                                                                                        },
-                                                                                                                                                                                      },
-                                                                                                                                                                                  },
-                                                                                                                                                                                name: {
-                                                                                                                                                                                  $ref: "definitions/name.yaml",
-                                                                                                                                                                                },
-                                                                                                                                                                              },
-                                                                                                                                                                          },
-                                                                                                                                                                      },
-                                                                                                                                                                  },
                                                                                                                                                               },
                                                                                                                                                           },
+                                                                                                                                                        name: {
+                                                                                                                                                          $ref: "definitions/name.yaml",
+                                                                                                                                                        },
                                                                                                                                                       },
                                                                                                                                                   },
                                                                                                                                                 name: {
@@ -287,36 +220,52 @@ module.exports = {
                                                                                                                                         },
                                                                                                                                       },
                                                                                                                                   },
-                                                                                                                                name: {
-                                                                                                                                  $ref: "definitions/name.yaml",
-                                                                                                                                },
                                                                                                                               },
                                                                                                                           },
-                                                                                                                        name: {
-                                                                                                                          $ref: "definitions/name.yaml",
-                                                                                                                        },
                                                                                                                       },
                                                                                                                   },
-                                                                                                                name: {
-                                                                                                                  $ref: "definitions/name.yaml",
-                                                                                                                },
                                                                                                               },
                                                                                                           },
-                                                                                                        name: {
-                                                                                                          $ref: "definitions/name.yaml",
+                                                                                                          name: {
+                                                                                                            $ref: "definitions/name.yaml",
+                                                                                                          },
                                                                                                         },
                                                                                                       },
+                                                                                                      name: {
+                                                                                                        $ref: "definitions/name.yaml",
+                                                                                                      },
+                                                                                                    },
                                                                                                   },
+                                                                                                  name: {
+                                                                                                    $ref: "definitions/name.yaml",
+                                                                                                  },
+                                                                                                },
                                                                                               },
+                                                                                              name: {
+                                                                                                $ref: "definitions/name.yaml",
+                                                                                              },
+                                                                                            },
                                                                                           },
-                                                                                        name: {
-                                                                                          $ref: "definitions/name.yaml",
+                                                                                          name: {
+                                                                                            $ref: "definitions/name.yaml",
+                                                                                          },
                                                                                         },
                                                                                       },
+                                                                                      name: {
+                                                                                        $ref: "definitions/name.yaml",
+                                                                                      },
+                                                                                    },
                                                                                   },
+                                                                                },
                                                                               },
+                                                                              name: {
+                                                                                $ref: "definitions/name.yaml",
+                                                                              },
+                                                                            },
                                                                           },
+                                                                        },
                                                                       },
+                                                                    },
                                                                   },
                                                                   name: {
                                                                     $ref: "definitions/name.yaml",
@@ -388,10 +337,7 @@ module.exports = {
     properties: {
       middle: {
         type: "string",
-        enum: [
-          { $ref: "#/properties/first/type" },
-          { $ref: "#/properties/last/title" },
-        ],
+        enum: [{ $ref: "#/properties/first/type" }, { $ref: "#/properties/last/title" }],
       },
       prefix: {
         minLength: 3,
