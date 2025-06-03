@@ -42,24 +42,24 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
       file: "invalid-param-location.yaml",
     },
     {
-      name: "\"file\" type used for non-formData param",
+      name: '"file" type used for non-formData param',
       valid: false,
       file: "file-header-param.yaml",
     },
     {
-      name: "\"file\" type used for body param",
+      name: '"file" type used for body param',
       valid: false,
       file: "file-body-param.yaml",
       error:
         "Validation failed. /paths/users/{username}/profile/image/post/parameters/image has an invalid type (file)",
     },
     {
-      name: "\"multi\" header param",
+      name: '"multi" header param',
       valid: false,
       file: "multi-header-param.yaml",
     },
     {
-      name: "\"multi\" path param",
+      name: '"multi" path param',
       valid: false,
       file: "multi-path-param.yaml",
     },
@@ -89,23 +89,23 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
       file: "ref-to-invalid-path.yaml",
     },
     {
-      name: "Schema with \"allOf\"",
+      name: 'Schema with "allOf"',
       valid: true,
       file: "allof.yaml",
     },
     {
-      name: "Schema with \"anyOf\"",
+      name: 'Schema with "anyOf"',
       valid: false,
       file: "anyof.yaml",
     },
     {
-      name: "Schema with \"oneOf\"",
+      name: 'Schema with "oneOf"',
       valid: false,
       file: "oneof.yaml",
     },
   ];
 
-  it("should pass validation if \"options.validate.schema\" is false", async () => {
+  it('should pass validation if "options.validate.schema" is false', async () => {
     let invalid = tests[0];
     expect(invalid.valid).to.equal(false);
 

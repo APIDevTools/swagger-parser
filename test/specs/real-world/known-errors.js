@@ -128,12 +128,12 @@ function getKnownApiErrors() {
     },
     {
       api: "github.com",
-      error: "Token \"0\" does not exist",
+      error: 'Token "0" does not exist',
       whatToDo: "ignore",
     },
     {
       api: "github.com",
-      error: "Token \"expires_at\" does not exist",
+      error: 'Token "expires_at" does not exist',
       whatToDo: "ignore",
     },
 
@@ -169,7 +169,7 @@ function getKnownApiErrors() {
 
     {
       api: "personio.de",
-      error: "Token \"comment\" does not exist",
+      error: 'Token "comment" does not exist',
       whatToDo: "ignore",
     },
 
@@ -182,12 +182,12 @@ function getKnownApiErrors() {
 
     {
       api: "rebilly.com",
-      error: "Token \"feature\" does not exist",
+      error: 'Token "feature" does not exist',
       whatToDo: "ignore",
     },
     {
       api: "statsocial.com",
-      error: "Token \"18_24\" does not exist",
+      error: 'Token "18_24" does not exist',
       whatToDo: "ignore",
     },
     {
@@ -215,7 +215,7 @@ function getKnownApiErrors() {
     },
     {
       api: "viator.com",
-      error: "Token \"pas\" does not exist",
+      error: 'Token "pas" does not exist',
       whatToDo: "ignore",
     },
     {

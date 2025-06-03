@@ -52,7 +52,7 @@ describe("Invalid APIs (can't be parsed)", () => {
       helper.shouldNotGetCalled();
     } catch (err) {
       expect(err).to.be.an.instanceOf(SyntaxError);
-      expect(err.message).to.equal("Swagger version number must be a string (e.g. \"2.0\") not a number.");
+      expect(err.message).to.equal('Swagger version number must be a string (e.g. "2.0") not a number.');
     }
   });
 
@@ -62,7 +62,7 @@ describe("Invalid APIs (can't be parsed)", () => {
       helper.shouldNotGetCalled();
     } catch (err) {
       expect(err).to.be.an.instanceOf(SyntaxError);
-      expect(err.message).to.equal("API version number must be a string (e.g. \"1.0.0\") not a number.");
+      expect(err.message).to.equal('API version number must be a string (e.g. "1.0.0") not a number.');
     }
   });
 });

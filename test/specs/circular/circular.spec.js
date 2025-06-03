@@ -56,7 +56,7 @@ describe("API with circular (recursive) $refs", () => {
     expect(api.definitions.child.properties.parents.items).to.equal(api.definitions.parent);
   });
 
-  it("should not dereference circular $refs if \"options.dereference.circular\" is \"ignore\"", async () => {
+  it('should not dereference circular $refs if "options.dereference.circular" is "ignore"', async () => {
     let parser = new SwaggerParser();
     const api = await parser.validate(path.rel("specs/circular/circular.yaml"), {
       dereference: { circular: "ignore" },
@@ -67,7 +67,7 @@ describe("API with circular (recursive) $refs", () => {
     expect(api.paths["/pet"].get.responses["200"].schema).to.equal(api.definitions.pet);
   });
 
-  it("should fail validation if \"options.dereference.circular\" is false", async () => {
+  it('should fail validation if "options.dereference.circular" is false', async () => {
     let parser = new SwaggerParser();
 
     try {

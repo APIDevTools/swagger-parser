@@ -76,7 +76,7 @@ module.exports = {
 
   text: "Hello\nWorld\n",
 
-  html: "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\">\n    <style>\n        html {\n            color: #888;\n            font-family: sans-serif;\n            height: 100%;\n            width: 100%;\n        }\n    </style>\n</head>\n<body>\n    <h1>Hello World</h1>\n</body>\n</html>\n",
+  html: '<!doctype html>\n<html lang="en">\n<head>\n    <meta charset="utf-8">\n    <style>\n        html {\n            color: #888;\n            font-family: sans-serif;\n            height: 100%;\n            width: 100%;\n        }\n    </style>\n</head>\n<body>\n    <h1>Hello World</h1>\n</body>\n</html>\n',
 
   binary: {
     type: "Buffer",

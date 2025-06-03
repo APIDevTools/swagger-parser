@@ -80,7 +80,7 @@ function filesystemPathHelpers() {
  */
 function urlPathHelpers() {
   // Get the URL of the "test" directory
-  let filename = document.querySelector("script[src*=\"/fixtures/\"]").src;
+  let filename = document.querySelector('script[src*="/fixtures/"]').src;
   let testsDir = filename.substr(0, filename.indexOf("/fixtures/")) + "/";
 
   /**
