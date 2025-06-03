@@ -51,26 +51,26 @@
   "devDependencies": {
     "@jsdevtools/host-environment": "^2.1.2",
     "@jsdevtools/version-bump-prompt": "^6.1.0",
-    "@types/node": "^22.7.5",
-    "chai": "^4",
+    "@types/node": "^22.15.29",
+    "chai": "^5",
     "cross-env": "^7.0.3",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.25.5",
     "esbuild-plugin-polyfill-node": "^0.3.0",
-    "eslint": "^8",
-    "eslint-plugin-jsdoc": "^50.3.1",
+    "eslint": "^9",
+    "eslint-plugin-jsdoc": "^50.7.1",
     "js-yaml": "^4.1.0",
-    "mocha": "^10.7.3",
-    "node-fetch": "^2",
+    "mocha": "^11.5.0",
+    "node-fetch": "^3",
     "npm-check": "^6.0.1",
     "nyc": "^17.1.0",
     "openapi-types": "^12.1.3",
-    "sass": "^1.79.4",
-    "shx": "^0.3.4",
-    "sinon": "^19.0.2",
-    "typescript": "^5.6.3"
+    "sass": "^1.89.1",
+    "shx": "^0.4.0",
+    "sinon": "^20.0.0",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "11.7.2",
+    "@apidevtools/json-schema-ref-parser": "13.0.0",
     "@apidevtools/openapi-schemas": "^2.1.0",
     "@apidevtools/swagger-methods": "^3.0.2",
     "@jsdevtools/ono": "^7.1.3",
@@ -80,5 +80,6 @@
   },
   "peerDependencies": {
     "openapi-types": ">=7"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
