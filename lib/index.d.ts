@@ -435,6 +435,12 @@ declare namespace SwaggerParser {
       external?: boolean;
       file?: Partial<ResolverOptions> | boolean;
       http?: HTTPResolverOptions | boolean;
+    } & {
+      [key: string]:
+        | Partial<ResolverOptions>
+        | HTTPResolverOptions
+        | boolean
+        | undefined;
     };
 
     /**
