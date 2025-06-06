@@ -53,7 +53,7 @@
     "@eslint/compat": "^1.2.9",
     "@eslint/js": "^9.28.0",
     "@jsdevtools/host-environment": "^2.1.2",
-    "@types/node": "^22.15.29",
+    "@types/node": "^22.15.30",
     "chai": "^5",
     "cross-env": "^7.0.3",
     "esbuild": "^0.25.5",
@@ -74,7 +74,7 @@
     "typescript-eslint": "^8.33.1"
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "13.0.1",
+    "@apidevtools/json-schema-ref-parser": "13.0.2",
     "@apidevtools/openapi-schemas": "^2.1.0",
     "@apidevtools/swagger-methods": "^3.0.2",
     "ajv": "^8.17.1",

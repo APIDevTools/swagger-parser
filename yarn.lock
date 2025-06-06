@@ -15,13 +15,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apidevtools/json-schema-ref-parser@npm:13.0.1":
-  version: 13.0.1
-  resolution: "@apidevtools/json-schema-ref-parser@npm:13.0.1"
+"@apidevtools/json-schema-ref-parser@npm:13.0.2":
+  version: 13.0.2
+  resolution: "@apidevtools/json-schema-ref-parser@npm:13.0.2"
   dependencies:
     "@types/json-schema": "npm:^7.0.15"
     js-yaml: "npm:^4.1.0"
-  checksum: 10c0/c1dcf0a54abec679489bf09d380f5ec70f0123b50b63876748eeae503ad173068f85b00f0b50a566734669d2452e79591372f4b07338f4115027e3580ccb0ebb
+  checksum: 10c0/03d5811a358b31e5fb7488625a873d36be1facc7c1ce327569a1de63faa9747173386ee9689bcf76af5e0248476719aaab96faa495fd3ced1ce4d825133b92a4
   languageName: node
   linkType: hard
 
@@ -43,13 +43,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@apidevtools/swagger-parser@workspace:."
   dependencies:
-    "@apidevtools/json-schema-ref-parser": "npm:13.0.1"
+    "@apidevtools/json-schema-ref-parser": "npm:13.0.2"
     "@apidevtools/openapi-schemas": "npm:^2.1.0"
     "@apidevtools/swagger-methods": "npm:^3.0.2"
     "@eslint/compat": "npm:^1.2.9"
     "@eslint/js": "npm:^9.28.0"
     "@jsdevtools/host-environment": "npm:^2.1.2"
-    "@types/node": "npm:^22.15.29"
+    "@types/node": "npm:^22.15.30"
     ajv: "npm:^8.17.1"
     ajv-draft-04: "npm:^1.0.0"
     call-me-maybe: "npm:^1.0.2"
@@ -722,12 +722,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^22.15.29":
-  version: 22.15.29
-  resolution: "@types/node@npm:22.15.29"
+"@types/node@npm:^22.15.30":
+  version: 22.15.30
+  resolution: "@types/node@npm:22.15.30"
   dependencies:
     undici-types: "npm:~6.21.0"
-  checksum: 10c0/602cc88c6150780cd9b5b44604754e0ce13983ae876a538861d6ecfb1511dff289e5576fffd26c841cde2142418d4bb76e2a72a382b81c04557ccb17cff29e1d
+  checksum: 10c0/ca330ac0e7fd502686d6df115fcc606aba46fd334220f749bbba2f639accdadcb23f7900603ceccdc8240be736739cad5c0b87c0fa92c9255a4dff245f07d664
   languageName: node
   linkType: hard
 
