@@ -94,6 +94,11 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
       file: "allof.yaml",
     },
     {
+      name: "OpenAPI 3.2 document",
+      valid: true,
+      file: "openapi-3.2.yaml",
+    },
+    {
       name: 'Schema with "anyOf"',
       valid: false,
       file: "anyof.yaml",
