@@ -15,12 +15,12 @@
 
 - Parses Swagger specs in **JSON** or **YAML** format
 - Validates against the [Swagger 2.0 schema](https://github.com/OAI/OpenAPI-Specification/blob/master/schemas/v2.0/schema.json) or [OpenAPI 3.0 Schema](https://github.com/OAI/OpenAPI-Specification/blob/master/schemas/v3.0/schema.json)
-- [Resolves](https://apidevtools.com/swagger-parser/docs/swagger-parser.html#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
-- Can [bundle](https://apidevtools.com/swagger-parser/docs/swagger-parser.html#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
-- Can [dereference](https://apidevtools.com/swagger-parser/docs/swagger-parser.html#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
+- [Resolves](docs/swagger-parser.md#resolveapi-options-callback) all `$ref` pointers, including external files and URLs
+- Can [bundle](docs/swagger-parser.md#bundleapi-options-callback) all your Swagger files into a single file that only has _internal_ `$ref` pointers
+- Can [dereference](docs/swagger-parser.md#dereferenceapi-options-callback) all `$ref` pointers, giving you a normal JavaScript object that's easy to work with
 - **[Tested](https://github.com/APIDevTools/swagger-parser/actions)** in Node.js and all modern web browsers on Mac, Windows, and Linux
 - Tested on **[over 1,500 real-world APIs](https://apis.guru/browse-apis/)** from Google, Microsoft, Facebook, Spotify, etc.
-- Supports [circular references](https://apidevtools.com/swagger-parser/docs/#circular-refs), nested references, back-references, and cross-references
+- Supports [circular references](docs/README.md#circular-refs), nested references, back-references, and cross-references
 - Maintains object reference equality &mdash; `$ref` pointers to the same value always resolve to the same object instance
 
 ## Related Projects
@@ -51,7 +51,7 @@ try {
 }
 ```
 
-For more detailed examples, please see the [API Documentation](https://apidevtools.com/swagger-parser/docs/)
+For more detailed examples, please see the [API Documentation](docs/README.md).
 
 ## Installation
 
@@ -83,7 +83,7 @@ To use Swagger Parser in a browser, you'll need to use a bundling tool such as [
 
 ## API Documentation
 
-Full API documentation is available [right here](https://apidevtools.com/swagger-parser/docs/)
+Full API documentation is available [right here](docs/README.md).
 
 ## Security
 
