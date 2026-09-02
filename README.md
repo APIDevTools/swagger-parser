@@ -61,6 +61,8 @@ Install using [npm](https://docs.npmjs.com/about-npm/):
 npm install @apidevtools/swagger-parser
 ```
 
+Node.js 20.19 or later in the Node.js 20 release line, or Node.js 22.12 and later, is required.
+
 ## Usage
 
 When using Swagger Parser in Node.js apps, you'll probably want to use **CommonJS** syntax:

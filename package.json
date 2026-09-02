@@ -39,6 +39,9 @@
   "files": [
     "lib"
   ],
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "scripts": {
     "clean": "rimraf .nyc_output coverage",
     "lint": "eslint lib test",
@@ -74,9 +77,10 @@
     "typescript-eslint": "^8.34.1"
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "14.0.1",
+    "@apidevtools/json-schema-ref-parser": "15.3.6",
     "@apidevtools/openapi-schemas": "^2.1.0",
     "@apidevtools/swagger-methods": "^3.0.2",
+    "@types/json-schema": "^7.0.15",
     "ajv": "^8.17.1",
     "ajv-draft-04": "^1.0.0",
     "call-me-maybe": "^1.0.2"
