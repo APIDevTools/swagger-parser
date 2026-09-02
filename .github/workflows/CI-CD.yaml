@@ -71,6 +71,9 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
+      id-token: write
     needs:
       - node_tests
 
@@ -79,6 +82,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: latest
+          registry-url: https://registry.npmjs.org
           cache: "yarn"
       - run: yarn install --immutable
 
@@ -86,3 +90,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
