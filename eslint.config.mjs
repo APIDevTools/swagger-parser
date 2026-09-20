@@ -20,7 +20,7 @@ export default tseslint.config([
   {
     extends: [
       {
-        ignores: ["dist/**", "bin/**", "docs/**", ".yarn/**"],
+        ignores: ["dist/**", "bin/**", "docs/**"],
       },
       prettierExtends,
       eslint.configs.recommended,
@@ -59,5 +59,5 @@ export default tseslint.config([
       },
     },
   },
-  globalIgnores([".yarn/", ".expo/", ".idea/", "android/", "ios/"]),
+  globalIgnores([".expo/", ".idea/", "android/", "ios/"]),
 ]);

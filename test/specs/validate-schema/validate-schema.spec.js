@@ -122,7 +122,7 @@ describe("Invalid APIs (Swagger 2.0 schema validation)", () => {
           const api = await SwaggerParser.validate(path.rel("specs/validate-schema/valid/" + test.file));
           expect(api).to.be.an("object");
         } catch (err) {
-          throw new Error("Validation should have succeeded, but it failed!\n" + err.stack);
+          throw new Error("Validation should have succeeded, but it failed!\n" + err.stack, { cause: err });
         }
       });
     } else {

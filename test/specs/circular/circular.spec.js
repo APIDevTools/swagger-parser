@@ -40,6 +40,8 @@ describe("API with circular (recursive) $refs", () => {
     expect(api).to.equal(parser.api);
     expect(api).to.deep.equal(dereferencedAPI);
     // Reference equality
+    expect(api.paths["/thing"].get.responses["200"].schema).to.equal(api.definitions.thing);
+    expect(parser.$refs.get(api.definitions.thing.$ref)).to.equal(api.definitions.thing);
     expect(api.definitions.person.properties.spouse).to.equal(api.definitions.person);
     expect(api.definitions.parent.properties.children.items).to.equal(api.definitions.child);
     expect(api.definitions.child.properties.parents.items).to.equal(api.definitions.parent);
@@ -51,6 +53,8 @@ describe("API with circular (recursive) $refs", () => {
     expect(api).to.equal(parser.api);
     expect(api).to.deep.equal(validatedAPI.fullyDereferenced);
     // Reference equality
+    expect(api.paths["/thing"].get.responses["200"].schema).to.equal(api.definitions.thing);
+    expect(parser.$refs.get(api.definitions.thing.$ref)).to.equal(api.definitions.thing);
     expect(api.definitions.person.properties.spouse).to.equal(api.definitions.person);
     expect(api.definitions.parent.properties.children.items).to.equal(api.definitions.child);
     expect(api.definitions.child.properties.parents.items).to.equal(api.definitions.parent);
@@ -64,6 +68,8 @@ describe("API with circular (recursive) $refs", () => {
     expect(api).to.equal(parser.api);
     expect(api).to.deep.equal(validatedAPI.ignoreCircular$Refs);
     // Reference equality
+    expect(api.paths["/thing"].get.responses["200"].schema).to.equal(api.definitions.thing);
+    expect(parser.$refs.get(api.definitions.thing.$ref)).to.equal(api.definitions.thing);
     expect(api.paths["/pet"].get.responses["200"].schema).to.equal(api.definitions.pet);
   });
 

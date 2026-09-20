@@ -40,53 +40,55 @@
     "lib"
   ],
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": ">=22.19.0"
   },
   "scripts": {
     "clean": "rimraf .nyc_output coverage",
     "lint": "eslint lib test",
     "lint:fix": "eslint --fix lib test",
-    "test": "npm run test:node && npm run test:typescript",
+    "test": "pnpm run test:node && pnpm run test:typescript",
     "test:node": "mocha",
-    "test:typescript": "tsc --noEmit --strict --skipDefaultLibCheck --skipLibCheck --lib esnext,dom test/specs/typescript-definition.spec.ts",
-    "coverage": "npm run coverage:node",
+    "test:typescript": "tsc --noEmit --strict --skipDefaultLibCheck --skipLibCheck --lib esnext,dom --types node --module commonjs test/specs/typescript-definition.spec.ts",
+    "coverage": "pnpm run coverage:node",
     "coverage:node": "cross-env QUICK_TEST=true nyc mocha"
   },
   "devDependencies": {
-    "@eslint/compat": "^1.3.0",
-    "@eslint/js": "^9.29.0",
+    "@eslint/compat": "^2.1.1",
+    "@eslint/js": "^10.0.1",
     "@jsdevtools/host-environment": "^2.1.2",
-    "@types/node": "^24.0.3",
-    "chai": "^5",
-    "cross-env": "^7.0.3",
-    "esbuild": "^0.25.5",
+    "@types/node": "^26.6.2",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "chai": "^6.2.2",
+    "cross-env": "^10.1.0",
+    "esbuild": "^0.28.2",
     "esbuild-plugin-polyfill-node": "^0.3.0",
-    "eslint": "^9.29.0",
-    "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-jsdoc": "^51.0.1",
-    "eslint-plugin-prettier": "^5.4.1",
-    "eslint-plugin-unused-imports": "^4.1.4",
-    "globals": "^16.2.0",
-    "js-yaml": "^4.1.0",
-    "mocha": "^11.6.0",
-    "nyc": "^17.1.0",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsdoc": "^64.5.4",
+    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "globals": "^17.12.0",
+    "js-yaml": "^5.4.2",
+    "mocha": "^12.0.2",
+    "nyc": "^18.0.0",
     "openapi-types": "^12.1.3",
-    "prettier": "^3.5.3",
-    "rimraf": "^6.0.1",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.34.1"
+    "prettier": "^3.9.8",
+    "rimraf": "^6.1.3",
+    "semantic-release": "^25.0.9",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.70.0"
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "15.3.6",
+    "@apidevtools/json-schema-ref-parser": "^16.0.3",
     "@apidevtools/openapi-schemas": "^2.1.0",
     "@apidevtools/swagger-methods": "^3.0.2",
     "@types/json-schema": "^7.0.15",
-    "ajv": "^8.17.1",
+    "ajv": "^8.20.0",
     "ajv-draft-04": "^1.0.0",
     "call-me-maybe": "^1.0.2"
   },
   "peerDependencies": {
     "openapi-types": ">=7"
   },
-  "packageManager": "yarn@4.9.1"
+  "packageManager": "pnpm@12.5.1"
 }

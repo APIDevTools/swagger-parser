@@ -1,6 +1,6 @@
-import * as assert from "assert";
+import assert = require("assert");
 import type { OpenAPI } from "openapi-types";
-import * as SwaggerParser from "../../lib";
+import SwaggerParser = require("../../lib");
 
 const baseUrl = "http://example.com/api";
 const openapiPath = "my-api.json";

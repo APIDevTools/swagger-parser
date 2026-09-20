@@ -1,0 +1,4 @@
+allowBuilds:
+  esbuild: true
+minimumReleaseAgeExclude:
+  - "@apidevtools/json-schema-ref-parser@16.0.3"

@@ -61,7 +61,7 @@ Install using [npm](https://docs.npmjs.com/about-npm/):
 npm install @apidevtools/swagger-parser
 ```
 
-Node.js 20.19 or later in the Node.js 20 release line, or Node.js 22.12 and later, is required.
+Node.js 22.19 or later is required.
 
 ## Usage
 
@@ -95,19 +95,21 @@ The library, by default, attempts to resolve any files referenced using `$ref`, 
 
 I welcome any contributions, enhancements, and bug-fixes. [Open an issue](https://github.com/APIDevTools/swagger-parser/issues) on GitHub and [submit a pull request](https://github.com/APIDevTools/swagger-parser/pulls).
 
+Use the current Node.js LTS release for development. TypeScript tests use the TypeScript 7 compiler, while ESLint uses the TypeScript 6 compatibility API via [Microsoft's recommended package aliases](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6-0).
+
 To test the project locally on your computer:
 
 1. **Clone this repo**<br>
    `git clone https://github.com/APIDevTools/swagger-parser.git`
 
 2. **Install dependencies**<br>
-   `npm install`
+   `pnpm install`
 
 3. **Run the tests**<br>
-   `npm test`
+   `pnpm test`
 
 4. **Check the code coverage**<br>
-   `npm run coverage`
+   `pnpm run coverage`
 
 ## License
 

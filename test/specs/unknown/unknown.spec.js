@@ -9,13 +9,12 @@ const parsedAPI = require("./parsed");
 const dereferencedAPI = require("./dereferenced");
 
 describe("API with $refs to unknown file types", () => {
-  let windowOnError, testDone;
+  let windowOnError;
 
   beforeEach(() => {
     // Some old Webkit browsers throw an error when downloading zero-byte files.
     windowOnError = host.global.onerror;
     host.global.onerror = function () {
-      testDone();
       return true;
     };
   });
