@@ -1,0 +1,38 @@
+openapi: "3.2.0"
+info:
+  title: OpenAPI 3.2 test
+  version: "1.0.0"
+tags:
+  - name: products
+    summary: Products
+    kind: nav
+components:
+  mediaTypes:
+    EventStream:
+      itemSchema:
+        type: string
+  securitySchemes:
+    oauth:
+      type: oauth2
+      oauth2MetadataUrl: https://example.com/.well-known/oauth-authorization-server
+      flows:
+        deviceAuthorization:
+          deviceAuthorizationUrl: https://example.com/oauth/device
+          tokenUrl: https://example.com/oauth/token
+          scopes: {}
+paths:
+  /events:
+    query:
+      responses:
+        "200":
+          description: ok
+          summary: success
+          content:
+            application/jsonl:
+              itemSchema:
+                type: string
+    additionalOperations:
+      COPY:
+        responses:
+          "200":
+            description: copied
