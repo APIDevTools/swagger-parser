@@ -65,4 +65,18 @@ describe("Invalid APIs (can't be parsed)", () => {
       expect(err.message).to.equal('API version number must be a string (e.g. "1.0.0") not a number.');
     }
   });
+
+  it("supports OpenAPI 3.2 parsing", async () => {
+    const api = await SwaggerParser.parse({
+      openapi: "3.2.0",
+      info: {
+        title: "Test API",
+        version: "1.0.0",
+      },
+      paths: {},
+    });
+
+    expect(api).to.be.an("object");
+    expect(api.openapi).to.equal("3.2.0");
+  });
 });
